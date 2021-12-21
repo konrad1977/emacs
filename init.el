@@ -3,10 +3,13 @@
 
 (scroll-bar-mode -1)        ; Disable visible scrollbar
 (tool-bar-mode -1)          ; Disable the toolbar
-(tooltip-mode -1)           ; Disable tooltips
-(set-fringe-mode 10)        ; Give some breathing room
+(tooltip-mode -1)            ; Disable tooltips
+(set-fringe-mode 10)         ; Give some breathing room
 (menu-bar-mode 1)           ; Disable the menu bar
+(display-time-mode 1)        ; Show time
+(display-battery-mode t)     ; Show battery
 
+(setq display-time-format "%H:%M")
 (setq package-enable-at-startup nil) ; Dont load packages at start up
 
 ;; saving
@@ -118,7 +121,7 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-snazzy t)
+  (load-theme 'doom-palenight t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -131,10 +134,32 @@
   (doom-themes-org-config))
 
 (use-package all-the-icons)
-(use-package spaceline)
-(use-package spaceline-all-the-icons 
-  :after spaceline
-  :config (spaceline-all-the-icons-theme))
+;; (use-package spaceline)
+;; (use-package spaceline-all-the-icons 
+;;   :after spaceline
+;;   :config (spaceline-all-the-icons-theme))
+
+(use-package doom-modeline
+  :hook (after-init . doom-modeline-mode)
+  :custom    
+  (doom-modeline-height 24)
+  (doom-modeline-bar-width 1)
+  (doom-modeline-icon t)
+  (doom-modeline-major-mode-icon t)
+  (doom-modeline-major-mode-color-icon t)
+  (doom-modeline-buffer-file-name-style 'truncate-upto-project)
+  (doom-modeline-buffer-state-icon t)
+  (doom-modeline-buffer-modification-icon t)
+  (doom-modeline-minor-modes nil)
+  (doom-modeline-enable-word-count nil)
+  (doom-modeline-buffer-encoding t)
+  (doom-modeline-indent-info nil)
+  (doom-modeline-checker-simple-format t)
+  (doom-modeline-vcs-max-length 12)
+  (doom-modeline-env-version t)
+  (doom-modeline-irc-stylize 'identity)
+  (doom-modeline-github-timer nil)
+  (doom-modeline-gnus-timer nil))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -152,6 +177,8 @@
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar
   :ensure t)
+  (use-package swift-mode
+    :ensure t) 
   (ns-auto-titlebar-mode))
 
 ; helpful
@@ -160,6 +187,9 @@
 
 ; general
 (use-package general
+  :ensure t)
+;; smex
+(use-package smex
   :ensure t)
 
 (defmacro general-global-menu-definer (def infix-key &rest body)
@@ -185,8 +215,9 @@ The prefix map is named 'my-DEF-map'."
   "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
   "SPC" '(counsel-M-x :which-key "M-x")
   "0" '(treemacs :which-key "Toggle treemacs")
-  "!"   'shell-command
-  ":"   'eval-expression)
+  "s" 'swiper
+  "!" 'shell-command
+  ":" 'eval-expression)
 
 (general-global-menu-definer
  "files" "f"
@@ -195,12 +226,12 @@ The prefix map is named 'my-DEF-map'."
 
 (general-global-menu-definer
  "code" "c"
- "l"  '(comment-line :which-key "Comment line")
- "r"  '(comment-region :which-key "Comment region"))
+ "l" '(comment-line :which-key "Comment line")
+ "r" '(comment-region :which-key "Comment region"))
 
 (general-global-menu-definer
  "quit" "q"
- "q"  'save-buffers-kill-terminal)
+ "q" 'save-buffers-kill-terminal)
 
 (general-global-menu-definer
  "help" "h"
@@ -227,7 +258,7 @@ The prefix map is named 'my-DEF-map'."
  "d" '(kill-current-buffer :which-key "Kill current buffer")
  "p" '(previous-buffer :which-key "Previous buffer")
  "n" '(next-buffer :which-key "Next buffer")
- "M" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
+ "m" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
  "s" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
 ;; restart-emacs
