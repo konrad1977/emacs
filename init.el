@@ -99,6 +99,10 @@
   :config
   (ivy-mode 1))
 
+;; counsel
+(use-package counsel
+  :ensure t)
+
 ;; Ivy rich
 (use-package ivy-rich
   :ensure t
@@ -129,6 +133,9 @@
   (use-package ns-auto-titlebar
   :ensure t)
   (ns-auto-titlebar-mode))
+
+(use-package general
+  :ensure t)
 
 (defmacro general-global-menu-definer (def infix-key &rest body)
   "Create a definer named general-global-DEF wrapping global-definer.
