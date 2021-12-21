@@ -11,6 +11,7 @@
 
 (setq display-time-format "%H:%M")
 (setq package-enable-at-startup nil) ; Dont load packages at start up
+(setq display-time-default-load-average nil) ; Dont show avg load
 
 ;; saving
 (desktop-save-mode 1)
@@ -25,7 +26,8 @@
 (global-display-line-numbers-mode t)
 
 (dolist (mode '(shell-mode-hook
-		term-mode-hook))
+		term-mode-hook
+		treemacs-mode-hook))
 	      (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
 (set-face-attribute 'default nil :font "Source Code Pro" :height 145)
@@ -106,6 +108,10 @@
 (use-package counsel
   :ensure t)
 
+(use-package solaire-mode
+  :ensure t
+  :config (solaire-global-mode 1))
+
 ;; Ivy rich
 (use-package ivy-rich
   :ensure t
@@ -147,7 +153,7 @@
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t)
   (doom-modeline-major-mode-color-icon t)
-  (doom-modeline-buffer-file-name-style 'truncate-upto-project)
+  (doom-modeline-buffer-file-name-style 'truncate-with-project)
   (doom-modeline-buffer-state-icon t)
   (doom-modeline-buffer-modification-icon t)
   (doom-modeline-minor-modes nil)
@@ -274,7 +280,7 @@ The prefix map is named 'my-DEF-map'."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((frameset) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
