@@ -15,7 +15,7 @@
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
 ;; Set up the visible bell
-(setq visible-bell nil)
+(setq visible-bell t)
 
 ;; line-numbers
 (column-number-mode)
@@ -108,9 +108,28 @@
   :ensure t
   :init (ivy-rich-mode 1))
 
+(use-package treemacs
+  :ensure t)
+
 ;; Theming
 (use-package doom-themes
-  :init (load-theme 'doom-snazzy t))
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-snazzy t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
 (use-package all-the-icons)
 (use-package spaceline)
 (use-package spaceline-all-the-icons 
@@ -129,11 +148,17 @@
   (progn
     (add-hook 'after-init-hook 'global-company-mode)))
 
+; On macos change title bar
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar
   :ensure t)
   (ns-auto-titlebar-mode))
 
+; helpful
+(use-package helpful
+  :ensure t)
+
+; general
 (use-package general
   :ensure t)
 
@@ -158,7 +183,8 @@ The prefix map is named 'my-DEF-map'."
 
 (global-definer
   "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
-  "SPC" '(execute-extended-command :which-key "M-x")
+  "SPC" '(counsel-M-x :which-key "M-x")
+  "0" '(treemacs :which-key "Toggle treemacs")
   "!"   'shell-command
   ":"   'eval-expression)
 
@@ -178,8 +204,15 @@ The prefix map is named 'my-DEF-map'."
 
 (general-global-menu-definer
  "help" "h"
- "v" 'describe-variable
- "k" 'describe-key)
+ "c" '(helpful-command :which-key "Describe command")
+ "k" '(helpful-key :which-key "Describe key")
+ "f" '(helpful-callable :which-key "Describe function")
+ "v" '(helpful-variable :which-key "Describe variable")
+ "p" '(helpful-at-point :which-key "Describe at-point")) 
+
+(general-global-menu-definer
+ "packages" "P"
+ "i" '(counsel-package :which-key "Install Package"))
 
 (general-global-menu-definer
  "windows" "w"
@@ -189,7 +222,7 @@ The prefix map is named 'my-DEF-map'."
 
 (general-global-menu-definer
  "buffer" "b"
- "b" '(list-buffers :which-key "List buffers")
+ "b" '(counsel-switch-buffer :which-key "List buffers")
  "x" '(delete-window :which-key "Close buffer/window")
  "d" '(kill-current-buffer :which-key "Kill current buffer")
  "p" '(previous-buffer :which-key "Previous buffer")
