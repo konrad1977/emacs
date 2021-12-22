@@ -1,3 +1,6 @@
+;;; init.el --- My init.el
+
+;;; Code:
 
 (setq inhibit-startup-message t)
 
@@ -36,6 +39,10 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; Initialize package sources
+
+;;; Commentary:
+;; 
+
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -55,7 +62,6 @@
 
 ; Which key
 (use-package which-key
-  :ensure t
   :init (which-key-mode)
   :diminish which-key-mode
   :config
@@ -65,10 +71,14 @@
         which-key-idle-delay 0.05
 	which-key-max-display-columns 2))
 
+(defun custom/evil-hook ()
+  (dolist (mode '(term-mode))
+    (add-to-list 'evil-emacs-state-modes mode)))
+
 ; Use evil mode
 (use-package evil
-  :ensure t
   :init
+  :hook (evil-mode . custom/evil-hook)
   (setq evil-want-integration t)
   (setq evil-want-keybinding t)
   (setq evil-want-C-u-scroll t)
@@ -86,11 +96,10 @@
   (evil-set-initial-state 'dashboard-mode 'normal))
 
 (use-package ivy
-  :ensure t
   :diminish
   :bind (("C-s" . swiper)
          :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)	
+         ("TAB" . ivy-alt-done)
          ("C-l" . ivy-alt-done)
          ("C-j" . ivy-next-line)
          ("C-k" . ivy-previous-line)
@@ -105,24 +114,19 @@
   (ivy-mode 1))
 
 ;; counsel
-(use-package counsel
-  :ensure t)
+(use-package counsel)
 
 (use-package solaire-mode
-  :ensure t
   :config (solaire-global-mode 1))
 
 ;; Ivy rich
 (use-package ivy-rich
-  :ensure t
   :init (ivy-rich-mode 1))
 
-(use-package treemacs
-  :ensure t)
+(use-package treemacs)
 
 ;; Theming
 (use-package doom-themes
-  :ensure t
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -141,13 +145,13 @@
 
 (use-package all-the-icons)
 ;; (use-package spaceline)
-;; (use-package spaceline-all-the-icons 
+;; (use-package spaceline-all-the-icons
 ;;   :after spaceline
 ;;   :config (spaceline-all-the-icons-theme))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
-  :custom    
+  :custom
   (doom-modeline-height 24)
   (doom-modeline-bar-width 1)
   (doom-modeline-icon t)
@@ -169,38 +173,32 @@
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
-  :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; company
 (use-package company
-  :ensure t
   :config
   (progn
     (add-hook 'after-init-hook 'global-company-mode)))
 
 ; On macos change title bar
 (when (eq system-type 'darwin)
-  (use-package ns-auto-titlebar
-  :ensure t)
-  (use-package swift-mode
-    :ensure t) 
+  (use-package ns-auto-titlebar)
+  (use-package swift-mode)
   (ns-auto-titlebar-mode))
 
 ; helpful
-(use-package helpful
-  :ensure t)
+(use-package helpful)
 
 ; general
-(use-package general
-  :ensure t)
+(use-package general)
 ;; smex
-(use-package smex
-  :ensure t)
+(use-package smex)
 
 (defmacro general-global-menu-definer (def infix-key &rest body)
   "Create a definer named general-global-DEF wrapping global-definer.
-The prefix map is named 'my-DEF-map'."
+The prefix map is named 'my-DEF-map'.
+Argument DEF "
   `(progn
      (general-create-definer ,(intern (concat "general-global-" def))
        :wrapping global-definer
@@ -218,22 +216,24 @@ The prefix map is named 'my-DEF-map'."
   :non-normal-prefix "S-SPC")
 
 (global-definer
-  "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
+  "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
   "SPC" '(counsel-M-x :which-key "M-x")
-  "0" '(treemacs :which-key "Toggle treemacs")
+  "0" '(treemacs :which-key "treemacs")
   "s" 'swiper
   "!" 'shell-command
   ":" 'eval-expression)
 
 (general-global-menu-definer
  "files" "f"
- "s" '(save-buffer :which-key "Save file")
- "f" '(find-file :which-key "Find file..."))
+ "s" '(save-buffer :which-key "save file")
+ "f" '(find-file :which-key "find file...")
+ "e" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
 
 (general-global-menu-definer
  "code" "c"
- "l" '(comment-line :which-key "Comment line")
- "r" '(comment-region :which-key "Comment region"))
+ "p" 'check-parens
+ "l" '(comment-line :which-key "comment line")
+ "r" '(comment-region :which-key "comment region"))
 
 (general-global-menu-definer
  "quit" "q"
@@ -241,35 +241,34 @@ The prefix map is named 'my-DEF-map'."
 
 (general-global-menu-definer
  "help" "h"
- "c" '(helpful-command :which-key "Describe command")
- "k" '(helpful-key :which-key "Describe key")
- "f" '(helpful-callable :which-key "Describe function")
- "v" '(helpful-variable :which-key "Describe variable")
- "p" '(helpful-at-point :which-key "Describe at-point")) 
+ "c" '(helpful-command :which-key "describe command")
+ "k" '(helpful-key :which-key "describe key")
+ "f" '(helpful-callable :which-key "describe function")
+ "v" '(helpful-variable :which-key "describe variable")
+ "p" '(helpful-at-point :which-key "describe at-point"))
 
 (general-global-menu-definer
  "packages" "P"
- "i" '(counsel-package :which-key "Install Package"))
+ "i" '(counsel-package :which-key "install Package"))
 
 (general-global-menu-definer
  "windows" "w"
- "x"  '(kill-buffer-and-window :which-key "Kill window")
- "h" '(split-window-below :which-key "Split window horizontally")
- "v" '(split-window-right :which-key "Split window vertically"))
+ "x"  '(kill-buffer-and-window :which-key "kill window")
+ "h" '(split-window-below :which-key "split horizontally")
+ "v" '(split-window-right :which-key "split vertically"))
 
 (general-global-menu-definer
  "buffer" "b"
- "b" '(counsel-switch-buffer :which-key "List buffers")
- "x" '(delete-window :which-key "Close buffer/window")
- "d" '(kill-current-buffer :which-key "Kill current buffer")
- "p" '(previous-buffer :which-key "Previous buffer")
- "n" '(next-buffer :which-key "Next buffer")
+ "b" '(counsel-switch-buffer :which-key "list buffers")
+ "x" '(delete-window :which-key "close buffer")
+ "d" '(kill-current-buffer :which-key "kill current buffer")
+ "p" '(previous-buffer :which-key "previous buffer")
+ "n" '(next-buffer :which-key "next buffer")
  "m" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
  "s" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
 ;; restart-emacs
 (use-package restart-emacs
-  :ensure t
   :general
   (general-global-quit
     "r"    'restart-emacs))
@@ -289,3 +288,7 @@ The prefix map is named 'my-DEF-map'."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(provide 'init)
+
+;;; init.el ends here
