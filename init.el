@@ -2,22 +2,43 @@
 
 ;;; Code:
 
-(setq inhibit-startup-message t)
+(defvar comp-deferred-compilation)
 
-(scroll-bar-mode -1)        ; Disable visible scrollbar
-(tool-bar-mode -1)          ; Disable the toolbar
-(tooltip-mode -1)            ; Disable tooltips
-(set-fringe-mode 10)         ; Give some breathing room
+(setq inhibit-startup-message t
+      comp-deferred-compilation t
+      package-enable-at-startup nil
+      frame-inhibit-implied-resize t
+      site-run-file nil                 
+      scroll-bar-mode nil               ;; disable scrollbar
+      tool-bar-mode nil                 ;; disable toolbars
+      tooltip-mode nil                  ;; Disable tooltip
+      inhibit-compacting-font-caches t
+      set-fringe-mode 10)
+
 (menu-bar-mode 1)           ; Disable the menu bar
 (display-time-mode 1)        ; Show time
 (display-battery-mode t)     ; Show battery
 
+(when (boundp 'read-process-output-max)
+  ;; 1MB in bytes, default 4096 bytes
+  (setq read-process-output-max 1048576))
+
 (setq display-time-format "%H:%M")
-(setq package-enable-at-startup nil) ; Dont load packages at start up
 (setq display-time-default-load-average nil) ; Dont show avg load
+
+;; dont word wrap
+(add-hook 'prog-mode-hook '(lambda ()
+    (setq truncate-lines t
+          word-wrap nil)))
 
 ;; Set yes or no to y/n
 (fset 'yes-or-no-p 'y-or-n-p)
+
+;; always highlight code
+(global-font-lock-mode 1)
+
+;; refresh a buffer if changed on disk
+(global-auto-revert-mode 1)
 
 ;; saving
 (desktop-save-mode 1)
@@ -31,11 +52,12 @@
 (column-number-mode)
 (global-display-line-numbers-mode t)
 
+;; Disable line number for following modes
 (dolist (mode '(shell-mode-hook
 		term-mode-hook
 		vterm-mode-hook
 		treemacs-mode-hook))
-	      (add-hook mode (lambda() (display-line-numbers-mode 0))))
+  (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
 (set-face-attribute 'default nil :font "Source Code Pro" :height 145)
 
@@ -124,7 +146,9 @@
 (use-package ivy-rich
   :init (ivy-rich-mode 1))
 
-(use-package treemacs)
+(use-package treemacs
+  :config
+  (treemacs-toggle-fixed-width nil))
 
 ;; Theming
 (use-package doom-themes
