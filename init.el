@@ -16,6 +16,9 @@
 (setq package-enable-at-startup nil) ; Dont load packages at start up
 (setq display-time-default-load-average nil) ; Dont show avg load
 
+;; Set yes or no to y/n
+(fset 'yes-or-no-p 'y-or-n-p)
+
 ;; saving
 (desktop-save-mode 1)
 (savehist-mode 1)
@@ -30,6 +33,7 @@
 
 (dolist (mode '(shell-mode-hook
 		term-mode-hook
+		vterm-mode-hook
 		treemacs-mode-hook))
 	      (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
@@ -62,6 +66,7 @@
 
 ; Which key
 (use-package which-key
+  :ensure t
   :init (which-key-mode)
   :diminish which-key-mode
   :config
@@ -71,14 +76,10 @@
         which-key-idle-delay 0.05
 	which-key-max-display-columns 2))
 
-(defun custom/evil-hook ()
-  (dolist (mode '(term-mode))
-    (add-to-list 'evil-emacs-state-modes mode)))
-
 ; Use evil mode
 (use-package evil
+  :ensure t
   :init
-  :hook (evil-mode . custom/evil-hook)
   (setq evil-want-integration t)
   (setq evil-want-keybinding t)
   (setq evil-want-C-u-scroll t)
@@ -185,6 +186,8 @@
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar)
   (use-package swift-mode)
+  (use-package exec-path-from-shell)
+  (exec-path-from-shell-initialize)
   (ns-auto-titlebar-mode))
 
 ; helpful
@@ -194,6 +197,41 @@
 (use-package general)
 ;; smex
 (use-package smex)
+
+(use-package vterm)
+
+(defun my-vterm/split-horizontal ()
+  "Create a new vterm window to the right of the current one."
+  (interactive)
+  (let* ((ignore-window-parameters t)
+         (dedicated-p (window-dedicated-p)))
+    (split-window-vertically)
+    (other-window 1)
+    (vterm default-directory)))
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom
+    (projectile-project-root-files-functions
+     '(projectile-root-local
+       projectile-root-top-down
+       projectile-root-bottom-up
+       projectile-root-top-down-recurring))
+    ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/Documents/git")
+    (setq projectile-project-search-path '("~/Documents/git")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :after projectile
+  :config (counsel-projectile-mode))
+
+(recentf-mode t)
 
 (defmacro general-global-menu-definer (def infix-key &rest body)
   "Create a definer named general-global-DEF wrapping global-definer.
@@ -220,6 +258,7 @@ Argument DEF "
   "SPC" '(counsel-M-x :which-key "M-x")
   "0" '(treemacs :which-key "treemacs")
   "s" 'swiper
+  "'" 'my-vterm/split-horizontal
   "!" 'shell-command
   ":" 'eval-expression)
 
@@ -232,6 +271,7 @@ Argument DEF "
 (general-global-menu-definer
  "code" "c"
  "p" 'check-parens
+ "o" 'projectile-find-other-file
  "l" '(comment-line :which-key "comment line")
  "r" '(comment-region :which-key "comment region"))
 
@@ -253,9 +293,14 @@ Argument DEF "
 
 (general-global-menu-definer
  "windows" "w"
- "x"  '(kill-buffer-and-window :which-key "kill window")
+ "x" '(kill-buffer-and-window :which-key "kill window")
  "h" '(split-window-below :which-key "split horizontally")
  "v" '(split-window-right :which-key "split vertically"))
+
+(general-global-menu-definer
+ "projects" "p"
+ "r" '(projectile-recentf :which-key "list recent files")
+ "f" '(projectile-find-file :which-key "find file"))
 
 (general-global-menu-definer
  "buffer" "b"
@@ -280,7 +325,7 @@ Argument DEF "
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    '(solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
- '(warning-suppress-log-types '((frameset) (frameset) (use-package) (use-package)))
+ '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
