@@ -88,7 +88,6 @@
 
 ; Which key
 (use-package which-key
-  :ensure t
   :init (which-key-mode)
   :diminish which-key-mode
   :config
@@ -97,15 +96,13 @@
         which-key-side-window-max-width 0.33
         which-key-idle-delay 0.05
 	which-key-max-display-columns 2))
-
 ; Use evil mode
 (use-package evil
-  :ensure t
   :init
   (setq evil-want-integration t)
-  (setq evil-want-keybinding t)
+  (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump t)
+  (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -116,7 +113,13 @@
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
+  (evil-set-initial-state 'dashboard-mode 'normal)
+  (evil-set-initial-state 'vterm-mode 'normal))
+
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 
 (use-package ivy
   :diminish
@@ -169,10 +172,6 @@
   (doom-themes-org-config))
 
 (use-package all-the-icons)
-;; (use-package spaceline)
-;; (use-package spaceline-all-the-icons
-;;   :after spaceline
-;;   :config (spaceline-all-the-icons-theme))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -282,7 +281,7 @@ Argument DEF "
   "SPC" '(counsel-M-x :which-key "M-x")
   "0" '(treemacs :which-key "treemacs")
   "s" 'swiper
-  "'" 'my-vterm/split-horizontal
+  "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
   "!" 'shell-command
   ":" 'eval-expression)
 
@@ -291,10 +290,10 @@ Argument DEF "
  "s" '(save-buffer :which-key "save file")
  "f" '(find-file :which-key "find file...")
  "e" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
-
+ 
 (general-global-menu-definer
  "code" "c"
- "p" 'check-parens
+ "p" 'check-parens 
  "o" 'projectile-find-other-file
  "l" '(comment-line :which-key "comment line")
  "r" '(comment-region :which-key "comment region"))
