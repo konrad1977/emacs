@@ -9,14 +9,14 @@
       package-enable-at-startup nil
       frame-inhibit-implied-resize t
       site-run-file nil                 
-      scroll-bar-mode nil               ;; disable scrollbar
-      tool-bar-mode nil                 ;; disable toolbars
-      tooltip-mode nil                  ;; Disable tooltip
-      inhibit-compacting-font-caches t
-      set-fringe-mode 10)
+      inhibit-compacting-font-caches t)
 
-(menu-bar-mode 1)           ; Disable the menu bar
-(display-time-mode 1)        ; Show time
+(scroll-bar-mode -1)        ; Disable scrollbar
+(menu-bar-mode -1)           ; Disable the menu bar
+(tool-bar-mode -1)           ; Disable toolbar
+(tooltip-mode -1)           ; Disable tooltip
+(set-fringe-mode 10)         ; Give us some space
+(display-time-mode t)        ; Show time
 (display-battery-mode t)     ; Show battery
 
 (when (boundp 'read-process-output-max)
@@ -46,7 +46,7 @@
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
 ;; Set up the visible bell
-(setq visible-bell t)
+;; (setq visible-bell t)
 
 ;; line-numbers
 (column-number-mode)
@@ -216,8 +216,6 @@
 ; helpful
 (use-package helpful)
 
-; general
-(use-package general)
 ;; smex
 (use-package smex)
 
@@ -256,90 +254,78 @@
 
 (recentf-mode t)
 
-(defmacro general-global-menu-definer (def infix-key &rest body)
-  "Create a definer named general-global-DEF wrapping global-definer.
-The prefix map is named 'my-DEF-map'.
-Argument DEF "
-  `(progn
-     (general-create-definer ,(intern (concat "general-global-" def))
-       :wrapping global-definer
-       :prefix-map (quote ,(intern (concat "my-" def "-map")))
-       :infix ,infix-key
-       :wk-full-keys nil
-       "" '(:ignore t :which-key ,def))
-     (,(intern (concat "general-global-" def))
-      ,@body)))
+(use-package restart-emacs)
 
-(general-create-definer global-definer
-  :keymaps 'override
-  :states  '(insert emacs normal hybrid motion visual operator)
-  :prefix  "SPC"
-  :non-normal-prefix "S-SPC")
+; general
+(use-package general
+  :config
+  (general-create-definer mk/leader-keys
+   :keymaps '(normal insert emacs visual operator hybrid)
+   :prefix "SPC"
+   :non-normal-prefix "M-SPC")
 
-(global-definer
-  "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
-  "SPC" '(counsel-M-x :which-key "M-x")
-  "0" '(treemacs :which-key "treemacs")
-  "s" 'swiper
-  "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
-  "!" 'shell-command
-  ":" 'eval-expression)
+  (mk/leader-keys
+   "t" '(:ignore t :which-key "toggles")
+   "tt" '(counsel-load-theme :which-key "choose theme")
+   )
 
-(general-global-menu-definer
- "files" "f"
- "s" '(save-buffer :which-key "save file")
- "f" '(find-file :which-key "find file...")
- "e" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
- 
-(general-global-menu-definer
- "code" "c"
- "p" 'check-parens 
- "o" 'projectile-find-other-file
- "l" '(comment-line :which-key "comment line")
- "r" '(comment-region :which-key "comment region"))
+  (mk/leader-keys
+   "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
+   "SPC" '(counsel-M-x :which-key "M-x")
+   "0" '(treemacs :which-key "treemacs")
+   "s" 'swiper
+   "P" 'package-install
+   "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
+   "!" 'shell-command
+   ":" 'eval-expression)
+  
+  (mk/leader-keys
+   "f" '(:ignore t :which-key "files")
+   "fs" '(save-buffer :which-key "save file")
+   "ff" '(find-file :which-key "find file...")
+   "fR" 'eval-buffer
+   "fe" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
+  
+  (mk/leader-keys
+   "c" '(:ignore t :which-key "code")
+   "cp" 'check-parens 
+   "co" 'projectile-find-other-file
+   "cl" '(comment-line :which-key "comment line")
+   "cr" '(comment-region :which-key "comment region"))
 
-(general-global-menu-definer
- "quit" "q"
- "q" 'save-buffers-kill-terminal)
+  (mk/leader-keys
+    "q" '(:ignore t :which-key "quit")
+    "qq" 'save-buffers-kill-terminal
+    "qr" 'restart-emacs)
 
-(general-global-menu-definer
- "help" "h"
- "c" '(helpful-command :which-key "describe command")
- "k" '(helpful-key :which-key "describe key")
- "f" '(helpful-callable :which-key "describe function")
- "v" '(helpful-variable :which-key "describe variable")
- "p" '(helpful-at-point :which-key "describe at-point"))
+   (mk/leader-keys
+    "b" '(:ignore t :which-key "buffer")
+    "bb" '(counsel-switch-buffer :which-key "list buffers")
+    "bx" '(delete-window :which-key "close buffer")
+    "bd" '(kill-current-buffer :which-key "kill current buffer")
+    "bp" '(previous-buffer :which-key "previous buffer")
+    "bn" '(next-buffer :which-key "next buffer")
+    "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
+    "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
-(general-global-menu-definer
- "packages" "P"
- "i" '(counsel-package :which-key "install Package"))
+   (mk/leader-keys
+    "h" '(:ignore t :which-key "help")
+    "hc" '(helpful-command :which-key "describe command")
+    "hk" '(helpful-key :which-key "describe key")
+    "hf" '(helpful-callable :which-key "describe function")
+    "hv" '(helpful-variable :which-key "describe variable")
+    "hp" '(helpful-at-point :which-key "describe at-point"))
 
-(general-global-menu-definer
- "windows" "w"
- "x" '(kill-buffer-and-window :which-key "kill window")
- "h" '(split-window-below :which-key "split horizontally")
- "v" '(split-window-right :which-key "split vertically"))
+   (mk/leader-keys
+    "w" '(:ignore t :which-key "windows")
+    "wx" '(kill-buffer-and-window :which-key "kill window")
+    "wh" '(split-window-below :which-key "split horizontally")
+    "wv" '(split-window-right :which-key "split vertically"))
 
-(general-global-menu-definer
- "projects" "p"
- "r" '(projectile-recentf :which-key "list recent files")
- "f" '(projectile-find-file :which-key "find file"))
-
-(general-global-menu-definer
- "buffer" "b"
- "b" '(counsel-switch-buffer :which-key "list buffers")
- "x" '(delete-window :which-key "close buffer")
- "d" '(kill-current-buffer :which-key "kill current buffer")
- "p" '(previous-buffer :which-key "previous buffer")
- "n" '(next-buffer :which-key "next buffer")
- "m" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
- "s" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
-
-;; restart-emacs
-(use-package restart-emacs
-  :general
-  (general-global-quit
-    "r"    'restart-emacs))
+   (mk/leader-keys
+    "p" '(:ignore t :which-key "project")
+    "pr" '(projectile-recentf :which-key "list recent files")
+    "pf" '(projectile-find-file :which-key "find file")))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
