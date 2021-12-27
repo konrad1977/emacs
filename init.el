@@ -19,6 +19,8 @@
 (display-time-mode t)        ; Show time
 (display-battery-mode t)     ; Show battery
 
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 (when (boundp 'read-process-output-max)
   ;; 1MB in bytes, default 4096 bytes
   (setq read-process-output-max 1048576))
@@ -56,6 +58,7 @@
 (dolist (mode '(shell-mode-hook
 		term-mode-hook
 		vterm-mode-hook
+		xwidget-webkit-mode-hook
 		treemacs-mode-hook))
   (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
@@ -95,7 +98,8 @@
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-side-window-max-width 0.33
         which-key-idle-delay 0.05
-	which-key-max-display-columns 2))
+	which-key-max-display-columns 4))
+
 ; Use evil mode
 (use-package evil
   :init
@@ -158,15 +162,15 @@
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-palenight t)
+        doom-themes-enable-italic t  ; if nil, italics is universally disabled
+	doom-themes-treemacs-theme "doom-atom") 
+  (load-theme 'doom-shades-of-purple t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
   ;; Enable custom neotree theme (all-the-icons must be installed!)
   (doom-themes-neotree-config)
   ;; or for treemacs users
-  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
   (doom-themes-treemacs-config)
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
@@ -240,8 +244,6 @@
        projectile-root-bottom-up
        projectile-root-top-down-recurring))
     ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -252,10 +254,32 @@
   :after projectile
   :config (counsel-projectile-mode))
 
+;; Recent files
 (recentf-mode t)
 
+;; Restart emacs
 (use-package restart-emacs)
 
+; Hydra
+(use-package hydra)
+
+(defhydra hydra-text-scale (:timeout 4)
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
+
+(use-package winum
+  :init
+  (winum-mode 1))
+
+(use-package darkroom)
+
+;; Kill all other buffers
+(defun kill-other-buffers ()
+    (interactive)
+    (mapc 'kill-buffer 
+          (delq (current-buffer) 
+                (remove-if-not 'buffer-file-name (buffer-list)))))
 ; general
 (use-package general
   :config
@@ -267,12 +291,19 @@
   (mk/leader-keys
    "t" '(:ignore t :which-key "toggles")
    "tt" '(counsel-load-theme :which-key "choose theme")
-   )
+   "ts" '(hydra-text-scale/body :which-key "scale text")
+   "tf" '(toggle-frame-fullscreen :which-key "fullscreen"))
 
   (mk/leader-keys
    "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
    "SPC" '(counsel-M-x :which-key "M-x")
    "0" '(treemacs :which-key "treemacs")
+   "1" '(winum-select-window-1 :which-key "window 1")
+   "2" '(winum-select-window-2 :which-key "window 2")
+   "3" '(winum-select-window-3 :which-key "window 3")
+   "4" '(winum-select-window-4 :which-key "window 4")
+   "5" '(winum-select-window-5 :which-key "window 5")
+   "6" '(winum-select-window-6 :which-key "window 6")
    "s" 'swiper
    "P" 'package-install
    "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
@@ -282,16 +313,16 @@
   (mk/leader-keys
    "f" '(:ignore t :which-key "files")
    "fs" '(save-buffer :which-key "save file")
-   "ff" '(find-file :which-key "find file...")
+   "ff" '(find-file :which-key "find file")
    "fR" 'eval-buffer
    "fe" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
   
   (mk/leader-keys
-   "c" '(:ignore t :which-key "code")
-   "cp" 'check-parens 
-   "co" 'projectile-find-other-file
-   "cl" '(comment-line :which-key "comment line")
-   "cr" '(comment-region :which-key "comment region"))
+    "c" '(:ignore t :which-key "code")
+    "cp" 'check-parens 
+    "co" 'projectile-find-other-file
+    "cl" '(comment-line :which-key "comment line")
+    "cr" '(comment-region :which-key "comment region"))
 
   (mk/leader-keys
     "q" '(:ignore t :which-key "quit")
@@ -299,33 +330,34 @@
     "qr" 'restart-emacs)
 
    (mk/leader-keys
-    "b" '(:ignore t :which-key "buffer")
-    "bb" '(counsel-switch-buffer :which-key "list buffers")
-    "bx" '(delete-window :which-key "close buffer")
-    "bd" '(kill-current-buffer :which-key "kill current buffer")
-    "bp" '(previous-buffer :which-key "previous buffer")
-    "bn" '(next-buffer :which-key "next buffer")
-    "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
-    "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
+     "b" '(:ignore t :which-key "buffer")
+     "bb" '(counsel-switch-buffer :which-key "list buffers")
+     "bx" '(delete-window :which-key "close buffer")
+     "bd" '(kill-current-buffer :which-key "kill current buffer")
+     "bp" '(previous-buffer :which-key "previous buffer")
+     "bn" '(next-buffer :which-key "next buffer")
+     "be" '(eval-buffer :which-key "eval buffer")
+     "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
+     "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
    (mk/leader-keys
-    "h" '(:ignore t :which-key "help")
-    "hc" '(helpful-command :which-key "describe command")
-    "hk" '(helpful-key :which-key "describe key")
-    "hf" '(helpful-callable :which-key "describe function")
-    "hv" '(helpful-variable :which-key "describe variable")
-    "hp" '(helpful-at-point :which-key "describe at-point"))
+     "h" '(:ignore t :which-key "help")
+     "hc" '(helpful-command :which-key "describe command")
+     "hk" '(helpful-key :which-key "describe key")
+     "hf" '(helpful-function :which-key "describe function")
+     "hv" '(helpful-variable :which-key "describe variable")
+     "hp" '(helpful-at-point :which-key "describe at-point"))
 
    (mk/leader-keys
-    "w" '(:ignore t :which-key "windows")
-    "wx" '(kill-buffer-and-window :which-key "kill window")
-    "wh" '(split-window-below :which-key "split horizontally")
-    "wv" '(split-window-right :which-key "split vertically"))
+     "w" '(:ignore t :which-key "windows")
+     "wx" '(delete-window :which-key "delete window")
+     "wk" '(kill-buffer-and-window :which-key "kill buffer and window")
+     "w-" '(split-window-below :which-key "split horizontally")
+     "w/" '(split-window-right :which-key "split vertically")
+     "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
 
    (mk/leader-keys
-    "p" '(:ignore t :which-key "project")
-    "pr" '(projectile-recentf :which-key "list recent files")
-    "pf" '(projectile-find-file :which-key "find file")))
+     "p" '(projectile-command-map :which-key "project")))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
