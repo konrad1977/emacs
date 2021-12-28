@@ -298,10 +298,10 @@
    :non-normal-prefix "M-SPC")
 
   (mk/leader-keys
-   "t" '(:ignore t :which-key "toggles")
-   "tt" '(counsel-load-theme :which-key "choose theme")
-   "ts" '(hydra-text-scale/body :which-key "scale text")
-   "tf" '(toggle-frame-fullscreen :which-key "fullscreen"))
+   "T" '(:ignore t :which-key "toggles")
+   "Tt" '(counsel-load-theme :which-key "choose theme")
+   "Ts" '(hydra-text-scale/body :which-key "scale text")
+   "Tf" '(toggle-frame-fullscreen :which-key "fullscreen"))
 
   (mk/leader-keys
    "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
@@ -370,7 +370,18 @@
 
    (mk/leader-keys
      "v" '(:ignore t :which-key "version control")
-     "vs" '(magit-status :which-key "status")))
+     "vs" '(magit-status :which-key "status"))
+
+   (mk/leader-keys
+     "t" '(:ignore t :which-key "tabs")
+     "tn" '(tab-new :which-key "new")
+     "tl" '(tab-list :which-key "list")
+     "tg" '(tab-close-group :which-key "close group")
+     "td" '(tab-detach :which-key "detach")
+     "tx" '(tab-close :which-key "close")
+     "tk" '(tab-close-other :which-key "close other"))
+     )
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
