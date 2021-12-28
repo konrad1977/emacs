@@ -268,11 +268,20 @@
   ("k" text-scale-decrease "out")
   ("f" nil "finished" :exit t))
 
+;; Winum - select windows easy
 (use-package winum
   :init
   (winum-mode 1))
 
+;; darkroom (go to focus mode)
 (use-package darkroom)
+
+;; Use git
+(use-package magit
+  :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package evil-magit
+  :after magit)
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
@@ -357,7 +366,11 @@
      "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
 
    (mk/leader-keys
-     "p" '(projectile-command-map :which-key "project")))
+     "p" '(projectile-command-map :which-key "project"))
+
+   (mk/leader-keys
+     "v" '(:ignore t :which-key "version control")
+     "vs" '(magit-status :which-key "status")))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -365,7 +378,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
