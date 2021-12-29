@@ -212,8 +212,13 @@
 ; On macos use our custom settings
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar)
-  (use-package swift-mode)
+  (use-package swift-mode
+      :hook (swift-mode . (lambda () (lsp))))
   (use-package exec-path-from-shell)
+  (use-package lsp-sourcekit
+    :after lsp-mode
+    :config
+    (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
   (exec-path-from-shell-initialize)
   (ns-auto-titlebar-mode)
   (setq mac-option-key-is-meta nil
@@ -289,11 +294,11 @@
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
-    (interactive)
-    (mapc 'kill-buffer 
-          (delq (current-buffer) 
-                (remove-if-not 'buffer-file-name (buffer-list)))))
-; general
+  "Kill all other buffers."
+  (interactive)
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+
+;; general
 (use-package general
   :config
   (general-create-definer mk/leader-keys
@@ -347,11 +352,13 @@
      "b" '(:ignore t :which-key "buffer")
      "bb" '(counsel-switch-buffer :which-key "list buffers")
      "bx" '(delete-window :which-key "close buffer")
+     "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
      "bd" '(kill-current-buffer :which-key "kill current buffer")
      "bp" '(previous-buffer :which-key "previous buffer")
      "bn" '(next-buffer :which-key "next buffer")
      "be" '(eval-buffer :which-key "eval buffer")
      "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
+     "bc" '((lambda () (interactive) (switch-to-buffer "*Compile*")) :which-key "compile-buffer")
      "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
    (mk/leader-keys
@@ -371,7 +378,13 @@
      "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
 
    (mk/leader-keys
-     "p" '(projectile-command-map :which-key "project"))
+     "p" '(:ignore t :which-key "project")
+     "pf" '(projectile-find-file :which-key "find file")
+     "pt" '(projectile-find-tag :which-key "find tag")
+     "pp" '(projectile-project-files :which-key "project files")
+     "pk" '(projectile-kill-buffers :which-key "kill buffers")
+     "ps" '(projectile-switch-project :which-key "switch project")
+     "pS" '(projectile-switch-open-project :which-key "switch open project"))
 
    (mk/leader-keys
      "v" '(:ignore t :which-key "version control")
@@ -390,18 +403,11 @@
 ;; Forge - Git PR, Issues, etc
 ;;(use-package forge)
 
-;; (defun mk/org-mode-setup()
-;;   (org-indent-mode)
-;;   (variable-pitch-mode 1)
-;;   (auto-fill-mode 0)
-;;   (visual-line-mode 1)
-;;   (setq evil-auto-indent nil))
-
-;; (use-package org
-;;   :config
-;;   (setq org-ellipsis " ▼"
-;; 	org-hide-emphasis-markers t
-;; 	org-hide-leading-stars))
+(use-package org
+  :config
+  (setq org-ellipsis " ▼"
+	org-hide-emphasis-markers t
+	org-hide-leading-stars))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
