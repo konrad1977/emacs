@@ -209,13 +209,17 @@
   (progn
     (add-hook 'after-init-hook 'global-company-mode)))
 
-; On macos change title bar
+; On macos use our custom settings
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar)
   (use-package swift-mode)
   (use-package exec-path-from-shell)
   (exec-path-from-shell-initialize)
-  (ns-auto-titlebar-mode))
+  (ns-auto-titlebar-mode)
+  (setq mac-option-key-is-meta nil
+      mac-command-key-is-meta t
+      mac-command-modifier 'meta
+      mac-option-modifier 'none))
 
 ; helpful
 (use-package helpful)
@@ -323,6 +327,7 @@
    "f" '(:ignore t :which-key "files")
    "fs" '(save-buffer :which-key "save file")
    "ff" '(find-file :which-key "find file")
+   "fn" '(create-file-buffer :which-key "new file")
    "fR" 'eval-buffer
    "fe" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
   
@@ -380,8 +385,23 @@
      "td" '(tab-detach :which-key "detach")
      "tx" '(tab-close :which-key "close")
      "tk" '(tab-close-other :which-key "close other"))
-     )
+   )
 
+;; Forge - Git PR, Issues, etc
+;;(use-package forge)
+
+;; (defun mk/org-mode-setup()
+;;   (org-indent-mode)
+;;   (variable-pitch-mode 1)
+;;   (auto-fill-mode 0)
+;;   (visual-line-mode 1)
+;;   (setq evil-auto-indent nil))
+
+;; (use-package org
+;;   :config
+;;   (setq org-ellipsis " ▼"
+;; 	org-hide-emphasis-markers t
+;; 	org-hide-leading-stars))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -389,7 +409,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
