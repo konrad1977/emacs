@@ -96,8 +96,8 @@
   :config
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha
-        which-key-side-window-max-width 0.33
-        which-key-idle-delay 0.05
+        which-key-idle-delay 0.15
+	which-key-min-display-lines 5
 	which-key-max-display-columns 4))
 
 ; Use evil mode
@@ -155,7 +155,8 @@
 
 (use-package treemacs
   :config
-  (treemacs-toggle-fixed-width nil))
+  (treemacs-toggle-fixed-width nil)
+  (setq treemacs-text-scale -1))
 
 ;; Theming
 (use-package doom-themes
@@ -213,7 +214,10 @@
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar)
   (use-package swift-mode
-      :hook (swift-mode . (lambda () (lsp))))
+    :hook (swift-mode . (lambda () (lsp)))
+    :config
+    (setq swift-mode:parenthesized-expression-offset 4
+	  swift-mode:multiline-statement-offset 4))
   (use-package exec-path-from-shell)
   (use-package lsp-sourcekit
     :after lsp-mode
