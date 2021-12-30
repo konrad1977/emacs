@@ -17,7 +17,7 @@
 (tooltip-mode -1)           ; Disable tooltip
 (set-fringe-mode 10)         ; Give us some space
 (display-time-mode t)        ; Show time
-(display-battery-mode t)     ; Show battery
+(display-battery-mode t)
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
@@ -30,8 +30,9 @@
 
 ;; dont word wrap
 (add-hook 'prog-mode-hook '(lambda ()
-    (setq truncate-lines t
-          word-wrap nil)))
+			     (setq truncate-lines t
+				   electric-pair-mode t
+				   word-wrap nil)))
 
 ;; Set yes or no to y/n
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -202,19 +203,43 @@
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+ :hook (prog-mode . rainbow-delimiters-mode))
 
-;; company
+;; company --------------------------------------------
 (use-package company
-  :config
-  (progn
-    (add-hook 'after-init-hook 'global-company-mode)))
+  :after lsp-mode
+  :hook (prog-mode . company-mode)
+  :bind (:map company-active-map
+              ("<tab>" . company-complete-selection))
+  (:map lsp-mode-map
+        ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
 
-; On macos use our custom settings
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deffered)
+  :init
+  (setq lsp-keymap-prefix "m-l")
+  :config
+  (lsp-enable-which-key-integration t))
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode))
+
+(use-package lsp-treemacs
+  :after lsp)
+
+(use-package lsp-ivy)
+
+; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
   (use-package ns-auto-titlebar)
   (use-package swift-mode
-    :hook (swift-mode . (lambda () (lsp)))
+    :hook (swift-mode . lsp-deferred)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 	  swift-mode:multiline-statement-offset 4))
@@ -345,8 +370,11 @@
     "cp" 'check-parens 
     "co" 'projectile-find-other-file
     "cl" '(comment-line :which-key "comment line")
-    "cr" '(comment-region :which-key "comment region"))
-
+    "cr" '(comment-region :which-key "comment region")
+    "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
+    "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
+    "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
+   
   (mk/leader-keys
     "q" '(:ignore t :which-key "quit")
     "qq" 'save-buffers-kill-terminal
