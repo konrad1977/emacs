@@ -29,7 +29,7 @@
 (setq display-time-default-load-average nil) ; Dont show avg load
 
 ;; dont word wrap
-(add-hook 'prog-mode-hook '(lambda ()
+(add-hook 'prog-mode-hook #'(lambda ()
 			     (setq truncate-lines t
 				   electric-pair-mode t
 				   word-wrap nil)))
@@ -49,14 +49,14 @@
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
 ;; Set up the visible bell
-;; (setq visible-bell t)
+(setq visible-bell t)
 
 ;; line-numbers
 (column-number-mode)
 (global-display-line-numbers-mode t)
 
 ;; Disable line number for following modes
-(dolist (mode '(shell-mode-hook
+( dolist (mode '(shell-mode-hook
 		term-mode-hook
 		vterm-mode-hook
 		xwidget-webkit-mode-hook
@@ -81,7 +81,7 @@
 
 (package-initialize)
 (unless package-archive-contents
- (package-refresh-contents))
+  (package-refresh-contents))
 
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
@@ -121,6 +121,8 @@
   (evil-set-initial-state 'dashboard-mode 'normal)
   (evil-set-initial-state 'vterm-mode 'normal))
 
+(use-package evil-tutor)
+
 (use-package evil-collection
   :after evil
   :config
@@ -145,13 +147,15 @@
   (ivy-mode 1))
 
 ;; counsel
-(use-package counsel)
+(use-package counsel
+  :config (counsel-mode 1))
 
 (use-package solaire-mode
   :config (solaire-global-mode 1))
 
 ;; Ivy rich
 (use-package ivy-rich
+  :after ivy 
   :init (ivy-rich-mode 1))
 
 (use-package treemacs
@@ -399,6 +403,7 @@
      "hk" '(helpful-key :which-key "describe key")
      "hf" '(helpful-function :which-key "describe function")
      "hv" '(helpful-variable :which-key "describe variable")
+     "ht" '(evil-tutor-start :which-key "evil tutorial")
      "hp" '(helpful-at-point :which-key "describe at-point"))
 
    (mk/leader-keys
@@ -435,11 +440,40 @@
 ;; Forge - Git PR, Issues, etc
 ;;(use-package forge)
 
+(defun mk/org-mode-setup()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
 (use-package org
+  :hook (org-mode . mk/org-mode-setup)
   :config
-  (setq org-ellipsis " ▼"
+  (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
 	org-hide-leading-stars))
+
+
+(org-babel-do-load-languages 'org-babel-load-languages
+'((emacs-lisp t)))
+	        
+(setq org-confirm-babel-evaluate nil)
+
+(require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(defun mk/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . mk/org-mode-visual-fill))
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -447,7 +481,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
