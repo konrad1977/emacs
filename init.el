@@ -18,8 +18,15 @@
 (set-fringe-mode 10)         ; Give us some space
 (display-time-mode t)        ; Show time
 (display-battery-mode t)
+(recentf-mode t)
 
+(setq-default display-line-numbers-width 3)
+
+;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+(setq frame-resize-pixelwise t)
+(setq ns-pop-up-frames nil)
+(setq window-resize-pixelwise t)
 
 (when (boundp 'read-process-output-max)
   ;; 1MB in bytes, default 4096 bytes
@@ -47,7 +54,6 @@
 (desktop-save-mode 1)
 (savehist-mode 1)
 (add-to-list 'savehist-additional-variables 'kill-ring)
-
 ;; Set up the visible bell
 (setq visible-bell t)
 
@@ -88,11 +94,34 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure nil)
+(setq use-package-verbose nil) 
 
-; Which key
+(setq gc-cons-threshold (* 100 1000 1000))
+
+(defun mk/display-startup-time()
+  (message "Emacs loaded in %s with %d garbage collection."
+	   (format "%.2f seconds"
+		    (float-time (time-subtract after-init-time before-init-time)))
+	   gcs-done))
+
+(add-hook 'emacs-startup-hook #'mk/display-startup-time)
+
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-banner-logo-title "Mikaels dashboard!" 
+	dashboard-set-file-icons t
+	dashboard-set-init-info t
+	dashboard-center-content t
+	dashboard-set-heading-icons t
+	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
+	dashboard-startup-banner 'logo))
+
+;; Which key
 (use-package which-key
-  :init (which-key-mode)
+  :defer 0
   :diminish which-key-mode
   :config
   (which-key-mode)
@@ -100,7 +129,7 @@
         which-key-idle-delay 0.15
 	which-key-min-display-lines 5
 	which-key-max-display-columns 4))
-
+ 
 ; Use evil mode
 (use-package evil
   :init
@@ -159,6 +188,7 @@
   :init (ivy-rich-mode 1))
 
 (use-package treemacs
+  :defer t
   :config
   (treemacs-toggle-fixed-width nil)
   (setq treemacs-text-scale -1))
@@ -237,7 +267,8 @@
 (use-package lsp-treemacs
   :after lsp)
 
-(use-package lsp-ivy)
+(use-package lsp-ivy
+  :after lsp)
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -260,12 +291,13 @@
       mac-option-modifier 'none))
 
 ; helpful
-(use-package helpful)
+(use-package helpful :defer t)
 
 ;; smex
-(use-package smex)
+(use-package smex :defer t)
 
-(use-package vterm)
+(use-package vterm
+  :commands vterm)
 
 (defun my-vterm/split-horizontal ()
   "Create a new vterm window to the right of the current one."
@@ -296,14 +328,13 @@
   :after projectile
   :config (counsel-projectile-mode))
 
-;; Recent files
-(recentf-mode t)
-
 ;; Restart emacs
-(use-package restart-emacs)
+(use-package restart-emacs
+  :defer t)
 
 ; Hydra
-(use-package hydra)
+(use-package hydra
+  :defer t)
 
 (defhydra hydra-text-scale (:timeout 4)
   ("j" text-scale-increase "in")
@@ -312,14 +343,17 @@
 
 ;; Winum - select windows easy
 (use-package winum
+  :defer t
   :init
   (winum-mode 1))
 
 ;; darkroom (go to focus mode)
-(use-package darkroom)
+(use-package darkroom
+  :commands darkroom)
 
 ;; Use git
 (use-package magit
+  :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package evil-magit
@@ -333,6 +367,7 @@
 
 ;; general
 (use-package general
+  :defer t
   :config
   (general-create-definer mk/leader-keys
    :keymaps '(normal insert emacs visual operator hybrid)
@@ -367,7 +402,7 @@
    "ff" '(find-file :which-key "find file")
    "fn" '(create-file-buffer :which-key "new file")
    "fR" 'eval-buffer
-   "fe" '((lambda () (interactive) (find-file user-init-file)) :which-key "user configuration"))
+   "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
   
   (mk/leader-keys
     "c" '(:ignore t :which-key "code")
@@ -393,9 +428,10 @@
      "bp" '(previous-buffer :which-key "previous buffer")
      "bn" '(next-buffer :which-key "next buffer")
      "be" '(eval-buffer :which-key "eval buffer")
-     "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
-     "bc" '((lambda () (interactive) (switch-to-buffer "*Compile*")) :which-key "compile-buffer")
-     "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
+     "br" '(revert-buffer :which-key "revert buffer")
+     "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "messages-buffer")
+     "bc" '(lambda () (interactive) (switch-to-buffer "*Compile*") :which-key "compile-buffer")
+     "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "scratch-buffer"))
 
    (mk/leader-keys
      "h" '(:ignore t :which-key "help")
@@ -452,14 +488,12 @@
 	org-hide-emphasis-markers t
 	org-hide-leading-stars))
 
-
-(org-babel-do-load-languages 'org-babel-load-languages
-'((emacs-lisp t)))
-	        
-(setq org-confirm-babel-evaluate nil)
-
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(with-eval-after-load 'org
+  (org-babel-do-load-languages 'org-babel-load-languages
+			       '((emacs-lisp t)))
+  (setq org-confirm-babel-evaluate nil)
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -474,6 +508,19 @@
 (use-package visual-fill-column
   :hook (org-mode . mk/org-mode-visual-fill))
 
+(use-package elfeed
+  :commands elfeed
+  :config
+  (setq elfeed-feeds '(
+		       ("https://news.ycombinator.com/rss" Hacker News)
+		       ("https://www.reddit.com/r/emacs.rss" emacs)
+		       ("https://www.reddit.com/r/swift.rss" swift) 
+		       ("https://www.reddit.com/r/haikuos.rss" haiku)
+		       )))
+
+(setq-default elfeed-search-filter "@2-days-ago +unread")
+(setq-default elfeed-search-title-max-width 100)
+(setq-default elfeed-search-title-min-width 100)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
