@@ -2,43 +2,49 @@
 
 ;;; Code:
 
+(setq gc-cons-threshold (* 100 1000 1000))
 (defvar comp-deferred-compilation)
 
 (setq inhibit-startup-message t
       comp-deferred-compilation t
       package-enable-at-startup nil
       frame-inhibit-implied-resize t
-      site-run-file nil                 
-      inhibit-compacting-font-caches t)
+      site-run-file nil
+      inhibit-compacting-font-caches t
+      frame-resize-pixelwise t
+      window-resize-pixelwise t
+      ns-pop-up-frames nil
+      display-time-24hr-format t
+      visible-bell t
+      create-lockfiles nil)
 
-(scroll-bar-mode -1)        ; Disable scrollbar
-(menu-bar-mode -1)           ; Disable the menu bar
-(tool-bar-mode -1)           ; Disable toolbar
-(tooltip-mode -1)           ; Disable tooltip
-(set-fringe-mode 10)         ; Give us some space
-(display-time-mode t)        ; Show time
-(display-battery-mode t)
-(recentf-mode t)
+(scroll-bar-mode -1)     ; Disable scrollbar
+(menu-bar-mode -1)       ; Disable the menu bar
+(tool-bar-mode -1)       ; Disable toolbar
+(tooltip-mode -1)        ; Disable tooltip
+(set-fringe-mode 10)     ; Give us some space
+(display-time-mode t)    ; Show time
+(display-battery-mode t) ; Show battery
+(recentf-mode t)         ; Recent file mode
 
-(setq-default display-line-numbers-width 3)
+(setq-default display-line-numbers-width 3
+	      show-trailing-whitespace t
+	      indicate-unused-lines t
+	      indicate-empty-lines nil)
 
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
-(setq frame-resize-pixelwise t)
-(setq ns-pop-up-frames nil)
-(setq window-resize-pixelwise t)
 
 (when (boundp 'read-process-output-max)
   ;; 1MB in bytes, default 4096 bytes
   (setq read-process-output-max 1048576))
 
-(setq display-time-format "%H:%M")
-(setq display-time-default-load-average nil) ; Dont show avg load
-
 ;; dont word wrap
 (add-hook 'prog-mode-hook #'(lambda ()
 			     (setq truncate-lines t
 				   electric-pair-mode t
+				   company-mode t
+				   semantic-mode t
 				   word-wrap nil)))
 
 ;; Set yes or no to y/n
@@ -54,8 +60,6 @@
 (desktop-save-mode 1)
 (savehist-mode 1)
 (add-to-list 'savehist-additional-variables 'kill-ring)
-;; Set up the visible bell
-(setq visible-bell t)
 
 ;; line-numbers
 (column-number-mode)
@@ -77,7 +81,8 @@
 ;; Initialize package sources
 
 ;;; Commentary:
-;; 
+;;
+
 
 (require 'package)
 
@@ -94,10 +99,8 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure nil)
-(setq use-package-verbose nil) 
-
-(setq gc-cons-threshold (* 100 1000 1000))
+(setq use-package-always-ensure t)
+(setq use-package-verbose nil)
 
 (defun mk/display-startup-time()
   (message "Emacs loaded in %s with %d garbage collection."
@@ -111,7 +114,7 @@
   :ensure t
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-banner-logo-title "Mikaels dashboard!" 
+  (setq dashboard-banner-logo-title "Mikaels dashboard!"
 	dashboard-set-file-icons t
 	dashboard-set-init-info t
 	dashboard-center-content t
@@ -129,7 +132,7 @@
         which-key-idle-delay 0.15
 	which-key-min-display-lines 5
 	which-key-max-display-columns 4))
- 
+
 ; Use evil mode
 (use-package evil
   :init
@@ -184,7 +187,7 @@
 
 ;; Ivy rich
 (use-package ivy-rich
-  :after ivy 
+  :after ivy
   :init (ivy-rich-mode 1))
 
 (use-package treemacs
@@ -199,7 +202,7 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
-	doom-themes-treemacs-theme "doom-atom") 
+	doom-themes-treemacs-theme "doom-atom")
   (load-theme 'doom-shades-of-purple t)
 
   ;; Enable flashing mode-line on errors
@@ -395,7 +398,13 @@
    "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
    "!" 'shell-command
    ":" 'eval-expression)
-  
+
+  (mk/leader-keys
+   "a" '(:ignore t :which-key "applications")
+   "af" '(:ignore t :which-key "feed")
+   "afu" '(elfeed-update :which-key "update feed")
+   "afs" '(elfeed :which-key "show feed"))
+
   (mk/leader-keys
    "f" '(:ignore t :which-key "files")
    "fs" '(save-buffer :which-key "save file")
@@ -403,21 +412,26 @@
    "fn" '(create-file-buffer :which-key "new file")
    "fR" 'eval-buffer
    "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
-  
+
   (mk/leader-keys
     "c" '(:ignore t :which-key "code")
-    "cp" 'check-parens 
+    "cp" 'check-parens
     "co" 'projectile-find-other-file
     "cl" '(comment-line :which-key "comment line")
     "cr" '(comment-region :which-key "comment region")
     "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
     "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
     "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
-   
+
   (mk/leader-keys
     "q" '(:ignore t :which-key "quit")
     "qq" 'save-buffers-kill-terminal
     "qr" 'restart-emacs)
+
+  (mk/leader-keys
+    "t" '(:ignore t :which-key "text")
+    "tw" '(:ignore t :which-key "whitespace")
+    "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
 
    (mk/leader-keys
      "b" '(:ignore t :which-key "buffer")
@@ -429,9 +443,9 @@
      "bn" '(next-buffer :which-key "next buffer")
      "be" '(eval-buffer :which-key "eval buffer")
      "br" '(revert-buffer :which-key "revert buffer")
-     "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "messages-buffer")
-     "bc" '(lambda () (interactive) (switch-to-buffer "*Compile*") :which-key "compile-buffer")
-     "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "scratch-buffer"))
+     "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
+     "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
+     "Bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
    (mk/leader-keys
      "h" '(:ignore t :which-key "help")
@@ -464,13 +478,18 @@
      "vs" '(magit-status :which-key "status"))
 
    (mk/leader-keys
-     "t" '(:ignore t :which-key "tabs")
-     "tn" '(tab-new :which-key "new")
-     "tl" '(tab-list :which-key "list")
-     "tg" '(tab-close-group :which-key "close group")
-     "td" '(tab-detach :which-key "detach")
-     "tx" '(tab-close :which-key "close")
-     "tk" '(tab-close-other :which-key "close other"))
+     "g" '(:ignore t :which-key "games")
+     "gt" '(tetris :which-key "tetris")
+     "gh" '(hanoi :which-key "tower of hanoi"))
+
+   (mk/leader-keys
+     "T" '(:ignore t :which-key "tabs")
+     "Tn" '(tab-new :which-key "new")
+     "Tl" '(tab-list :which-key "list")
+     "Tg" '(tab-close-group :which-key "close group")
+     "Td" '(tab-detach :which-key "detach")
+     "Tx" '(tab-close :which-key "close")
+     "Tk" '(tab-close-other :which-key "close other"))
    )
 
 ;; Forge - Git PR, Issues, etc
@@ -514,7 +533,7 @@
   (setq elfeed-feeds '(
 		       ("https://news.ycombinator.com/rss" Hacker News)
 		       ("https://www.reddit.com/r/emacs.rss" emacs)
-		       ("https://www.reddit.com/r/swift.rss" swift) 
+		       ("https://www.reddit.com/r/swift.rss" swift)
 		       ("https://www.reddit.com/r/haikuos.rss" haiku)
 		       )))
 
@@ -522,13 +541,15 @@
 (setq-default elfeed-search-title-max-width 100)
 (setq-default elfeed-search-title-min-width 100)
 
+(setq gc-cons-threshold (* 2 1000 1000))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
