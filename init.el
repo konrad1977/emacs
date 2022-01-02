@@ -22,15 +22,12 @@
 (menu-bar-mode -1)       ; Disable the menu bar
 (tool-bar-mode -1)       ; Disable toolbar
 (tooltip-mode -1)        ; Disable tooltip
-(set-fringe-mode 10)     ; Give us some space
+(set-fringe-mode 4)      ; Give us some space
 (display-time-mode t)    ; Show time
 (display-battery-mode t) ; Show battery
 (recentf-mode t)         ; Recent file mode
 
-(setq-default display-line-numbers-width 3
-	      show-trailing-whitespace t
-	      indicate-unused-lines t
-	      indicate-empty-lines nil)
+(setq-default display-line-numbers-width 3)
 
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -45,6 +42,9 @@
 				   electric-pair-mode t
 				   company-mode t
 				   semantic-mode t
+				   show-trailing-whitespace t
+				   indicate-unused-lines t
+				   indicate-empty-lines t
 				   word-wrap nil)))
 
 ;; Set yes or no to y/n
@@ -69,6 +69,7 @@
 ( dolist (mode '(shell-mode-hook
 		term-mode-hook
 		vterm-mode-hook
+		helpful-mode-hook
 		xwidget-webkit-mode-hook
 		treemacs-mode-hook))
   (add-hook mode (lambda() (display-line-numbers-mode 0))))
@@ -120,7 +121,13 @@
 	dashboard-center-content t
 	dashboard-set-heading-icons t
 	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
-	dashboard-startup-banner 'logo))
+	dashboard-startup-banner 'logo
+	dashboard-items '(
+			  (projects . 5)
+			  (recents . 3)
+			  ;; (bookmarks . 5)
+			  ;; (agenda . 5)
+			  )))
 
 ;; Which key
 (use-package which-key
@@ -162,19 +169,8 @@
 
 (use-package ivy
   :diminish
-  :bind (("C-s" . swiper)
-         :map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done)
-         ("C-l" . ivy-alt-done)
-         ("C-j" . ivy-next-line)
-         ("C-k" . ivy-previous-line)
-         :map ivy-switch-buffer-map
-         ("C-k" . ivy-previous-line)
-         ("C-l" . ivy-done)
-         ("C-d" . ivy-switch-buffer-kill)
-         :map ivy-reverse-i-search-map
-         ("C-k" . ivy-previous-line)
-         ("C-d" . ivy-reverse-i-search-kill))
+  :bind (:map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done))
   :config
   (ivy-mode 1))
 
