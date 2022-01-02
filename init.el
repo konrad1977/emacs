@@ -26,6 +26,7 @@
 (display-time-mode t)    ; Show time
 (display-battery-mode t) ; Show battery
 (recentf-mode t)         ; Recent file mode
+(global-hl-line-mode)    ; Show current line
 
 (setq-default display-line-numbers-width 3)
 
@@ -199,7 +200,7 @@
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
 	doom-themes-treemacs-theme "doom-atom")
-  (load-theme 'doom-shades-of-purple t)
+  (load-theme 'doom-gruvbox t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -215,8 +216,8 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :custom
-  (doom-modeline-height 24)
-  (doom-modeline-bar-width 1)
+  (doom-modeline-height 1)
+  (doom-modeline-bar-width 10)
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t)
   (doom-modeline-major-mode-color-icon t)
@@ -225,14 +226,14 @@
   (doom-modeline-buffer-modification-icon t)
   (doom-modeline-minor-modes nil)
   (doom-modeline-enable-word-count nil)
-  (doom-modeline-buffer-encoding t)
+  (doom-modeline-buffer-encoding nil)
   (doom-modeline-indent-info nil)
   (doom-modeline-checker-simple-format t)
-  (doom-modeline-vcs-max-length 12)
-  (doom-modeline-env-version t)
-  (doom-modeline-irc-stylize 'identity)
-  (doom-modeline-github-timer nil)
-  (doom-modeline-gnus-timer nil))
+  (doom-modeline-vcs-max-length 15)
+  (doom-modeline-env-version t))
+
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height 136)
+(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 116)
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -266,8 +267,13 @@
 (use-package lsp-treemacs
   :after lsp)
 
-(use-package lsp-ivy
-  :after lsp)
+(use-package treemacs-projectile
+  :hook (treemacs-mode-hook))
+
+(use-package nyan-mode
+  :hook doom-modeline-mode
+  :config
+  (nyan-mode))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -439,6 +445,7 @@
      "bn" '(next-buffer :which-key "next buffer")
      "be" '(eval-buffer :which-key "eval buffer")
      "br" '(revert-buffer :which-key "revert buffer")
+     "bC" '((lambda () (interactive) (switch-to-buffer "*Compile-Log*")) :which-key "Compile log-buffer")
      "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
      "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
      "Bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
@@ -458,13 +465,18 @@
      "wk" '(kill-buffer-and-window :which-key "kill buffer and window")
      "w-" '(split-window-below :which-key "split horizontally")
      "w/" '(split-window-right :which-key "split vertically")
+     "wn" '(next-window-any-frame :which-key "next window")
+     "wp" '(previous-window-any-frame :which-key "previous window")
      "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
 
    (mk/leader-keys
      "p" '(:ignore t :which-key "project")
+     "pp" '(:ignore t :which-key "project management")
+     "ppa" '(treemacs-add-project-to-workspace :which-key "add project")
+     "ppr" '(treemacs-remove-project-from-workspace :which-key "remove project")
      "pf" '(projectile-find-file :which-key "find file")
      "pt" '(projectile-find-tag :which-key "find tag")
-     "pp" '(projectile-project-files :which-key "project files")
+     "pF" '(projectile-project-files :which-key "project files")
      "pk" '(projectile-kill-buffers :which-key "kill buffers")
      "ps" '(projectile-switch-project :which-key "switch project")
      "pS" '(projectile-switch-open-project :which-key "switch open project"))
