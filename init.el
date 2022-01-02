@@ -2,7 +2,7 @@
 
 ;;; Code:
 
-(setq gc-cons-threshold (* 100 1000 1000))
+(setq gc-cons-threshold (* 100 1024 1024))
 (defvar comp-deferred-compilation)
 
 (setq inhibit-startup-message t
@@ -549,7 +549,7 @@
 (setq-default elfeed-search-title-max-width 100)
 (setq-default elfeed-search-title-min-width 100)
 
-(setq gc-cons-threshold (* 2 1000 1000))
+(setq gc-cons-threshold (* 5 1024 1024))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
