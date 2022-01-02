@@ -32,7 +32,10 @@
 
 (setq indent-line-function 'insert-tab)
 
-(setq-default display-line-numbers-width 3)
+(setq-default display-line-numbers-width 3
+	      c-basic-offset 4
+	      tab-width 4
+	      indent-tabs-mode t)
 
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -44,12 +47,13 @@
 ;; dont word wrap
 (add-hook 'prog-mode-hook #'(lambda ()
 			     (setq truncate-lines t
-				   electric-pair-mode t
-				   company-mode t
-				   semantic-mode t
 				   show-trailing-whitespace t
 				   indicate-unused-lines t
 				   indicate-empty-lines t
+				   company-mode t
+				   electric-pair-mode t
+				   semantic-mode t
+				   highlight-indent-guides-mode t
 				   word-wrap nil)))
 
 ;; Set yes or no to y/n
@@ -556,6 +560,11 @@
 (setq-default elfeed-search-filter "@2-days-ago +unread")
 (setq-default elfeed-search-title-max-width 100)
 (setq-default elfeed-search-title-min-width 100)
+
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :defer t
+  :custom (highlight-indent-guides-method 'bitmap))
 
 (setq gc-cons-threshold (* 5 1024 1024))
 
