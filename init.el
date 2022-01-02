@@ -16,17 +16,21 @@
       ns-pop-up-frames nil
       display-time-24hr-format t
       visible-bell t
+      indent-tabs-mode nil
+      tab-width 4
       create-lockfiles nil)
 
-(scroll-bar-mode -1)     ; Disable scrollbar
+(display-battery-mode t) ; Show battery
+(display-time-mode t)    ; Show time
+(global-hl-line-mode)    ; Show current line
 (menu-bar-mode -1)       ; Disable the menu bar
+(recentf-mode t)         ; Recent file mode
+(scroll-bar-mode -1)     ; Disable scrollbar
+(set-fringe-mode 4)      ; Give us some space
 (tool-bar-mode -1)       ; Disable toolbar
 (tooltip-mode -1)        ; Disable tooltip
-(set-fringe-mode 4)      ; Give us some space
-(display-time-mode t)    ; Show time
-(display-battery-mode t) ; Show battery
-(recentf-mode t)         ; Recent file mode
-(global-hl-line-mode)    ; Show current line
+
+(setq indent-line-function 'insert-tab)
 
 (setq-default display-line-numbers-width 3)
 
@@ -191,7 +195,9 @@
   :defer t
   :config
   (treemacs-toggle-fixed-width nil)
-  (setq treemacs-text-scale -1))
+  (setq treemacs-text-scale -1
+	treemacs-follow-after-init t
+	treemacs-is-never-other-window t))
 
 ;; Theming
 (use-package doom-themes
@@ -388,7 +394,7 @@
   (mk/leader-keys
    "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
    "SPC" '(counsel-M-x :which-key "M-x")
-   "0" '(treemacs :which-key "treemacs")
+   "0" '(treemacs-select-window :which-key "treemacs")
    "1" '(winum-select-window-1 :which-key "window 1")
    "2" '(winum-select-window-2 :which-key "window 2")
    "3" '(winum-select-window-3 :which-key "window 3")
@@ -421,6 +427,7 @@
     "co" 'projectile-find-other-file
     "cl" '(comment-line :which-key "comment line")
     "cr" '(comment-region :which-key "comment region")
+    "cu" '(lsp-ui-imenu :which-key "lsp-ui-menu")
     "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
     "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
     "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
@@ -432,6 +439,7 @@
 
   (mk/leader-keys
     "t" '(:ignore t :which-key "text")
+    "ts" '(sort-lines :which-key "sort lines")
     "tw" '(:ignore t :which-key "whitespace")
     "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
 
