@@ -109,7 +109,7 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure nil)
 (setq use-package-verbose nil)
 
 (defun mk/display-startup-time()
@@ -169,7 +169,8 @@
   (evil-set-initial-state 'dashboard-mode 'normal)
   (evil-set-initial-state 'vterm-mode 'normal))
 
-(use-package evil-tutor)
+(use-package evil-tutor
+  :defer t)
 
 (use-package evil-collection
   :after evil
@@ -188,6 +189,7 @@
   :config (counsel-mode 1))
 
 (use-package solaire-mode
+  :defer t
   :config (solaire-global-mode 1))
 
 ;; Ivy rich
@@ -221,7 +223,8 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package all-the-icons)
+(use-package all-the-icons
+  :commands (doom-modeline))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -282,6 +285,7 @@
 
 (use-package nyan-mode
   :hook doom-modeline-mode
+  :after doom-modeline
   :config
   (nyan-mode))
 
@@ -293,12 +297,14 @@
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 	  swift-mode:multiline-statement-offset 4))
-  (use-package exec-path-from-shell)
+  (use-package exec-path-from-shell
+	:commands (vterm)
+	:config
+	(exec-path-from-shell-initialize))
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
-  (exec-path-from-shell-initialize)
   (ns-auto-titlebar-mode)
   (setq mac-option-key-is-meta nil
       mac-command-key-is-meta t
@@ -552,6 +558,8 @@
   :config
   (setq elfeed-feeds '(
 		       ("https://news.ycombinator.com/rss" Hacker News)
+		       ("https://feber.se/rss" feber)
+		       ("https://osnews.com/rss" osnews)
 		       ("https://www.reddit.com/r/emacs.rss" emacs)
 		       ("https://www.reddit.com/r/swift.rss" swift)
 		       ("https://www.reddit.com/r/haikuos.rss" haiku)
