@@ -109,7 +109,7 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure nil)
 (setq use-package-verbose nil)
 
 (defun mk/display-startup-time()
@@ -380,7 +380,7 @@
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
-;; general
+ ;; general
 (use-package general
   :defer t
   :config
@@ -551,10 +551,13 @@
   :commands elfeed
   :config
   (setq elfeed-feeds '(
-		       ("https://news.ycombinator.com/rss" Hacker News)
-		       ("https://www.reddit.com/r/emacs.rss" emacs)
-		       ("https://www.reddit.com/r/swift.rss" swift)
-		       ("https://www.reddit.com/r/haikuos.rss" haiku)
+		       ("https://news.ycombinator.com/rss")
+		       ("https://www.reddit.com/r/emacs.rss")
+		       ("https://www.reddit.com/r/swift.rss")
+			   ("https://www.osnews.com/feed/")
+			   ("https://www.feber.se/rss/")
+			   ("https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/" aftonbladet)
+		       ("https://www.reddit.com/r/haikuos.rss")
 		       )))
 
 (setq-default elfeed-search-filter "@2-days-ago +unread")
