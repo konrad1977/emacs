@@ -3,7 +3,6 @@
 ;;; Code:
 
 (setq gc-cons-threshold (* 100 1024 1024))
-(defvar comp-deferred-compilation)
 
 (setq inhibit-startup-message t
       comp-deferred-compilation t
@@ -75,15 +74,18 @@
 (global-display-line-numbers-mode t)
 
 ;; Disable line number for following modes
-( dolist (mode '(shell-mode-hook
-		term-mode-hook
-		vterm-mode-hook
-		helpful-mode-hook
-		xwidget-webkit-mode-hook
-		treemacs-mode-hook))
+( dolist (mode '(org-mode-hook
+				 shell-mode-hook
+				 term-mode-hook
+				 vterm-mode-hook
+				 helpful-mode-hook
+				 xwidget-webkit-mode-hook
+				 treemacs-mode-hook))
   (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
 (set-face-attribute 'default nil :font "Source Code Pro" :height 145)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 145)
+(set-face-attribute 'variable-pitch nil :font "Source Code Pro" :height 145 :weight 'regular)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -109,7 +111,7 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure nil)
+(setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
 (defun mk/display-startup-time()
@@ -131,12 +133,15 @@
 	dashboard-set-heading-icons t
 	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
 	dashboard-startup-banner 'logo
+	dashboard-week-agenda nil
+	dashboard-filter-agenda-entry 'dashboard-no-filter-agenda
 	dashboard-items '(
 			  (projects . 5)
 			  (recents . 3)
 			  ;; (bookmarks . 5)
-			  ;; (agenda . 5)
+			  (agenda . 10)
 			  )))
+
 
 ;; Which key
 (use-package which-key
@@ -169,7 +174,8 @@
   (evil-set-initial-state 'dashboard-mode 'normal)
   (evil-set-initial-state 'vterm-mode 'normal))
 
-(use-package evil-tutor)
+(use-package evil-tutor
+  :commands evil-tutor)
 
 (use-package evil-collection
   :after evil
@@ -226,24 +232,20 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :custom
-  (doom-modeline-height 1)
-  (doom-modeline-bar-width 10)
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t)
   (doom-modeline-major-mode-color-icon t)
   (doom-modeline-buffer-file-name-style 'truncate-with-project)
   (doom-modeline-buffer-state-icon t)
   (doom-modeline-buffer-modification-icon t)
-  (doom-modeline-minor-modes nil)
-  (doom-modeline-enable-word-count nil)
   (doom-modeline-buffer-encoding nil)
   (doom-modeline-indent-info nil)
   (doom-modeline-checker-simple-format t)
-  (doom-modeline-vcs-max-length 15)
   (doom-modeline-env-version t))
 
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 136)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 116)
+(setq doom-modeline-height 1)
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height 150)
+(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 145)
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -262,7 +264,39 @@
   (company-idle-delay 0.0))
 
 (use-package company-box
-  :hook (company-mode . company-box-mode))
+  :hook (company-mode . company-box-mode)
+  :config
+  (setq company-box-icons-alist 'company-box-icons-all-the-icons
+      company-box-icons-all-the-icons
+      (let ((all-the-icons-scale-factor 1)
+            (all-the-icons-default-adjust 0))
+        `((Unknown       . ,(all-the-icons-faicon "question" :face 'all-the-icons-purple)) ;;question-circle is also good
+          (Text          . ,(all-the-icons-faicon "file-text-o" :face 'all-the-icons-green))
+          (Method        . ,(all-the-icons-faicon "cube" :face 'all-the-icons-dcyan))
+          (Function      . ,(all-the-icons-faicon "cube" :face 'all-the-icons-dcyan))
+          (Constructor   . ,(all-the-icons-faicon "cube" :face 'all-the-icons-dcyan))
+          (Field         . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (Variable      . ,(all-the-icons-faicon "tag" :face 'all-the-icons-dpurple))
+          (Class         . ,(all-the-icons-faicon "cog" :face 'all-the-icons-red))
+          (Interface     . ,(all-the-icons-faicon "cogs" :face 'all-the-icons-red))
+          (Module        . ,(all-the-icons-alltheicon "less" :face 'all-the-icons-red))
+          (Property      . ,(all-the-icons-faicon "wrench" :face 'all-the-icons-red))
+          (Unit          . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (Value         . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (Enum          . ,(all-the-icons-faicon "file-text-o" :face 'all-the-icons-red))
+          (Keyword       . ,(all-the-icons-material "format_align_center" :face 'all-the-icons-red))
+          (Snippet       . ,(all-the-icons-material "content_paste" :face 'all-the-icons-red))
+          (Color         . ,(all-the-icons-material "palette" :face 'all-the-icons-red))
+          (File          . ,(all-the-icons-faicon "file" :face 'all-the-icons-red))
+          (Reference     . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (Folder        . ,(all-the-icons-faicon "folder" :face 'all-the-icons-red))
+          (EnumMember    . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (Constant      . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (Struct        . ,(all-the-icons-faicon "cog" :face 'all-the-icons-red))
+          (Event         . ,(all-the-icons-faicon "bolt" :face 'all-the-icons-red))
+          (Operator      . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
+          (TypeParameter . ,(all-the-icons-faicon "cog" :face 'all-the-icons-red))
+          (Template      . ,(all-the-icons-faicon "bookmark" :face 'all-the-icons-dgreen))))))
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
@@ -310,9 +344,6 @@
 
 ;; smex
 (use-package smex :defer t)
-
-(use-package vterm
-  :commands vterm)
 
 (defun my-vterm/split-horizontal ()
   "Create a new vterm window to the right of the current one."
@@ -374,6 +405,9 @@
 (use-package evil-magit
   :after magit)
 
+(use-package vterm
+  :commands vterm)
+
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -412,16 +446,25 @@
    ":" 'eval-expression)
 
   (mk/leader-keys
-   "a" '(:ignore t :which-key "applications")
-   "af" '(:ignore t :which-key "feed")
-   "afu" '(elfeed-update :which-key "update feed")
-   "afs" '(elfeed :which-key "show feed"))
+   "a" '(:ignore t :which-key "agenda")
+   "aa" '(org-agenda :which-key "agenda")
+   "al" '(org-agenda-list :which-key "agenda list")
+   "aF" '(org-agenda-file-to-front :which-key "bring file to front"))
+
+  (mk/leader-keys
+   "A" '(:ignore t :which-key "applications")
+   "Af" '(:ignore t :which-key "feed")
+   "Afu" '(elfeed-update :which-key "update feed")
+   "Afs" '(elfeed :which-key "show feed"))
 
   (mk/leader-keys
    "f" '(:ignore t :which-key "files")
    "fs" '(save-buffer :which-key "save file")
-   "ff" '(find-file :which-key "find file")
+   "fo" '(dired :which-key "open file")
+   "ff" '(counsel-find-file :which-key "find file")
    "fn" '(create-file-buffer :which-key "new file")
+   "fr" '(dired-rename-file :which-key "rename file")
+   "fD" '(delete-file :which-key "delete file")
    "fR" 'eval-buffer
    "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
 
@@ -466,8 +509,8 @@
      "h" '(:ignore t :which-key "help")
      "hc" '(helpful-command :which-key "describe command")
      "hk" '(helpful-key :which-key "describe key")
-     "hf" '(helpful-function :which-key "describe function")
-     "hv" '(helpful-variable :which-key "describe variable")
+     "hf" '(counsel-describe-function :which-key "describe function")
+     "hv" '(counsel-describe-variable :which-key "describe variable")
      "ht" '(evil-tutor-start :which-key "evil tutorial")
      "hp" '(helpful-at-point :which-key "describe at-point"))
 
@@ -525,7 +568,11 @@
   :config
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
-	org-hide-leading-stars))
+	org-hide-leading-stars
+	org-agenda-start-with-log-mode t
+	org-log-into-drawer t
+	org-log-done 'time
+	org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/")))
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -556,7 +603,6 @@
 		       ("https://www.reddit.com/r/swift.rss")
 			   ("https://www.osnews.com/feed/")
 			   ("https://www.feber.se/rss/")
-			   ("https://rss.aftonbladet.se/rss2/small/pages/sections/senastenytt/" aftonbladet)
 		       ("https://www.reddit.com/r/haikuos.rss")
 		       )))
 
@@ -576,6 +622,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-agenda-files
+   '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
  '(package-selected-packages
    '(ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
