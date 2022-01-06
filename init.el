@@ -91,13 +91,7 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; Initialize package sources
-
-;;; Commentary:
-;;
-
-
 (require 'package)
-
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("org" . "https://orgmode.org/elpa/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
@@ -205,14 +199,17 @@
 	treemacs-follow-after-init t
 	treemacs-is-never-other-window t))
 
+
+(use-package autothemer)
+
 ;; Theming
 (use-package doom-themes
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
-	doom-themes-treemacs-theme "doom-moonlight")
-  (load-theme 'doom-moonlight  t)
+	doom-themes-treemacs-theme "doom-atom")
+  ;; (load-theme 'doom-outrun-electric  t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -225,6 +222,8 @@
 
 (use-package all-the-icons
   :defer t)
+
+(load-theme 'catppuccin t)
 
 ;; Config and install modeline
 (use-package doom-modeline
@@ -242,21 +241,21 @@
   (doom-modeline-checker-simple-format t)
   (doom-modeline-env-version t))
 
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 142)
-(set-face-background 'mode-line-inactive "#292B44")
-(set-face-background 'mode-line "#161826")
+;; (set-face-foreground 'vertical-border "#0C0A20")
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height 120)
+(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 130)
+;; (set-face-background 'mode-line-inactive "#110E2D")
+;; (set-face-foreground 'mode-line-inactive "#5E65A7")
 
-;; auto dim buffers
-(use-package auto-dim-other-buffers
-  :defer t
-  :config
-  (set-face-background 'auto-dim-other-buffers-face "#292B44")
-  (set-face-foreground 'auto-dim-other-buffers-face "#8D95BC"))
+;; (use-package auto-dim-other-buffers
+;;   :defer t
+;;   :config
+;;   (set-face-background 'auto-dim-other-buffers-face "#110E2D")
+;;   (set-face-foreground 'auto-dim-other-buffers-face "#8D95BC"))
 
-(add-hook 'after-init-hook (lambda ()
-  (when (fboundp 'auto-dim-other-buffers-mode)
-    (auto-dim-other-buffers-mode t))))
-
+;; (add-hook 'after-init-hook (lambda ()
+;;   (when (fboundp 'auto-dim-other-buffers-mode)
+;;     (auto-dim-other-buffers-mode t))))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -646,10 +645,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
  '(org-agenda-files
    '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
  '(package-selected-packages
-   '(ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
