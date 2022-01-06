@@ -5,7 +5,7 @@
 (setq gc-cons-threshold (* 100 1024 1024))
 
 (setq inhibit-startup-message t
-      comp-deferred-compilation t
+      comp-deferred-compilation nil
       package-enable-at-startup nil
       frame-inhibit-implied-resize t
       site-run-file nil
@@ -32,9 +32,9 @@
 (setq indent-line-function 'insert-tab)
 
 (setq-default display-line-numbers-width 3
-	      c-basic-offset 4
-	      tab-width 4
-	      indent-tabs-mode t)
+			  c-basic-offset 4
+			  tab-width 4
+			  indent-tabs-mode t)
 
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -85,7 +85,7 @@
 
 (set-face-attribute 'default nil :font "Source Code Pro" :height 145)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 145)
-(set-face-attribute 'variable-pitch nil :font "Source Code Pro" :height 145 :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 145 :weight 'regular)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -142,7 +142,6 @@
 			  (agenda . 10)
 			  )))
 
-
 ;; Which key
 (use-package which-key
   :defer 0
@@ -193,9 +192,6 @@
 (use-package counsel
   :config (counsel-mode 1))
 
-(use-package solaire-mode
-  :config (solaire-global-mode 1))
-
 ;; Ivy rich
 (use-package ivy-rich
   :after ivy
@@ -215,8 +211,8 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
-	doom-themes-treemacs-theme "doom-atom")
-  (load-theme 'doom-gruvbox t)
+	doom-themes-treemacs-theme "doom-moonlight")
+  (load-theme 'doom-moonlight  t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -227,11 +223,14 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package all-the-icons)
+(use-package all-the-icons
+  :defer t)
 
+;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :custom
+  (setq doom-modeline-height 31)
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t)
   (doom-modeline-major-mode-color-icon t)
@@ -243,9 +242,21 @@
   (doom-modeline-checker-simple-format t)
   (doom-modeline-env-version t))
 
-(setq doom-modeline-height 1)
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 150)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 145)
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height 142)
+(set-face-background 'mode-line-inactive "#292B44")
+(set-face-background 'mode-line "#161826")
+
+;; auto dim buffers
+(use-package auto-dim-other-buffers
+  :defer t
+  :config
+  (set-face-background 'auto-dim-other-buffers-face "#292B44")
+  (set-face-foreground 'auto-dim-other-buffers-face "#8D95BC"))
+
+(add-hook 'after-init-hook (lambda ()
+  (when (fboundp 'auto-dim-other-buffers-mode)
+    (auto-dim-other-buffers-mode t))))
+
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -331,7 +342,7 @@
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
-    (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
+    (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
   (exec-path-from-shell-initialize)
   (ns-auto-titlebar-mode)
   (setq mac-option-key-is-meta nil
@@ -340,19 +351,30 @@
       mac-option-modifier 'none))
 
 ; helpful
-(use-package helpful :defer t)
+(use-package helpful
+  :after ivy)
 
 ;; smex
-(use-package smex :defer t)
+(use-package smex
+  :after ivy)
 
 (defun my-vterm/split-horizontal ()
-  "Create a new vterm window to the right of the current one."
+  "Create a new vterm window under of the current one."
   (interactive)
   (let* ((ignore-window-parameters t)
          (dedicated-p (window-dedicated-p)))
     (split-window-vertically)
     (other-window 1)
     (vterm default-directory)))
+
+(defun mk/browser-split-vertically ()
+  "Create a new browser window to the right of the current one."
+  (interactive)
+  (let* ((ignore-window-parameters t)
+         (dedicated-p (window-dedicated-p)))
+    (split-window-horizontally)
+    (other-window 1)
+    (xwidget-webkit-browse-url "https://google.com")))
 
 (use-package projectile
   :diminish projectile-mode
@@ -499,6 +521,7 @@
      "bp" '(previous-buffer :which-key "previous buffer")
      "bn" '(next-buffer :which-key "next buffer")
      "be" '(eval-buffer :which-key "eval buffer")
+     "bE" '(eval-last-sexp :which-key "eval to point")
      "br" '(revert-buffer :which-key "revert buffer")
      "bC" '((lambda () (interactive) (switch-to-buffer "*Compile-Log*")) :which-key "Compile log-buffer")
      "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
@@ -521,8 +544,9 @@
      "w-" '(split-window-below :which-key "split horizontally")
      "w/" '(split-window-right :which-key "split vertically")
      "wn" '(next-window-any-frame :which-key "next window")
-     "wp" '(previous-window-any-frame :which-key "previous window")
-     "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
+	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
+     "wp" '(previous-window-any-frame :which-key "previous window"))
+;;     "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
 
    (mk/leader-keys
      "p" '(:ignore t :which-key "project")
@@ -603,18 +627,18 @@
 		       ("https://www.reddit.com/r/swift.rss")
 			   ("https://www.osnews.com/feed/")
 			   ("https://www.feber.se/rss/")
-		       ("https://www.reddit.com/r/haikuos.rss")
-		       )))
+		       ("https://www.reddit.com/r/haikuos.rss"))))
 
 (setq-default elfeed-search-filter "@2-days-ago +unread")
 (setq-default elfeed-search-title-max-width 100)
 (setq-default elfeed-search-title-min-width 100)
 
 (use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
   :defer t
+  :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method 'bitmap))
 
+;; Reset memory for Garbage collection
 (setq gc-cons-threshold (* 5 1024 1024))
 
 (custom-set-variables
