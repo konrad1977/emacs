@@ -87,9 +87,9 @@ catppuccin "A theme to set the mood for Halloween"
   ;; Battery colors
   (doom-modeline-battery-critical      (:foreground red))
   (doom-modeline-battery-warning       (:foreground maroon))
-  (doom-modeline-battery-charging      (:foreground green))
+  (doom-modeline-battery-charging      (:foreground gray-2))
   (doom-modeline-battery-error         (:foreground red))
-  (doom-modeline-battery-normal        (:foreground yellow))
+  (doom-modeline-battery-normal        (:foreground gray-2))
   (doom-modeline-battery-full          (:foreground green))
 
   ;; Doom visual state
@@ -101,9 +101,9 @@ catppuccin "A theme to set the mood for Halloween"
   (doom-modeline-evil-replace-state    (:foreground red))
   (doom-modeline-evil-operator-state   (:foreground blue))
 
-  (doom-modeline-project-dir           (:bold t :foreground peach))
+  (doom-modeline-project-dir           (:bold t :foreground green))
   (doom-modeline-buffer-path           (:inherit 'bold :foreground green))
-  (doom-modeline-buffer-file           (:inherit 'bold :foreground red))
+  (doom-modeline-buffer-file           (:inherit 'bold :foreground maroon))
   (doom-modeline-buffer-modified       (:inherit 'bold :foreground yellow))
   (doom-modeline-error                 (:background red))
   (doom-modeline-buffer-major-mode     (:foreground green :bold t))

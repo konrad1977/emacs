@@ -249,7 +249,7 @@
   :defer t
   :config
   (set-face-background 'auto-dim-other-buffers-face nil)
-  (set-face-foreground 'auto-dim-other-buffers-face "#C3BAC6"))
+  (set-face-foreground 'auto-dim-other-buffers-face "#988BA2"))
 
 (add-hook 'after-init-hook (lambda ()
   (when (fboundp 'auto-dim-other-buffers-mode)
