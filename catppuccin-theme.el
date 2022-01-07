@@ -42,8 +42,8 @@ catppuccin "A theme to set the mood for Halloween"
   (success                             (:foreground green))
   (error                               (:foreground red))
   (warning                             (:foreground maroon))
-  (mode-line                           (:background black-1))
-  (mode-line-inactive                  (:background black-1 :foreground gray-1))
+  (mode-line                           (:background black))
+  (mode-line-inactive                  (:background black-2 :foreground gray-1))
   (mode-line-highlight                 (:foreground rosewater))
   (button                              (:foreground green))
 
@@ -197,7 +197,7 @@ catppuccin "A theme to set the mood for Halloween"
   (ivy-grep-info                                (:foreground teal))
 
   ;; lets support solaire mode
-  (solaire-default-face (:background black-3))
+  (solaire-default-face (:background black-1))
   
   ;; evil
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))

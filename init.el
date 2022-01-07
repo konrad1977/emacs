@@ -85,9 +85,9 @@
 				 treemacs-mode-hook))
   (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
-(set-face-attribute 'default nil :font "Source Code Pro" :height 145)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 145)
-(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 145 :weight 'regular)
+(set-face-attribute 'default nil :font "Source Code Pro" :height 148)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 148)
+(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 148 :weight 'regular)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -468,6 +468,13 @@
    "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
    "!" 'shell-command
    ":" 'eval-expression)
+
+  (mk/leader-keys
+   "e" '(:ignore t :which-key "eval")
+   "ee" '(eval-expression :which-key "eval expression")
+   "eb" '(eval-buffer :which-key "eval buffer")
+   "el" '(eval-last-sexp :which-key "eval before point")
+   "er" '(eval-region :which-key "eval region"))
 
   (mk/leader-keys
    "a" '(:ignore t :which-key "agenda")
