@@ -74,7 +74,9 @@
 (global-display-line-numbers-mode t)
 
 ;; Disable line number for following modes
-( dolist (mode '(org-mode-hook
+( dolist (mode '(org-agenda-week-hook
+				 org-agen
+				 org-mode-hook
 				 shell-mode-hook
 				 term-mode-hook
 				 vterm-mode-hook

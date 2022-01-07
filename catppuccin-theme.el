@@ -79,7 +79,7 @@ catppuccin "A theme to set the mood for Halloween"
   (info-xref                           (:foreground yellow))
   (highlight-quoted-symbol             (:foreground maroon))
   (minibuffer-prompt-end               (:background dark))
-  (minibuffer-prompt                   (:foreground yellow :background black-1))
+  (minibuffer-prompt                   (:foreground lavender :background black-1))
   (epa-mark                            (:foreground pink))
   (dired-mark                          (:foreground pink))
 
@@ -121,6 +121,24 @@ catppuccin "A theme to set the mood for Halloween"
   (doom-modeline-bar                   (:background green))
   (doom-modeline-panel                 (:background green :foreground white))
 
+  ;;elfeed
+  (elfeed-search-feed-face             (:foreground lavender))
+  (elfeed-search-tag-face              (:foreground green))
+
+  ;; message colors
+  (message-header-name                  (:foreground gray-2))
+  (message-header-other                 (:foreground peach))
+  (message-header-subject               (:foreground yellow))
+  (message-header-to                    (:foreground white))
+  (message-header-cc                    (:foreground green))
+  (message-header-xheader               (:foreground white))
+  (custom-link                          (:foreground blue))
+  (link                                 (:foreground blue))
+
+
+  (org-date                             (:foreground magenta))
+  (org-footnote                         (:foreground green))
+  
   ;; which-key
   (which-key-key-face                   (:foreground green))
   (which-key-group-description-face     (:foreground red))
@@ -132,6 +150,16 @@ catppuccin "A theme to set the mood for Halloween"
   (counsel-outline-default              (:foreground yellow))
   (info-header-xref                     (:foreground yellow))
   (xref-file-header                     (:foreground yellow))
+
+  ;; rainbow delimiter
+  (rainbow-delimiter-base-error-face    (:foreground red))
+  (rainbow-delimiter-base-face          (:foreground gray-2))
+  (rainbow-delimiter-depth-1-face       (:foreground peach))
+  (rainbow-delimiter-depth-2-face       (:foreground maroon))
+  (rainbow-delimiter-depth-3-face       (:foreground pink))
+  (rainbow-delimiter-depth-4-face       (:foreground green))
+  (rainbow-delimiter-depth-5-face       (:foreground blue))
+  (rainbow-delimiter-depth-6-face       (:foreground lavender))
 
   ;; counsel
   (company-preview-common               (:foreground red))
