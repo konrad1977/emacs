@@ -51,9 +51,11 @@
 				   indicate-unused-lines t
 				   indicate-empty-lines t
 				   company-mode t
-				   electric-pair-mode t
 				   semantic-mode t
+				   electric-pair-mode t
+                   column-number-mode t
 				   highlight-indent-guides-mode t
+                   display-line-numbers t
 				   word-wrap nil)))
 
 ;; Set yes or no to y/n
@@ -69,22 +71,6 @@
 (desktop-save-mode 1)
 (savehist-mode 1)
 (add-to-list 'savehist-additional-variables 'kill-ring)
-
-;; line-numbers
-(column-number-mode)
-(global-display-line-numbers-mode t)
-
-;; Disable line number for following modes
-( dolist (mode '(org-agenda-week-hook
-				 org-agen
-				 org-mode-hook
-				 shell-mode-hook
-				 term-mode-hook
-				 vterm-mode-hook
-				 helpful-mode-hook
-				 xwidget-webkit-mode-hook
-				 treemacs-mode-hook))
-  (add-hook mode (lambda() (display-line-numbers-mode 0))))
 
 (set-face-attribute 'default nil :font "Source Code Pro" :height 148)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 148)
@@ -181,7 +167,7 @@
 (use-package ivy
   :diminish
   :bind (:map ivy-minibuffer-map
-         ("TAB" . ivy-alt-done))
+              ("TAB" . ivy-alt-done))
   :config
   (ivy-mode 1))
 
@@ -211,7 +197,7 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
-	doom-themes-treemacs-theme "doom-atom")
+	    doom-themes-treemacs-theme "doom-atom")
   ;; (load-theme 'doom-outrun-electric  t)
 
   ;; Enable flashing mode-line on errors
@@ -245,8 +231,8 @@
 
 ;; (set-face-foreground 'vertical-border "#0C0A20")
 (setq doom-modeline-height 40)
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 136)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 128)
+(set-face-attribute 'mode-line nil :family "Source Code Pro" :height 136)
+(set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 128)
 
 (use-package auto-dim-other-buffers
   :defer t

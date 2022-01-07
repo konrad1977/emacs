@@ -36,7 +36,7 @@ catppuccin "A theme to set the mood for Halloween"
   (default                             (:foreground rosewater :background black-2))
   (cursor                              (:background red))
   (line-number                         (:foreground black-4 :background nil))
-  (line-number-current-line            (:foreground green))
+  (line-number-current-line            (:foreground green :background black-1))
   (fringe                              (:background black-2))
   (region                              (:background black-4))
   (success                             (:foreground green))
