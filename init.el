@@ -229,7 +229,6 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :custom
-  (setq doom-modeline-height 31)
   (doom-modeline-icon t)
   (doom-modeline-major-mode-icon t)
   (doom-modeline-major-mode-color-icon t)
@@ -242,20 +241,19 @@
   (doom-modeline-env-version t))
 
 ;; (set-face-foreground 'vertical-border "#0C0A20")
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 120)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 130)
-;; (set-face-background 'mode-line-inactive "#110E2D")
-;; (set-face-foreground 'mode-line-inactive "#5E65A7")
+(setq doom-modeline-height 40)
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height 136)
+(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 128)
 
-;; (use-package auto-dim-other-buffers
-;;   :defer t
-;;   :config
-;;   (set-face-background 'auto-dim-other-buffers-face "#110E2D")
-;;   (set-face-foreground 'auto-dim-other-buffers-face "#8D95BC"))
+(use-package auto-dim-other-buffers
+  :defer t
+  :config
+  (set-face-background 'auto-dim-other-buffers-face nil)
+  (set-face-foreground 'auto-dim-other-buffers-face "#C3BAC6"))
 
-;; (add-hook 'after-init-hook (lambda ()
-;;   (when (fboundp 'auto-dim-other-buffers-mode)
-;;     (auto-dim-other-buffers-mode t))))
+(add-hook 'after-init-hook (lambda ()
+  (when (fboundp 'auto-dim-other-buffers-mode)
+    (auto-dim-other-buffers-mode t))))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -483,7 +481,7 @@
    "fs" '(save-buffer :which-key "save file")
    "fo" '(dired :which-key "open file")
    "ff" '(counsel-find-file :which-key "find file")
-   "fn" '(create-file-buffer :which-key "new file")
+  "fn" '(create-file-buffer :which-key "new file")
    "fr" '(dired-rename-file :which-key "rename file")
    "fD" '(delete-file :which-key "delete file")
    "fR" 'eval-buffer
@@ -646,7 +644,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
+   '("9f802342df5b5df84a202b523d9c69ecc9c7b46b91aa234fb2ab5667d6d7bd45" "c4063322b5011829f7fdd7509979b5823e8eea2abf1fe5572ec4b7af1dd78519" "60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
  '(org-agenda-files
    '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
  '(package-selected-packages
