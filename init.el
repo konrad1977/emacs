@@ -17,7 +17,8 @@
       visible-bell t
       indent-tabs-mode nil
       tab-width 4
-      create-lockfiles nil)
+      create-lockfiles nil
+      display-time-default-load-average nil)
 
 (display-battery-mode t) ; Show battery
 (display-time-mode t)    ; Show time
