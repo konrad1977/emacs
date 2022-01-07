@@ -429,6 +429,9 @@
 (use-package vterm
   :commands vterm)
 
+(use-package solaire-mode
+  :defer t)
+
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   "Kill all other buffers."

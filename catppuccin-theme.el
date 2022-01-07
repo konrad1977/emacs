@@ -43,7 +43,7 @@ catppuccin "A theme to set the mood for Halloween"
   (error                               (:foreground red))
   (warning                             (:foreground maroon))
   (mode-line                           (:background black-1))
-  (mode-line-inactive                  (:background black-2 :foreground gray-1))
+  (mode-line-inactive                  (:background black-1 :foreground gray-1))
   (mode-line-highlight                 (:foreground rosewater))
   (button                              (:foreground green))
 
@@ -135,10 +135,9 @@ catppuccin "A theme to set the mood for Halloween"
   (custom-link                          (:foreground blue))
   (link                                 (:foreground blue))
 
-
   (org-date                             (:foreground magenta))
   (org-footnote                         (:foreground green))
-  
+
   ;; which-key
   (which-key-key-face                   (:foreground green))
   (which-key-group-description-face     (:foreground red))
@@ -152,14 +151,19 @@ catppuccin "A theme to set the mood for Halloween"
   (xref-file-header                     (:foreground yellow))
 
   ;; rainbow delimiter
-  (rainbow-delimiter-base-error-face    (:foreground red))
-  (rainbow-delimiter-base-face          (:foreground gray-2))
-  (rainbow-delimiter-depth-1-face       (:foreground peach))
-  (rainbow-delimiter-depth-2-face       (:foreground maroon))
-  (rainbow-delimiter-depth-3-face       (:foreground pink))
-  (rainbow-delimiter-depth-4-face       (:foreground green))
-  (rainbow-delimiter-depth-5-face       (:foreground blue))
-  (rainbow-delimiter-depth-6-face       (:foreground lavender))
+  (rainbow-delimiters-base-error-face    (:foreground red))
+  (rainbow-delimiters-base-face          (:foreground gray-2))
+  (rainbow-delimiters-depth-1-face       (:foreground peach))
+  (rainbow-delimiters-depth-2-face       (:foreground maroon))
+  (rainbow-delimiters-depth-3-face       (:foreground pink))
+  (rainbow-delimiters-depth-4-face       (:foreground blue))
+  (rainbow-delimiters-depth-5-face       (:foreground lavender))
+  (rainbow-delimiters-depth-6-face       (:foreground sky))
+  (rainbow-delimiters-depth-7-face       (:foreground green))
+  (rainbow-delimiters-depth-8-face       (:foreground yellow))
+  (rainbow-delimiters-depth-9-face       (:foreground magenta))
+  (rainbow-delimiters-mismatched-face    (:foreground red))
+  (rainbow-delimiters-unmatched-face     (:foreground red))
 
   ;; counsel
   (company-preview-common               (:foreground red))
@@ -192,6 +196,9 @@ catppuccin "A theme to set the mood for Halloween"
   (ivy-minibuffer-match-highlight               (:foreground teal))
   (ivy-grep-info                                (:foreground teal))
 
+  ;; lets support solaire mode
+  (solaire-default-face (:background black-3))
+  
   ;; evil
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face (:background yellow))
