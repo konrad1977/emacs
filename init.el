@@ -4,21 +4,20 @@
 
 (setq gc-cons-threshold (* 100 1024 1024))
 
-(setq inhibit-startup-message t
-      comp-deferred-compilation nil
-      package-enable-at-startup nil
-      frame-inhibit-implied-resize t
-      site-run-file nil
-      inhibit-compacting-font-caches t
-      frame-resize-pixelwise t
-      window-resize-pixelwise t
-      ns-pop-up-frames nil
-      display-time-24hr-format t
-      visible-bell t
-      indent-tabs-mode nil
-      tab-width 4
+(setq comp-deferred-compilation nil
       create-lockfiles nil
-      display-time-default-load-average nil)
+      display-time-24hr-format t
+      display-time-default-load-average nil
+      frame-inhibit-implied-resize t
+      frame-resize-pixelwise t
+      indent-tabs-mode nil
+      inhibit-compacting-font-caches t
+      ns-pop-up-frames nil
+      inhibit-startup-message t
+      package-enable-at-startup nil
+      site-run-file nil
+      visible-bell t
+      window-resize-pixelwise t)
 
 (display-battery-mode t) ; Show battery
 (display-time-mode t)    ; Show time
@@ -32,7 +31,7 @@
 
 (setq indent-line-function 'insert-tab)
 
-(setq-default display-line-numbers-width 3
+(setq-default display-line-numbers-width 4
 			  c-basic-offset 4
 			  tab-width 4
 			  indent-tabs-mode t)
@@ -46,17 +45,18 @@
 
 ;; dont word wrap
 (add-hook 'prog-mode-hook #'(lambda ()
-			     (setq truncate-lines t
-				   show-trailing-whitespace t
-				   indicate-unused-lines t
-				   indicate-empty-lines t
-				   company-mode t
-				   semantic-mode t
-				   electric-pair-mode t
-                   column-number-mode t
-				   highlight-indent-guides-mode t
-                   display-line-numbers t
-				   word-wrap nil)))
+			                  (setq company-mode t
+				                    electric-pair-mode t
+				                    highlight-indent-guides-mode t
+				                    indicate-empty-lines t
+				                    indicate-unused-lines t
+				                    semantic-mode t
+				                    show-trailing-whitespace t
+				                    word-wrap nil
+                                    column-number-mode t
+                                    display-line-numbers t
+                                    show-paren-mode t
+                                    truncate-lines t)))
 
 ;; Set yes or no to y/n
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -97,13 +97,17 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
-(defun mk/display-startup-time()
-  (message "Emacs loaded in %s with %d garbage collection."
-	   (format "%.2f seconds"
-		    (float-time (time-subtract after-init-time before-init-time)))
-	   gcs-done))
 
-(add-hook 'emacs-startup-hook #'mk/display-startup-time)
+(use-package autothemer
+  :defer t)
+
+;;  theming
+(add-hook 'minibuffer-setup-hook
+          (lambda ()
+            (make-local-variable 'face-remapping-alist)
+            (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
+
+(load-theme 'catppuccin t)
 
 (use-package dashboard
   :ensure t
@@ -121,9 +125,7 @@
 	dashboard-items '(
 			  (projects . 5)
 			  (recents . 3)
-			  ;; (bookmarks . 5)
-			  (agenda . 10)
-			  )))
+			  (agenda . 10))))
 
 ;; Which key
 (use-package which-key
@@ -133,8 +135,8 @@
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.15
-	which-key-min-display-lines 5
-	which-key-max-display-columns 4))
+	which-key-min-display-lines 4
+	which-key-max-display-columns 5))
 
 ; Use evil mode
 (use-package evil
@@ -145,6 +147,8 @@
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
+
+  (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
@@ -180,16 +184,6 @@
   :after ivy
   :init (ivy-rich-mode 1))
 
-(use-package treemacs
-  :defer t
-  :config
-  (treemacs-toggle-fixed-width nil)
-  (setq treemacs-text-scale -1
-	treemacs-follow-after-init t
-	treemacs-is-never-other-window t))
-
-
-(use-package autothemer)
 
 ;; Theming
 (use-package doom-themes
@@ -212,7 +206,6 @@
 (use-package all-the-icons
   :defer t)
 
-(load-theme 'catppuccin t)
 
 ;; Config and install modeline
 (use-package doom-modeline
@@ -647,7 +640,7 @@
  '(org-agenda-files
    '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
  '(package-selected-packages
-   '(autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
