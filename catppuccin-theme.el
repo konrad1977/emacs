@@ -34,35 +34,29 @@ catppuccin "A theme to set the mood for Halloween"
  ;; Customize faces
   (
   (default                              (:foreground rosewater :background black-2))
-  (cursor                               (:background red :foreground black))
+  (cursor                               (:background rosewater :foreground black-2))
   (line-number                          (:foreground black-4 :background nil))
-  (line-number-current-line             (:foreground green :background black-1))
+  (line-number-current-line             (:foreground green :background black-3))
   (fringe                               (:background black-2))
-  (region                               (:background black-4))
-  (success                              (:foreground green))
+  (region                               (:background dark))
   (highlight                            (:background green :foreground black))
+  (numbers                              (:background green :foreground black))
   (match                                (:background green :foreground black))
   (error                                (:foreground red))
+  (success                              (:foreground green))
   (warning                              (:foreground maroon))
   (mode-line                            (:background black))
   (mode-line-inactive                   (:background black-2 :foreground gray-1))
   (mode-line-highlight                  (:foreground rosewater))
   (shadow                               (:background black))
   (glyph-face                           (:background red))
+  (glyphless-char                       (:foreground gray))
+  (homoglyph                            (:foreground teal))
+  (lv-separator                         (:foreground gray :background black-2))
+  (header-line							(:background black))
   (button                               (:foreground green))
 
-  ;; current line
-  (hl-line                              (:background black))
-  (vertical-border                      (:foreground black-3 :background nil))
-  (window-divider-first-pixel           (:foreground black-2))
-  (window-divider-last-pixel            (:background black-2))
-  (separator-line                       (:background black-2))
-  (border                               (:background black-2))
-  (window-border                        (:background black-2))
-  (internal-border                      (:background black-2))
-  (child-frame-border                   (:foreground black-2))
-
-
+  ;; Font lock
   (font-lock-type-face                  (:foreground teal))
   (font-lock-constant-face              (:foreground blue))
   (font-lock-keyword-face               (:bold t :foreground maroon))
@@ -79,6 +73,17 @@ catppuccin "A theme to set the mood for Halloween"
   (font-lock-negation-char-face         (:foreground red))
   (font-lock-regexp-grouping-backslash  (:foreground teal))
   (elisp-shorthand-font-lock-face       (:foreground yellow))
+
+  ;; Look
+  (hl-line                              (:background black-3))
+  (vertical-border                      (:foreground black-3 :background nil))
+  (window-divider-first-pixel           (:foreground black-2))
+  (window-divider-last-pixel            (:background black-2))
+  (separator-line                       (:background black-2))
+  (border                               (:background black-2))
+  (window-border                        (:background black-2))
+  (internal-border                      (:background black-2))
+  (child-frame-border                   (:foreground black-2))
 
   (info-xref                            (:foreground yellow))
   (highlight-quoted-symbol              (:foreground maroon))
@@ -171,7 +176,7 @@ catppuccin "A theme to set the mood for Halloween"
   (rainbow-delimiters-unmatched-face    (:foreground green))
 
   ;; show-paren
-  (show-paren-match                     (:background black-1 :foreground blue))
+  (show-paren-match                     (:background maroon :foreground black))
   (show-paren-match-expression          (:background magenta))
   (show-paren-mismatch                  (:background red :foreground white))
 
@@ -213,8 +218,40 @@ catppuccin "A theme to set the mood for Halloween"
   (which-key-posframe							(:background black))
   (which-key-posframe-border					(:background dark))
 
+  (treemacs-directory-collapsed-face			(:foreground rosewater))
+  (treemacs-directory-face						(:foreground rosewater))
+  (treemacs-file-face							(:foreground rosewater))
+
+  (treemacs-git-added-face						(:foreground peach))
+  (treemacs-git-renamed-face				   	(:foreground rosewater))
+  (treemacs-git-ignored-face				   	(:foreground gray-2))
+  (treemacs-git-unmodified-face		   			(:foreground rosewater))
+  (treemacs-git-renamed-face		   			(:foreground rosewater))
+  (treemacs-git-modified-face		   			(:foreground maroon))
+
   ;; lets support solaire mode
   (solaire-default-face (:background black-1))
+
+      ;; lsp
+
+  ;; (lsp-lsp-flycheck-warning-unnecessary-face (:underline (:color maroon :style 'wave)
+  ;;                                                        :foreground peach))
+
+  (lsp-headerline-breadcrumb-path-error-face (:underline (:color maroon :style 'wave)
+                                                         :foreground gray-2 :background black))
+  (lsp-headerline-breadcrumb-path-face				(:background black))
+  (lsp-headerline-breadcrumb-path-hint-face	   		(:background black))
+  (lsp-headerline-breadcrumb-path-info-face	   		(:background black))
+  (lsp-headerline-breadcrumb-separator-face			(:background black))
+  (lsp-headerline-breadcrumb-symbols-face			(:background black))
+  (lsp-headerline-breadcrumb-project-prefix-face	(:background black))
+
+  (lsp-ui-doc-background						(:background black-1))
+  (lsp-ui-doc-header							(:background black-4 :background red))
+  (lsp-ui-peek-filename							(:foreground teal))
+  (lsp-ui-sideline-code-action					(:foreground yellow))
+  (lsp-ui-sideline-current-symbol				(:foreground sky))
+  (lsp-ui-sideline-symbol						(:foreground gray-1))
 
   ;; evil
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))

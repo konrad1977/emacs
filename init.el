@@ -97,9 +97,22 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
+(use-package dired
+  :ensure nil
+  :commands dired dired-jump
+  :bind (("C-x C-j" . dired-jump))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer))
+
+(use-package dired-single)
+
+(use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package autothemer
-  :defer t)
+    :defer t)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook
@@ -636,11 +649,11 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("9f802342df5b5df84a202b523d9c69ecc9c7b46b91aa234fb2ab5667d6d7bd45" "c4063322b5011829f7fdd7509979b5823e8eea2abf1fe5572ec4b7af1dd78519" "60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
+   '("234dbb732ef054b109a9e5ee5b499632c63cc24f7c2383a849815dacc1727cb6" "aeca5b24d5683690fd4bcf6a689126afa4fc041fd52b5a31b2fcf7a6d02170d5" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "9f802342df5b5df84a202b523d9c69ecc9c7b46b91aa234fb2ab5667d6d7bd45" "c4063322b5011829f7fdd7509979b5823e8eea2abf1fe5572ec4b7af1dd78519" "60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
  '(org-agenda-files
    '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
  '(package-selected-packages
-   '(ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
