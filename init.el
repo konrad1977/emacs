@@ -108,9 +108,6 @@
 
 (use-package dired-single)
 
-(use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
-
 (use-package autothemer
     :defer t)
 
@@ -147,7 +144,7 @@
   :config
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha
-        which-key-idle-delay 0.15
+        which-key-idle-delay 0.3
 	which-key-min-display-lines 4
 	which-key-max-display-columns 5))
 
@@ -219,6 +216,8 @@
 (use-package all-the-icons
   :defer t)
 
+(use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
 
 ;; Config and install modeline
 (use-package doom-modeline
@@ -233,12 +232,11 @@
   (doom-modeline-buffer-encoding nil)
   (doom-modeline-indent-info nil)
   (doom-modeline-checker-simple-format t)
-  (doom-modeline-env-version t))
-
-;; (set-face-foreground 'vertical-border "#0C0A20")
-(setq doom-modeline-height 40)
-(set-face-attribute 'mode-line nil :family "Source Code Pro" :height 136)
-(set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 128)
+  (doom-modeline-env-version t)
+  :config
+  (setq doom-modeline-height 38)
+  (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 136)
+  (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 128))
 
 (use-package auto-dim-other-buffers
   :defer t
@@ -252,7 +250,7 @@
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
- :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; company --------------------------------------------
 (use-package company

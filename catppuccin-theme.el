@@ -8,17 +8,19 @@ catppuccin "A theme to set the mood for Halloween"
   ;; Define our color palette
   (rosewater  "#F5E0DC")
   (flamingo   "#F2CDCD")
-  (magenta    "#C6AAE8")
-  (pink       "#E5B4E2")
-  (maroon     "#E49CB3")
-  (red        "#E38C8F")
-  (peach      "#F7BE95")
-  (yellow     "#ECDDAA")
-  (green      "#B1E1A6")
-  (teal       "#B7E5E6")
-  (blue       "#A3B9EF")
-  (sky        "#92D2E8")
+  (mauve      "#DDB6F2")
+  (pink       "#F5C2E7")
+  (maroon     "#E8A2AF")
+  (red        "#F28FAD")
+  (peach      "#F8BD96")
+  (yellow     "#FAE3B0")
+  (green      "#ABE9B3")
+  (teal       "#B5E8E0")
+  (blue       "#96CDFB")
+  (sky        "#89DCEB")
   (lavender   "#C9CBFF")
+
+  ;; Dark - monochrome:ish
   (dark       "#0C0A10")
   (black      "#15121C")
   (black-1    "#1B1923")
@@ -144,8 +146,16 @@ catppuccin "A theme to set the mood for Halloween"
   (custom-link                          (:foreground blue))
   (link                                 (:foreground blue))
 
-  (org-date                             (:foreground magenta))
+  ;; org-mode
+  (org-done                             (:foreground gray))
+  (org-headline-done                    (:foreground gray))
+  (org-todo                             (:foreground green))
+  (org-headline-todo                    (:foreground rosewater))
+  (org-upcoming-deadline                (:foreground red))
   (org-footnote                         (:foreground green))
+  (org-indent                           (:background black-2))
+  (org-hide	                            (:background black-2))
+  (org-date                             (:foreground gray))
 
   ;; which-key
   (which-key-key-face                   (:foreground green))
@@ -171,13 +181,13 @@ catppuccin "A theme to set the mood for Halloween"
   (rainbow-delimiters-depth-6-face      (:foreground sky))
   (rainbow-delimiters-depth-7-face      (:foreground green))
   (rainbow-delimiters-depth-8-face      (:foreground yellow))
-  (rainbow-delimiters-depth-9-face      (:foreground magenta))
+  (rainbow-delimiters-depth-9-face      (:foreground mauve))
   (rainbow-delimiters-mismatched-face   (:foreground red))
   (rainbow-delimiters-unmatched-face    (:foreground green))
 
   ;; show-paren
   (show-paren-match                     (:background maroon :foreground black))
-  (show-paren-match-expression          (:background magenta))
+  (show-paren-match-expression          (:background mauve))
   (show-paren-mismatch                  (:background red :foreground white))
 
   ;; counsel
@@ -232,10 +242,7 @@ catppuccin "A theme to set the mood for Halloween"
   ;; lets support solaire mode
   (solaire-default-face (:background black-1))
 
-      ;; lsp
-
-  ;; (lsp-lsp-flycheck-warning-unnecessary-face (:underline (:color maroon :style 'wave)
-  ;;                                                        :foreground peach))
+  ;; lsp
 
   (lsp-headerline-breadcrumb-path-error-face (:underline (:color maroon :style 'wave)
                                                          :foreground gray-2 :background black))
@@ -253,6 +260,13 @@ catppuccin "A theme to set the mood for Halloween"
   (lsp-ui-sideline-current-symbol				(:foreground sky))
   (lsp-ui-sideline-symbol						(:foreground gray-1))
 
+  (dashboard-heading							(:foreground maroon))
+
+  (all-the-icons-dgreen							(:foreground green))
+  (all-the-icons-green							(:foreground green))
+  (all-the-icons-dpurple						(:foreground mauve))
+  (all-the-icons-purple							(:foreground mauve))
+  
   ;; evil
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face (:background yellow))
