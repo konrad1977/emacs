@@ -106,7 +106,17 @@
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
-(use-package dired-single)
+(use-package dired-single
+  :after dired)
+
+(use-package tree-sitter
+    :defer t)
+
+(use-package tree-sitter-langs
+    :after tree-sitter)
+
+(add-hook 'swift-mode-hook #'tree-sitter-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 (use-package autothemer
     :defer t)
@@ -187,13 +197,13 @@
 
 ;; counsel
 (use-package counsel
+  :defer t
   :config (counsel-mode 1))
 
 ;; Ivy rich
 (use-package ivy-rich
   :after ivy
   :init (ivy-rich-mode 1))
-
 
 ;; Theming
 (use-package doom-themes
@@ -268,36 +278,7 @@
   :hook (company-mode . company-box-mode)
   :config
   (setq company-box-icons-alist 'company-box-icons-all-the-icons
-      company-box-icons-all-the-icons
-      (let ((all-the-icons-scale-factor 1)
-            (all-the-icons-default-adjust 0))
-        `((Unknown       . ,(all-the-icons-faicon "question" :face 'all-the-icons-purple)) ;;question-circle is also good
-          (Text          . ,(all-the-icons-faicon "file-text-o" :face 'all-the-icons-green))
-          (Method        . ,(all-the-icons-faicon "cube" :face 'all-the-icons-dcyan))
-          (Function      . ,(all-the-icons-faicon "cube" :face 'all-the-icons-dcyan))
-          (Constructor   . ,(all-the-icons-faicon "cube" :face 'all-the-icons-dcyan))
-          (Field         . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (Variable      . ,(all-the-icons-faicon "tag" :face 'all-the-icons-dpurple))
-          (Class         . ,(all-the-icons-faicon "cog" :face 'all-the-icons-red))
-          (Interface     . ,(all-the-icons-faicon "cogs" :face 'all-the-icons-red))
-          (Module        . ,(all-the-icons-alltheicon "less" :face 'all-the-icons-red))
-          (Property      . ,(all-the-icons-faicon "wrench" :face 'all-the-icons-red))
-          (Unit          . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (Value         . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (Enum          . ,(all-the-icons-faicon "file-text-o" :face 'all-the-icons-red))
-          (Keyword       . ,(all-the-icons-material "format_align_center" :face 'all-the-icons-red))
-          (Snippet       . ,(all-the-icons-material "content_paste" :face 'all-the-icons-red))
-          (Color         . ,(all-the-icons-material "palette" :face 'all-the-icons-red))
-          (File          . ,(all-the-icons-faicon "file" :face 'all-the-icons-red))
-          (Reference     . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (Folder        . ,(all-the-icons-faicon "folder" :face 'all-the-icons-red))
-          (EnumMember    . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (Constant      . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (Struct        . ,(all-the-icons-faicon "cog" :face 'all-the-icons-red))
-          (Event         . ,(all-the-icons-faicon "bolt" :face 'all-the-icons-red))
-          (Operator      . ,(all-the-icons-faicon "tag" :face 'all-the-icons-red))
-          (TypeParameter . ,(all-the-icons-faicon "cog" :face 'all-the-icons-red))
-          (Template      . ,(all-the-icons-faicon "bookmark" :face 'all-the-icons-dgreen))))))
+      company-box-icons-all-the-icons))
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
@@ -307,7 +288,9 @@
   (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode))
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (setq lsp-ui-doc-border (face-foreground 'nil)))
 
 (use-package lsp-treemacs
   :after lsp)
@@ -382,6 +365,7 @@
     (setq projectile-project-search-path '("~/Documents/git")))
   (setq projectile-switch-project-action #'projectile-dired))
 
+;; counsel-projectile 
 (use-package counsel-projectile
   :after projectile
   :config (counsel-projectile-mode))
@@ -419,9 +403,6 @@
 
 (use-package vterm
   :commands vterm)
-
-(use-package solaire-mode
-  :defer t)
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
@@ -651,7 +632,7 @@
  '(org-agenda-files
    '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
  '(package-selected-packages
-   '(dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(tree-sitter-langs tree-sitter dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces

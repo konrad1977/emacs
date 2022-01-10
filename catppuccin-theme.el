@@ -44,6 +44,7 @@ catppuccin "A theme to set the mood for Halloween"
   (highlight                            (:background green :foreground black))
   (numbers                              (:background green :foreground black))
   (match                                (:background green :foreground black))
+  (menu                                 (:background black :foreground rosewater))
   (error                                (:foreground red))
   (success                              (:foreground green))
   (warning                              (:foreground maroon))
@@ -57,6 +58,16 @@ catppuccin "A theme to set the mood for Halloween"
   (lv-separator                         (:foreground gray :background black-2))
   (header-line							(:background black))
   (button                               (:foreground green))
+  (hl-line                              (:background black-3))
+  (vertical-border                      (:foreground black-3 :background nil))
+  (window-divider-first-pixel           (:foreground black-2))
+  (window-divider-last-pixel            (:background black-2))
+  (separator-line                       (:background black-2))
+  (border                               (:background black-2 :foreground black))
+  (window-border                        (:background black-2 :foreground black-2))
+  (internal-border                      (:background black-1 :foreground black))
+  (child-frame-border                   (:background black-2 :foreground black-1))
+
 
   ;; Font lock
   (font-lock-type-face                  (:foreground teal))
@@ -75,17 +86,6 @@ catppuccin "A theme to set the mood for Halloween"
   (font-lock-negation-char-face         (:foreground red))
   (font-lock-regexp-grouping-backslash  (:foreground teal))
   (elisp-shorthand-font-lock-face       (:foreground yellow))
-
-  ;; Look
-  (hl-line                              (:background black-3))
-  (vertical-border                      (:foreground black-3 :background nil))
-  (window-divider-first-pixel           (:foreground black-2))
-  (window-divider-last-pixel            (:background black-2))
-  (separator-line                       (:background black-2))
-  (border                               (:background black-2))
-  (window-border                        (:background black-2))
-  (internal-border                      (:background black-2))
-  (child-frame-border                   (:foreground black-2))
 
   (info-xref                            (:foreground yellow))
   (highlight-quoted-symbol              (:foreground maroon))
@@ -243,7 +243,6 @@ catppuccin "A theme to set the mood for Halloween"
   (solaire-default-face (:background black-1))
 
   ;; lsp
-
   (lsp-headerline-breadcrumb-path-error-face (:underline (:color maroon :style 'wave)
                                                          :foreground gray-2 :background black))
   (lsp-headerline-breadcrumb-path-face				(:background black))
@@ -253,20 +252,23 @@ catppuccin "A theme to set the mood for Halloween"
   (lsp-headerline-breadcrumb-symbols-face			(:background black))
   (lsp-headerline-breadcrumb-project-prefix-face	(:background black))
 
-  (lsp-ui-doc-background						(:background black-1))
-  (lsp-ui-doc-header							(:background black-4 :background red))
-  (lsp-ui-peek-filename							(:foreground teal))
-  (lsp-ui-sideline-code-action					(:foreground yellow))
-  (lsp-ui-sideline-current-symbol				(:foreground sky))
-  (lsp-ui-sideline-symbol						(:foreground gray-1))
+  (lsp-ui-doc-background							(:background black :foreground red))
+  (lsp-ui-doc-header								(:background black :foreground red))
+  (lsp-ui-doc-border								(:background nil :foreground nil))
+  (lsp-ui-peek-filename								(:foreground teal))
+  (lsp-ui-sideline-code-action			   			(:foreground yellow))
+  (lsp-ui-sideline-current-symbol					(:foreground sky))
+  (lsp-ui-sideline-symbol							(:foreground gray-1))
 
+  ;; dashboard
   (dashboard-heading							(:foreground maroon))
 
+  ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))
   (all-the-icons-green							(:foreground green))
   (all-the-icons-dpurple						(:foreground mauve))
   (all-the-icons-purple							(:foreground mauve))
-  
+
   ;; evil
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face (:background yellow))
