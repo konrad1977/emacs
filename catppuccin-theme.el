@@ -148,14 +148,22 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; org-mode
   (org-done                             (:foreground gray))
-  (org-headline-done                    (:foreground gray))
+  (org-headline-done                    (:foreground black-2))
   (org-todo                             (:foreground green))
-  (org-headline-todo                    (:foreground rosewater))
+  (org-headline-todo                    (:foreground black-2))
   (org-upcoming-deadline                (:foreground red))
   (org-footnote                         (:foreground green))
-  (org-indent                           (:background black-2))
-  (org-hide	                            (:background black-2))
+  (org-indent                           (:background black-2 :foreground black-2))
+  (org-hide	                            (:background black-2 :foreground black-2))
   (org-date                             (:foreground gray))
+  (org-level-1                          (:foreground mauve :bold t))
+  (org-level-2                          (:foreground pink))
+  (org-level-3                          (:foreground maroon))
+  (org-level-4                          (:foreground red))
+  (org-level-5                          (:foreground peach))
+  (org-level-6                          (:foreground yellow))
+  (org-level-7                          (:foreground green))
+  (org-level-8                          (:foreground teal))
 
   ;; which-key
   (which-key-key-face                   (:foreground green))
@@ -261,7 +269,7 @@ catppuccin "A theme to set the mood for Halloween"
   (lsp-ui-sideline-symbol							(:foreground gray-1))
 
   ;; dashboard
-  (dashboard-heading							(:foreground maroon))
+  (dashboard-heading							(:foreground maroon :bold t))
 
   ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))

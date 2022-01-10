@@ -17,7 +17,9 @@
       package-enable-at-startup nil
       site-run-file nil
       visible-bell t
-      window-resize-pixelwise t)
+      window-resize-pixelwise t
+      backup-by-copying t
+      backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
 (display-battery-mode t) ; Show battery
 (display-time-mode t)    ; Show time
@@ -29,12 +31,11 @@
 (tool-bar-mode -1)       ; Disable toolbar
 (tooltip-mode -1)        ; Disable tooltip
 
-(setq indent-line-function 'insert-tab)
-
 (setq-default display-line-numbers-width 4
 			  c-basic-offset 4
 			  tab-width 4
-			  indent-tabs-mode t)
+			  indent-tabs-mode t
+              indent-line-function 'insert-tab)
 
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -133,6 +134,7 @@
   :ensure t
   :config
   (dashboard-setup-startup-hook)
+  (setq dashboard-path-style 'truncate-beginning)
   (setq dashboard-banner-logo-title "Mikaels dashboard!"
 	dashboard-set-file-icons t
 	dashboard-set-init-info t
@@ -140,12 +142,12 @@
 	dashboard-set-heading-icons t
 	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
 	dashboard-startup-banner 'logo
-	dashboard-week-agenda nil
-	dashboard-filter-agenda-entry 'dashboard-no-filter-agenda
+	dashboard-week-agenda t
 	dashboard-items '(
 			  (projects . 5)
-			  (recents . 3)
-			  (agenda . 10))))
+			  (agenda))))
+
+(setq dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-todo)
 
 ;; Which key
 (use-package which-key
@@ -461,15 +463,15 @@
    "Afs" '(elfeed :which-key "show feed"))
 
   (mk/leader-keys
-   "f" '(:ignore t :which-key "files")
-   "fs" '(save-buffer :which-key "save file")
-   "fo" '(dired :which-key "open file")
-   "ff" '(counsel-find-file :which-key "find file")
-  "fn" '(create-file-buffer :which-key "new file")
-   "fr" '(dired-rename-file :which-key "rename file")
-   "fD" '(delete-file :which-key "delete file")
-   "fR" 'eval-buffer
-   "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
+	"f" '(:ignore t :which-key "files")
+	"fs" '(save-buffer :which-key "save file")
+	"fo" '(dired :which-key "open file")
+	"ff" '(counsel-find-file :which-key "find file")
+	"fr" '(counsel-recentf :which-key "recent files")
+	"fn" '(create-file-buffer :which-key "new file")
+	"fR" '(dired-rename-file :which-key "rename file")
+	"fD" '(delete-file :which-key "delete file")
+	"fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
 
   (mk/leader-keys
     "c" '(:ignore t :which-key "code")
@@ -573,7 +575,7 @@
   :config
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
-	org-hide-leading-stars
+	org-hide-leading-stars t
 	org-agenda-start-with-log-mode t
 	org-log-into-drawer t
 	org-log-done 'time
@@ -630,7 +632,7 @@
  '(custom-safe-themes
    '("234dbb732ef054b109a9e5ee5b499632c63cc24f7c2383a849815dacc1727cb6" "aeca5b24d5683690fd4bcf6a689126afa4fc041fd52b5a31b2fcf7a6d02170d5" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "9f802342df5b5df84a202b523d9c69ecc9c7b46b91aa234fb2ab5667d6d7bd45" "c4063322b5011829f7fdd7509979b5823e8eea2abf1fe5572ec4b7af1dd78519" "60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
  '(org-agenda-files
-   '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/work.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org"))
+   '("/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Hod.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/k8.org"))
  '(package-selected-packages
    '(tree-sitter-langs tree-sitter dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
