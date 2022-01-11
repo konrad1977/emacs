@@ -10,26 +10,26 @@
       display-time-default-load-average nil
       frame-inhibit-implied-resize t
       frame-resize-pixelwise t
-      indent-tabs-mode nil
       inhibit-compacting-font-caches t
       ns-pop-up-frames nil
       inhibit-startup-message t
       package-enable-at-startup nil
       site-run-file nil
-      visible-bell t
+      visible-bell nil
       window-resize-pixelwise t
       backup-by-copying t
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
-(display-battery-mode t) ; Show battery
-(display-time-mode t)    ; Show time
-(global-hl-line-mode)    ; Show current line
-(menu-bar-mode -1)       ; Disable the menu bar
-(recentf-mode t)         ; Recent file mode
-(scroll-bar-mode -1)     ; Disable scrollbar
-(set-fringe-mode 4)      ; Give us some space
-(tool-bar-mode -1)       ; Disable toolbar
-(tooltip-mode -1)        ; Disable tooltip
+(display-battery-mode t)	; Show battery
+(display-time-mode t)		; Show time
+(global-hl-line-mode)		; Show current line
+(menu-bar-mode -1)			; Disable the menu bar
+(recentf-mode t)			; Recent file mode
+(scroll-bar-mode -1)		; Disable scrollbar
+(set-fringe-mode 4)			; Give us some space
+(tool-bar-mode -1)			; Disable toolbar
+(tooltip-mode -1)			; Disable tooltip
+(show-paren-mode t)			; Enable show paren matching mode
 
 (setq-default display-line-numbers-width 4
 			  c-basic-offset 4
@@ -46,27 +46,21 @@
 
 ;; dont word wrap
 (add-hook 'prog-mode-hook #'(lambda ()
-			                  (setq company-mode t
-				                    electric-pair-mode t
-				                    highlight-indent-guides-mode t
-				                    indicate-empty-lines t
-				                    indicate-unused-lines t
-				                    semantic-mode t
-				                    show-trailing-whitespace t
-				                    word-wrap nil
-                                    column-number-mode t
-                                    display-line-numbers t
-                                    show-paren-mode t
-                                    truncate-lines t)))
+			                  (setq-default company-mode t					;; Use auto-completion
+											electric-pair-mode t			;; Auto insert pairs {} () [] etc
+											highlight-indent-guides-mode t	;; Turn on indent-guides
+											indicate-empty-lines t			;; Show empty lines
+											indicate-unused-lines t			;; Show unused lines
+											semantic-mode t					;; Get a little extra help for autocompletion
+											show-trailing-whitespace t		;; Show trailing whitespaces
+											word-wrap nil					;; Dont word wrap when we are coding
+											column-number-mode t			;; Show current line number highlighted
+											display-line-numbers t			;; Show line numbers
+											)))
 
-;; Set yes or no to y/n
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;; always highlight code
-(global-font-lock-mode 1)
-
-;; refresh a buffer if changed on disk
-(global-auto-revert-mode 1)
+(fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
+(global-font-lock-mode 1)		;; always highlight codex
+(global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
 
 ;; saving
 (desktop-save-mode 1)
@@ -95,8 +89,17 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure nil)
+(setq use-package-always-ensure t)
 (setq use-package-verbose nil)
+
+(use-package auto-package-update
+  :custom
+  (setq auto-package-update-interval 7
+		auto-package-update-prompt-before-update t
+		auto-package-update-hide-results nil))
+
+
+(use-package no-littering)	;; Clean up all those temporary files
 
 (use-package dired
   :ensure nil
@@ -110,14 +113,14 @@
 (use-package dired-single
   :after dired)
 
-(use-package tree-sitter
-    :defer t)
+;; (use-package tree-sitter
+;;     :defer t)
 
-(use-package tree-sitter-langs
-    :after tree-sitter)
+;; (use-package tree-sitter-langs
+;;     :after tree-sitter)
 
-(add-hook 'swift-mode-hook #'tree-sitter-mode)
-(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+;; (add-hook 'swift-mode-hook #'tree-sitter-mode)
+;; (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 (use-package autothemer
     :defer t)
@@ -209,6 +212,7 @@
 
 ;; Theming
 (use-package doom-themes
+  :hook (treemacs-mode)
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -367,14 +371,14 @@
     (setq projectile-project-search-path '("~/Documents/git")))
   (setq projectile-switch-project-action #'projectile-dired))
 
-;; counsel-projectile 
+;; counsel-projectile
 (use-package counsel-projectile
   :after projectile
   :config (counsel-projectile-mode))
 
 ;; Restart emacs
 (use-package restart-emacs
-  :defer t)
+  :commands restart-emacs)
 
 ; Hydra
 (use-package hydra
@@ -638,7 +642,7 @@
  '(org-agenda-files
    '("/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Hod.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/k8.org"))
  '(package-selected-packages
-   '(tree-sitter-langs tree-sitter dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
+   '(no-littering auto-package-update tree-sitter-langs tree-sitter dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
  '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
  '(warning-suppress-types '((frameset) (use-package) (use-package))))
 (custom-set-faces
