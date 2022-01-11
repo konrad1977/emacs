@@ -147,8 +147,8 @@ catppuccin "A theme to set the mood for Halloween"
   (link                                 (:foreground blue))
 
   ;; org-mode
-  (org-done                             (:foreground gray))
-  (org-headline-done                    (:foreground black-2))
+  (org-done                             (:foreground gray-1))
+  (org-headline-done                    (:foreground gray-1 :strike-through t))
   (org-todo                             (:foreground green))
   (org-headline-todo                    (:foreground black-2))
   (org-upcoming-deadline                (:foreground red))
@@ -156,8 +156,8 @@ catppuccin "A theme to set the mood for Halloween"
   (org-indent                           (:background black-2 :foreground black-2))
   (org-hide	                            (:background black-2 :foreground black-2))
   (org-date                             (:foreground gray))
-  (org-level-1                          (:foreground mauve :bold t))
-  (org-level-2                          (:foreground pink))
+  (org-level-1                          (:foreground mauve :height 1.2 :bold t))
+  (org-level-2                          (:foreground pink :height 1.1))
   (org-level-3                          (:foreground maroon))
   (org-level-4                          (:foreground red))
   (org-level-5                          (:foreground peach))
