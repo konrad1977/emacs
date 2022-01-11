@@ -422,45 +422,46 @@
    :non-normal-prefix "M-SPC")
 
   (mk/leader-keys
-   "T" '(:ignore t :which-key "toggles")
-   "Tt" '(counsel-load-theme :which-key "choose theme")
-   "Ts" '(hydra-text-scale/body :which-key "scale text")
-   "Tf" '(toggle-frame-fullscreen :which-key "fullscreen"))
+	"T" '(:ignore t :which-key "toggles")
+	"Tt" '(counsel-load-theme :which-key "choose theme")
+	"Ts" '(hydra-text-scale/body :which-key "scale text")
+	"Tf" '(toggle-frame-fullscreen :which-key "fullscreen"))
 
   (mk/leader-keys
-   "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
-   "SPC" '(counsel-M-x :which-key "M-x")
-   "0" '(treemacs-select-window :which-key "treemacs")
-   "1" '(winum-select-window-1 :which-key "window 1")
-   "2" '(winum-select-window-2 :which-key "window 2")
-   "3" '(winum-select-window-3 :which-key "window 3")
-   "4" '(winum-select-window-4 :which-key "window 4")
-   "5" '(winum-select-window-5 :which-key "window 5")
-   "6" '(winum-select-window-6 :which-key "window 6")
-   "s" 'swiper
-   "P" 'package-install
-   "'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
-   "!" 'shell-command
-   ":" 'eval-expression)
+	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
+	"SPC" '(counsel-M-x :which-key "M-x")
+	"0" '(treemacs-select-window :which-key "treemacs")
+	"1" '(winum-select-window-1 :which-key "window 1")
+	"2" '(winum-select-window-2 :which-key "window 2")
+	"3" '(winum-select-window-3 :which-key "window 3")
+	"4" '(winum-select-window-4 :which-key "window 4")
+	"5" '(winum-select-window-5 :which-key "window 5")
+	"6" '(winum-select-window-6 :which-key "window 6")
+	"s" 'swiper
+	"P" 'package-install
+	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
+	"!" 'shell-command
+	":" 'eval-expression)
 
   (mk/leader-keys
-   "e" '(:ignore t :which-key "eval")
-   "ee" '(eval-expression :which-key "eval expression")
-   "eb" '(eval-buffer :which-key "eval buffer")
-   "el" '(eval-last-sexp :which-key "eval before point")
-   "er" '(eval-region :which-key "eval region"))
+	"e" '(:ignore t :which-key "eval")
+	"ee" '(eval-expression :which-key "eval expression")
+	"eb" '(eval-buffer :which-key "eval buffer")
+	"el" '(eval-last-sexp :which-key "eval before point")
+	"er" '(eval-region :which-key "eval region"))
 
   (mk/leader-keys
-   "a" '(:ignore t :which-key "agenda")
-   "aa" '(org-agenda :which-key "agenda")
-   "al" '(org-agenda-list :which-key "agenda list")
-   "aF" '(org-agenda-file-to-front :which-key "bring file to front"))
+	"a" '(:ignore t :which-key "agenda")
+   	"aa" '(org-agenda :which-key "show agenda")
+   	"as" '(org-agenda-schedule :which-key "show schedule")
+	"al" '(org-agenda-list :which-key "show agenda list")
+	"aF" '(org-agenda-file-to-front :which-key "bring file to front"))
 
   (mk/leader-keys
-   "A" '(:ignore t :which-key "applications")
-   "Af" '(:ignore t :which-key "feed")
-   "Afu" '(elfeed-update :which-key "update feed")
-   "Afs" '(elfeed :which-key "show feed"))
+	"A" '(:ignore t :which-key "applications")
+	"Af" '(:ignore t :which-key "feed")
+	"Afu" '(elfeed-update :which-key "update feed")
+	"Afs" '(elfeed :which-key "show feed"))
 
   (mk/leader-keys
 	"f" '(:ignore t :which-key "files")
