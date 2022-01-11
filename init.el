@@ -95,7 +95,7 @@
    (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure nil)
 (setq use-package-verbose nil)
 
 (use-package dired
@@ -422,10 +422,13 @@
    :non-normal-prefix "M-SPC")
 
   (mk/leader-keys
-	"T" '(:ignore t :which-key "toggles")
+	"T" '(:ignore t :which-key "toggle")
 	"Tt" '(counsel-load-theme :which-key "choose theme")
 	"Ts" '(hydra-text-scale/body :which-key "scale text")
-	"Tf" '(toggle-frame-fullscreen :which-key "fullscreen"))
+	;; Screen
+	"Tf" '(:ignore t :which-key "screen/frame")
+	"Tff" '(toggle-frame-fullscreen :which-key "fullscreen")
+	"Tfm" '(toggle-frame-maximized :which-key "maximized"))
 
   (mk/leader-keys
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
@@ -499,7 +502,7 @@
    (mk/leader-keys
      "b" '(:ignore t :which-key "buffer")
      "bb" '(counsel-switch-buffer :which-key "list buffers")
-     "bx" '(delete-window :which-key "close buffer")
+     "bx" '(evil-delete-buffer :which-key "delete buffer")
      "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
      "bd" '(kill-current-buffer :which-key "kill current buffer")
      "bp" '(previous-buffer :which-key "previous buffer")
@@ -510,7 +513,7 @@
      "bC" '((lambda () (interactive) (switch-to-buffer "*Compile-Log*")) :which-key "Compile log-buffer")
      "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
      "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
-     "Bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
+     "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
    (mk/leader-keys
      "h" '(:ignore t :which-key "help")
@@ -523,14 +526,14 @@
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "windows")
-     "wx" '(delete-window :which-key "delete window")
-     "wk" '(kill-buffer-and-window :which-key "kill buffer and window")
-     "w-" '(split-window-below :which-key "split horizontally")
-     "w/" '(split-window-right :which-key "split vertically")
-     "wn" '(next-window-any-frame :which-key "next window")
 	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
-     "wp" '(previous-window-any-frame :which-key "previous window"))
-;;     "wb" '(xwidget-webkit-browse-url :which-key "start a browser"))
+     "wp" '(previous-window-any-frame :which-key "previous window")
+     "wx" '(delete-window :which-key "delete window")
+	 "wk" '(delete-window-internal :which-key "delete window")
+	 "w-" '((lambda () (interactive) (split-window-below) (other-window 1)) :which-key "split window horizontally")
+	 "w/" '((lambda () (interactive) (split-window-right) (other-window 1)) :which-key "split window vertically")
+     "wn" '(next-window-any-frame :which-key "next window")
+	 )
 
    (mk/leader-keys
      "p" '(:ignore t :which-key "project")
