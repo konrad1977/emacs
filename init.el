@@ -46,7 +46,7 @@
 
 ;; dont word wrap
 (add-hook 'prog-mode-hook #'(lambda ()
-			                  (setq-default company-mode t					;; Use auto-completion
+			                  (setq company-mode t					;; Use auto-completion
 											electric-pair-mode t			;; Auto insert pairs {} () [] etc
 											highlight-indent-guides-mode t	;; Turn on indent-guides
 											indicate-empty-lines t			;; Show empty lines
@@ -54,6 +54,7 @@
 											semantic-mode t					;; Get a little extra help for autocompletion
 											show-trailing-whitespace t		;; Show trailing whitespaces
 											word-wrap nil					;; Dont word wrap when we are coding
+											truncate-lines nil 
 											column-number-mode t			;; Show current line number highlighted
 											display-line-numbers t			;; Show line numbers
 											)))
@@ -101,6 +102,8 @@
 
 (use-package no-littering)	;; Clean up all those temporary files
 
+(setq custom-file (concat user-emacs-directory "/var/custom.el"))
+
 (use-package dired
   :ensure nil
   :commands dired dired-jump
@@ -137,20 +140,20 @@
   :ensure t
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-path-style 'truncate-beginning)
-  (setq dashboard-banner-logo-title "Mikaels dashboard!"
-	dashboard-set-file-icons t
-	dashboard-set-init-info t
-	dashboard-center-content t
-	dashboard-set-heading-icons t
-	dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
-	dashboard-startup-banner 'logo
-	dashboard-week-agenda t
-	dashboard-items '(
-			  (projects . 5)
-			  (agenda))))
-
-(setq dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-todo)
+  :init (progn
+		  (setq dashboard-startup-banner "~/.emacs.d/dashimage/catppuccin.png")
+		  (setq dashboard-path-style 'truncate-beginning)
+		  (setq dashboard-banner-logo-title "Mikaels dashboard!"
+				dashboard-set-file-icons t
+				dashboard-set-init-info t
+				dashboard-center-content t
+				dashboard-set-heading-icons t
+				dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
+				dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-time
+				dashboard-week-agenda t
+				dashboard-items '(
+								  (projects . 5)
+								  (agenda)))))
 
 ;; Which key
 (use-package which-key
@@ -212,7 +215,6 @@
 
 ;; Theming
 (use-package doom-themes
-  :hook (treemacs-mode)
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -283,8 +285,7 @@
 (use-package company-box
   :hook (company-mode . company-box-mode)
   :config
-  (setq company-box-icons-alist 'company-box-icons-all-the-icons
-      company-box-icons-all-the-icons))
+  (setq company-box-icons-alist #'company-box-icons-all-the-icons))
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
@@ -364,7 +365,7 @@
        projectile-root-top-down
        projectile-root-bottom-up
        projectile-root-top-down-recurring))
-    ((projectile-completion-system 'ivy))
+   (setq projectile-completion-system 'ivy)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -403,9 +404,6 @@
 (use-package magit
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(use-package evil-magit
-  :after magit)
 
 (use-package vterm
   :commands vterm)
@@ -462,7 +460,10 @@
    	"aa" '(org-agenda :which-key "show agenda")
    	"as" '(org-agenda-schedule :which-key "show schedule")
 	"al" '(org-agenda-list :which-key "show agenda list")
-	"aF" '(org-agenda-file-to-front :which-key "bring file to front"))
+	"aF" '(org-agenda-file-to-front :which-key "bring file to front")
+	"at" '(:ignore t:which-key "time/date")
+	"att" '(org-time-stamp :which-key "add time")
+	"atd" '(org-deadline :which-key "add deadline"))
 
   (mk/leader-keys
 	"A" '(:ignore t :which-key "applications")
@@ -631,26 +632,6 @@
 
 ;; Reset memory for Garbage collection
 (setq gc-cons-threshold (* 5 1024 1024))
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("234dbb732ef054b109a9e5ee5b499632c63cc24f7c2383a849815dacc1727cb6" "aeca5b24d5683690fd4bcf6a689126afa4fc041fd52b5a31b2fcf7a6d02170d5" "1704976a1797342a1b4ea7a75bdbb3be1569f4619134341bd5a4c1cfb16abad4" "9f802342df5b5df84a202b523d9c69ecc9c7b46b91aa234fb2ab5667d6d7bd45" "c4063322b5011829f7fdd7509979b5823e8eea2abf1fe5572ec4b7af1dd78519" "60f1890c909adc4c805fde450b4b46290fe55e45300bf8b3c825a66f58288498" "d52acf9fe3ad7f84a612bd9e78a05b3cd6544482602205f33b6b01dfa93ca093" default))
- '(org-agenda-files
-   '("/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Hod.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Matheo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Stella.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Tasks.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/Todo.org" "/Users/mikaelkonradsson/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/k8.org"))
- '(package-selected-packages
-   '(no-littering auto-package-update tree-sitter-langs tree-sitter dired-single ivy-posframe autothemer ob-swift evil-tutor forge evil-magit magit solaire-mode company general spaceline-all-the-icons spaceline all-the-icons doom-themes ivy evil which-key use-package))
- '(warning-suppress-log-types '((comp) (frameset) (use-package) (use-package)))
- '(warning-suppress-types '((frameset) (use-package) (use-package))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 
 (provide 'init)
 
