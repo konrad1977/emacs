@@ -175,18 +175,16 @@
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
-
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-
-  ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal)
-  (evil-set-initial-state 'vterm-mode 'normal))
+  ;; (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+  ;; (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  ;; (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  ;; (evil-set-initial-state 'messages-buffer-mode 'evil)
+  ;; (normal-set-initial-state 'dashboard-mode 'normal))
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -203,24 +201,22 @@
   :config
   (ivy-mode 1))
 
-;; counsel
-(use-package counsel
-  :defer t
-  :config (counsel-mode 1))
-
 ;; Ivy rich
 (use-package ivy-rich
   :after ivy
   :init (ivy-rich-mode 1))
 
+;; counsel
+(use-package counsel
+  :defer t
+  :config (counsel-mode 1))
+
 ;; Theming
 (use-package doom-themes
   :config
-  ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
 	    doom-themes-treemacs-theme "doom-atom")
-  ;; (load-theme 'doom-outrun-electric  t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -232,7 +228,7 @@
   (doom-themes-org-config))
 
 (use-package all-the-icons
-  :defer t)
+  :after doom-modeline)
 
 (use-package all-the-icons-dired
     :hook (dired-mode . all-the-icons-dired-mode))
@@ -307,8 +303,9 @@
 
 (use-package nyan-mode
   :hook doom-modeline-mode
-  :config
-  (nyan-mode))
+  :init
+  (nyan-mode)
+  (setq nyan-animate-nyancat t))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -332,11 +329,7 @@
 
 ; helpful
 (use-package helpful
-  :after ivy)
-
-;; smex
-(use-package smex
-  :after ivy)
+  :defer t)
 
 (defun my-vterm/split-horizontal ()
   "Create a new vterm window under of the current one."
@@ -410,7 +403,6 @@
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
-  "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
@@ -582,6 +574,7 @@
 (use-package org
   :hook (org-mode . mk/org-mode-setup)
   :config
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-ellipsis " ▾"
 	org-hide-emphasis-markers t
 	org-hide-leading-stars t
