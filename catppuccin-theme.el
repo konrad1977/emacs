@@ -36,7 +36,7 @@ catppuccin "A theme to set the mood for Halloween"
  ;; Customize faces
   (
   (default                              (:foreground rosewater :background black-2))
-  (cursor                               (:background rosewater :foreground black-2))
+  (cursor                               (:background blue :foreground black-1))
   (line-number                          (:foreground black-4 :background nil))
   (line-number-current-line             (:foreground green :background black-3))
   (fringe                               (:background black-2))
@@ -67,7 +67,6 @@ catppuccin "A theme to set the mood for Halloween"
   (window-border                        (:background black-2 :foreground black-2))
   (internal-border                      (:background black-1 :foreground black))
   (child-frame-border                   (:background black-2 :foreground black-1))
-
 
   ;; Font lock
   (font-lock-type-face                  (:foreground teal))
@@ -106,8 +105,8 @@ catppuccin "A theme to set the mood for Halloween"
   ;; Doom visual state
   (doom-modeline-evil-motion-state      (:foreground teal))
   (doom-modeline-evil-emacs-state       (:foreground blue))
-  (doom-modeline-evil-insert-state      (:foreground green))
-  (doom-modeline-evil-normal-state      (:foreground pink))
+  (doom-modeline-evil-insert-state      (:foreground mauve))
+  (doom-modeline-evil-normal-state      (:foreground rosewater))
   (doom-modeline-evil-visual-state      (:foreground sky))
   (doom-modeline-evil-replace-state     (:foreground red))
   (doom-modeline-evil-operator-state    (:foreground blue))

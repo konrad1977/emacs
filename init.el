@@ -19,14 +19,26 @@
       window-resize-pixelwise t
       backup-by-copying t
 	  initial-scratch-message ""
+	  idle-update-delay 1.0			;; Speed things up by not updating so often
+	  blink-cursor-interval 0.6		;; Little slower cursor blinking . default is 0.5
+	  fast-but-imprecise-scrolling t
+	  bidi-inhibit-bpa t
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
+
+(setq bidi-inhibit-bpa t)
+(setq-default bidi-display-reordering 'left-to-right
+			  bidi-paragraph-direction 'left-to-right
+			  cursor-in-non-selected-windows nil
+			  highlight-nonselected-windows nil
+			  fringes-outside-margins nil
+			  indicate-buffer-boundaries nil
+			  indicate-empty-lines nil)
 
 (display-battery-mode t)	; Show battery
 (display-time-mode t)		; Show time
-(global-hl-line-mode)		; Show current line
 (menu-bar-mode -1)			; Disable the menu bar
 (recentf-mode t)			; Recent file mode
-(scroll-bar-mode -1)		; Disable scrollbar
+(scroll-bar-mode -1)		; Dont use scrollbars
 (set-fringe-mode 4)			; Give us some space
 (tool-bar-mode -1)			; Disable toolbar
 (tooltip-mode -1)			; Disable tooltip
@@ -48,21 +60,23 @@
 ;; dont word wrap
 (add-hook 'prog-mode-hook #'(lambda ()
 			                  (setq company-mode t					;; Use auto-completion
-											electric-pair-mode t			;; Auto insert pairs {} () [] etc
-											highlight-indent-guides-mode t	;; Turn on indent-guides
-											indicate-empty-lines t			;; Show empty lines
-											indicate-unused-lines t			;; Show unused lines
-											semantic-mode t					;; Get a little extra help for autocompletion
-											show-trailing-whitespace t		;; Show trailing whitespaces
-											word-wrap nil					;; Dont word wrap when we are coding
-											truncate-lines nil 
-											column-number-mode t			;; Show current line number highlighted
-											display-line-numbers t			;; Show line numbers
-											)))
+									electric-pair-mode t			;; Auto insert pairs {} () [] etc
+									highlight-indent-guides-mode t	;; Turn on indent-guides
+									indicate-empty-lines t			;; Show empty lines
+									indicate-unused-lines t			;; Show unused lines
+									semantic-mode t					;; Get a little extra help for autocompletion
+									show-trailing-whitespace t		;; Show trailing whitespaces
+									word-wrap nil					;; Dont word wrap when we are coding
+									truncate-lines nil				;; Dont truncate lines
+									column-number-mode t			;; Show current line number highlighted
+									display-line-numbers t			;; Show line numbers
+									hl-line-mode t					;; Highlight current line in progmode
+									)))
 
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight codex
 (global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
+
 
 ;; saving
 (desktop-save-mode 1)			;; Save desktop
@@ -81,7 +95,6 @@
 ;; Initialize package sources
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
@@ -115,11 +128,7 @@
 (use-package dired
   :ensure nil
   :commands dired dired-jump
-  :bind (("C-x C-j" . dired-jump))
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-single-up-directory
-    "l" 'dired-single-buffer))
+  :bind (("C-x C-j" . dired-jump)))
 
 (use-package dired-single
   :after dired)
@@ -168,6 +177,7 @@
   :diminish which-key-mode
   :config
   (which-key-mode)
+ ;; (which-key-setup-minibuffer)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
 		which-key-min-display-lines 4
@@ -182,6 +192,8 @@
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
+  (define-key evil-motion-state-map "/" 'swiper)
+  (evil-set-initial-state 'dashboard-mode 'motion)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
@@ -277,6 +289,8 @@
 (use-package counsel
   :hook (ivy-mode . counsel-mode))
 
+(use-package centered-cursor-mode)
+
 (use-package swiper
   :after ivy
   :config
@@ -357,9 +371,9 @@
   (exec-path-from-shell-initialize)
   (ns-auto-titlebar-mode)
   (setq mac-option-key-is-meta nil
-      mac-command-key-is-meta t
-      mac-command-modifier 'meta
-      mac-option-modifier 'none))
+		mac-command-key-is-meta t
+		mac-command-modifier 'meta
+		mac-option-modifier 'none))
 
 ; helpful
 (use-package helpful
@@ -431,6 +445,9 @@
 (use-package magit
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package smex
+  :defer t)
 
 (use-package vterm
   :commands vterm)
