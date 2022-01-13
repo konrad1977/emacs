@@ -192,6 +192,13 @@
   ;; (evil-set-initial-state 'messages-buffer-mode 'evil)
   ;; (normal-set-initial-state 'dashboard-mode 'normal))
 
+(use-package undo-fu
+  :after evil
+  :config
+  (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
+  (define-key evil-normal-state-map "U" 'undo-fu-only-redo)
+  (define-key evil-normal-state-map "R" 'undo-fu-only-redo-all))
+
 (use-package evil-tutor
   :commands evil-tutor)
 
@@ -225,19 +232,18 @@
 ;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
-  :custom
-  (doom-modeline-icon t)
-  (doom-modeline-major-mode-icon t)
-  (doom-modeline-major-mode-color-icon t)
-  (doom-modeline-buffer-file-name-style 'truncate-with-project)
-  (doom-modeline-buffer-state-icon t)
-  (doom-modeline-buffer-modification-icon t)
-  (doom-modeline-buffer-encoding nil)
-  (doom-modeline-indent-info nil)
-  (doom-modeline-checker-simple-format t)
-  (doom-modeline-env-version t)
   :config
-  (setq doom-modeline-height 38)
+  (setq
+		doom-modeline-bar-width 3
+		doom-modeline-buffer-file-name-style 'file-name
+		doom-modeline-icon t
+		doom-modeline-indent-info nil
+		doom-modeline-major-mode-color-icon t
+		doom-modeline-major-mode-icon t
+		doom-modeline-modal-icon t
+		doom-modeline-checker-simple-format t
+		doom-modeline-env-version t
+		doom-modeline-height 38)
   (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 136)
   (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 128))
 
@@ -255,14 +261,13 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; Use ivy
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
   (setq ivy-height 12)
-  ;; (setq ivy-display-style nil)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
-  ;; (setq ivy-initial-inputs-alist nil)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
   (define-key ivy-mode-map       (kbd "<escape>") nil)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
