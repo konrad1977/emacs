@@ -481,7 +481,7 @@
   (mk/leader-keys
 	"A" '(:ignore t :which-key "applications")
 	"Af" '(:ignore t :which-key "feed")
-	"Afu" '(elfeed-update :which-key "update feed")
+	"Afu" '(elfeed-update :which-key "update feed"))
 
   (mk/leader-keys
      "b" '(:ignore t :which-key "buffer")
@@ -556,8 +556,7 @@
 	 "wk" '(delete-window-internal :which-key "delete window")
 	 "w-" '((lambda () (interactive) (split-window-below) (other-window 1)) :which-key "split window horizontally")
 	 "w/" '((lambda () (interactive) (split-window-right) (other-window 1)) :which-key "split window vertically")
-     "wn" '(next-window-any-frame :which-key "next window")
-	 )
+     "wn" '(next-window-any-frame :which-key "next window"))
 
    (mk/leader-keys
      "p" '(:ignore t :which-key "project")
@@ -587,8 +586,7 @@
      "Tg" '(tab-close-group :which-key "close group")
      "Td" '(tab-detach :which-key "detach")
      "Tx" '(tab-close :which-key "close")
-     "Tk" '(tab-close-other :which-key "close other"))
-   )
+	 "Tk" '(tab-close-other :which-key "close other")))
 
 ;; Forge - Git PR, Issues, etc
 ;;(use-package forge)
