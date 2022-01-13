@@ -259,10 +259,10 @@
   :hook (after-init . ivy-mode)
   :config
   (setq ivy-height 12)
-  (setq ivy-display-style nil)
+  ;; (setq ivy-display-style nil)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-initial-inputs-alist nil)
+  ;; (setq ivy-initial-inputs-alist nil)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
   (define-key ivy-mode-map       (kbd "<escape>") nil)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
@@ -282,6 +282,11 @@
 
 (use-package all-the-icons-ivy
   :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
+
+(use-package all-the-icons-ivy-rich
+  :init (all-the-icons-ivy-rich-mode 1)
+  :config
+  (setq all-the-icons-ivy-rich-icon-size 1.0))
 
 ;; company --------------------------------------------
 (use-package company
@@ -464,13 +469,6 @@
 	":" 'eval-expression)
 
   (mk/leader-keys
-	"e" '(:ignore t :which-key "eval")
-	"ee" '(eval-expression :which-key "eval expression")
-	"eb" '(eval-buffer :which-key "eval buffer")
-	"el" '(eval-last-sexp :which-key "eval before point")
-	"er" '(eval-region :which-key "eval region"))
-
-  (mk/leader-keys
 	"a" '(:ignore t :which-key "agenda")
    	"aa" '(org-agenda :which-key "show agenda")
    	"as" '(org-agenda-schedule :which-key "show schedule")
@@ -484,44 +482,10 @@
 	"A" '(:ignore t :which-key "applications")
 	"Af" '(:ignore t :which-key "feed")
 	"Afu" '(elfeed-update :which-key "update feed")
-	"Afs" '(elfeed :which-key "show feed"))
 
   (mk/leader-keys
-	"f" '(:ignore t :which-key "files")
-	"fs" '(save-buffer :which-key "save file")
-	"fo" '(dired :which-key "open file")
-	"ff" '(counsel-find-file :which-key "find file")
-	"fr" '(counsel-recentf :which-key "recent files")
-	"fn" '(create-file-buffer :which-key "new file")
-	"fR" '(dired-rename-file :which-key "rename file")
-	"fD" '(delete-file :which-key "delete file")
-	"fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
-
-  (mk/leader-keys
-    "c" '(:ignore t :which-key "code")
-    "cp" 'check-parens
-    "co" 'projectile-find-other-file
-    "cl" '(comment-line :which-key "comment line")
-    "cr" '(comment-region :which-key "comment region")
-    "cu" '(lsp-ui-imenu :which-key "lsp-ui-menu")
-    "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
-    "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
-    "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
-
-  (mk/leader-keys
-    "q" '(:ignore t :which-key "quit")
-    "qq" 'save-buffers-kill-terminal
-    "qr" 'restart-emacs)
-
-  (mk/leader-keys
-    "t" '(:ignore t :which-key "text")
-    "ts" '(sort-lines :which-key "sort lines")
-    "tw" '(:ignore t :which-key "whitespace")
-    "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
-
-   (mk/leader-keys
      "b" '(:ignore t :which-key "buffer")
-     "bb" '(ivy-switch-buffer :which-key "list buffers")
+     "bb" '(counsel-switch-buffer :which-key "list buffers")
      "bx" '(evil-delete-buffer :which-key "delete buffer")
      "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
      "bd" '(kill-current-buffer :which-key "kill current buffer")
@@ -535,6 +499,35 @@
      "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
      "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
+  (mk/leader-keys
+    "c" '(:ignore t :which-key "code")
+    "cp" 'check-parens
+    "co" 'projectile-find-other-file
+    "cl" '(comment-line :which-key "comment line")
+    "cr" '(comment-region :which-key "comment region")
+    "cu" '(lsp-ui-imenu :which-key "lsp-ui-menu")
+    "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
+    "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
+    "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
+
+  (mk/leader-keys
+	"e" '(:ignore t :which-key "eval")
+	"ee" '(eval-expression :which-key "eval expression")
+	"eb" '(eval-buffer :which-key "eval buffer")
+	"el" '(eval-last-sexp :which-key "eval before point")
+	"er" '(eval-region :which-key "eval region"))
+
+  (mk/leader-keys
+	"f" '(:ignore t :which-key "files")
+	"fs" '(save-buffer :which-key "save file")
+	"fo" '(dired :which-key "open file")
+	"ff" '(counsel-find-file :which-key "find file")
+	"fr" '(counsel-recentf :which-key "recent files")
+	"fn" '(create-file-buffer :which-key "new file")
+	"fR" '(dired-rename-file :which-key "rename file")
+	"fD" '(delete-file :which-key "delete file")
+	"fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
+
    (mk/leader-keys
      "h" '(:ignore t :which-key "help")
      "hc" '(helpful-command :which-key "describe command")
@@ -543,6 +536,17 @@
      "hv" '(counsel-describe-variable :which-key "describe variable")
      "ht" '(evil-tutor-start :which-key "evil tutorial")
      "hp" '(helpful-at-point :which-key "describe at-point"))
+
+   (mk/leader-keys
+    "q" '(:ignore t :which-key "quit")
+    "qq" 'save-buffers-kill-terminal
+    "qr" 'restart-emacs)
+
+  (mk/leader-keys
+    "t" '(:ignore t :which-key "text")
+    "ts" '(sort-lines :which-key "sort lines")
+    "tw" '(:ignore t :which-key "whitespace")
+    "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "windows")
