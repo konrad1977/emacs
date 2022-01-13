@@ -194,7 +194,7 @@ catppuccin "A theme to set the mood for Halloween"
   (rainbow-delimiters-depth-9-face      (:foreground pink))
 
   ;; show-paren
-  (show-paren-match								(:background blue :foreground black))
+  (show-paren-match								(:background dark :foreground white))
   (show-paren-match-expression					(:background mauve))
   (show-paren-mismatch							(:background red :foreground white))
 
@@ -236,7 +236,7 @@ catppuccin "A theme to set the mood for Halloween"
   ;; posframe's
   (ivy-posframe                                 (:background black))
   (ivy-posframe-border                          (:background dark))
-  (which-key-posframe							(:background black))
+  (which-key-posframe							(:background dark))
   (which-key-posframe-border					(:background dark))
 
   (treemacs-directory-collapsed-face			(:foreground rosewater))
@@ -262,6 +262,7 @@ catppuccin "A theme to set the mood for Halloween"
   (lsp-headerline-breadcrumb-separator-face			(:background black))
   (lsp-headerline-breadcrumb-symbols-face			(:background black))
   (lsp-headerline-breadcrumb-project-prefix-face	(:background black))
+  (lsp-headerline-breadcrumb-symbols-error-face     (:foreground red))
 
   (lsp-ui-doc-background							(:background black :foreground red))
   (lsp-ui-doc-header								(:background black :foreground red))

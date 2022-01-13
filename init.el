@@ -64,10 +64,12 @@
 (global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
 
 ;; saving
-(desktop-save-mode 1)
-(savehist-mode 1)
+(desktop-save-mode 1)			;; Save desktop
+(savehist-mode 1)				;; Save autocompletions
+
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
+;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 148)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 148)
 (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 148 :weight 'regular)
@@ -93,16 +95,21 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
+;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
   :custom
   (setq auto-package-update-interval 7
 		auto-package-update-prompt-before-update t
 		auto-package-update-hide-results nil))
 
-
 (use-package no-littering)	;; Clean up all those temporary files
 
 (setq custom-file (concat user-emacs-directory "/var/custom.el"))
+
+;; Dont leave #file autosaves everywhere I go
+(defvar my-auto-save-folder "~/.emacs.d/var/auto-save/")
+(setq auto-save-list-file-prefix "~/.emacs.d/var/auto-save/.saves-"); set prefix for auto-saves 
+(setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
 
 (use-package dired
   :ensure nil
@@ -125,8 +132,7 @@
 ;; (add-hook 'swift-mode-hook #'tree-sitter-mode)
 ;; (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
-(use-package autothemer
-    :defer t)
+(use-package autothemer)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook
@@ -163,8 +169,8 @@
   (which-key-mode)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
-	which-key-min-display-lines 4
-	which-key-max-display-columns 5))
+		which-key-min-display-lines 4
+		which-key-max-display-columns 5))
 
 ; Use evil mode
 (use-package evil
@@ -193,23 +199,6 @@
   :after evil
   :config
   (evil-collection-init))
-
-(use-package ivy
-  :diminish
-  :bind (:map ivy-minibuffer-map
-              ("TAB" . ivy-alt-done))
-  :config
-  (ivy-mode 1))
-
-;; Ivy rich
-(use-package ivy-rich
-  :after ivy
-  :init (ivy-rich-mode 1))
-
-;; counsel
-(use-package counsel
-  :defer t
-  :config (counsel-mode 1))
 
 ;; Theming
 (use-package doom-themes
@@ -266,6 +255,34 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+(use-package ivy
+  :hook (after-init . ivy-mode)
+  :config
+  (setq ivy-height 12)
+  (setq ivy-display-style nil)
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-initial-inputs-alist nil)
+  (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
+  (define-key ivy-mode-map       (kbd "<escape>") nil)
+  (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
+
+;; counsel
+(use-package counsel
+  :hook (ivy-mode . counsel-mode))
+
+(use-package swiper
+  :after ivy
+  :config
+  (setq swiper-goto-start-of-match t))
+
+;; ;; Ivy rich
+(use-package ivy-rich
+  :hook (ivy-mode . ivy-rich-mode))
+
+(use-package all-the-icons-ivy
+  :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
+
 ;; company --------------------------------------------
 (use-package company
   :after lsp-mode
@@ -300,6 +317,12 @@
 
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
+
+(use-package flycheck
+  :hook ((prog-mode . flycheck-mode))
+  :config
+  (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
+  (setq flycheck-display-errors-delay 0.1))
 
 (use-package nyan-mode
   :hook doom-modeline-mode
@@ -498,7 +521,7 @@
 
    (mk/leader-keys
      "b" '(:ignore t :which-key "buffer")
-     "bb" '(counsel-switch-buffer :which-key "list buffers")
+     "bb" '(ivy-switch-buffer :which-key "list buffers")
      "bx" '(evil-delete-buffer :which-key "delete buffer")
      "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
      "bd" '(kill-current-buffer :which-key "kill current buffer")
@@ -622,6 +645,21 @@
   :defer t
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method 'bitmap))
+
+(use-package highlight-symbol
+  :hook (prog-mode . highlight-symbol-mode)
+  :config
+  (setq highlight-symbol-idle-delay 0.3))
+
+(use-package highlight-numbers
+  :hook (prog-mode . highlight-numbers-mode))
+
+(use-package highlight-escape-sequences
+  :hook (prog-mode . hes-mode))
+
+(use-package emojify
+  :config
+  :hook (after-init . global-emojify-mode))
 
 ;; Reset memory for Garbage collection
 (setq gc-cons-threshold (* 5 1024 1024))
