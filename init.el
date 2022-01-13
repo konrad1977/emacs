@@ -18,6 +18,7 @@
       visible-bell nil
       window-resize-pixelwise t
       backup-by-copying t
+	  initial-scratch-message ""
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
 (display-battery-mode t)	; Show battery
