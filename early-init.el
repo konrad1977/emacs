@@ -1,9 +1,9 @@
-;; (setq native-comp-speed 2
-;;       comp-speed 2)
-;; (setq native-comp-async-report-warnings-errors nil
-;;       comp-async-report-warnings-errors nil)
-;; (setq native-comp-async-query-on-exit t
-;;       comp-async-query-on-exit t)
+(setq native-comp-speed 2
+      comp-speed 2)
+(setq native-comp-async-report-warnings-errors nil
+      comp-async-report-warnings-errors nil)
+(setq native-comp-async-query-on-exit t
+      comp-async-query-on-exit t)
 
 ;; Defer garbage collection further back in the startup process
 (setq gc-cons-threshold most-positive-fixnum)

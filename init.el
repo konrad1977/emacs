@@ -22,7 +22,7 @@
 (scroll-bar-mode -1)		; Dont use scrollbars
 (set-fringe-mode 4)			; Give us some space
 (tooltip-mode -1)			; Disable tooltip
-(show-paren-mode t)			; Enable show paren matching mode
+(show-paren-mode t)			; Enable show paren matching mode 
 
 (setq-default display-line-numbers-width 4
 			  c-basic-offset 4
@@ -36,22 +36,6 @@
 (when (boundp 'read-process-output-max)
   ;; 1MB in bytes, default 4096 bytes
   (setq read-process-output-max 1048576))
-
-;; dont word wrap
-(add-hook 'prog-mode-hook #'(lambda ()
-			                  (setq company-mode t					;; Use auto-completion
-									electric-pair-mode t			;; Auto insert pairs {} () [] etc
-									highlight-indent-guides-mode t	;; Turn on indent-guides
-									indicate-empty-lines t			;; Show empty lines
-									indicate-unused-lines t			;; Show unused lines
-									semantic-mode t					;; Get a little extra help for autocompletion
-									show-trailing-whitespace t		;; Show trailing whitespaces
-									word-wrap nil					;; Dont word wrap when we are coding
-									truncate-lines nil				;; Dont truncate lines
-									column-number-mode t			;; Show current line number highlighted
-									display-line-numbers t			;; Show line numbers
-									hl-line-mode t					;; Highlight current line in progmode
-									)))
 
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight codex
@@ -177,13 +161,6 @@
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
-
-  ;; (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
-  ;; (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  ;; (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-
-  ;; (evil-set-initial-state 'messages-buffer-mode 'evil)
-  ;; (normal-set-initial-state 'dashboard-mode 'normal))
 
 (use-package undo-fu
   :after evil
@@ -342,18 +319,18 @@
     :hook (swift-mode . lsp-deferred)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
-	  swift-mode:multiline-statement-offset 4))
-  (use-package exec-path-from-shell)
+		  swift-mode:multiline-statement-offset 4))
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
-  (exec-path-from-shell-initialize)
+  ;;(exec-path-from-shell-initialize)
   (ns-auto-titlebar-mode)
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
-		mac-option-modifier 'none))
+		mac-option-modifier 'none
+		dired-use-ls-dired nil))
 
 ; helpful
 (use-package helpful
@@ -666,6 +643,31 @@
 (use-package emojify
   :config
   :hook (after-init . global-emojify-mode))
+
+(setq company-mode t)
+(setq word-wrap nil)
+(setq-default truncate-lines 1)
+(global-hl-line-mode 1)
+
+;; Setup Functions
+(defun mk/setupProgrammingSettings ()
+  (interactive)
+  (message "Welcome to Emacs and have fun!")
+  (setq electric-pair-mode t			;; Auto insert pairs {} () [] etc
+		highlight-indent-guides-mode t	;; Turn on indent-guides
+		indicate-empty-lines t			;; Show empty lines
+		indicate-unused-lines t			;; Show unused lines
+		semantic-mode t					;; Get a little extra help for autocompletion
+		show-trailing-whitespace t		;; Show trailing whitespaces
+		column-number-mode t			;; Show current line number highlighted
+		display-line-numbers t)			;; Show line numbers					;; Highlight current line in progmode
+)
+
+(defun mk/setupOrgMode ()
+  (setq word-wrap t))
+
+(add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
+(add-hook 'org-mode-hook #'mk/setupOrgMode)
 
 ;; Reset memory for Garbage collection
 (setq gc-cons-threshold (* 5 1024 1024))

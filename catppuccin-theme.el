@@ -65,7 +65,7 @@ catppuccin "A theme to set the mood for Halloween"
   (separator-line                       (:background black-2))
   (border                               (:background black-2 :foreground black))
   (window-border                        (:background black-2 :foreground black-2))
-  (internal-border                      (:background black-1 :foreground black))
+  (internal-border                      (:background black-2 :foreground black-2))
   (child-frame-border                   (:background black-2 :foreground black-1))
 
   ;; Font lock
