@@ -4,43 +4,23 @@
 
 (setq gc-cons-threshold (* 100 1024 1024))
 
-(setq comp-deferred-compilation nil
-      create-lockfiles nil
+(setq create-lockfiles nil
       display-time-24hr-format t
       display-time-default-load-average nil
-      frame-inhibit-implied-resize t
-      frame-resize-pixelwise t
-      inhibit-compacting-font-caches t
-      ns-pop-up-frames nil
-      inhibit-startup-message t
-      package-enable-at-startup nil
-      site-run-file nil
       visible-bell nil
-      window-resize-pixelwise t
       backup-by-copying t
 	  initial-scratch-message ""
 	  idle-update-delay 1.0			;; Speed things up by not updating so often
 	  blink-cursor-interval 0.6		;; Little slower cursor blinking . default is 0.5
 	  fast-but-imprecise-scrolling t
-	  bidi-inhibit-bpa t
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
-(setq bidi-inhibit-bpa t)
-(setq-default bidi-display-reordering 'left-to-right
-			  bidi-paragraph-direction 'left-to-right
-			  cursor-in-non-selected-windows nil
-			  highlight-nonselected-windows nil
-			  fringes-outside-margins nil
-			  indicate-buffer-boundaries nil
-			  indicate-empty-lines nil)
 
 (display-battery-mode t)	; Show battery
 (display-time-mode t)		; Show time
-(menu-bar-mode -1)			; Disable the menu bar
 (recentf-mode t)			; Recent file mode
 (scroll-bar-mode -1)		; Dont use scrollbars
 (set-fringe-mode 4)			; Give us some space
-(tool-bar-mode -1)			; Disable toolbar
 (tooltip-mode -1)			; Disable tooltip
 (show-paren-mode t)			; Enable show paren matching mode
 
@@ -504,7 +484,8 @@
   (mk/leader-keys
 	"A" '(:ignore t :which-key "applications")
 	"Af" '(:ignore t :which-key "feed")
-	"Afu" '(elfeed-update :which-key "update feed"))
+	"Afu" '(elfeed-update :which-key "update feed")
+	"Afs" '(elfeed-show :which-key "show feed"))
 
   (mk/leader-keys
      "b" '(:ignore t :which-key "buffer")
