@@ -22,10 +22,10 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; Dark - monochrome:ish
   (dark       "#0C0A10")
-  (black      "#15121C")
-  (black-1    "#1B1923")
-  (black-2    "#1E1E28")
-  (black-3    "#332E41")
+  (black      "#131020")
+  (black-1    "#1A1823")
+  (black-2    "#1E1D2F")
+  (black-3    "#302D41")
   (black-4    "#575268")
   (gray       "#6E6C7E")
   (gray-1     "#988BA2")
