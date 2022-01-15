@@ -65,7 +65,7 @@ catppuccin "A theme to set the mood for Halloween"
   (separator-line                       (:background black-2))
   (border                               (:background black-2 :foreground black))
   (window-border                        (:background black-2 :foreground black-2))
-  (internal-border                      (:background black-1 :foreground black))
+  (internal-border                      (:background black-2 :foreground black-2))
   (child-frame-border                   (:background black-2 :foreground black-1))
 
   ;; Font lock
@@ -234,7 +234,7 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; posframe's
   (ivy-posframe                                 (:background black))
-  (ivy-posframe-border                          (:background dark))
+  (ivy-posframe-border                          (:inherit 'ivy-posframe))
   (which-key-posframe							(:background dark))
   (which-key-posframe-border					(:background dark))
 
