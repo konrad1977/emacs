@@ -5,14 +5,18 @@
 (setq native-comp-async-query-on-exit t
       comp-async-query-on-exit t)
 
+(setq comp-deferred-compilation nil)
+
+(when (boundp 'read-process-output-max)
+  ;; 1MB in bytes, default 4096 bytes
+  (setq read-process-output-max (* 10 1024 1024)))
+
 ;; Defer garbage collection further back in the startup process
 (setq gc-cons-threshold most-positive-fixnum)
-(setq comp-deferred-compilation nil)
 (setq package-enable-at-startup nil)
 (setq inhibit-startup-message t)
 (setq ns-pop-up-frames nil)
 (setq site-run-file nil)
-
 (setq inhibit-compacting-font-caches t)
 
 (setq tool-bar-mode nil

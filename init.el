@@ -4,6 +4,10 @@
 
 (setq gc-cons-threshold (* 100 1024 1024))
 
+
+;; Window
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 (setq create-lockfiles nil
       display-time-24hr-format t
       display-time-default-load-average nil
@@ -14,7 +18,6 @@
 	  blink-cursor-interval 0.6		;; Little slower cursor blinking . default is 0.5
 	  fast-but-imprecise-scrolling t
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
-
 
 (display-battery-mode t)	; Show battery
 (display-time-mode t)		; Show time
@@ -30,19 +33,9 @@
 			  indent-tabs-mode t
               indent-line-function 'insert-tab)
 
-;; Window
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-(when (boundp 'read-process-output-max)
-  ;; 1MB in bytes, default 4096 bytes
-  (setq read-process-output-max 1048576))
-
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
-(global-font-lock-mode 1)		;; always highlight codex
+(global-font-lock-mode 1)		;; always highlight code
 (global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
-
-
-;; saving
 (desktop-save-mode 1)			;; Save desktop
 (savehist-mode 1)				;; Save autocompletions
 
@@ -106,7 +99,6 @@
 ;; (add-hook 'swift-mode-hook #'tree-sitter-mode)
 ;; (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
-(use-package autothemer)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook
@@ -114,10 +106,10 @@
             (make-local-variable 'face-remapping-alist)
             (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
 
+(use-package autothemer)
 (load-theme 'catppuccin t)
 
 (use-package dashboard
-  :ensure t
   :config
   (dashboard-setup-startup-hook)
   :init (progn
@@ -137,7 +129,6 @@
 
 ;; Which key
 (use-package which-key
-  :defer 0
   :diminish which-key-mode
   :config
   (which-key-mode)
@@ -154,10 +145,9 @@
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
-  :config
   (evil-mode 1)
+  :config
   (define-key evil-motion-state-map "/" 'swiper)
-  (evil-set-initial-state 'dashboard-mode 'motion)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
@@ -179,6 +169,7 @@
 
 ;; Theming
 (use-package doom-themes
+  :after doom-modeline
   :config
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
@@ -206,13 +197,16 @@
   (setq
 		doom-modeline-bar-width 3
 		doom-modeline-buffer-file-name-style 'file-name
+		doom-modeline-buffer-encoding nil
 		doom-modeline-icon t
 		doom-modeline-indent-info nil
 		doom-modeline-major-mode-color-icon t
 		doom-modeline-major-mode-icon t
 		doom-modeline-modal-icon t
-		doom-modeline-checker-simple-format t
-		doom-modeline-env-version t
+		doom-modeline-checker-simple-format nil
+		doom-modeline-persp-icon nil
+		doom-modeline-persp-name nil
+		doom-modeline-env-version nil
 		doom-modeline-height 38)
   (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 136)
   (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 128))
@@ -257,13 +251,13 @@
 (use-package ivy-rich
   :hook (ivy-mode . ivy-rich-mode))
 
-(use-package all-the-icons-ivy
-  :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
+;; (use-package all-the-icons-ivy
+;;   :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
 
-(use-package all-the-icons-ivy-rich
-  :init (all-the-icons-ivy-rich-mode 1)
-  :config
-  (setq all-the-icons-ivy-rich-icon-size 1.0))
+;; (use-package all-the-icons-ivy-rich
+;;   :init (all-the-icons-ivy-rich-mode 1)
+;;   :config
+;;   (setq all-the-icons-ivy-rich-icon-size 1.0))
 
 ;; company --------------------------------------------
 (use-package company
@@ -307,9 +301,8 @@
   (setq flycheck-display-errors-delay 0.1))
 
 (use-package nyan-mode
-  :hook doom-modeline-mode
-  :init
-  (nyan-mode)
+  :hook (doom-modeline-mode . nyan-mode)
+  :config
   (setq nyan-animate-nyancat t))
 
 ; On macos use our custom settings ---------------------
@@ -330,11 +323,12 @@
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
 		mac-option-modifier 'none
-		dired-use-ls-dired nil))
+		dired-use-ls-dired nil
+		frame-title-format ""))
 
 ; helpful
 (use-package helpful
-  :defer t)
+  :after which-key)
 
 (defun my-vterm/split-horizontal ()
   "Create a new vterm window under of the current one."
@@ -390,7 +384,7 @@
 
 ;; Winum - select windows easy
 (use-package winum
-  :defer t
+  :after doom-modeline
   :init
   (winum-mode 1))
 
@@ -404,7 +398,7 @@
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package smex
-  :defer t)
+  :after ivy)
 
 (use-package vterm
   :commands vterm)
@@ -412,7 +406,18 @@
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))) (delete-other-windows))
+
+(defun toggle-transparency ()
+  (interactive)
+  (let ((alpha (frame-parameter nil 'alpha)))
+    (if (eq
+     (if (numberp alpha)
+         alpha
+       (cdr alpha)) ; may also be nil
+     100)
+    (set-frame-parameter nil 'alpha '(80 . 80))
+      (set-frame-parameter nil 'alpha '(100 . 100)))))
 
  ;; general
 (use-package general
@@ -641,7 +646,6 @@
   :hook (prog-mode . hes-mode))
 
 (use-package emojify
-  :config
   :hook (after-init . global-emojify-mode))
 
 (setq company-mode t)
@@ -651,8 +655,6 @@
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
-  (interactive)
-  (message "Welcome to Emacs and have fun!")
   (setq electric-pair-mode t			;; Auto insert pairs {} () [] etc
 		highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines

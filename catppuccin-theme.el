@@ -234,7 +234,7 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; posframe's
   (ivy-posframe                                 (:background black))
-  (ivy-posframe-border                          (:background dark))
+  (ivy-posframe-border                          (:inherit 'ivy-posframe))
   (which-key-posframe							(:background dark))
   (which-key-posframe-border					(:background dark))
 
