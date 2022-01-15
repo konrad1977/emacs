@@ -22,10 +22,10 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; Dark - monochrome:ish
   (dark       "#0C0A10")
-  (black      "#131020")
-  (black-1    "#1A1823")
-  (black-2    "#1E1D2F")
-  (black-3    "#302D41")
+  (black      "#15121C")
+  (black-1    "#1B1923")
+  (black-2    "#1E1E28")
+  (black-3    "#332E41")
   (black-4    "#575268")
   (gray       "#6E6C7E")
   (gray-1     "#988BA2")
@@ -86,6 +86,8 @@ catppuccin "A theme to set the mood for Halloween"
   (font-lock-negation-char-face         (:foreground red))
   (font-lock-regexp-grouping-backslash  (:foreground teal))
   (elisp-shorthand-font-lock-face       (:foreground yellow))
+  (font-lock-reference-face				(:foreground yellow))
+  (font-lock-preprocessor-face	   		(:foreground gray))
 
   (info-xref                            (:foreground yellow))
   (highlight-quoted-symbol              (:foreground maroon))
@@ -95,6 +97,7 @@ catppuccin "A theme to set the mood for Halloween"
   (dired-mark                           (:foreground pink))
 
   (trailing-whitespace                  (:background red))
+
   ;; Battery colors
   (doom-modeline-battery-critical       (:foreground red))
   (doom-modeline-battery-warning        (:foreground maroon))
@@ -121,7 +124,6 @@ catppuccin "A theme to set the mood for Halloween"
   (doom-modeline-info                   (:bold t :foreground teal))
   (doom-modeline-bar                    (:background yellow))
   (doom-modeline-panel                  (:background green :foreground white))
-
   (doom-modeline-project-dir            (:bold t :foreground peach))
   (doom-modeline-buffer-path            (:inherit 'bold :foreground red))
   (doom-modeline-buffer-file            (:inherit 'bold :foreground rosewater))
@@ -170,6 +172,8 @@ catppuccin "A theme to set the mood for Halloween"
   (which-key-group-description-face     (:foreground pink))
   (which-key-command-description-face   (:foreground blue))
   (which-key-local-map-description-face (:foreground yellow))
+  (which-key-posframe					(:background dark))
+  (which-key-posframe-border			(:background dark))
 
   ;; swiper
   (swiper-line-face                     (:foreground yellow))
@@ -195,23 +199,24 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; show-paren
   (show-paren-match								(:background mauve :foreground black))
-  (show-paren-match-expression					(:background mauve))
+  (show-paren-match-expression					(:background black))
   (show-paren-mismatch							(:background red :foreground white))
 
-  ;; Company
-  (company-scrollbar-bg							(:background red))
-  (company-scrollbar-fg							(:background black-2))
-  (company-tooltip								(:background black-1))
+										; company-box
+  (company-echo									(:background red))
+  (company-echo-common							(:foreground red))
+  (company-preview								(:background red))
+  (company-preview-common						(:foreground rosewater))
+  (company-preview-search						(:background yellow))
+  (company-template-field						(:foreground dark :background red))
+  (company-tooltip								(:foreground rosewater))
   (company-tooltip-annotation					(:foreground green))
   (company-tooltip-annotation-selection			(:inherit 'company-tooltip-annotation))
-  (company-tooltip-selection					(:foreground peach :background dark))
   (company-tooltip-common						(:foreground blue :underline t))
-  (company-tooltip-common-selection				(:foreground blue :underline t))
-  (company-preview-common						(:foreground rosewater))
-  (company-preview								(:background lavender))
-  (company-preview-search						(:background yellow))
-  (company-template-field						(:foreground dark :background yellow))
-  (company-echo-common							(:foreground red))
+  (company-tooltip-common-selection				(:background peach :foreground black :underline t :bold t))
+  (company-tooltip-scrollbar-thumb				(:background red :foreground red))
+  (company-tooltip-scrollbar-track				(:background yellow :foreground yellow))
+  (company-tooltip-selection					(:background blue :foreground black))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground black-3))
@@ -236,8 +241,6 @@ catppuccin "A theme to set the mood for Halloween"
   ;; posframe's
   (ivy-posframe                                 (:background black))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
-  (which-key-posframe							(:background dark))
-  (which-key-posframe-border					(:background dark))
 
   (treemacs-directory-collapsed-face			(:foreground rosewater))
   (treemacs-directory-face						(:foreground rosewater))
@@ -252,7 +255,6 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; lets support solaire mode
   (solaire-default-face (:background black-1))
-
   ;; lsp
   (lsp-headerline-breadcrumb-path-error-face (:underline (:color maroon :style 'wave)
                                                          :foreground gray-2 :background black))
