@@ -680,15 +680,27 @@
   ("k" text-scale-decrease "out")
   ("f" nil "finished" :exit t))
 
-(defhydra hydra-windows-setup (:timeout 4)
-  ("v" mk/split-window-right "right" :exit t)
-  ("h" mk/split-window-below "below" :exit t)
+(defhydra hydra-windows-setup
+  (:timeout 10 :hint nil :color pink)
+"
+ ^Size^						^Sizing^				^Toggles^
+^^^^^^^^-----------------------------------------------------------------
+_<left>_	:decease width		_v_:right				_t_:transparency
+_<right>_	:increase width		_h_:below				_s_:scrollbar
+_<down>_	:decrease height	^ ^					_f_:fullscreen
+_<up>_	:increase height		^ ^				_m_:maximized
+"
+  ("v" mk/split-window-right :exit t)
+  ("h" mk/split-window-below :exit t)
   ("<left>" evil-window-decrease-width)
   ("<right>" evil-window-increase-width)
   ("<down>" evil-window-decrease-height)
   ("<up>" evil-window-increase-height)
-  ("t" mk/toggle-transparency "toggle transparency")
-  ("x" nil "finished" :exit t))
+  ("f" toggle-frame-fullscreen)
+  ("m" toggle-frame-maximized)
+  ("t" mk/toggle-transparency)
+  ("s" scroll-bar-mode)
+  ("q" nil "exit" :exit t))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
