@@ -377,11 +377,6 @@
 (use-package hydra
   :defer t)
 
-(defhydra hydra-text-scale (:timeout 4)
-  ("j" text-scale-increase "in")
-  ("k" text-scale-decrease "out")
-  ("f" nil "finished" :exit t))
-
 ;; Winum - select windows easy
 (use-package winum
   :after doom-modeline
@@ -402,22 +397,6 @@
 
 (use-package vterm
   :commands vterm)
-
-;; Kill all other buffers
-(defun kill-other-buffers ()
-  (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))) (delete-other-windows))
-
-(defun toggle-transparency ()
-  (interactive)
-  (let ((alpha (frame-parameter nil 'alpha)))
-    (if (eq
-     (if (numberp alpha)
-         alpha
-       (cdr alpha)) ; may also be nil
-     100)
-    (set-frame-parameter nil 'alpha '(80 . 80))
-      (set-frame-parameter nil 'alpha '(100 . 100)))))
 
  ;; general
 (use-package general
@@ -540,8 +519,9 @@
      "wp" '(previous-window-any-frame :which-key "previous window")
      "wx" '(delete-window :which-key "delete window")
 	 "wk" '(delete-window-internal :which-key "delete window")
-	 "w-" '((lambda () (interactive) (split-window-below) (other-window 1)) :which-key "split window horizontally")
-	 "w/" '((lambda () (interactive) (split-window-right) (other-window 1)) :which-key "split window vertically")
+	 "w-" '(mk/split-window-below :which-key "split window horizontally")
+	 "w/" '(mk/split-window-right :which-key "split window vertically")
+	 "wh" '(hydra-windows-setup/body :which-key "hydra")
      "wn" '(next-window-any-frame :which-key "next window"))
 
    (mk/leader-keys
@@ -653,6 +633,23 @@
 (setq-default truncate-lines 1)
 (global-hl-line-mode 1)
 
+
+;; Kill all other buffers
+(defun kill-other-buffers ()
+  (interactive)
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))) (delete-other-windows))
+
+(defun mk/toggle-transparency ()
+  (interactive)
+  (let ((alpha (frame-parameter nil 'alpha)))
+    (if (eq
+		 (if (numberp alpha)
+			 alpha
+		   (cdr alpha)) ; may also be nil
+		 100)
+		(set-frame-parameter nil 'alpha '(92 . 85))
+      (set-frame-parameter nil 'alpha '(100 . 100)))))
+
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   (setq electric-pair-mode t			;; Auto insert pairs {} () [] etc
@@ -667,6 +664,31 @@
 
 (defun mk/setupOrgMode ()
   (setq word-wrap t))
+
+(defun mk/split-window-below ()
+  (interactive)
+  (split-window-below)
+  (other-window 1))
+
+(defun mk/split-window-right ()
+  (interactive)
+  (split-window-right)
+  (other-window 1))
+
+(defhydra hydra-text-scale (:timeout 4)
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
+
+(defhydra hydra-windows-setup (:timeout 4)
+  ("v" mk/split-window-right "right" :exit t)
+  ("h" mk/split-window-below "below" :exit t)
+  ("<left>" evil-window-decrease-width)
+  ("<right>" evil-window-increase-width)
+  ("<down>" evil-window-decrease-height)
+  ("<up>" evil-window-increase-height)
+  ("t" mk/toggle-transparency "toggle transparency")
+  ("x" nil "finished" :exit t))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
