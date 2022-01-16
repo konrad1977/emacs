@@ -76,11 +76,11 @@
 
 (use-package no-littering)	;; Clean up all those temporary files
 
-(setq custom-file (concat user-emacs-directory "/var/custom.el"))
+(setq custom-file (concat user-emacs-directory "var/custom.el"))
 
 ;; Dont leave #file autosaves everywhere I go
-(defvar my-auto-save-folder "~/.emacs.d/var/auto-save/")
-(setq auto-save-list-file-prefix "~/.emacs.d/var/auto-save/.saves-"); set prefix for auto-saves 
+(defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
+(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves 
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
 
 (use-package dired
@@ -114,7 +114,7 @@
   :config
   (dashboard-setup-startup-hook)
   :init (progn
-		  (setq dashboard-startup-banner "~/.emacs.d/dashimage/catppuccin.png")
+		  (setq dashboard-startup-banner (concat user-emacs-directory "dashimage/catppuccin.png"))
 		  (setq dashboard-path-style 'truncate-beginning)
 		  (setq dashboard-banner-logo-title "Mikaels dashboard!"
 				dashboard-set-file-icons t
