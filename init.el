@@ -8,7 +8,8 @@
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-(setq create-lockfiles nil
+(setq ad-redefinition-action 'accept
+	  create-lockfiles nil
       display-time-24hr-format t
       display-time-default-load-average nil
       visible-bell nil
