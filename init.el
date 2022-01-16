@@ -26,7 +26,7 @@
 (scroll-bar-mode -1)		; Dont use scrollbars
 (set-fringe-mode 4)			; Give us some space
 (tooltip-mode -1)			; Disable tooltip
-(show-paren-mode t)			; Enable show paren matching mode 
+(show-paren-mode t)			; Enable show paren matching mode
 
 (setq-default display-line-numbers-width 4
 			  c-basic-offset 4
@@ -80,7 +80,7 @@
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
-(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves 
+(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
 
 (use-package dired
@@ -239,6 +239,10 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; rainbow-mode show hex as colors
+(use-package rainbow-mode
+  :commands rainbow-mode)
+
 ;; Use ivy
 (use-package ivy
   :hook (after-init . ivy-mode)
@@ -321,18 +325,25 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-  (use-package ns-auto-titlebar)
+
+  (use-package ns-auto-titlebar
+	:hook (after-init-hook . ns-auto-titlebar-mode))
+
+  (use-package exec-path-from-shell
+	:commands vterm
+	:config (exec-path-from-shell-initialize))
+
   (use-package swift-mode
     :hook (swift-mode . lsp-deferred)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
+
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
-  ;;(exec-path-from-shell-initialize)
-  (ns-auto-titlebar-mode)
+
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
@@ -535,7 +546,7 @@
 	 "wk" '(delete-window-internal :which-key "delete window")
 	 "w-" '(mk/split-window-below :which-key "split window horizontally")
 	 "w/" '(mk/split-window-right :which-key "split window vertically")
-	 "wh" '(hydra-windows-setup/body :which-key "hydra")
+	 "ww" '(hydra-windows-setup/body :which-key "hydra menu")
      "wn" '(next-window-any-frame :which-key "next window"))
 
    (mk/leader-keys
@@ -572,7 +583,7 @@
 ;;(use-package forge)
 
 (defun mk/org-mode-setup()
-  (org-indent-mode)
+  (org-indent-mode 1)
   (variable-pitch-mode 1)
   (visual-line-mode 1))
 
@@ -659,7 +670,7 @@
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))) (delete-other-windows))
 
 (defun mk/toggle-transparency ()
-  (interactive)
+  (interactive
   (let ((alpha (frame-parameter nil 'alpha)))
     (if (eq
 		 (if (numberp alpha)
@@ -709,8 +720,8 @@ _<right>_	:increase width		_h_:below				_s_:scrollbar
 _<down>_	:decrease height	^ ^					_f_:fullscreen
 _<up>_	:increase height		^ ^				_m_:maximized
 "
-  ("v" mk/split-window-right :exit t)
-  ("h" mk/split-window-below :exit t)
+  ("v" mk/split-window-right)
+  ("h" mk/split-window-below)
   ("<left>" evil-window-decrease-width)
   ("<right>" evil-window-increase-width)
   ("<down>" evil-window-decrease-height)
@@ -719,6 +730,7 @@ _<up>_	:increase height		^ ^				_m_:maximized
   ("m" toggle-frame-maximized)
   ("t" mk/toggle-transparency)
   ("s" scroll-bar-mode)
+  ("x" delete-window "delete window")
   ("q" nil "exit" :exit t))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
