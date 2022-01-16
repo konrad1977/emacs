@@ -624,7 +624,6 @@
 (setq-default elfeed-search-title-min-width 100)
 
 (use-package highlight-indent-guides
-  :defer t
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method 'bitmap))
 
