@@ -641,6 +641,12 @@
 (use-package emojify
   :hook (after-init . global-emojify-mode))
 
+(use-package prescient
+  :after ivy)
+
+(use-package ivy-prescient
+  :hook (ivy-mode . ivy-prescient-mode))
+
 (setq company-mode t)
 (setq word-wrap nil)
 (setq-default truncate-lines 1)
