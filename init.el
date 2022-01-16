@@ -139,6 +139,18 @@
 		which-key-min-display-lines 4
 		which-key-max-display-columns 5))
 
+(defun un-indent-by-removing-4-spaces ()
+  "remove 4 spaces from beginning of of line"
+  (interactive)
+  (save-excursion
+    (save-match-data
+      (beginning-of-line)
+      ;; get rid of tabs at beginning of line
+      (when (looking-at "^\\s-+")
+        (untabify (match-beginning 0) (match-end 0)))
+      (when (looking-at "^    ")
+        (replace-match "")))))
+
 ; Use evil mode
 (use-package evil
   :init
@@ -150,6 +162,7 @@
   :config
   (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+  (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
