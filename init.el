@@ -678,7 +678,7 @@
 		   (cdr alpha)) ; may also be nil
 		 100)
 		(set-frame-parameter nil 'alpha '(92 . 85))
-      (set-frame-parameter nil 'alpha '(100 . 100)))))
+      (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
