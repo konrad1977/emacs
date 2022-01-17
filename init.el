@@ -537,10 +537,10 @@
     "t" '(:ignore t :which-key "text")
     "ts" '(sort-lines :which-key "sort lines")
     "tw" '(:ignore t :which-key "whitespace")
-    "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
+    "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace")
     "Td" '(tab-detach :which-key "detach")
     "Tx" '(tab-close :which-key "close")
-	"Tk" '(tab-close-other :which-key "close other")))
+	"Tk" '(tab-close-other :which-key "close other"))
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "windows")
@@ -693,8 +693,7 @@
 		semantic-mode t					;; Get a little extra help for autocompletion
 		show-trailing-whitespace t		;; Show trailing whitespaces
 		column-number-mode t			;; Show current line number highlighted
-		display-line-numbers t)			;; Show line numbers					;; Highlight current line in progmode
-)
+		display-line-numbers t))			;; Show line numbers					;; Highlight current line in progmode
 
 (defun mk/setupOrgMode ()
   (setq word-wrap t))
