@@ -177,6 +177,15 @@ catppuccin "A theme to set the mood for Halloween"
 
   ;; swiper
   (swiper-line-face                     (:foreground yellow))
+  (swiper-background-match-face-1       (:background peach :foreground black))
+  (swiper-background-match-face-2       (:background mauve :foreground black))
+  (swiper-background-match-face-3       (:background flamingo :foreground black))
+  (swiper-background-match-face-4       (:background red :foreground black))
+  (swiper-match-face-1					(:inherit 'swiper-background-match-face-1))
+  (swiper-match-face-2					(:inherit 'swiper-background-match-face-2))
+  (swiper-match-face-3					(:inherit 'swiper-background-match-face-3))
+  (swiper-match-face-4					(:inherit 'swiper-background-match-face-4))
+
   (counsel-outline-default              (:foreground yellow))
   (info-header-xref                     (:foreground yellow))
   (xref-file-header                     (:foreground yellow))

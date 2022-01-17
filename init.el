@@ -417,9 +417,9 @@
   :defer t
   :config
   (general-create-definer mk/leader-keys
-   :keymaps '(normal insert emacs visual operator hybrid)
-   :prefix "SPC"
-   :non-normal-prefix "M-SPC")
+	:keymaps '(normal insert emacs visual operator hybrid)
+	:prefix "SPC"
+	:non-normal-prefix "M-SPC")
 
   (mk/leader-keys
 	"T" '(:ignore t :which-key "toggle")
@@ -440,7 +440,7 @@
 	"4" '(winum-select-window-4 :which-key "window 4")
 	"5" '(winum-select-window-5 :which-key "window 5")
 	"6" '(winum-select-window-6 :which-key "window 6")
-	"s" 'swiper
+	"s" 'swiper-map
 	"P" 'package-install
 	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
 	"!" 'shell-command
@@ -463,20 +463,20 @@
 	"Afs" '(elfeed-show :which-key "show feed"))
 
   (mk/leader-keys
-     "b" '(:ignore t :which-key "buffer")
-     "bb" '(counsel-switch-buffer :which-key "list buffers")
-     "bx" '(evil-delete-buffer :which-key "delete buffer")
-     "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
-     "bd" '(kill-current-buffer :which-key "kill current buffer")
-     "bp" '(previous-buffer :which-key "previous buffer")
-     "bn" '(next-buffer :which-key "next buffer")
-     "be" '(eval-buffer :which-key "eval buffer")
-     "bE" '(eval-last-sexp :which-key "eval to point")
-     "br" '(revert-buffer :which-key "revert buffer")
-     "bC" '((lambda () (interactive) (switch-to-buffer "*Compile-Log*")) :which-key "Compile log-buffer")
-     "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
-     "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
-     "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
+    "b" '(:ignore t :which-key "buffer")
+    "bb" '(counsel-switch-buffer :which-key "list buffers")
+    "bx" '(evil-delete-buffer :which-key "delete buffer")
+    "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
+    "bd" '(kill-current-buffer :which-key "kill current buffer")
+    "bp" '(previous-buffer :which-key "previous buffer")
+    "bn" '(next-buffer :which-key "next buffer")
+    "be" '(eval-buffer :which-key "eval buffer")
+    "bE" '(eval-last-sexp :which-key "eval to point")
+    "br" '(revert-buffer :which-key "revert buffer")
+    "bC" '((lambda () (interactive) (switch-to-buffer "*Compile-Log*")) :which-key "Compile log-buffer")
+    "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
+    "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
+    "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
 
   (mk/leader-keys
     "c" '(:ignore t :which-key "code")
@@ -507,16 +507,17 @@
 	"fD" '(delete-file :which-key "delete file")
 	"fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
 
-   (mk/leader-keys
-     "h" '(:ignore t :which-key "help")
-     "hc" '(helpful-command :which-key "describe command")
-     "hk" '(helpful-key :which-key "describe key")
-     "hf" '(counsel-describe-function :which-key "describe function")
-     "hv" '(counsel-describe-variable :which-key "describe variable")
-     "ht" '(evil-tutor-start :which-key "evil tutorial")
-     "hp" '(helpful-at-point :which-key "describe at-point"))
+  (mk/leader-keys
+    "h" '(:ignore t :which-key "help")
+    "hc" '(helpful-command :which-key "describe command")
+    "hk" '(helpful-key :which-key "describe key")
+    "hf" '(counsel-describe-function :which-key "describe function")
+    "hv" '(counsel-describe-variable :which-key "describe variable")
+    "ht" '(evil-tutor-start :which-key "evil tutorial")
+    "h." '(helpful-at-point :which-key "describe at-point")
+    "hp" '(describe-package :which-key "describe package"))
 
-   (mk/leader-keys
+  (mk/leader-keys
     "q" '(:ignore t :which-key "quit")
     "qq" 'save-buffers-kill-terminal
     "qr" 'restart-emacs)
@@ -527,46 +528,46 @@
     "tw" '(:ignore t :which-key "whitespace")
     "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
 
-   (mk/leader-keys
-     "w" '(:ignore t :which-key "windows")
-	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
-     "wp" '(previous-window-any-frame :which-key "previous window")
-     "wx" '(delete-window :which-key "delete window")
-	 "wk" '(delete-window-internal :which-key "delete window")
-	 "w-" '(mk/split-window-below :which-key "split window horizontally")
-	 "w/" '(mk/split-window-right :which-key "split window vertically")
-	 "wh" '(hydra-windows-setup/body :which-key "hydra")
-     "wn" '(next-window-any-frame :which-key "next window"))
+  (mk/leader-keys
+    "w" '(:ignore t :which-key "windows")
+	"wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
+    "wp" '(previous-window-any-frame :which-key "previous window")
+    "wx" '(delete-window :which-key "delete window")
+	"wk" '(delete-window-internal :which-key "delete window")
+	"w-" '(mk/split-window-below :which-key "split window horizontally")
+	"w/" '(mk/split-window-right :which-key "split window vertically")
+	"wh" '(hydra-windows-setup/body :which-key "hydra")
+    "wn" '(next-window-any-frame :which-key "next window"))
 
-   (mk/leader-keys
-     "p" '(:ignore t :which-key "project")
-     "pp" '(:ignore t :which-key "project management")
-     "ppa" '(treemacs-add-project-to-workspace :which-key "add project")
-     "ppr" '(treemacs-remove-project-from-workspace :which-key "remove project")
-     "pf" '(projectile-find-file :which-key "find file")
-     "pt" '(projectile-find-tag :which-key "find tag")
-     "pF" '(projectile-project-files :which-key "project files")
-     "pk" '(projectile-kill-buffers :which-key "kill buffers")
-     "ps" '(projectile-switch-project :which-key "switch project")
-     "pS" '(projectile-switch-open-project :which-key "switch open project"))
+  (mk/leader-keys
+    "p" '(:ignore t :which-key "project")
+    "pp" '(:ignore t :which-key "project management")
+    "ppa" '(treemacs-add-project-to-workspace :which-key "add project")
+    "ppr" '(treemacs-remove-project-from-workspace :which-key "remove project")
+    "pf" '(projectile-find-file :which-key "find file")
+    "pt" '(projectile-find-tag :which-key "find tag")
+    "pF" '(projectile-project-files :which-key "project files")
+    "pk" '(projectile-kill-buffers :which-key "kill buffers")
+    "ps" '(projectile-switch-project :which-key "switch project")
+    "pS" '(projectile-switch-open-project :which-key "switch open project"))
 
-   (mk/leader-keys
-     "v" '(:ignore t :which-key "version control")
-     "vs" '(magit-status :which-key "status"))
+  (mk/leader-keys
+    "v" '(:ignore t :which-key "version control")
+    "vs" '(magit-status :which-key "status"))
 
-   (mk/leader-keys
-     "g" '(:ignore t :which-key "games")
-     "gt" '(tetris :which-key "tetris")
-     "gh" '(hanoi :which-key "tower of hanoi"))
+  (mk/leader-keys
+    "g" '(:ignore t :which-key "games")
+    "gt" '(tetris :which-key "tetris")
+    "gh" '(hanoi :which-key "tower of hanoi"))
 
-   (mk/leader-keys
-     "T" '(:ignore t :which-key "tabs")
-     "Tn" '(tab-new :which-key "new")
-     "Tl" '(tab-list :which-key "list")
-     "Tg" '(tab-close-group :which-key "close group")
-     "Td" '(tab-detach :which-key "detach")
-     "Tx" '(tab-close :which-key "close")
-	 "Tk" '(tab-close-other :which-key "close other")))
+  (mk/leader-keys
+    "T" '(:ignore t :which-key "tabs")
+    "Tn" '(tab-new :which-key "new")
+    "Tl" '(tab-list :which-key "list")
+    "Tg" '(tab-close-group :which-key "close group")
+    "Td" '(tab-detach :which-key "detach")
+    "Tx" '(tab-close :which-key "close")
+	"Tk" '(tab-close-other :which-key "close other")))
 
 ;; Forge - Git PR, Issues, etc
 ;;(use-package forge)
@@ -625,7 +626,7 @@
 
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
-  :custom (highlight-indent-guides-method 'bitmap))
+  :custom (highlight-indent-guides-method #'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
