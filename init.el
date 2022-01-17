@@ -327,8 +327,8 @@
 (when (eq system-type 'darwin)
 
   (use-package ns-auto-titlebar
-	:hook (after-init-hook . ns-auto-titlebar-mode))
-
+	:config (ns-auto-titlebar-mode))
+  
   (use-package exec-path-from-shell
 	:commands vterm
 	:config (exec-path-from-shell-initialize))
@@ -451,7 +451,7 @@
 	"4" '(winum-select-window-4 :which-key "window 4")
 	"5" '(winum-select-window-5 :which-key "window 5")
 	"6" '(winum-select-window-6 :which-key "window 6")
-	"s" 'swiper-map
+	"s" 'swiper
 	"P" 'package-install
 	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
 	"!" 'shell-command
