@@ -713,12 +713,13 @@
 (defhydra hydra-windows-setup
   (:timeout 10 :hint nil :color pink)
 "
- ^Size^						^Sizing^				^Toggles^
+ ^Size^						^Split window^	^ ^	^Toggles^
 ^^^^^^^^-----------------------------------------------------------------
-_<left>_	:decease width		_v_:right				_t_:transparency
-_<right>_	:increase width		_h_:below				_s_:scrollbar
-_<down>_	:decrease height	^ ^					_f_:fullscreen
-_<up>_	:increase height		^ ^				_m_:maximized
+^ ^_<left>_	:decease width		_v_:right				_t_:transparency
+^ ^_<right>_:increase width		_h_:below				_s_:scrollbar
+^ ^_<down>_	:decrease height	^ ^					_f_:fullscreen
+^ ^_<up>_	:increase height		^ ^				_m_:maximized
+^ ^
 "
   ("v" mk/split-window-right)
   ("h" mk/split-window-below)
