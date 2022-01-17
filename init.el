@@ -26,7 +26,7 @@
 (scroll-bar-mode -1)		; Dont use scrollbars
 (set-fringe-mode 4)			; Give us some space
 (tooltip-mode -1)			; Disable tooltip
-(show-paren-mode t)			; Enable show paren matching mode 
+(show-paren-mode t)			; Enable show paren matching mode
 
 (setq-default display-line-numbers-width 4
 			  c-basic-offset 4
@@ -80,7 +80,7 @@
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
-(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves 
+(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
 
 (use-package dired
@@ -239,6 +239,10 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; rainbow-mode show hex as colors
+(use-package rainbow-mode
+  :commands rainbow-mode)
+
 ;; Use ivy
 (use-package ivy
   :hook (after-init . ivy-mode)
@@ -321,18 +325,25 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-  (use-package ns-auto-titlebar)
+
+  (use-package ns-auto-titlebar
+	:hook (after-init-hook . ns-auto-titlebar-mode))
+
+  (use-package exec-path-from-shell
+	:commands vterm
+	:config (exec-path-from-shell-initialize))
+
   (use-package swift-mode
     :hook (swift-mode . lsp-deferred)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
+
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
-  ;;(exec-path-from-shell-initialize)
-  (ns-auto-titlebar-mode)
+
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
@@ -527,53 +538,56 @@
     "ts" '(sort-lines :which-key "sort lines")
     "tw" '(:ignore t :which-key "whitespace")
     "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace"))
-
-  (mk/leader-keys
-    "w" '(:ignore t :which-key "windows")
-	"wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
-    "wp" '(previous-window-any-frame :which-key "previous window")
-    "wx" '(delete-window :which-key "delete window")
-	"wk" '(delete-window-internal :which-key "delete window")
-	"w-" '(mk/split-window-below :which-key "split window horizontally")
-	"w/" '(mk/split-window-right :which-key "split window vertically")
-	"wh" '(hydra-windows-setup/body :which-key "hydra")
-    "wn" '(next-window-any-frame :which-key "next window"))
-
-  (mk/leader-keys
-    "p" '(:ignore t :which-key "project")
-    "pp" '(:ignore t :which-key "project management")
-    "ppa" '(treemacs-add-project-to-workspace :which-key "add project")
-    "ppr" '(treemacs-remove-project-from-workspace :which-key "remove project")
-    "pf" '(projectile-find-file :which-key "find file")
-    "pt" '(projectile-find-tag :which-key "find tag")
-    "pF" '(projectile-project-files :which-key "project files")
-    "pk" '(projectile-kill-buffers :which-key "kill buffers")
-    "ps" '(projectile-switch-project :which-key "switch project")
-    "pS" '(projectile-switch-open-project :which-key "switch open project"))
-
-  (mk/leader-keys
-    "v" '(:ignore t :which-key "version control")
-    "vs" '(magit-status :which-key "status"))
-
-  (mk/leader-keys
-    "g" '(:ignore t :which-key "games")
-    "gt" '(tetris :which-key "tetris")
-    "gh" '(hanoi :which-key "tower of hanoi"))
-
-  (mk/leader-keys
-    "T" '(:ignore t :which-key "tabs")
-    "Tn" '(tab-new :which-key "new")
-    "Tl" '(tab-list :which-key "list")
-    "Tg" '(tab-close-group :which-key "close group")
     "Td" '(tab-detach :which-key "detach")
     "Tx" '(tab-close :which-key "close")
 	"Tk" '(tab-close-other :which-key "close other")))
+
+   (mk/leader-keys
+     "w" '(:ignore t :which-key "windows")
+	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
+     "wp" '(previous-window-any-frame :which-key "previous window")
+     "wx" '(delete-window :which-key "delete window")
+	 "wk" '(delete-window-internal :which-key "delete window")
+	 "w-" '(mk/split-window-below :which-key "split window horizontally")
+	 "w/" '(mk/split-window-right :which-key "split window vertically")
+	 "ww" '(hydra-windows-setup/body :which-key "hydra menu")
+     "wn" '(next-window-any-frame :which-key "next window"))
+
+   (mk/leader-keys
+     "p" '(:ignore t :which-key "project")
+     "pp" '(:ignore t :which-key "project management")
+     "ppa" '(treemacs-add-project-to-workspace :which-key "add project")
+     "ppr" '(treemacs-remove-project-from-workspace :which-key "remove project")
+     "pf" '(projectile-find-file :which-key "find file")
+     "pt" '(projectile-find-tag :which-key "find tag")
+     "pF" '(projectile-project-files :which-key "project files")
+     "pk" '(projectile-kill-buffers :which-key "kill buffers")
+     "ps" '(projectile-switch-project :which-key "switch project")
+     "pS" '(projectile-switch-open-project :which-key "switch open project"))
+
+   (mk/leader-keys
+     "v" '(:ignore t :which-key "version control")
+     "vs" '(magit-status :which-key "status"))
+
+   (mk/leader-keys
+     "g" '(:ignore t :which-key "games")
+     "gt" '(tetris :which-key "tetris")
+     "gh" '(hanoi :which-key "tower of hanoi"))
+
+   (mk/leader-keys
+     "T" '(:ignore t :which-key "tabs")
+     "Tn" '(tab-new :which-key "new")
+     "Tl" '(tab-list :which-key "list")
+     "Tg" '(tab-close-group :which-key "close group")
+     "Td" '(tab-detach :which-key "detach")
+     "Tx" '(tab-close :which-key "close")
+	 "Tk" '(tab-close-other :which-key "close other")))
 
 ;; Forge - Git PR, Issues, etc
 ;;(use-package forge)
 
 (defun mk/org-mode-setup()
-  (org-indent-mode)
+  (org-indent-mode 1)
   (variable-pitch-mode 1)
   (visual-line-mode 1))
 
@@ -660,7 +674,7 @@
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))) (delete-other-windows))
 
 (defun mk/toggle-transparency ()
-  (interactive)
+  (interactive
   (let ((alpha (frame-parameter nil 'alpha)))
     (if (eq
 		 (if (numberp alpha)
@@ -668,7 +682,7 @@
 		   (cdr alpha)) ; may also be nil
 		 100)
 		(set-frame-parameter nil 'alpha '(92 . 85))
-      (set-frame-parameter nil 'alpha '(100 . 100)))))
+      (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
@@ -703,15 +717,16 @@
 (defhydra hydra-windows-setup
   (:timeout 10 :hint nil :color pink)
 "
- ^Size^						^Sizing^				^Toggles^
+ ^Size^						^Split window^	^ ^	^Toggles^
 ^^^^^^^^-----------------------------------------------------------------
-_<left>_	:decease width		_v_:right				_t_:transparency
-_<right>_	:increase width		_h_:below				_s_:scrollbar
-_<down>_	:decrease height	^ ^					_f_:fullscreen
-_<up>_	:increase height		^ ^				_m_:maximized
+^ ^_<left>_	:decease width		_v_:right				_t_:transparency
+^ ^_<right>_:increase width		_h_:below				_s_:scrollbar
+^ ^_<down>_	:decrease height	^ ^					_f_:fullscreen
+^ ^_<up>_	:increase height		^ ^				_m_:maximized
+^ ^
 "
-  ("v" mk/split-window-right :exit t)
-  ("h" mk/split-window-below :exit t)
+  ("v" mk/split-window-right)
+  ("h" mk/split-window-below)
   ("<left>" evil-window-decrease-width)
   ("<right>" evil-window-increase-width)
   ("<down>" evil-window-decrease-height)
@@ -720,6 +735,7 @@ _<up>_	:increase height		^ ^				_m_:maximized
   ("m" toggle-frame-maximized)
   ("t" mk/toggle-transparency)
   ("s" scroll-bar-mode)
+  ("x" delete-window "delete window")
   ("q" nil "exit" :exit t))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)

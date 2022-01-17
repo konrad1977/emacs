@@ -1,7 +1,11 @@
+;;; commentary: catppuccin based theme
+
 (require 'autothemer)
 
+;;; code:
+
 (autothemer-deftheme
-catppuccin "A theme to set the mood for Halloween"
+catppuccin "A theme based on catppuccin amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))) ;; We're only concerned with graphical Emacs
 
@@ -296,6 +300,25 @@ catppuccin "A theme to set the mood for Halloween"
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face (:background yellow))
 
-  ))
+  (term (:background dark :foreground dark))
+  (term-color-blue (:background blue :foreround blue))
+  (term-color-bright-blue (:inherit 'term-color-blue))
+  (term-color-green (:background green :foreround green))
+  (term-color-bright-green (:inherit 'term-color-green))
+  (term-color-black (:background dark :foreground black))
+  (term-color-bright-black (:background black-1 :foreground black-1))
+  (term-color-white (:background rosewater :foreground rosewater))
+  (term-color-bright-white (:background white :foreground white))
+  (term-color-red (:background red :foreground red))
+  (term-color-bright-red (:background maroon :foreground maroon))
+  (term-color-yellow (:background yellow :foreground yellow))
+  (term-color-bright-yellow (:background yellow :foreground yellow))
+  (term-color-cyan (:background sky :foreground sky))
+  (term-color-bright-cyan (:background sky :foreground sky))
+  (term-color-magenta (:background mauve :foreground mauve))
+  (term-color-bright-magenta (:background mauve :foreground mauve))
+
+))
 
 (provide-theme 'catppuccin)
+;;; catppuccin-theme.el ends here
