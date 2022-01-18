@@ -234,6 +234,7 @@
   :config
   (setq dimmer-fraction 0.25)
   (dimmer-configure-which-key)
+	(dimmer-configure-hydra)
   (dimmer-configure-company-box)
   (dimmer-configure-gnus)
   (dimmer-configure-magit)
@@ -457,7 +458,6 @@
 	"4" '(winum-select-window-4 :which-key "window 4")
 	"5" '(winum-select-window-5 :which-key "window 5")
 	"6" '(winum-select-window-6 :which-key "window 6")
-	"s" 'swiper
 	"P" 'package-install
 	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
 	"!" 'shell-command
@@ -579,6 +579,14 @@
      "g" '(:ignore t :which-key "games")
      "gt" '(tetris :which-key "tetris")
      "gh" '(hanoi :which-key "tower of hanoi"))
+
+   (mk/leader-keys
+     "s" '(:ignore t :which-key "selection")
+     "sw" '(mark-word :which-key "word")
+     "se" '(mark-sexp :which-key "expression")
+     "sf" '(mark-defun :which-key "function")
+     "sb" '(mark-whole-buffer :which-key "whole buffer")
+     "sp" '(mark-page :which-key "page"))
 
    (mk/leader-keys
      "T" '(:ignore t :which-key "tabs")
