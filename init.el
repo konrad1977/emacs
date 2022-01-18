@@ -126,7 +126,9 @@
 				dashboard-week-agenda t
 				dashboard-items '(
 								  (projects . 5)
-								  (agenda)))))
+								  (agenda)
+								  (recents . 3)
+								  )))) 
 
 ;; Which key
 (use-package which-key
@@ -217,23 +219,26 @@
 		doom-modeline-major-mode-color-icon t
 		doom-modeline-major-mode-icon t
 		doom-modeline-modal-icon t
-		doom-modeline-checker-simple-format nil
+		doom-modeline-checker-simple-format t
 		doom-modeline-persp-icon nil
 		doom-modeline-persp-name nil
-		doom-modeline-env-version nil
-		doom-modeline-height 38)
-  (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 136)
-  (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 128))
+		doom-modeline-env-version t
+		doom-modeline-hud t
+		doom-modeline-height 36)
+  (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 147)
+  (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 137))
 
-(use-package auto-dim-other-buffers
-  :defer t
+(use-package dimmer
+  :hook (after-init . dimmer-mode)
+  :custom (dimmer-adjustment-mode :both)
   :config
-  (set-face-background 'auto-dim-other-buffers-face nil)
-  (set-face-foreground 'auto-dim-other-buffers-face "#988BA2"))
-
-(add-hook 'after-init-hook (lambda ()
-  (when (fboundp 'auto-dim-other-buffers-mode)
-    (auto-dim-other-buffers-mode t))))
+  (setq dimmer-fraction 0.25)
+  (dimmer-configure-which-key)
+  (dimmer-configure-company-box)
+  (dimmer-configure-gnus)
+  (dimmer-configure-magit)
+  (dimmer-configure-org)
+  (dimmer-configure-posframe))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -247,9 +252,10 @@
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
-  (setq ivy-height 12)
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-height 12
+		ivy-use-virtual-buffers t
+		ivy-count-format "(%d/%d) "
+		ivy-use-selectable-prompt t)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
   (define-key ivy-mode-map       (kbd "<escape>") nil)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
@@ -292,7 +298,7 @@
 (use-package company-box
   :hook (company-mode . company-box-mode)
   :config
-  (setq company-box-icons-alist #'company-box-icons-all-the-icons))
+  (setq company-box-icons-alist #'(company-box-icons-all-the-icons)))
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
@@ -718,14 +724,14 @@
 "
  ^Size^						^Split window^	^ ^	^Toggles^
 ^^^^^^^^-----------------------------------------------------------------
-^ ^_<left>_	:decease width		_v_:right				_t_:transparency
-^ ^_<right>_:increase width		_h_:below				_s_:scrollbar
+^ ^_<left>_	:decease width		_/_:right				_t_:transparency
+^ ^_<right>_:increase width		_-_:below				_s_:scrollbar
 ^ ^_<down>_	:decrease height	^ ^					_f_:fullscreen
 ^ ^_<up>_	:increase height		^ ^				_m_:maximized
 ^ ^
 "
-  ("v" mk/split-window-right)
-  ("h" mk/split-window-below)
+  ("/" mk/split-window-right)
+  ("-" mk/split-window-below)
   ("<left>" evil-window-decrease-width)
   ("<right>" evil-window-increase-width)
   ("<down>" evil-window-decrease-height)
