@@ -2,9 +2,6 @@
 
 ;;; Code:
 
-(setq gc-cons-threshold (* 100 1024 1024))
-
-
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
@@ -27,6 +24,7 @@
 (set-fringe-mode 4)			; Give us some space
 (tooltip-mode -1)			; Disable tooltip
 (show-paren-mode t)			; Enable show paren matching mode
+(delete-selection-mode t)
 
 (setq-default display-line-numbers-width 4
 			  c-basic-offset 4
@@ -66,6 +64,13 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
+
+ (use-package gcmh
+   :config
+   (gcmh-mode 1))
+
+(setq gc-cons-threshold (* 20 1024 1024)
+	  gc-cons-percentage 0.6)
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
