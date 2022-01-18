@@ -471,7 +471,7 @@
 	"A" '(:ignore t :which-key "applications")
 	"Af" '(:ignore t :which-key "feed")
 	"Afu" '(elfeed-update :which-key "update feed")
-	"Afs" '(elfeed-show :which-key "show feed"))
+	"Afs" '(elfeed :which-key "show feed"))
 
   (mk/leader-keys
     "b" '(:ignore t :which-key "buffer")
