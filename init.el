@@ -72,12 +72,7 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
- (use-package gcmh
-   :config
-   (gcmh-mode 1))
-
-(setq gc-cons-threshold (* 20 1024 1024)
-	  gc-cons-percentage 0.6)
+(setq gc-cons-threshold (* 20 1024 1024))
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -722,33 +717,30 @@
   ("k" text-scale-decrease "out")
   ("f" nil "finished" :exit t))
 
-(defhydra hydra-windows-setup
-  (:timeout 10 :hint nil :color pink)
-"
- ^Size^						^Split window^	^ ^	^Toggles^
-^^^^^^^^-----------------------------------------------------------------
-^ ^_<left>_	:decease width		_/_:right				_t_:transparency
-^ ^_<right>_:increase width		_-_:below				_s_:scrollbar
-^ ^_<down>_	:decrease height	^ ^					_f_:fullscreen
-^ ^_<up>_	:increase height		^ ^				_m_:maximized
-^ ^
-"
-  ("/" mk/split-window-right)
-  ("-" mk/split-window-below)
-  ("<left>" evil-window-decrease-width)
-  ("<right>" evil-window-increase-width)
-  ("<down>" evil-window-decrease-height)
-  ("<up>" evil-window-increase-height)
-  ("f" toggle-frame-fullscreen)
-  ("m" toggle-frame-maximized)
-  ("t" mk/toggle-transparency)
-  ("s" scroll-bar-mode)
-  ("x" delete-window "delete window")
-  ("q" nil "exit" :exit t))
-
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
+
+(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1 -0.05))
+
+(pretty-hydra-define hydra-windows-setup
+  (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
+  ("Window size"
+   (("<left> " evil-window-decrease-width "⇢⇠ decrease" :toggle nil)
+	("<right>" evil-window-increase-width "⇠⇢ increase" :toggle nil)
+	("<up>   " evil-window-decrease-height "decrease height" :toggle nil)
+	("<down> " evil-window-decrease-height "decrease height" :toggle nil))
+   "Window splitting"
+   (("/" mk/split-window-right "right" :toggle nil)
+	("-" mk/split-window-below "below" :toggle nil))
+   "Extras"
+   (("x" delete-window "delete window" :toggle nil)
+	("q" hydra-keyboard-quit "close menu" :toggle nil))
+   "Toggles"
+   (("t" mk/toggle-transparency "transparency" :toggle t)
+	("s" scroll-bar-mode "scrollbar" :toggle t)
+	("f" toggle-frame-fullscreen "fullscreen" :toggle t)
+	("m" toggle-frame-maximized "maximized" :toggle t))))
 
 (defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 1 -0.05))
 
