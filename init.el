@@ -7,6 +7,9 @@
 
 (setq ad-redefinition-action 'accept
 	  create-lockfiles nil
+	  company-mode 1
+	  word-wrap nil
+	  global-hl-line-mode 1
       display-time-24hr-format t
       display-time-default-load-average nil
       visible-bell nil
@@ -17,20 +20,21 @@
 	  fast-but-imprecise-scrolling t
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
-(display-battery-mode t)	; Show battery
-(display-time-mode t)		; Show time
-(recentf-mode t)			; Recent file mode
-(scroll-bar-mode -1)		; Dont use scrollbars
-(set-fringe-mode 4)			; Give us some space
-(tooltip-mode -1)			; Disable tooltip
-(show-paren-mode t)			; Enable show paren matching mode
-(delete-selection-mode t)
+(display-battery-mode t)	; Show battery.
+(display-time-mode t)		; Show time.
+(recentf-mode t)			; Recent file mode.
+(scroll-bar-mode -1)		; Dont use scrollbars.
+(set-fringe-mode 4)			; Give us some space.
+(tooltip-mode -1)			; Disable tooltip.
+(show-paren-mode t)			; Enable show paren matching mode.
+(delete-selection-mode t)	; Use a more sane delete mode than evil.
 
-(setq-default display-line-numbers-width 4
-			  c-basic-offset 4
-			  tab-width 4
-			  indent-tabs-mode t
-              indent-line-function 'insert-tab)
+(setq-default display-line-numbers-width 4		;; Set so we can display thousands of lines
+			  c-basic-offset 4					;; Set tab indent for c/c++ to 4 tabs
+			  tab-width 4						;; Use four tabs
+			  truncate-lines 1					;; Truncate lines
+			  indent-tabs-mode t				;; Indent tabs
+              indent-line-function 'insert-tab) ;; Use function to insert tabs
 
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight code
@@ -72,7 +76,11 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
-(setq gc-cons-threshold (* 20 1024 1024))
+(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
+(run-with-idle-timer 2 t (lambda () (garbage-collect)))
+
+(use-package gcmh
+  :init (gcmh-mode 1))
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -228,19 +236,6 @@
   (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 147)
   (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 137))
 
-;; (use-package dimmer
-;;   :hook (after-init . dimmer-mode)
-;;   :custom (dimmer-adjustment-mode :both)
-;;   :config
-;;   (setq dimmer-fraction 0.25)
-;;   (dimmer-configure-which-key)
-;; 	(dimmer-configure-hydra)
-;;   (dimmer-configure-company-box)
-;;   (dimmer-configure-gnus)
-;;   (dimmer-configure-magit)
-;;   (dimmer-configure-org)
-;;   (dimmer-configure-posframe))
-
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -277,26 +272,53 @@
   :hook (ivy-mode . ivy-rich-mode))
 
 ;; company --------------------------------------------
-(use-package company
-  :after lsp-mode
-  :hook (prog-mode . company-mode)
-  :bind (:map company-active-map
-              ("<tab>" . company-complete-selection))
-  (:map lsp-mode-map
-        ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
-
 (use-package company-box
+  :diminish company-box-mode
   :hook (company-mode . company-box-mode)
+  :init
+  (setq company-box-icons-alist 'company-box-icons-all-the-icons)
   :config
-  (setq company-box-icons-alist #'(company-box-icons-all-the-icons)))
+  (require 'all-the-icons)
+  (setf (alist-get 'min-height company-box-frame-parameters) 6)
+  (setq company-box-icons-alist 'company-box-icons-all-the-icons
+        company-box-backends-colors nil
+
+        ;; These are the Doom Emacs defaults
+        company-box-icons-all-the-icons
+        `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
+          (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
+          (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+          (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+          (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+          (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
+          (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
+          (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+          (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
+          (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
+          (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
+          (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
+          (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
+          (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
+          (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
+          (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
+          (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
+          (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
+          (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
+          (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
+          (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
+          (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
+          (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
+          (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
+          (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
+          (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
+          (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))))
+
+  ;; Add a space after the icon
+  (dolist (elt company-box-icons-all-the-icons)
+    (setcdr elt (concat (cdr elt) " "))))
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
-  :init
-  (setq lsp-keymap-prefix "m-l")
   :config
   (lsp-enable-which-key-integration t))
 
@@ -312,7 +334,7 @@
   :hook (treemacs-mode-hook))
 
 (use-package flycheck
-  :hook ((prog-mode . flycheck-mode))
+  :hook (prog-mode . flycheck-mode)
   :config
   (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
   (setq flycheck-display-errors-delay 0.1))
@@ -406,6 +428,17 @@
 (use-package pretty-hydra
   :after hydra)
 
+(use-package hydra-posframe
+  :load-path "~/.emacs.d/localpackages/hydra-posframe"
+  :config
+  (hydra-posframe-mode 1)
+  :custom
+  (hydra-posframe-parameters
+   '((left-fringe . 10) (right-fringe . 10) (top-fringe . 2) (bottom-fringe . 2) (height . 12) (width . 105) (min-height . 12) (max-height . 30) (top . 25)))
+  :custom-face
+  (hydra-posframe-border-face ((t (:background "#ffffff"))))
+  (hydra-posframe-face ((t (:background-color "black")))))
+
 ;; Winum - select windows easy
 (use-package winum
   :after doom-modeline
@@ -421,8 +454,9 @@
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package smex
-  :after ivy)
+(use-package amx
+  :after ivy
+  :config (amx-mode 1))
 
 (use-package vterm
   :commands vterm)
@@ -667,11 +701,6 @@
 (use-package ivy-prescient
   :hook (ivy-mode . ivy-prescient-mode))
 
-(setq company-mode t)
-(setq word-wrap nil)
-(setq-default truncate-lines 1)
-(global-hl-line-mode 1)
-
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   (interactive)
@@ -728,7 +757,7 @@
 
 (defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1 -0.05))
 (pretty-hydra-define hydra-windows-setup
-  (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
+  (:color blue :quit-key "q" :title mk-windows-appearance--title)
   ("Sizing"
    (("<left> " evil-window-decrease-width "⇢⇠ decrease" :toggle nil)
 	("<right>" evil-window-increase-width "⇠⇢ increase" :toggle nil)
@@ -740,6 +769,9 @@
    "Toggles"
    (("t" mk/toggle-transparency "transparency" :toggle t)
 	("s" scroll-bar-mode "scrollbar" :toggle t))
+   "Rotate"
+   (("c" evil-window-rotate-downwards "clockwise")
+	("w" evil-window-rotate-upwards "counter clockwise"))
    "Frame"
    (("f" toggle-frame-fullscreen "fullscreen")
 	("m" toggle-frame-maximized "maximized"))
@@ -772,9 +804,6 @@
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
-
-;; Reset memory for Garbage collection
-(setq gc-cons-threshold (* 5 1024 1024))
 
 (provide 'init)
 
