@@ -133,7 +133,7 @@
 								  (projects . 5)
 								  (agenda)
 								  (recents . 3)
-								  )))) 
+								  ))))
 
 ;; Which key
 (use-package which-key
@@ -332,7 +332,7 @@
 
   (use-package ns-auto-titlebar
 	:config (ns-auto-titlebar-mode))
-  
+
   (use-package exec-path-from-shell
 	:commands vterm
 	:config (exec-path-from-shell-initialize))
@@ -438,17 +438,9 @@
 	:non-normal-prefix "M-SPC")
 
   (mk/leader-keys
-	"T" '(:ignore t :which-key "toggle")
-	"Tt" '(counsel-load-theme :which-key "choose theme")
-	"Ts" '(hydra-text-scale/body :which-key "scale text")
-	;; Screen
-	"Tf" '(:ignore t :which-key "screen/frame")
-	"Tff" '(toggle-frame-fullscreen :which-key "fullscreen")
-	"Tfm" '(toggle-frame-maximized :which-key "maximized"))
-
-  (mk/leader-keys
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
 	"SPC" '(counsel-M-x :which-key "M-x")
+	"s" '(swiper :which-key "swiper")
 	"0" '(treemacs-select-window :which-key "treemacs")
 	"1" '(winum-select-window-1 :which-key "window 1")
 	"2" '(winum-select-window-2 :which-key "window 2")
@@ -460,6 +452,15 @@
 	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
 	"!" 'shell-command
 	":" 'eval-expression)
+
+  (mk/leader-keys
+	"T" '(:ignore t :which-key "toggle")
+	"Tt" '(counsel-load-theme :which-key "choose theme")
+	"Ts" '(hydra-text-scale/body :which-key "scale text")
+	;; Screen
+	"Tf" '(:ignore t :which-key "screen/frame")
+	"Tff" '(toggle-frame-fullscreen :which-key "fullscreen")
+	"Tfm" '(toggle-frame-maximized :which-key "maximized"))
 
   (mk/leader-keys
 	"a" '(:ignore t :which-key "agenda")
@@ -533,18 +534,14 @@
     "hp" '(describe-package :which-key "describe package"))
 
   (mk/leader-keys
-    "q" '(:ignore t :which-key "quit")
-    "qq" 'save-buffers-kill-terminal
-    "qr" 'restart-emacs)
-
-  (mk/leader-keys
     "t" '(:ignore t :which-key "text")
     "ts" '(sort-lines :which-key "sort lines")
-    "tw" '(:ignore t :which-key "whitespace")
-    "twx" '(delete-trailing-whitespace :which-key "delete trailing whitespace")
-    "Td" '(tab-detach :which-key "detach")
-    "Tx" '(tab-close :which-key "close")
-	"Tk" '(tab-close-other :which-key "close other"))
+    "tx" '(delete-trailing-whitespace :which-key "delete trailing whitespace")
+    "tw" '(mark-word :which-key "select word")
+    "te" '(mark-sexp :which-key "select expression")
+    "tf" '(mark-defun :which-key "select function")
+    "tb" '(mark-whole-buffer :which-key "select whole buffer")
+    "tp" '(mark-page :which-key "select page"))
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "windows")
@@ -579,21 +576,18 @@
      "gh" '(hanoi :which-key "tower of hanoi"))
 
    (mk/leader-keys
-     "s" '(:ignore t :which-key "selection")
-     "sw" '(mark-word :which-key "word")
-     "se" '(mark-sexp :which-key "expression")
-     "sf" '(mark-defun :which-key "function")
-     "sb" '(mark-whole-buffer :which-key "whole buffer")
-     "sp" '(mark-page :which-key "page"))
-
-   (mk/leader-keys
      "T" '(:ignore t :which-key "tabs")
      "Tn" '(tab-new :which-key "new")
      "Tl" '(tab-list :which-key "list")
      "Tg" '(tab-close-group :which-key "close group")
      "Td" '(tab-detach :which-key "detach")
      "Tx" '(tab-close :which-key "close")
-	 "Tk" '(tab-close-other :which-key "close other")))
+	 "Tk" '(tab-close-other :which-key "close other"))
+
+  (mk/leader-keys
+    "q" '(:ignore t :which-key "quit")
+    "qq" '(save-buffers-kill-terminal :which-key "quit emacs")
+    "qr" '(restart-emacs :which-key "restart emacs")))
 
 ;; Forge - Git PR, Issues, etc
 ;;(use-package forge)
