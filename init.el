@@ -405,7 +405,11 @@
 ;; posframe
 (use-package posframe)
 ;; hydra
-(use-package hydra)
+(use-package hydra
+  :defer t)
+
+(use-package pretty-hydra
+  :after hydra)
 
 ;; Winum - select windows easy
 (use-package winum
@@ -673,7 +677,6 @@
 (setq-default truncate-lines 1)
 (global-hl-line-mode 1)
 
-
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   (interactive)
@@ -743,16 +746,39 @@
   ("x" delete-window "delete window")
   ("q" nil "exit" :exit t))
 
+(defun with-faicon (icon str &optional height v-adjust)
+  "Displays an icon from Font Awesome icon."
+  (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
+
+(defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 1 -0.05))
+
+(pretty-hydra-define mk-toggles
+  (:color amaranth :quit-key "q" :title mk-toggles--title)
+  ("Basic"
+   (("n" linum-mode "line number" :toggle t)
+    ("w" whitespace-mode "whitespace" :toggle t)
+    ("W" whitespace-cleanup-mode "whitespace cleanup" :toggle t)
+    ("r" rainbow-mode "rainbow" :toggle t)
+    ("L" page-break-lines-mode "page break lines" :toggle t))
+   "Highlight"
+   (("s" symbol-overlay-mode "symbol" :toggle t)
+    ("l" hl-line-mode "line" :toggle t)
+    ("x" highlight-sexp-mode "sexp" :toggle t)
+    ("t" hl-todo-mode "todo" :toggle t))
+   "Coding"
+   (("p" smartparens-mode "smartparens" :toggle t)
+    ("P" smartparens-strict-mode "smartparens strict" :toggle t)
+    ("S" show-smartparens-mode "show smartparens" :toggle t)
+    ("f" flycheck-mode "flycheck" :toggle t))
+   "Emacs"
+   (("D" toggle-debug-on-error "debug on error" :toggle (default-value 'debug-on-error))
+    ("X" toggle-debug-on-quit "debug on quit" :toggle (default-value 'debug-on-quit)))))
+
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
 
 ;; Reset memory for Garbage collection
 (setq gc-cons-threshold (* 5 1024 1024))
-
-;; (custom-enabled-themes (quote (catppuccin)))
-;;(load-theme 'catppuccin t)
-
-
 
 (provide 'init)
 
