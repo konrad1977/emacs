@@ -228,18 +228,18 @@
   (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 147)
   (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 137))
 
-(use-package dimmer
-  :hook (after-init . dimmer-mode)
-  :custom (dimmer-adjustment-mode :both)
-  :config
-  (setq dimmer-fraction 0.25)
-  (dimmer-configure-which-key)
-	(dimmer-configure-hydra)
-  (dimmer-configure-company-box)
-  (dimmer-configure-gnus)
-  (dimmer-configure-magit)
-  (dimmer-configure-org)
-  (dimmer-configure-posframe))
+;; (use-package dimmer
+;;   :hook (after-init . dimmer-mode)
+;;   :custom (dimmer-adjustment-mode :both)
+;;   :config
+;;   (setq dimmer-fraction 0.25)
+;;   (dimmer-configure-which-key)
+;; 	(dimmer-configure-hydra)
+;;   (dimmer-configure-company-box)
+;;   (dimmer-configure-gnus)
+;;   (dimmer-configure-magit)
+;;   (dimmer-configure-org)
+;;   (dimmer-configure-posframe))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -690,6 +690,7 @@
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
+  "Programming mode"
   (setq electric-pair-mode t			;; Auto insert pairs {} () [] etc
 		highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
@@ -697,7 +698,7 @@
 		semantic-mode t					;; Get a little extra help for autocompletion
 		show-trailing-whitespace t		;; Show trailing whitespaces
 		column-number-mode t			;; Show current line number highlighted
-		display-line-numbers t))			;; Show line numbers					;; Highlight current line in progmode
+		display-line-numbers t))		;; Show line numbers
 
 (defun mk/setupOrgMode ()
   (setq word-wrap t))
@@ -712,38 +713,41 @@
   (split-window-right)
   (other-window 1))
 
-(defhydra hydra-text-scale (:timeout 4)
-  ("j" text-scale-increase "in")
-  ("k" text-scale-decrease "out")
-  ("f" nil "finished" :exit t))
-
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
-(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1 -0.05))
+(defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 1 -0.05))
+(pretty-hydra-define hydra-text-scale
+  (:color pink :quit-key "q" :title mk-text-scale-appearance--title)
+  ("Size"
+   (
+	("+" text-scale-increase "increase size")
+	("-" text-scale-decrease "decrease size")
+	("q" hydra-keyboard-quit "close menu"))))
 
+(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1 -0.05))
 (pretty-hydra-define hydra-windows-setup
   (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
-  ("Window size"
+  ("Sizing"
    (("<left> " evil-window-decrease-width "⇢⇠ decrease" :toggle nil)
 	("<right>" evil-window-increase-width "⇠⇢ increase" :toggle nil)
 	("<up>   " evil-window-decrease-height "decrease height" :toggle nil)
-	("<down> " evil-window-decrease-height "decrease height" :toggle nil))
-   "Window splitting"
-   (("/" mk/split-window-right "right" :toggle nil)
-	("-" mk/split-window-below "below" :toggle nil))
-   "Extras"
-   (("x" delete-window "delete window" :toggle nil)
-	("q" hydra-keyboard-quit "close menu" :toggle nil))
+	("<down> " evil-window-increase-height "incease height" :toggle nil))
+   "Splitting"
+   (("/" mk/split-window-right "right")
+	("-" mk/split-window-below "below"))
    "Toggles"
    (("t" mk/toggle-transparency "transparency" :toggle t)
-	("s" scroll-bar-mode "scrollbar" :toggle t)
-	("f" toggle-frame-fullscreen "fullscreen" :toggle t)
-	("m" toggle-frame-maximized "maximized" :toggle t))))
+	("s" scroll-bar-mode "scrollbar" :toggle t))
+   "Frame"
+   (("f" toggle-frame-fullscreen "fullscreen")
+	("m" toggle-frame-maximized "maximized"))
+   "Extras"
+   (("x" delete-window "delete window")
+	("q" hydra-keyboard-quit "close menu"))))
 
 (defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 1 -0.05))
-
 (pretty-hydra-define mk-toggles
   (:color amaranth :quit-key "q" :title mk-toggles--title)
   ("Basic"
