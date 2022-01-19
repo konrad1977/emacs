@@ -38,6 +38,13 @@
 (desktop-save-mode 1)			;; Save desktop
 (savehist-mode 1)				;; Save autocompletions
 
+  (let* ((path (expand-file-name "localpackages" user-emacs-directory))
+         (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
+    (if (file-accessible-directory-p path)
+        (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
+      (make-directory path :parents)))
+
+(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
 ;; Setup fonts
@@ -96,30 +103,23 @@
 (use-package dired-single
   :after dired)
 
-;; (use-package tree-sitter
-;;     :defer t)
-
-;; (use-package tree-sitter-langs
-;;     :after tree-sitter)
-
-;; (add-hook 'swift-mode-hook #'tree-sitter-mode)
-;; (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
-
-
 ;;  theming
 (add-hook 'minibuffer-setup-hook
           (lambda ()
             (make-local-variable 'face-remapping-alist)
             (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
 
-(use-package autothemer)
+(use-package autothemer
+  :ensure t)
+(setq custom-safe-themes t)
 (load-theme 'catppuccin t)
+;(add-hook 'after-init-hook (lambda () (load-theme 'catppuccin t)))
 
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
   :init (progn
-		  (setq dashboard-startup-banner (concat user-emacs-directory "dashimage/catppuccin.png"))
+		  (setq dashboard-startup-banner (concat user-emacs-directory "themes/catppuccin.png"))
 		  (setq dashboard-path-style 'truncate-beginning)
 		  (setq dashboard-banner-logo-title "Mikaels dashboard!"
 				dashboard-set-file-icons t
@@ -281,14 +281,6 @@
 (use-package ivy-rich
   :hook (ivy-mode . ivy-rich-mode))
 
-;; (use-package all-the-icons-ivy
-;;   :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
-
-;; (use-package all-the-icons-ivy-rich
-;;   :init (all-the-icons-ivy-rich-mode 1)
-;;   :config
-;;   (setq all-the-icons-ivy-rich-icon-size 1.0))
-
 ;; company --------------------------------------------
 (use-package company
   :after lsp-mode
@@ -410,9 +402,10 @@
 (use-package restart-emacs
   :commands restart-emacs)
 
-; Hydra
-(use-package hydra
-  :defer t)
+;; posframe
+(use-package posframe)
+;; hydra
+(use-package hydra)
 
 ;; Winum - select windows easy
 (use-package winum
@@ -761,6 +754,11 @@
 
 ;; Reset memory for Garbage collection
 (setq gc-cons-threshold (* 5 1024 1024))
+
+;; (custom-enabled-themes (quote (catppuccin)))
+;;(load-theme 'catppuccin t)
+
+
 
 (provide 'init)
 

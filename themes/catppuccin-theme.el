@@ -51,7 +51,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (glyphless-char                       (:foreground gray))
   (header-line							(:background black))
   (highlight                            (:background green :foreground black))
-  (hl-line                              (:background black-3))
+  (hl-line                              (:background black-1))
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background black-2 :foreground black-2))
   (line-number                          (:foreground black-4 :background nil))
