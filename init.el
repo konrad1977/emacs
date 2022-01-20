@@ -345,6 +345,9 @@
   :config
   (setq nyan-animate-nyancat t))
 
+(use-package yasnippet
+  :defer t)
+
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
