@@ -710,9 +710,10 @@
   :hook (ivy-mode . ivy-prescient-mode))
 
 (use-package dumb-jump
-  :commands (dumb-jump-go)
   :custom
-  (setq dumb-jump-selector 'ivy))
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+
+(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
@@ -759,58 +760,60 @@
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
-(defvar mk-dumb-jump--title (with-faicon "free-code-camp" "Code Reference" 1 -0.05))
+(defvar mk-dumb-jump--title (with-faicon "search" "Code Reference" 2 -0.05))
 (pretty-hydra-define dumb-jump-hydra
   (:color pink :quit-key "q" :title mk-dumb-jump--title)
-  ("Go to"
+  ("Find reference in project"
    (
-    ("f" dumb-jump-go "Go" :exit t)
-    ("o" dumb-jump-go-other-window "Other window")
+    ("f" xref-find-definitions "Find definitions")
+    ("o" xref-find-definitions-other-window "Other window")
     ("e" dumb-jump-go-prefer-external "Go external")
     ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
     ("i" dumb-jump-go-prompt "Prompt")
+    ("r" xref-find-references "Find references" :exit t)
     ("l" dumb-jump-quick-look "Quick look")
-    ("b" dumb-jump-back "Back"))))
+	("<left>" xref-pop-marker-stack "Back")
+    ("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 1 -0.05))
+(defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 2 -0.05))
 (pretty-hydra-define hydra-text-scale
   (:color pink :quit-key "q" :title mk-text-scale-appearance--title)
   ("Size"
    (
-	("+" text-scale-increase "increase size")
-	("-" text-scale-decrease "decrease size")
-	("q" hydra-keyboard-quit "close menu"))))
+	("+" text-scale-increase "Increase size")
+	("-" text-scale-decrease "Decrease size")
+	("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1 -0.05))
+(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 2 -0.05))
 (pretty-hydra-define hydra-windows-setup
   (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
   ("Sizing"
-   (("<left> " evil-window-decrease-width "⇢⇠ decrease")
-	("<right>" evil-window-increase-width "⇠⇢ increase")
-	("<up>   " evil-window-decrease-height "decrease height")
-	("<down> " evil-window-increase-height "incease height"))
+   (("<left> " evil-window-decrease-width "⇢⇠ Decrease")
+	("<right>" evil-window-increase-width "⇠⇢ Increase")
+	("<up>   " evil-window-decrease-height "Decrease height")
+	("<down> " evil-window-increase-height "Incease height"))
 
    "Splitting"
-   (("/" mk/split-window-right "right")
-	("-" mk/split-window-below "below"))
+   (("/" mk/split-window-right "Right")
+	("-" mk/split-window-below "Below"))
 
    "Toggles"
-   (("t" mk/toggle-transparency "transparency")
-   ("s" scroll-bar-mode "scrollbar"))
+   (("t" mk/toggle-transparency "Transparency")
+   ("s" scroll-bar-mode "Scrollbar"))
 
    "Rotate"
-   (("c" evil-window-rotate-downwards "clockwise")
-	("w" evil-window-rotate-upwards "counter clockwise"))
+   (("c" evil-window-rotate-downwards "Clockwise")
+	("w" evil-window-rotate-upwards "Counter clockwise"))
 
    "Frame"
-   (("f" toggle-frame-fullscreen "fullscreen")
-	("m" toggle-frame-maximized "maximized"))
+   (("f" toggle-frame-fullscreen "Fullscreen")
+	("m" toggle-frame-maximized "Maximized"))
 
    "Extras"
-   (("x" delete-window "delete window")
-	("q" hydra-keyboard-quit "close menu"))))
+   (("x" delete-window "Delete window")
+	("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 1 -0.05))
+(defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 2 -0.05))
 (pretty-hydra-define mk-toggles
   (:color amaranth :quit-key "q" :title mk-toggles--title)
   ("Basic"
