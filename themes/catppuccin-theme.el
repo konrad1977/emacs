@@ -322,6 +322,10 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (term-color-magenta (:background mauve :foreground mauve))
   (term-color-bright-magenta (:background mauve :foreground mauve))
 
+  (popup-face (:background black :foreground rosewater))
+  (popup-menu-face (:background black :foreground rosewater))
+  (popup-menu-mouse-face (:background blue :foreground rosewater))
+  (popup-menu-selection-face (:background flamingo :foreground black))
 ))
 
 (provide-theme 'catppuccin)

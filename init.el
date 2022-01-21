@@ -710,6 +710,7 @@
   :hook (ivy-mode . ivy-prescient-mode))
 
 (use-package dumb-jump
+  :config (setq dumb-jump-selector 'ivy)
   :custom
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
 
