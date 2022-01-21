@@ -18,6 +18,7 @@
 	  idle-update-delay 1.0			;; Speed things up by not updating so often
 	  blink-cursor-interval 0.6		;; Little slower cursor blinking . default is 0.5
 	  fast-but-imprecise-scrolling t
+	  read-process-output-max (* 8 1024 1024)
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
 (display-battery-mode t)	; Show battery.
@@ -344,6 +345,9 @@
   :config
   (setq nyan-animate-nyancat t))
 
+(use-package yasnippet
+  :defer t)
+
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
@@ -360,6 +364,7 @@
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
 
+  (use-package flycheck-swift3)
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
@@ -370,7 +375,10 @@
 		mac-command-modifier 'meta
 		mac-option-modifier 'none
 		dired-use-ls-dired nil
-		frame-title-format ""))
+		frame-title-format "")
+
+  (with-eval-after-load 'flycheck
+	(add-hook 'flycheck-mode-hook #'flycheck-swift3-setup)))
 
 ; helpful
 (use-package helpful
@@ -403,7 +411,10 @@
        projectile-root-top-down
        projectile-root-bottom-up
        projectile-root-top-down-recurring))
-   (setq projectile-completion-system 'ivy)
+	(setq projectile-completion-system 'ivy
+		  projectile-enable-caching t
+		  projectile-sort-order 'recentf
+		  projectile-indexing-method 'hybrid)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -420,7 +431,9 @@
   :commands restart-emacs)
 
 ;; posframe
-(use-package posframe)
+(use-package posframe
+  :defer t)
+
 ;; hydra
 (use-package hydra
   :defer t)
@@ -428,18 +441,15 @@
 (use-package pretty-hydra
   :after hydra)
 
-(use-package hydra-posframe
-  :load-path "~/.emacs.d/localpackages/hydra-posframe"
-  :config
-  (hydra-posframe-mode 1)
-  :custom
-  (hydra-posframe-parameters
-   '((left-fringe . 10) (right-fringe . 10) (top-fringe . 2) (bottom-fringe . 2) (height . 12) (width . 105) (min-height . 12) (max-height . 30) (top . 25)))
-  :custom-face
-  (hydra-posframe-border-face ((t (:background "#ffffff"))))
-  (hydra-posframe-face ((t (:background-color "black")))))
+;; (use-package hydra-posframe
+;;   :load-path "~/.emacs.d/localpackages/hydra-posframe"
+;;   :config
+;;   (hydra-posframe-mode 1)
+;;   :custom
+;;   (hydra-posframe-parameters
+;;    '((left-fringe . 10) (right-fringe . 10) (top-fringe . 2) (bottom-fringe . 2) (height . 12) (width . 105) (min-height . 12) (max-height . 30) (top . 25))))
 
-;; Winum - select windows easy
+;; ;; Winum - select windows easy
 (use-package winum
   :after doom-modeline
   :init
@@ -474,7 +484,7 @@
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
 	"SPC" '(counsel-M-x :which-key "M-x")
 	"s" '(swiper :which-key "swiper")
-	"0" '(treemacs-select-window :which-key "treemacs")
+	"0" '(treemacs :which-key "treemacs")
 	"1" '(winum-select-window-1 :which-key "window 1")
 	"2" '(winum-select-window-2 :which-key "window 2")
 	"3" '(winum-select-window-3 :which-key "window 3")
@@ -536,7 +546,7 @@
     "cu" '(lsp-ui-imenu :which-key "lsp-ui-menu")
     "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
     "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
-    "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
+    "cf" '(dumb-jump-hydra/body :which-key "go to definition"))
 
   (mk/leader-keys
 	"e" '(:ignore t :which-key "eval")
@@ -622,8 +632,6 @@
     "qq" '(save-buffers-kill-terminal :which-key "quit emacs")
     "qr" '(restart-emacs :which-key "restart emacs")))
 
-;; Forge - Git PR, Issues, etc
-;;(use-package forge)
 
 (defun mk/org-mode-setup()
   (org-indent-mode 1)
@@ -701,6 +709,11 @@
 (use-package ivy-prescient
   :hook (ivy-mode . ivy-prescient-mode))
 
+(use-package dumb-jump
+  :commands (dumb-jump-go)
+  :custom
+  (setq dumb-jump-selector 'ivy))
+
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   (interactive)
@@ -746,6 +759,19 @@
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
+(defvar mk-dumb-jump--title (with-faicon "free-code-camp" "Code Reference" 1 -0.05))
+(pretty-hydra-define dumb-jump-hydra
+  (:color pink :quit-key "q" :title mk-dumb-jump--title)
+  ("Go to"
+   (
+    ("f" dumb-jump-go "Go" :exit t)
+    ("o" dumb-jump-go-other-window "Other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back"))))
+
 (defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 1 -0.05))
 (pretty-hydra-define hydra-text-scale
   (:color pink :quit-key "q" :title mk-text-scale-appearance--title)
@@ -757,24 +783,29 @@
 
 (defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1 -0.05))
 (pretty-hydra-define hydra-windows-setup
-  (:color blue :quit-key "q" :title mk-windows-appearance--title)
+  (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
   ("Sizing"
-   (("<left> " evil-window-decrease-width "⇢⇠ decrease" :toggle nil)
-	("<right>" evil-window-increase-width "⇠⇢ increase" :toggle nil)
-	("<up>   " evil-window-decrease-height "decrease height" :toggle nil)
-	("<down> " evil-window-increase-height "incease height" :toggle nil))
+   (("<left> " evil-window-decrease-width "⇢⇠ decrease")
+	("<right>" evil-window-increase-width "⇠⇢ increase")
+	("<up>   " evil-window-decrease-height "decrease height")
+	("<down> " evil-window-increase-height "incease height"))
+
    "Splitting"
    (("/" mk/split-window-right "right")
 	("-" mk/split-window-below "below"))
+
    "Toggles"
-   (("t" mk/toggle-transparency "transparency" :toggle t)
-	("s" scroll-bar-mode "scrollbar" :toggle t))
+   (("t" mk/toggle-transparency "transparency")
+   ("s" scroll-bar-mode "scrollbar"))
+
    "Rotate"
    (("c" evil-window-rotate-downwards "clockwise")
 	("w" evil-window-rotate-upwards "counter clockwise"))
+
    "Frame"
    (("f" toggle-frame-fullscreen "fullscreen")
 	("m" toggle-frame-maximized "maximized"))
+
    "Extras"
    (("x" delete-window "delete window")
 	("q" hydra-keyboard-quit "close menu"))))
