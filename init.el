@@ -411,7 +411,10 @@
        projectile-root-top-down
        projectile-root-bottom-up
        projectile-root-top-down-recurring))
-   (setq projectile-completion-system 'ivy)
+	(setq projectile-completion-system 'ivy
+		  projectile-enable-caching t
+		  projectile-sort-order 'recentf
+		  projectile-indexing-method 'hybrid)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -543,7 +546,7 @@
     "cu" '(lsp-ui-imenu :which-key "lsp-ui-menu")
     "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
     "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
-    "cf" '(lsp-ivy-global-workspace-symbol :which-key "find symbol in workspace"))
+    "cf" '(dumb-jump-hydra/body :which-key "go to definition"))
 
   (mk/leader-keys
 	"e" '(:ignore t :which-key "eval")
@@ -706,6 +709,11 @@
 (use-package ivy-prescient
   :hook (ivy-mode . ivy-prescient-mode))
 
+(use-package dumb-jump
+  :commands (dumb-jump-go)
+  :custom
+  (setq dumb-jump-selector 'ivy))
+
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   (interactive)
@@ -750,6 +758,19 @@
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
+
+(defvar mk-dumb-jump--title (with-faicon "free-code-camp" "Code Reference" 1 -0.05))
+(pretty-hydra-define dumb-jump-hydra
+  (:color pink :quit-key "q" :title mk-dumb-jump--title)
+  ("Go to"
+   (
+    ("f" dumb-jump-go "Go" :exit t)
+    ("o" dumb-jump-go-other-window "Other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back"))))
 
 (defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 1 -0.05))
 (pretty-hydra-define hydra-text-scale
