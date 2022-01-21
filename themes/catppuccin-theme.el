@@ -154,6 +154,10 @@ catppuccin "A theme based on catppuccin amazing color scheme"
 
   ;; org-mode
   (org-done                             (:foreground gray-1))
+  (org-code                             (:background black))
+  (org-block                            (:background black))
+  (org-block-begin-line                 (:background black :foreground gray-1))
+  (org-block-end-line	                (:background black :foreground gray-1))
   (org-headline-done                    (:foreground gray-1 :strike-through t))
   (org-todo                             (:foreground green :bold t))
   (org-headline-todo                    (:foreground black-2))
