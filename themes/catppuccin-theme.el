@@ -50,7 +50,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (glyph-face                           (:background red))
   (glyphless-char                       (:foreground gray))
   (header-line							(:background black))
-  (highlight                            (:background green :foreground black))
+  (highlight                            (:background black-4 :foreground lavender))
   (hl-line                              (:background black-1))
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background black-2 :foreground black-2))
@@ -324,8 +324,10 @@ catppuccin "A theme based on catppuccin amazing color scheme"
 
   (popup-face (:background black :foreground rosewater))
   (popup-menu-face (:background black :foreground rosewater))
-  (popup-menu-mouse-face (:background blue :foreground rosewater))
+  (popup-menu-mouse-face (:background blue :foreground black :bolt t))
   (popup-menu-selection-face (:background flamingo :foreground black))
+  (popup-isearch-match (:background mauve :foreground black :bold t))
+  
 ))
 
 (provide-theme 'catppuccin)

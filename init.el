@@ -21,6 +21,9 @@
 	  read-process-output-max (* 8 1024 1024)
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
+(setenv "PATH" (concat (getenv "PATH") "/usr/local/bin"))
+(setq exec-path (append exec-path '("/usr/local/bin")))
+
 (display-battery-mode t)	; Show battery.
 (display-time-mode t)		; Show time.
 (recentf-mode t)			; Recent file mode.
@@ -252,7 +255,8 @@
   (setq ivy-height 12
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
-		ivy-use-selectable-prompt t)
+		ivy-use-selectable-prompt t
+		ivy-display-style 'fancy)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
   (define-key ivy-mode-map       (kbd "<escape>") nil)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
@@ -380,6 +384,9 @@
   (with-eval-after-load 'flycheck
 	(add-hook 'flycheck-mode-hook #'flycheck-swift3-setup)))
 
+(use-package ag
+  :defer t)
+
 ; helpful
 (use-package helpful
   :after which-key)
@@ -414,7 +421,7 @@
 	(setq projectile-completion-system 'ivy
 		  projectile-enable-caching t
 		  projectile-sort-order 'recentf
-		  projectile-indexing-method 'hybrid)
+		  projectile-indexing-method 'alien)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -481,156 +488,156 @@
 	:non-normal-prefix "M-SPC")
 
   (mk/leader-keys
-	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "toggle buffers")
+	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
 	"SPC" '(counsel-M-x :which-key "M-x")
-	"s" '(swiper :which-key "swiper")
-	"0" '(treemacs :which-key "treemacs")
-	"1" '(winum-select-window-1 :which-key "window 1")
-	"2" '(winum-select-window-2 :which-key "window 2")
-	"3" '(winum-select-window-3 :which-key "window 3")
-	"4" '(winum-select-window-4 :which-key "window 4")
-	"5" '(winum-select-window-5 :which-key "window 5")
-	"6" '(winum-select-window-6 :which-key "window 6")
+	"s" '(swiper :which-key "Swiper")
+	"0" '(treemacs :which-key "Treemacs")
+	"1" '(winum-select-window-1 :which-key "Window 1")
+	"2" '(winum-select-window-2 :which-key "Window 2")
+	"3" '(winum-select-window-3 :which-key "Window 3")
+	"4" '(winum-select-window-4 :which-key "Window 4")
+	"5" '(winum-select-window-5 :which-key "Window 5")
+	"6" '(winum-select-window-6 :which-key "Window 6")
 	"P" 'package-install
-	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "term")
+	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "Term")
 	"!" 'shell-command
 	":" 'eval-expression)
 
   (mk/leader-keys
-	"T" '(:ignore t :which-key "toggle")
-	"Tt" '(counsel-load-theme :which-key "choose theme")
-	"Ts" '(hydra-text-scale/body :which-key "scale text")
+	"T" '(:ignore t :which-key "Toggles")
+	"Tt" '(counsel-load-theme :which-key "Choose theme")
+	"Ts" '(hydra-text-scale/body :which-key "Scale text")
 	;; Screen
-	"Tf" '(:ignore t :which-key "screen/frame")
-	"Tff" '(toggle-frame-fullscreen :which-key "fullscreen")
-	"Tfm" '(toggle-frame-maximized :which-key "maximized"))
+	"Tf" '(:ignore t :which-key "Screen/frame")
+	"Tff" '(toggle-frame-fullscreen :which-key "Fullscreen")
+	"Tfm" '(toggle-frame-maximized :which-key "Maximized"))
 
   (mk/leader-keys
-	"a" '(:ignore t :which-key "agenda")
-   	"aa" '(org-agenda :which-key "show agenda")
-   	"as" '(org-agenda-schedule :which-key "show schedule")
-	"al" '(org-agenda-list :which-key "show agenda list")
-	"aF" '(org-agenda-file-to-front :which-key "bring file to front")
-	"at" '(:ignore t:which-key "time/date")
-	"att" '(org-time-stamp :which-key "add time")
-	"atd" '(org-deadline :which-key "add deadline"))
+	"a" '(:ignore t :which-key "Agenda")
+   	"aa" '(org-agenda :which-key "Show agenda")
+   	"as" '(org-agenda-schedule :which-key "Show schedule")
+	"al" '(org-agenda-list :which-key "Show agenda list")
+	"aF" '(org-agenda-file-to-front :which-key "Bring file to front")
+	"at" '(:ignore t:which-key "Time/date")
+	"att" '(org-time-stamp :which-key "Add time")
+	"atd" '(org-deadline :which-key "Add deadline"))
 
   (mk/leader-keys
-	"A" '(:ignore t :which-key "applications")
-	"Af" '(:ignore t :which-key "feed")
-	"Afu" '(elfeed-update :which-key "update feed")
-	"Afs" '(elfeed :which-key "show feed"))
+	"A" '(:ignore t :which-key "Applications")
+	"Af" '(:ignore t :which-key "Feed")
+	"Afu" '(elfeed-update :which-key "Update feed")
+	"Afs" '(elfeed :which-key "Show feed"))
 
   (mk/leader-keys
-    "b" '(:ignore t :which-key "buffer")
-    "bb" '(counsel-switch-buffer :which-key "list buffers")
-    "bx" '(evil-delete-buffer :which-key "delete buffer")
-    "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "kill other buffers")
-    "bd" '(kill-current-buffer :which-key "kill current buffer")
-    "bp" '(previous-buffer :which-key "previous buffer")
-    "bn" '(next-buffer :which-key "next buffer")
-    "be" '(eval-buffer :which-key "eval buffer")
-    "bE" '(eval-last-sexp :which-key "eval to point")
-    "br" '(revert-buffer :which-key "revert buffer")
+    "b" '(:ignore t :which-key "Buffer")
+    "bb" '(counsel-switch-buffer :which-key "List buffers")
+    "bx" '(evil-delete-buffer :which-key "Delete buffer")
+    "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "Kill other buffers")
+    "bd" '(kill-current-buffer :which-key "Kill current buffer")
+    "bp" '(previous-buffer :which-key "Previous buffer")
+    "bn" '(next-buffer :which-key "Next buffer")
     "bC" '((lambda () (interactive) (switch-to-buffer "*Compile-Log*")) :which-key "Compile log-buffer")
-    "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "dashboard-buffer")
-    "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "messages-buffer")
-    "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "scratch-buffer"))
+    "bD" '((lambda () (interactive) (switch-to-buffer "*dashboard*")) :which-key "Sashboard-buffer")
+    "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "Messages-buffer")
+    "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "Scratch-buffer"))
 
   (mk/leader-keys
-    "c" '(:ignore t :which-key "code")
+    "c" '(:ignore t :which-key "Code")
     "cp" 'check-parens
     "co" 'projectile-find-other-file
-    "cl" '(comment-line :which-key "comment line")
-    "cr" '(comment-region :which-key "comment region")
-    "cu" '(lsp-ui-imenu :which-key "lsp-ui-menu")
-    "ce" '(lsp-treemacs-errors-list :which-key "treemacs errors")
-    "ct" '(lsp-treemacs-symbols :which-key "treemacs symbols")
-    "cf" '(dumb-jump-hydra/body :which-key "go to definition"))
+    "cl" '(comment-line :which-key "Comment line")
+    "cr" '(comment-region :which-key "Comment region")
+    "cu" '(lsp-ui-imenu :which-key "Lsp-ui-menu")
+    "ce" '(lsp-treemacs-errors-list :which-key "Treemacs errors")
+    "ct" '(lsp-treemacs-symbols :which-key "Treemacs symbols")
+    "cf" '(dumb-jump-hydra/body :which-key "Go to definition"))
 
   (mk/leader-keys
-	"e" '(:ignore t :which-key "eval")
-	"ee" '(eval-expression :which-key "eval expression")
-	"eb" '(eval-buffer :which-key "eval buffer")
-	"el" '(eval-last-sexp :which-key "eval before point")
-	"er" '(eval-region :which-key "eval region"))
+	"e" '(:ignore t :which-key "Eval")
+	"ee" '(eval-expression :which-key "Eval expression")
+	"eb" '(eval-buffer :which-key "Eval buffer")
+	"el" '(eval-last-sexp :which-key "Eval before point")
+	"er" '(eval-region :which-key "Eval region"))
 
   (mk/leader-keys
-	"f" '(:ignore t :which-key "files")
-	"fs" '(save-buffer :which-key "save file")
-	"fo" '(dired :which-key "open file")
-	"ff" '(counsel-find-file :which-key "find file")
-	"fr" '(counsel-recentf :which-key "recent files")
-	"fn" '(create-file-buffer :which-key "new file")
-	"fR" '(dired-rename-file :which-key "rename file")
-	"fD" '(delete-file :which-key "delete file")
-	"fe" '(lambda () (interactive) (find-file user-init-file) :which-key "user configuration"))
+	"f" '(:ignore t :which-key "Files")
+	"fs" '(save-buffer :which-key "Save file")
+	"fo" '(dired :which-key "Open file")
+	"ff" '(counsel-find-file :which-key "Find file")
+	"fr" '(counsel-recentf :which-key "Recent files")
+	"fn" '(create-file-buffer :which-key "New file")
+	"fR" '(dired-rename-file :which-key "Rename file")
+	"fD" '(delete-file :which-key "Delete file")
+	"fe" '(lambda () (interactive) (find-file user-init-file) :which-key "User configuration"))
 
   (mk/leader-keys
-    "h" '(:ignore t :which-key "help")
-    "hc" '(helpful-command :which-key "describe command")
-    "hk" '(helpful-key :which-key "describe key")
-    "hf" '(counsel-describe-function :which-key "describe function")
-    "hv" '(counsel-describe-variable :which-key "describe variable")
-    "ht" '(evil-tutor-start :which-key "evil tutorial")
-    "h." '(helpful-at-point :which-key "describe at-point")
-    "hp" '(describe-package :which-key "describe package"))
+    "h" '(:ignore t :which-key "Help")
+    "hc" '(helpful-command :which-key "Describe command")
+    "hk" '(helpful-key :which-key "Describe key")
+    "hf" '(counsel-describe-function :which-key "Describe function")
+    "hv" '(counsel-describe-variable :which-key "Describe variable")
+    "ht" '(evil-tutor-start :which-key "Evil tutorial")
+    "h." '(helpful-at-point :which-key "Describe at-point")
+    "hp" '(describe-package :which-key "Describe package"))
 
   (mk/leader-keys
-    "t" '(:ignore t :which-key "text")
-    "ts" '(sort-lines :which-key "sort lines")
-    "tx" '(delete-trailing-whitespace :which-key "delete trailing whitespace")
-    "tw" '(mark-word :which-key "select word")
-    "te" '(mark-sexp :which-key "select expression")
-    "tf" '(mark-defun :which-key "select function")
-    "tb" '(mark-whole-buffer :which-key "select whole buffer")
-    "tp" '(mark-page :which-key "select page"))
+    "t" '(:ignore t :which-key "Text")
+    "ts" '(sort-lines :which-key "Sort lines")
+    "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace")
+    "tw" '(mark-word :which-key "Select word")
+    "te" '(mark-sexp :which-key "Select expression")
+    "tf" '(mark-defun :which-key "Select function")
+    "tb" '(mark-whole-buffer :which-key "Select whole buffer")
+    "tp" '(mark-page :which-key "Select page"))
 
    (mk/leader-keys
-     "w" '(:ignore t :which-key "windows")
-	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "start a browser")
-     "wp" '(previous-window-any-frame :which-key "previous window")
-     "wx" '(delete-window :which-key "delete window")
-	 "wk" '(delete-window-internal :which-key "delete window")
-	 "w-" '(mk/split-window-below :which-key "split window horizontally")
-	 "w/" '(mk/split-window-right :which-key "split window vertically")
-	 "ww" '(hydra-windows-setup/body :which-key "hydra menu")
-     "wn" '(next-window-any-frame :which-key "next window"))
+     "w" '(:ignore t :which-key "Windows")
+	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "Start a browser")
+     "wp" '(previous-window-any-frame :which-key "Previous window")
+     "wx" '(delete-window :which-key "Delete window")
+	 "wk" '(delete-window-internal :which-key "Delete window")
+	 "w-" '(mk/split-window-below :which-key "Split window horizontally")
+	 "w/" '(mk/split-window-right :which-key "Split window vertically")
+	 "ww" '(hydra-windows-setup/body :which-key "Hydra menu")
+     "wn" '(next-window-any-frame :which-key "Next window"))
 
    (mk/leader-keys
-     "p" '(:ignore t :which-key "project")
-     "pp" '(:ignore t :which-key "project management")
-     "ppa" '(treemacs-add-project-to-workspace :which-key "add project")
-     "ppr" '(treemacs-remove-project-from-workspace :which-key "remove project")
-     "pf" '(projectile-find-file :which-key "find file")
-     "pt" '(projectile-find-tag :which-key "find tag")
-     "pF" '(projectile-project-files :which-key "project files")
-     "pk" '(projectile-kill-buffers :which-key "kill buffers")
-     "ps" '(projectile-switch-project :which-key "switch project")
-     "pS" '(projectile-switch-open-project :which-key "switch open project"))
+     "p" '(:ignore t :which-key "Project")
+     "pp" '(:ignore t :which-key "Project management")
+     "ppa" '(treemacs-add-project-to-workspace :which-key "Add project")
+     "ppr" '(treemacs-remove-project-from-workspace :which-key "Remove project")
+     "pf" '(projectile-find-file-dwim :which-key "Find file")
+     "pt" '(counsel-projectile-ag :which-key "Find tag")
+     "pF" '(projectile-project-files :which-key "Project files")
+     "pk" '(projectile-kill-buffers :which-key "Kill buffers")
+     "ps" '(projectile-switch-project :which-key "Switch project")
+     "pS" '(projectile-switch-open-project :which-key "Switch open project"))
 
    (mk/leader-keys
-     "v" '(:ignore t :which-key "version control")
-     "vs" '(magit-status :which-key "status"))
+     "v" '(:ignore t :which-key "Version control")
+     "vs" '(magit-status :which-key "Status"))
 
    (mk/leader-keys
-     "g" '(:ignore t :which-key "games")
-     "gt" '(tetris :which-key "tetris")
-     "gh" '(hanoi :which-key "tower of hanoi"))
+     "g" '(:ignore t :which-key "Games")
+     "gt" '(tetris :which-key "Tetris")
+     "gh" '(hanoi :which-key "Tower of hanoi"))
 
    (mk/leader-keys
-     "T" '(:ignore t :which-key "tabs")
-     "Tn" '(tab-new :which-key "new")
-     "Tl" '(tab-list :which-key "list")
-     "Tg" '(tab-close-group :which-key "close group")
-     "Td" '(tab-detach :which-key "detach")
-     "Tx" '(tab-close :which-key "close")
-	 "Tk" '(tab-close-other :which-key "close other"))
+     "T" '(:ignore t :which-key "Tabs")
+     "Tn" '(tab-new :which-key "New")
+     "Tl" '(tab-list :which-key "List")
+     "Tg" '(tab-close-group :which-key "Close group")
+     "Td" '(tab-detach :which-key "Detach")
+     "Tx" '(tab-close :which-key "Close")
+	 "Tk" '(tab-close-other :which-key "Close other"))
+
+   (mk/leader-keys
+	 "S" '(sx-hydra/body :which-key "Stackoverflow"))
 
   (mk/leader-keys
-    "q" '(:ignore t :which-key "quit")
-    "qq" '(save-buffers-kill-terminal :which-key "quit emacs")
-    "qr" '(restart-emacs :which-key "restart emacs")))
+    "q" '(:ignore t :which-key "Quit")
+    "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
+    "qr" '(restart-emacs :which-key "Restart emacs")))
 
 
 (defun mk/org-mode-setup()
@@ -709,12 +716,16 @@
 (use-package ivy-prescient
   :hook (ivy-mode . ivy-prescient-mode))
 
-(use-package dumb-jump
-  :config (setq dumb-jump-selector 'ivy)
-  :custom
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+;;  query stackoverflow
+(use-package sx
+	:commands sx-search)
 
-(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+(use-package dumb-jump
+  :commands (dumb-jump-go dumb-jump-quick-look dumb-jump-back dumb-jump-result-follow dumb-jump-xref-activate)
+  :config
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+  (setq	dumb-jump-selector 'completing-read
+		xref-show-definitions-function #'xref-show-definitions-completing-read))
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
@@ -761,12 +772,22 @@
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
-(defvar mk-dumb-jump--title (with-faicon "search" "Code Reference" 2 -0.05))
+(defvar mk-stackoverflow--title (with-faicon "stack-overflow" "" 2 -0.05))
+(pretty-hydra-define sx-hydra
+  (:color pink :quit-key "q" :title mk-stackoverflow--title)
+  ("Stackoverflow"
+   (
+    ("s" sx-search "Search")
+    ("q" hydra-keyboard-quit "Quit menu"))))
+
+(defvar mk-dumb-jump--title (with-faicon "search" "" 2 -0.05))
 (pretty-hydra-define dumb-jump-hydra
   (:color pink :quit-key "q" :title mk-dumb-jump--title)
   ("Find reference in project"
    (
-    ("f" xref-find-definitions "Find definitions")
+    ("a" xref-find-apropos "Find apropos")
+    ("f" dumb-jump-go "Find definitions")
+    ("F" counsel-projectile-ag "Find symbol")
     ("o" xref-find-definitions-other-window "Other window")
     ("e" dumb-jump-go-prefer-external "Go external")
     ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
