@@ -175,6 +175,7 @@
   (evil-mode 1)
   :config
   (define-key evil-motion-state-map "/" 'swiper)
+  (define-key evil-motion-state-map (kbd "M-<left>") 'xref-pop-marker-stack)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
@@ -446,7 +447,16 @@
   :defer t)
 
 (use-package pretty-hydra
-  :after hydra)
+  :after hydra
+  :config
+  (setq major-mode-hydra-title-generator
+		'(lambda (mode)
+           (s-concat "\n"
+					 (s-repeat 10 " ")
+					 (all-the-icons-icon-for-mode mode :v-adjust 0.05)
+					 " "
+					 (symbol-name mode)
+					 " commands"))))
 
 ;; (use-package hydra-posframe
 ;;   :load-path "~/.emacs.d/localpackages/hydra-posframe"
@@ -454,7 +464,7 @@
 ;;   (hydra-posframe-mode 1)
 ;;   :custom
 ;;   (hydra-posframe-parameters
-;;    '((left-fringe . 10) (right-fringe . 10) (top-fringe . 2) (bottom-fringe . 2) (height . 12) (width . 105) (min-height . 12) (max-height . 30) (top . 25))))
+;;    '((left-fringe . 20) (right-fringe . 20) (top-fringe . 10) (bottom-fringe . 10) (height . 12) (width . 105) (min-height . 10) (max-height . 30) (top . 25))))
 
 ;; ;; Winum - select windows easy
 (use-package winum
@@ -502,15 +512,6 @@
 	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "Term")
 	"!" 'shell-command
 	":" 'eval-expression)
-
-  (mk/leader-keys
-	"T" '(:ignore t :which-key "Toggles")
-	"Tt" '(counsel-load-theme :which-key "Choose theme")
-	"Ts" '(hydra-text-scale/body :which-key "Scale text")
-	;; Screen
-	"Tf" '(:ignore t :which-key "Screen/frame")
-	"Tff" '(toggle-frame-fullscreen :which-key "Fullscreen")
-	"Tfm" '(toggle-frame-maximized :which-key "Maximized"))
 
   (mk/leader-keys
 	"a" '(:ignore t :which-key "Agenda")
@@ -583,6 +584,7 @@
   (mk/leader-keys
     "t" '(:ignore t :which-key "Text")
     "ts" '(sort-lines :which-key "Sort lines")
+	"tS" '(hydra-text-scale/body :which-key "Scale text")
     "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace")
     "tw" '(mark-word :which-key "Select word")
     "te" '(mark-sexp :which-key "Select expression")
@@ -785,14 +787,12 @@
   (:color pink :quit-key "q" :title mk-dumb-jump--title)
   ("Find reference in project"
    (
-    ("a" xref-find-apropos "Find apropos")
-    ("f" dumb-jump-go "Find definitions")
-    ("F" counsel-projectile-ag "Find symbol")
-    ("o" xref-find-definitions-other-window "Other window")
-    ("e" dumb-jump-go-prefer-external "Go external")
-    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("a" xref-find-apropos "Apropos")
+    ("f" dumb-jump-go "Definitions")
+    ("o" xref-find-definitions-other-window "Definitions in other window")
+    ("F" counsel-projectile-ag "Symbols")
+    ("r" xref-find-references "References" :exit t)
     ("i" dumb-jump-go-prompt "Prompt")
-    ("r" xref-find-references "Find references" :exit t)
     ("l" dumb-jump-quick-look "Quick look")
 	("<left>" xref-pop-marker-stack "Back")
     ("q" hydra-keyboard-quit "Quit menu"))))
@@ -808,7 +808,7 @@
 
 (defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 2 -0.05))
 (pretty-hydra-define hydra-windows-setup
-  (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
+  (:color teal :quit-key "q" :title mk-windows-appearance--title)
   ("Sizing"
    (("<left> " evil-window-decrease-width "⇢⇠ Decrease")
 	("<right>" evil-window-increase-width "⇠⇢ Increase")
@@ -817,7 +817,8 @@
 
    "Splitting"
    (("/" mk/split-window-right "Right")
-	("-" mk/split-window-below "Below"))
+	("-" mk/split-window-below "Below")
+	("=" balance-windows "Balance"))
 
    "Toggles"
    (("t" mk/toggle-transparency "Transparency")

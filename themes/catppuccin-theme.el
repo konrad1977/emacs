@@ -95,8 +95,8 @@ catppuccin "A theme based on catppuccin amazing color scheme"
 
   (info-xref                            (:foreground yellow))
   (highlight-quoted-symbol              (:foreground maroon))
-  (minibuffer-prompt-end                (:background dark))
-  (minibuffer-prompt                    (:foreground lavender :background black-1))
+  (minibuffer-prompt-end                (:background dark :foreground peach))
+  (minibuffer-prompt                    (:foreground peach :background black))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
