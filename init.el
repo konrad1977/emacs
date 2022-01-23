@@ -182,7 +182,6 @@
   (setq evil-want-C-i-jump nil)
   :config
   (define-key evil-motion-state-map "/" 'swiper)
-  (define-key evil-motion-state-map (kbd "M-<left>") 'xref-pop-marker-stack)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
@@ -548,7 +547,7 @@
 	"al" '(org-agenda-list :which-key "Show agenda list")
 	"aF" '(org-agenda-file-to-front :which-key "Bring file to front")
 	"at" '(:ignore t:which-key "Time/date")
-	"att" '(org-time-stamp :which-key "Add time")
+	"att" '(org-time-stamp :which-key "Schedule")
 	"atd" '(org-deadline :which-key "Add deadline"))
 
   (mk/leader-keys
@@ -775,6 +774,7 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode"
+  ; (define-key evil-motion-state-map (kbd "M-<left>") 'xref-pop-marker-stack)
   (setq company-mode t
 		electric-pair-mode t			;; Auto insert pairs {} () [] etc
 		highlight-indent-guides-mode t	;; Turn on indent-guides
@@ -915,7 +915,7 @@
     ("T" (ert t) "all")
     ("F" (ert :failed) "failed"))
    "Doc"
-   (("d" describe-foo-at-point "thing-at-pt")
+   (("p" describe-package "package")
     ("f" describe-function "function")
     ("v" describe-variable "variable")
     ("i" info-lookup-symbol "info lookup"))))

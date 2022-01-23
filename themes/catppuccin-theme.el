@@ -46,7 +46,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (cursor                               (:background peach :foreground black-1))
   (default								(:foreground rosewater :background black-2))
   (error                                (:foreground red))
-  (fringe                               (:background black-2))
+  (fringe                               (:background black-2 :foreground gray))
   (glyph-face                           (:background red))
   (glyphless-char                       (:foreground gray))
   (header-line							(:background black))
@@ -328,8 +328,11 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (popup-menu-mouse-face (:background blue :foreground black :bolt t))
   (popup-menu-selection-face (:background flamingo :foreground black))
   (popup-isearch-match (:background mauve :foreground black :bold t))
-  
-))
+
+  (flycheck-fringe-warning (:foreground yellow :background black-2))
+  (flycheck-fringe-error (:foreground red :background black-2))
+  (flycheck-fringe-info (:foreground green :background black-2))
+ ))
 
 (provide-theme 'catppuccin)
 ;;; catppuccin-theme.el ends here
