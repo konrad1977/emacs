@@ -5,9 +5,12 @@
 ;; Window
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
+(eval-when-compile (defvar display-time-24hr-format))
+(eval-when-compile (defvar display-time-default-load-average))
+
+(setq auto-mode-case-fold nil)
 (setq ad-redefinition-action 'accept
 	  create-lockfiles nil
-	  company-mode 1
 	  word-wrap nil
 	  global-hl-line-mode 1
       display-time-24hr-format t
@@ -23,6 +26,11 @@
 
 (setenv "PATH" (concat (getenv "PATH") "/usr/local/bin"))
 (setq exec-path (append exec-path '("/usr/local/bin")))
+
+;; Setup garbage collector
+(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
+(run-with-idle-timer 2 t (lambda () (garbage-collect)))
+
 
 (display-battery-mode t)	; Show battery.
 (display-time-mode t)		; Show time.
@@ -46,19 +54,20 @@
 (desktop-save-mode 1)			;; Save desktop
 (savehist-mode 1)				;; Save autocompletions
 
-  (let* ((path (expand-file-name "localpackages" user-emacs-directory))
-         (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
-    (if (file-accessible-directory-p path)
-        (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
-      (make-directory path :parents)))
+(let* ((path (expand-file-name "localpackages" user-emacs-directory))
+       (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
+  (if (file-accessible-directory-p path)
+      (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
+    (make-directory path :parents)))
 
+(eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 148)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 148)
-(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 148 :weight 'regular)
+(set-face-attribute 'default nil :font "Source Code Pro" :height 154)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
+(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -79,9 +88,6 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
-
-(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
-(run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
 (use-package gcmh
   :init (gcmh-mode 1))
@@ -117,8 +123,9 @@
             (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
 
 (use-package autothemer
-  :ensure t)
-(setq custom-safe-themes t)
+  :ensure t
+  :custom (setq custom-safe-themes t))
+
 (load-theme 'catppuccin t)
 ;(add-hook 'after-init-hook (lambda () (load-theme 'catppuccin t)))
 
@@ -167,12 +174,12 @@
 
 ; Use evil mode
 (use-package evil
+  :hook (after-init . evil-mode)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
-  (evil-mode 1)
   :config
   (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-motion-state-map (kbd "M-<left>") 'xref-pop-marker-stack)
@@ -202,7 +209,7 @@
   :config
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
-	    doom-themes-treemacs-theme "doom-atom")
+	    doom-themes-treemacs-theme "doom-colors")
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -238,8 +245,8 @@
 		doom-modeline-env-version t
 		doom-modeline-hud t
 		doom-modeline-height 36)
-  (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 147)
-  (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 137))
+  (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 148)
+  (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 132))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -265,8 +272,6 @@
 ;; counsel
 (use-package counsel
   :hook (ivy-mode . counsel-mode))
-
-(use-package centered-cursor-mode)
 
 (use-package swiper
   :after ivy
@@ -411,6 +416,7 @@
     (xwidget-webkit-browse-url "https://google.com")))
 
 (use-package projectile
+  :hook (prog-mode . projectile-mode)
   :diminish projectile-mode
   :config (projectile-mode)
   :custom
@@ -525,9 +531,8 @@
 
   (mk/leader-keys
 	"A" '(:ignore t :which-key "Applications")
-	"Af" '(:ignore t :which-key "Feed")
-	"Afu" '(elfeed-update :which-key "Update feed")
-	"Afs" '(elfeed :which-key "Show feed"))
+	"Af" '(elfeed-hydra/body :which-key "Feed")
+	"As" '(sx-hydra/body :which-key "Stackoverflow"))
 
   (mk/leader-keys
     "b" '(:ignore t :which-key "Buffer")
@@ -632,9 +637,6 @@
      "Td" '(tab-detach :which-key "Detach")
      "Tx" '(tab-close :which-key "Close")
 	 "Tk" '(tab-close-other :which-key "Close other"))
-
-   (mk/leader-keys
-	 "S" '(sx-hydra/body :which-key "Stackoverflow"))
 
   (mk/leader-keys
     "q" '(:ignore t :which-key "Quit")
@@ -748,7 +750,8 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode"
-  (setq electric-pair-mode t			;; Auto insert pairs {} () [] etc
+  (setq company-mode t
+		electric-pair-mode t			;; Auto insert pairs {} () [] etc
 		highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
@@ -773,6 +776,16 @@
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an icon from Font Awesome icon."
   (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
+
+
+(defvar mk-elfeed--title (with-faicon "rss-square" "" 2 -0.05))
+(pretty-hydra-define elfeed-hydra
+  (:color pink :quit-key "q" :title mk-elfeed--title)
+  ("Feed"
+   (
+    ("u" elfeed-update "Update")
+    ("F" elfeed "Feed")
+    ("q" hydra-keyboard-quit "Quit menu"))))
 
 (defvar mk-stackoverflow--title (with-faicon "stack-overflow" "" 2 -0.05))
 (pretty-hydra-define sx-hydra
@@ -808,7 +821,7 @@
 
 (defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 2 -0.05))
 (pretty-hydra-define hydra-windows-setup
-  (:color teal :quit-key "q" :title mk-windows-appearance--title)
+  (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
   ("Sizing"
    (("<left> " evil-window-decrease-width "⇢⇠ Decrease")
 	("<right>" evil-window-increase-width "⇠⇢ Increase")
