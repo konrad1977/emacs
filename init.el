@@ -361,7 +361,20 @@
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
-  (use-package ns-auto-titlebar
+(defun xcode-build()
+  (interactive)
+  (shell-command-to-string
+    "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'"))
+(defun xcode-run()
+  (interactive)
+  (shell-command-to-string
+    "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'"))
+(defun xcode-test()
+  (interactive)
+  (shell-command-to-string
+   "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'"))
+
+(use-package ns-auto-titlebar
 	:config (ns-auto-titlebar-mode))
 
   (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
@@ -370,7 +383,6 @@
   (use-package exec-path-from-shell
 	:commands vterm)
 
-  (exec-path-from-shell-initialize)
   (use-package swift-mode
     :hook (swift-mode . lsp-deferred)
     :config
@@ -382,6 +394,8 @@
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
+
+  (exec-path-from-shell-initialize)
 
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
@@ -467,6 +481,11 @@
 					 (symbol-name mode)
 					 " commands"))))
 
+(use-package major-mode-hydra
+  :defer t
+  :config
+    (setq major-mode-hydra-invisible-quit-key "q"))
+
 ;; (use-package hydra-posframe
 ;;   :load-path "~/.emacs.d/localpackages/hydra-posframe"
 ;;   :config
@@ -550,6 +569,9 @@
     "bm" '((lambda () (interactive) (switch-to-buffer "*Messages*")) :which-key "Messages-buffer")
     "bs" '((lambda () (interactive) (switch-to-buffer "*scratch*")) :which-key "Scratch-buffer"))
 
+  (mk/leader-keys
+	"m" '(major-mode-hydra :which-key "Major mode"))
+  
   (mk/leader-keys
     "c" '(:ignore t :which-key "Code")
     "cp" 'check-parens
@@ -778,8 +800,11 @@
 
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an icon from Font Awesome icon."
-  (s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
+	(s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str)
+  )
 
+(defun with-fileicon (icon str &optional height v-adjust)
+  (s-concat (all-the-icons-fileicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
 (defvar mk-elfeed--title (with-faicon "rss-square" "" 2 -0.05))
 (pretty-hydra-define elfeed-hydra
@@ -877,6 +902,31 @@
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
+
+(major-mode-hydra-define emacs-lisp-mode nil
+  ("Eval"
+   (("b" eval-buffer "buffer")
+    ("e" eval-defun "defun")
+    ("r" eval-region "region"))
+   "REPL"
+   (("I" ielm "ielm"))
+   "Test"
+   (("t" ert "prompt")
+    ("T" (ert t) "all")
+    ("F" (ert :failed) "failed"))
+   "Doc"
+   (("d" describe-foo-at-point "thing-at-pt")
+    ("f" describe-function "function")
+    ("v" describe-variable "variable")
+    ("i" info-lookup-symbol "info lookup"))))
+
+(defvar mk-swift--title (with-faicon "wrench" "Xcode" 3 -0.05))
+(major-mode-hydra-define swift-mode 
+  (:color amaranth :title mk-swift--title)
+	("Select action:"
+	 (("r" xcode-run "Run")
+      ("b" xcode-build "Build")
+      ("t" xcode-test "Test"))))
 
 (provide 'init)
 
