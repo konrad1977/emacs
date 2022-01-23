@@ -253,6 +253,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (ivy-minibuffer-match-face-2                  (:background nil :foreground yellow))
   (ivy-minibuffer-match-highlight               (:foreground teal))
   (ivy-grep-info                                (:foreground teal))
+  (ivy-grep-line-number                         (:foreground mauve))
   (ivy-confirm-face                             (:foreground green))
 
   ;; posframe's

@@ -364,10 +364,13 @@
   (use-package ns-auto-titlebar
 	:config (ns-auto-titlebar-mode))
 
-  (use-package exec-path-from-shell
-	:commands vterm
-	:config (exec-path-from-shell-initialize))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 
+  (use-package exec-path-from-shell
+	:commands vterm)
+
+  (exec-path-from-shell-initialize)
   (use-package swift-mode
     :hook (swift-mode . lsp-deferred)
     :config
@@ -428,7 +431,7 @@
 	(setq projectile-completion-system 'ivy
 		  projectile-enable-caching t
 		  projectile-sort-order 'recentf
-		  projectile-indexing-method 'alien)
+		  projectile-indexing-method 'native)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -725,7 +728,7 @@
 	:commands sx-search)
 
 (use-package dumb-jump
-  :commands (dumb-jump-go dumb-jump-quick-look dumb-jump-back dumb-jump-result-follow dumb-jump-xref-activate)
+  :hook (prog-mode . dumb-jump-mode)
   :config
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq	dumb-jump-selector 'completing-read
