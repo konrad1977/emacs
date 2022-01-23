@@ -100,7 +100,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
-  (trailing-whitespace                  (:background red))
+  (trailing-whitespace                  (:background black-3))
 
   ;; Battery colors
   (doom-modeline-battery-critical       (:foreground red))
