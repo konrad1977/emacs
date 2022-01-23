@@ -806,7 +806,7 @@
 (defun with-fileicon (icon str &optional height v-adjust)
   (s-concat (all-the-icons-fileicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
-(defvar mk-elfeed--title (with-faicon "rss-square" "" 2 -0.05))
+(defvar mk-elfeed--title (with-faicon "rss-square" "" 1.5 -0.225))
 (pretty-hydra-define elfeed-hydra
   (:color pink :quit-key "q" :title mk-elfeed--title)
   ("Feed"
@@ -815,7 +815,7 @@
     ("F" elfeed "Feed")
     ("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-stackoverflow--title (with-faicon "stack-overflow" "" 2 -0.05))
+(defvar mk-stackoverflow--title (with-faicon "stack-overflow" "" 1.5 -0.225))
 (pretty-hydra-define sx-hydra
   (:color pink :quit-key "q" :title mk-stackoverflow--title)
   ("Stackoverflow"
@@ -823,7 +823,7 @@
     ("s" sx-search "Search")
     ("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-dumb-jump--title (with-faicon "search" "" 2 -0.05))
+(defvar mk-dumb-jump--title (with-faicon "search" "" 1.5 -0.225))
 (pretty-hydra-define dumb-jump-hydra
   (:color pink :quit-key "q" :title mk-dumb-jump--title)
   ("Find reference in project"
@@ -838,7 +838,7 @@
 	("<left>" xref-pop-marker-stack "Back")
     ("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 2 -0.05))
+(defvar mk-text-scale-appearance--title (with-faicon "text-height" "Text size" 1.5 -0.225))
 (pretty-hydra-define hydra-text-scale
   (:color pink :quit-key "q" :title mk-text-scale-appearance--title)
   ("Size"
@@ -847,7 +847,7 @@
 	("-" text-scale-decrease "Decrease size")
 	("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 2 -0.05))
+(defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1.5 -0.225))
 (pretty-hydra-define hydra-windows-setup
   (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
   ("Sizing"
