@@ -219,21 +219,23 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (show-paren-match-expression					(:background black))
   (show-paren-mismatch							(:background red :foreground white))
 
-										; company-box
-  (company-echo									(:background red))
-  (company-echo-common							(:foreground red))
-  (company-preview								(:background red))
-  (company-preview-common						(:foreground rosewater))
-  (company-preview-search						(:background yellow))
-  (company-template-field						(:foreground dark :background red))
-  (company-tooltip								(:foreground rosewater))
-  (company-tooltip-annotation					(:foreground green))
-  (company-tooltip-annotation-selection			(:inherit 'company-tooltip-annotation))
-  (company-tooltip-common						(:foreground blue :underline t))
-  (company-tooltip-common-selection				(:background peach :foreground black :underline t :bold t))
-  (company-tooltip-scrollbar-thumb				(:background red :foreground red))
-  (company-tooltip-scrollbar-track				(:background yellow :foreground yellow))
-  (company-tooltip-selection					(:background blue :foreground black))
+  (tooltip (:background black))
+
+  ;; company-box  (company-tooltip            :inherit 'tooltip)
+  (company-tooltip (:background black))
+  (company-box (:background red))
+
+  (company-tooltip-common     (:foreground red))
+  (company-tooltip-search     (:background red :foreground black :distant-foreground rosewater))
+  (company-tooltip-selection  (:background flamingo :foreground black :bold t))
+  (company-tooltip-mouse      (:background red :foreground black :distant-foreground rosewater))
+  (company-tooltip-annotation (:foreground green))
+  (company-scrollbar-bg       (:inherit 'tooltip))
+  (company-scrollbar-fg       (:background red))
+  (company-preview            (:foreground yellow))
+  (company-preview-common     (:background red :foreground black))
+  (company-preview-search     (:inherit 'company-tooltip-search))
+  (company-template-field     (:inherit 'match))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground black-3))
@@ -323,15 +325,14 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (term-color-magenta (:background mauve :foreground mauve))
   (term-color-bright-magenta (:background mauve :foreground mauve))
 
-  (popup-face (:background black :foreground rosewater))
-  (popup-menu-face (:background black :foreground rosewater))
-  (popup-menu-mouse-face (:background blue :foreground black :bolt t))
-  (popup-menu-selection-face (:background flamingo :foreground black))
-  (popup-isearch-match (:background mauve :foreground black :bold t))
-
+  (popup-face (:inherit 'tooltip))
+  (popup-selection-face (:inherit 'tooltip))
+  (popup-tip-face (:inherit 'tooltip))
+  
   (flycheck-fringe-warning (:foreground yellow :background black-2))
   (flycheck-fringe-error (:foreground red :background black-2))
   (flycheck-fringe-info (:foreground green :background black-2))
+
  ))
 
 (provide-theme 'catppuccin)
