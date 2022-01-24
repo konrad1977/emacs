@@ -390,13 +390,21 @@
 
   (add-hook 'swift-mode-hook
 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
-  
-  (use-package flycheck-swift3)
+
+  (use-package flycheck-swift3 :defer t)
+  (use-package flycheck-swiftlint :defer t) 
+  (use-package swift-helpful
+	:defer t)
+
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
 
+  (with-eval-after-load 'flycheck
+	(flycheck-add-mode #'flycheck-swift3-setup 'swift-mode)
+	(flycheck-add-mode #'flycheck-swiftlint-setup 'swift-mode))
+  
   (exec-path-from-shell-initialize)
 
   (setq mac-option-key-is-meta nil
@@ -404,10 +412,7 @@
 		mac-command-modifier 'meta
 		mac-option-modifier 'none
 		dired-use-ls-dired nil
-		frame-title-format "")
-
-  (with-eval-after-load 'flycheck
-	(add-hook 'flycheck-mode-hook #'flycheck-swift3-setup)))
+		frame-title-format ""))
 
 (use-package ag
   :defer t)
@@ -417,7 +422,7 @@
   :after which-key)
 
 (defun my-vterm/split-horizontal ()
-  "Create a new vterm window under of the current one." 
+  "Create a new vterm window under of the current one."
   (interactive)
   (let* ((ignore-window-parameters t)
          (dedicated-p (window-dedicated-p)))
@@ -573,7 +578,7 @@
 
   (mk/leader-keys
 	"m" '(major-mode-hydra :which-key "Major mode"))
-  
+
   (mk/leader-keys
     "c" '(:ignore t :which-key "Code")
     "cp" 'check-parens
@@ -924,7 +929,7 @@
     ("i" info-lookup-symbol "info lookup"))))
 
 (defvar mk-swift--title (with-faicon "wrench" "Xcode" 3 -0.05))
-(major-mode-hydra-define swift-mode 
+(major-mode-hydra-define swift-mode
   (:color amaranth :title mk-swift--title)
 	("Select action:"
 	 (("r" xcode-run "Run")
