@@ -411,15 +411,19 @@
   (add-hook 'swift-mode-hook
 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
 
-  (use-package flycheck-swift3 :defer t)
-  (use-package swift-helpful
-	:defer t)
+  (use-package flycheck-swift3
+	:after flycheck-mode
+	:config
+	(with-eval-after-load 'flycheck
+	  (add-hook 'flycheck-mode-hook #'flycheck-swift3-setup)))
+
+  (use-package swift-helpful)
 
   (use-package flycheck-swiftlint
   :config
   (with-eval-after-load 'flycheck
     (flycheck-swiftlint-setup)))
-  
+
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
@@ -430,15 +434,20 @@
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
 	(or (alist-get property (alist-get checker my/flycheck-local-cache))
-		(funcall fn checker property))) 
+		(funcall fn checker property)))
 
   (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
-
   (add-hook 'lsp-managed-mode-hook
 			(lambda ()
               (when (derived-mode-p 'swift-mode)
 				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swiftlint)))))))))
-  
+
+
+  (add-hook 'lsp-managed-mode-hook
+			(lambda ()
+              (when (derived-mode-p 'swift-mode)
+				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swift3)))))))))
+
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
@@ -895,7 +904,7 @@
 	("2" winum-select-window-2 "Win 2")
 	("3" winum-select-window-3 "Win 3")
 	("4" winum-select-window-4 "Win 4"))
-   
+
    "Splitting"
    (("/" mk/split-window-right "Right")
 	("-" mk/split-window-below "Below")
@@ -916,7 +925,7 @@
 	("<right>" evil-window-increase-width "⇠⇢ Increase")
 	("<up>   " evil-window-decrease-height "Decrease height")
 	("<down> " evil-window-increase-height "Incease height"))
-   
+
    "Extras"
    (("x" delete-window "Delete window")
 	("q" hydra-keyboard-quit "Quit menu"))))
