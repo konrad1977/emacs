@@ -222,12 +222,11 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (tooltip (:background black))
 
   ;; company-box  (company-tooltip            :inherit 'tooltip)
-  (company-tooltip (:background black))
-  (company-box (:background red))
-
-  (company-tooltip-common     (:foreground red))
+  (company-tooltip			  (:background black))
+  (company-box				  (:background black))
+  (company-tooltip-common     (:foreground yellow))
   (company-tooltip-search     (:background red :foreground black :distant-foreground rosewater))
-  (company-tooltip-selection  (:background flamingo :foreground black :bold t))
+  (company-tooltip-selection  (:background black-4 :foreground red :bold t))
   (company-tooltip-mouse      (:background red :foreground black :distant-foreground rosewater))
   (company-tooltip-annotation (:foreground green))
   (company-scrollbar-bg       (:inherit 'tooltip))
@@ -328,7 +327,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (popup-face (:inherit 'tooltip))
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
-  
+
   (flycheck-fringe-warning (:foreground yellow :background black-2))
   (flycheck-fringe-error (:foreground red :background black-2))
   (flycheck-fringe-info (:foreground green :background black-2))

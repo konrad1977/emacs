@@ -182,6 +182,7 @@
   (setq evil-want-C-i-jump nil)
   :config
   (define-key evil-motion-state-map (kbd "M-0") 'treemacs)
+  (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
   (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
@@ -260,7 +261,7 @@
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
-  (setq ivy-height 12
+  (setq ivy-height 20
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
 		ivy-use-selectable-prompt t
@@ -268,6 +269,22 @@
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
   (define-key ivy-mode-map       (kbd "<escape>") nil)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
+
+;; ;; Ivy rich
+(use-package ivy-rich
+  :hook (ivy-mode . ivy-rich-mode)
+  :custom
+  (setq ivy-virtual-abbreviate 'full
+		ivy-rich-switch-buffer-align-virtual-buffer nil
+		ivy-rich-path-style 'full))
+
+(use-package deadgrep
+  :commands deadgrep)
+
+;; (use-package tree-sitter
+;;   :init (global-tree-sitter-mode)
+;;   :hook ((swift-mode . tree-sitter-hl-mode)))
+;; (use-package tree-sitter-langs)
 
 ;; counsel
 (use-package counsel
@@ -278,11 +295,17 @@
   :config
   (setq swiper-goto-start-of-match t))
 
-;; ;; Ivy rich
-(use-package ivy-rich
-  :hook (ivy-mode . ivy-rich-mode))
-
 ;; company --------------------------------------------
+(use-package company
+  :bind (("C-." . #'company-complete))
+  :hook (prog-mode . company-mode)
+  :custom
+  (company-dabbrev-downcase nil "Don't downcase returned candidates.")
+  (company-show-numbers nil)
+  (company-tooltip-limit 20 "The more the merrier.")
+  (company-tooltip-idle-delay 0.4 "Faster!")
+  (company-async-timeout 20 "Some requests can take a long time. That's fine."))
+
 (use-package company-box
   :diminish company-box-mode
   :hook (company-mode . company-box-mode)
@@ -412,14 +435,12 @@
   (add-hook 'swift-mode-hook
 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
 
-  (use-package flycheck-swift3
-	:after flycheck-mode
-	:config
-	(with-eval-after-load 'flycheck
-	  (add-hook 'flycheck-mode-hook #'flycheck-swift3-setup)))
+  (use-package swift-helpful
+	:commands swift-helpful)
 
-  (use-package swift-helpful)
-
+  (use-package flycheck-swiftx
+	:after flycheck)
+  
   (use-package flycheck-swiftlint
   :config
   (with-eval-after-load 'flycheck
@@ -448,7 +469,7 @@
   (add-hook 'lsp-managed-mode-hook
 			(lambda ()
               (when (derived-mode-p 'swift-mode)
-				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swift3)))))))))
+				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swiftx)))))))))
 
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
@@ -536,14 +557,6 @@
   :config
     (setq major-mode-hydra-invisible-quit-key "q"))
 
-;; (use-package hydra-posframe
-;;   :load-path "~/.emacs.d/localpackages/hydra-posframe"
-;;   :config
-;;   (hydra-posframe-mode 1)
-;;   :custom
-;;   (hydra-posframe-parameters
-;;    '((left-fringe . 20) (right-fringe . 20) (top-fringe . 10) (bottom-fringe . 10) (height . 12) (width . 105) (min-height . 10) (max-height . 30) (top . 25))))
-
 ;; ;; Winum - select windows easy
 (use-package winum
   :after doom-modeline
@@ -560,7 +573,6 @@
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package amx
-  :after ivy
   :config (amx-mode 1))
 
 (use-package vterm
@@ -579,6 +591,7 @@
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
 	"SPC" '(counsel-M-x :which-key "M-x")
 	"s" '(swiper :which-key "Swiper")
+	"S" '(swiper-thing-at-point :which-key "Swiper thing at point")
 	"0" '(treemacs-select-window :which-key "Treemacs")
 	"1" '(winum-select-window-1 :which-key "Window 1")
 	"2" '(winum-select-window-2 :which-key "Window 2")
@@ -851,10 +864,10 @@
 
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an icon from Font Awesome icon."
-	(s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str)
-  )
+	(s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
 (defun with-fileicon (icon str &optional height v-adjust)
+  "Display an icon from Font Awesome icon"
   (s-concat (all-the-icons-fileicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
 (defvar mk-elfeed--title (with-faicon "rss-square" "" 1.5 -0.225))
@@ -886,6 +899,7 @@
     ("r" xref-find-references "References" :exit t)
     ("i" dumb-jump-go-prompt "Prompt")
     ("l" dumb-jump-quick-look "Quick look")
+	("." swiper-thing-at-point "Find all in file")
 	("<left>" xref-pop-marker-stack "Back")
     ("q" hydra-keyboard-quit "Quit menu"))))
 
