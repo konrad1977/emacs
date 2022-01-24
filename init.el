@@ -388,6 +388,9 @@
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
 
+  (add-hook 'swift-mode-hook
+			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
+  
   (use-package flycheck-swift3)
   (use-package lsp-sourcekit
     :after lsp-mode
@@ -414,7 +417,7 @@
   :after which-key)
 
 (defun my-vterm/split-horizontal ()
-  "Create a new vterm window under of the current one."
+  "Create a new vterm window under of the current one." 
   (interactive)
   (let* ((ignore-window-parameters t)
          (dedicated-p (window-dedicated-p)))
@@ -429,7 +432,7 @@
          (dedicated-p (window-dedicated-p)))
     (split-window-horizontally)
     (other-window 1)
-    (xwidget-webkit-browse-url "https://google.com")))
+    (xwidget-webkit-browse-url "https://duckduckgo.com")))
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -520,7 +523,7 @@
   :defer t
   :config
   (general-create-definer mk/leader-keys
-	:keymaps '(normal insert emacs visual operator hybrid)
+	:keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
 	:prefix "SPC"
 	:non-normal-prefix "M-SPC")
 
