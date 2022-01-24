@@ -392,21 +392,33 @@
 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
 
   (use-package flycheck-swift3 :defer t)
-  (use-package flycheck-swiftlint :defer t) 
   (use-package swift-helpful
 	:defer t)
 
+  (use-package flycheck-swiftlint
+  :config
+  (with-eval-after-load 'flycheck
+    (flycheck-swiftlint-setup)))
+  
   (use-package lsp-sourcekit
     :after lsp-mode
     :config
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
 
-  (with-eval-after-load 'flycheck
-	(flycheck-add-mode #'flycheck-swift3-setup 'swift-mode)
-	(flycheck-add-mode #'flycheck-swiftlint-setup 'swift-mode))
-  
   (exec-path-from-shell-initialize)
 
+  (defvar-local my/flycheck-local-cache nil)
+  (defun my/flycheck-checker-get (fn checker property)
+	(or (alist-get property (alist-get checker my/flycheck-local-cache))
+		(funcall fn checker property))) 
+
+  (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
+
+  (add-hook 'lsp-managed-mode-hook
+			(lambda ()
+              (when (derived-mode-p 'swift-mode)
+				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swiftlint)))))))))
+  
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
@@ -776,7 +788,7 @@
 			 alpha
 		   (cdr alpha)) ; may also be nil
 		 100)
-		(set-frame-parameter nil 'alpha '(92 . 85))
+		(set-frame-parameter nil 'alpha '(94 . 85))
       (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 ;; Setup Functions
@@ -858,34 +870,38 @@
 (defvar mk-windows-appearance--title (with-faicon "desktop" "Appearance" 1.5 -0.225))
 (pretty-hydra-define hydra-windows-setup
   (:color amaranth :quit-key "q" :title mk-windows-appearance--title)
-  ("Sizing"
-   (("<left> " evil-window-decrease-width "⇢⇠ Decrease")
-	("<right>" evil-window-increase-width "⇠⇢ Increase")
-	("<up>   " evil-window-decrease-height "Decrease height")
-	("<down> " evil-window-increase-height "Incease height"))
-
+  ("Windows"
+   (("1" winum-select-window-1 "Win 1")
+	("2" winum-select-window-2 "Win 2")
+	("3" winum-select-window-3 "Win 3")
+	("4" winum-select-window-4 "Win 4"))
+   
    "Splitting"
    (("/" mk/split-window-right "Right")
 	("-" mk/split-window-below "Below")
 	("=" balance-windows "Balance"))
 
-   "Toggles"
-   (("t" mk/toggle-transparency "Transparency")
-   ("s" scroll-bar-mode "Scrollbar"))
-
    "Rotate"
    (("c" evil-window-rotate-downwards "Clockwise")
 	("w" evil-window-rotate-upwards "Counter clockwise"))
 
-   "Frame"
-   (("f" toggle-frame-fullscreen "Fullscreen")
-	("m" toggle-frame-maximized "Maximized"))
+   "Toggles"
+   (("t" mk/toggle-transparency "Transparency")
+	("f" toggle-frame-fullscreen "Fullscreen")
+	("m" toggle-frame-maximized "Maximized")
+	("s" scroll-bar-mode "Scrollbar"))
 
+   "Sizing"
+   (("<left> " evil-window-decrease-width "⇢⇠ Decrease")
+	("<right>" evil-window-increase-width "⇠⇢ Increase")
+	("<up>   " evil-window-decrease-height "Decrease height")
+	("<down> " evil-window-increase-height "Incease height"))
+   
    "Extras"
    (("x" delete-window "Delete window")
 	("q" hydra-keyboard-quit "Quit menu"))))
 
-(defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 2 -0.05))
+(defvar mk-toggles--title (with-faicon "toggle-on" "Toggles" 1.5 -0.225))
 (pretty-hydra-define mk-toggles
   (:color amaranth :quit-key "q" :title mk-toggles--title)
   ("Basic"
@@ -928,13 +944,17 @@
     ("v" describe-variable "variable")
     ("i" info-lookup-symbol "info lookup"))))
 
-(defvar mk-swift--title (with-faicon "wrench" "Xcode" 3 -0.05))
+(defvar mk-swift--title (with-faicon "apple" "" 1.5 -0.225))
 (major-mode-hydra-define swift-mode
   (:color amaranth :title mk-swift--title)
-	("Select action:"
-	 (("r" xcode-run "Run")
-      ("b" xcode-build "Build")
-      ("t" xcode-test "Test"))))
+  ("Build/test:"
+	 (("r" xcode-run "Run" :exit t)
+      ("b" xcode-build "Build" :exit t)
+      ("t" xcode-test "Test" :exit t))
+	 "Help"
+	 (("." swift-helpful "Describe" :exit t)
+	  ("o" lsp-ui-imenu "Overview" :exit t)
+	  ("e" lsp-treemacs-error-list "Error list" :exit t))))
 
 (provide 'init)
 
