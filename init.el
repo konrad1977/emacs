@@ -337,6 +337,26 @@
   :custom
   (setq lsp-ui-doc-border (face-foreground 'nil)))
 
+(use-package treemacs
+  :config
+  (setq treemacs-follow-after-init          t
+        treemacs-width                      40
+        treemacs-indentation                1
+        treemacs-git-integration            t
+        treemacs-collapse-dirs              0
+        treemacs-silent-refresh             t
+        treemacs-change-root-without-asking nil
+        treemacs-sorting                    'alphabetic-desc
+        treemacs-show-hidden-files          nil
+        treemacs-never-persist              nil
+        treemacs-is-never-other-window      t
+        treemacs-goto-tag-strategy          'refetch-index
+		treemacs-text-scale					0)
+
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-fringe-indicator-mode 'always))
+
 (use-package lsp-treemacs
   :after lsp)
 
