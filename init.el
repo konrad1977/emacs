@@ -181,6 +181,7 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   :config
+  (define-key evil-motion-state-map (kbd "M-0") 'treemacs)
   (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
@@ -346,7 +347,7 @@
         treemacs-collapse-dirs              0
         treemacs-silent-refresh             t
         treemacs-change-root-without-asking nil
-        treemacs-sorting                    'alphabetic-desc
+        treemacs-sorting                    'alphabetic-case-insensitive-desc
         treemacs-show-hidden-files          nil
         treemacs-never-persist              nil
         treemacs-is-never-other-window      t
@@ -426,8 +427,10 @@
 
   (use-package lsp-sourcekit
     :after lsp-mode
-    :config
+    :init
     (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
+
+  (setq-local completion-category-defaults (add-to-list 'completion-category-defaults '(lsp-capf (styles basic))))
 
   (exec-path-from-shell-initialize)
 
@@ -441,7 +444,6 @@
 			(lambda ()
               (when (derived-mode-p 'swift-mode)
 				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swiftlint)))))))))
-
 
   (add-hook 'lsp-managed-mode-hook
 			(lambda ()
@@ -577,7 +579,7 @@
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
 	"SPC" '(counsel-M-x :which-key "M-x")
 	"s" '(swiper :which-key "Swiper")
-	"0" '(treemacs :which-key "Treemacs")
+	"0" '(treemacs-select-window :which-key "Treemacs")
 	"1" '(winum-select-window-1 :which-key "Window 1")
 	"2" '(winum-select-window-2 :which-key "Window 2")
 	"3" '(winum-select-window-3 :which-key "Window 3")
