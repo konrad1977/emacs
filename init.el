@@ -116,18 +116,16 @@
 (use-package dired-single
   :after dired)
 
+(use-package autothemer
+  :custom (setq custom-safe-themes t))
+
+(load-theme 'catppuccin t)
+
 ;;  theming
 (add-hook 'minibuffer-setup-hook
           (lambda ()
             (make-local-variable 'face-remapping-alist)
             (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
-
-(use-package autothemer
-  :ensure t
-  :custom (setq custom-safe-themes t))
-
-(load-theme 'catppuccin t)
-;(add-hook 'after-init-hook (lambda () (load-theme 'catppuccin t)))
 
 (use-package dashboard
   :config
@@ -154,7 +152,7 @@
   :diminish which-key-mode
   :config
   (which-key-mode)
- ;; (which-key-setup-minibuffer)
+  (which-key-setup-minibuffer)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
 		which-key-min-display-lines 4
@@ -248,6 +246,12 @@
 		doom-modeline-height 36)
   (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 148)
   (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 132))
+
+;; nyan cat
+(use-package nyan-mode
+  :hook (doom-modeline-mode . nyan-mode)
+  :config
+  (setq nyan-animate-nyancat t))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -392,11 +396,6 @@
   :config
   (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
   (setq flycheck-display-errors-delay 0.1))
-
-(use-package nyan-mode
-  :hook (doom-modeline-mode . nyan-mode)
-  :config
-  (setq nyan-animate-nyancat t))
 
 (use-package yasnippet
   :defer t)
@@ -786,7 +785,7 @@
 (setq-default elfeed-search-title-min-width 100)
 
 (use-package highlight-indent-guides
-  :defer t
+  :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
 
 (use-package highlight-symbol
@@ -811,7 +810,10 @@
 
 ;;  query stackoverflow
 (use-package sx
-	:commands sx-search)
+  :commands sx-search)
+
+(use-package move-text
+  :config (move-text-default-bindings))
 
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)

@@ -166,6 +166,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (org-indent                           (:background black-2 :foreground black-2))
   (org-hide	                            (:background black-2 :foreground black-2))
   (org-date                             (:foreground gray))
+  (org-ellipsis                         (:foreground gray :bold t))
   (org-level-1                          (:foreground red :height 1.2 :bold t))
   (org-level-2                          (:foreground mauve :height 1.1))
   (org-level-3                          (:foreground rosewater))
@@ -174,7 +175,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (org-level-6                          (:foreground yellow))
   (org-level-7                          (:foreground peach))
   (org-level-8                          (:foreground maroon))
-
+  
   ;; which-key
   (which-key-key-face                   (:foreground green :bold t))
   (which-key-group-description-face     (:foreground pink))
