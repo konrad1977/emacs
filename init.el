@@ -184,7 +184,7 @@
   (define-key evil-motion-state-map (kbd "M-0") 'treemacs)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
   (define-key evil-motion-state-map "/" 'swiper)
-  (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+ ; (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
