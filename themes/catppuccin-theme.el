@@ -63,7 +63,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (mode-line-highlight                  (:foreground rosewater))
   (mode-line-inactive                   (:background black-2 :foreground gray-1))
   (numbers                              (:background green :foreground black))
-  (region                               (:background peach :foreground black-1))
+  (region                               (:background black-3))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))
@@ -100,7 +100,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
-  (trailing-whitespace                  (:background black-3))
+  (trailing-whitespace                  (:background black-1))
 
   ;; Battery colors
   (doom-modeline-battery-critical       (:foreground red))
@@ -215,7 +215,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (rainbow-delimiters-depth-9-face      (:foreground mauve))
 
   ;; show-paren
-  (show-paren-match								(:background teal :foreground black))
+  (show-paren-match								(:background gray-2 :foreground black))
   (show-paren-match-expression					(:background black))
   (show-paren-mismatch							(:background red :foreground white))
 
