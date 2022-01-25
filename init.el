@@ -786,7 +786,7 @@
 (setq-default elfeed-search-title-min-width 100)
 
 (use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
+  :defer t
   :custom (highlight-indent-guides-method #'bitmap))
 
 (use-package highlight-symbol
@@ -851,7 +851,8 @@
 		display-line-numbers t))		;; Show line numbers
 
 (defun mk/setupOrgMode ()
-  (setq word-wrap t))
+  (setq word-wrap t)
+  (setq highlight-indent-guides-mode nil))
 
 (defun mk/split-window-below ()
   (interactive)
