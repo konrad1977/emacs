@@ -63,7 +63,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (mode-line-highlight                  (:foreground rosewater))
   (mode-line-inactive                   (:background black-2 :foreground gray-1))
   (numbers                              (:background green :foreground black))
-  (region                               (:background black-3))
+  (region                               (:background black))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))

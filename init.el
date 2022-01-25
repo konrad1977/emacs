@@ -812,8 +812,11 @@
 (use-package sx
   :commands sx-search)
 
-(use-package move-text
-  :config (move-text-default-bindings))
+;; Drag lines and regions around
+(use-package drag-stuff
+  :config
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys))
 
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
