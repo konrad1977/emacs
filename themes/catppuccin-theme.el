@@ -74,23 +74,23 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (window-divider-last-pixel            (:background black-2))
 
   ;; Font lock
-  (font-lock-type-face                  (:foreground teal))
-  (font-lock-constant-face              (:foreground blue))
+  (font-lock-type-face                  (:foreground lavender))
+  (font-lock-regexp-grouping-backslash  (:foreground yellow))
   (font-lock-keyword-face               (:bold t :foreground maroon))
+  (font-lock-warning-face               (:foreground red))
   (font-lock-constant-face              (:foreground lavender))
   (font-lock-string-face                (:foreground green))
   (font-lock-builtin-face               (:foreground yellow))
+  (elisp-shorthand-font-lock-face       (:foreground peach))
+  (font-lock-reference-face				(:foreground sky))
+  (font-lock-constant-face              (:foreground flamingo))
   (font-lock-function-name-face         (:foreground blue))
-  (font-lock-variable-name-face         (:foreground peach))
+  (font-lock-variable-name-face         (:foreground mauve))
+  (font-lock-negation-char-face         (:foreground red))
   (font-lock-comment-face               (:foreground gray))
   (font-lock-comment-delimiter-face     (:foreground gray))
   (font-lock-doc-face                   (:foreground gray))
   (font-lock-doc-markup-face            (:foreground gray))
-  (font-lock-warning-face               (:foreground maroon))
-  (font-lock-negation-char-face         (:foreground red))
-  (font-lock-regexp-grouping-backslash  (:foreground teal))
-  (elisp-shorthand-font-lock-face       (:foreground yellow))
-  (font-lock-reference-face				(:foreground yellow))
   (font-lock-preprocessor-face	   		(:foreground gray))
 
   (info-xref                            (:foreground yellow))
@@ -100,7 +100,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
-  (trailing-whitespace                  (:background black-1))
+  (trailing-whitespace                  (:background black-4))
 
   ;; Battery colors
   (doom-modeline-battery-critical       (:foreground red))

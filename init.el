@@ -28,7 +28,7 @@
 (setq exec-path (append exec-path '("/usr/local/bin")))
 
 ;; Setup garbage collector
-(setq gc-cons-threshold (eval-when-compile (* 1024 1024 1024)))
+(setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
 
@@ -152,7 +152,7 @@
   :diminish which-key-mode
   :config
   (which-key-mode)
-  (which-key-setup-minibuffer)
+  (which-key-setup-side-window-bottom)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
 		which-key-min-display-lines 4
@@ -265,7 +265,7 @@
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
-  (setq ivy-height 20
+  (setq ivy-height 15
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
 		ivy-use-selectable-prompt t
@@ -278,7 +278,7 @@
 (use-package ivy-rich
   :hook (ivy-mode . ivy-rich-mode)
   :custom
-  (setq ivy-virtual-abbreviate 'full
+  (setq ivy-virtual-abbreviate 'abbreviate
 		ivy-rich-switch-buffer-align-virtual-buffer nil
 		ivy-rich-path-style 'full))
 
