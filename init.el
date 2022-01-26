@@ -357,7 +357,11 @@
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
   :config
-  (lsp-enable-which-key-integration t))
+  (setq lsp-enable-completion-at-point nil
+		lsp-enable-file-watchers nil
+		lsp-enable-semantic-highlighting t
+		lsp-enable-folding nil
+		lsp-enable-indentation nil))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
