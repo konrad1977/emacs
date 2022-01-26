@@ -296,7 +296,7 @@
 
 (use-package swiper
   :after ivy
-  :config
+  :init
   (setq swiper-goto-start-of-match t))
 
 ;; company --------------------------------------------
