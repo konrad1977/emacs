@@ -304,9 +304,9 @@
   :bind (("C-." . #'company-complete))
   :hook (prog-mode . company-mode)
   :custom
-  (company-dabbrev-downcase nil "Don't downcase returned candidates.")
+ ; (company-dabbrev-downcase nil "Don't downcase returned candidates.")
   (company-show-numbers nil)
-  (company-tooltip-limit 20 "The more the merrier.")
+  (company-tooltip-limit 15 "The more the merrier.")
   (company-tooltip-idle-delay 0.4 "Faster!")
   (company-async-timeout 20 "Some requests can take a long time. That's fine."))
 
@@ -355,15 +355,15 @@
   (dolist (elt company-box-icons-all-the-icons)
     (setcdr elt (concat (cdr elt) " "))))
 
-(use-package lsp-mode
-  :commands (lsp lsp-deffered)
-  :config
-  (lsp-enable-which-key-integration t))
+;; (use-package lsp-mode
+;;   :commands (lsp lsp-deffered)
+;;   :config
+;;   (lsp-enable-which-key-integration t))
 
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :custom
-  (setq lsp-ui-doc-border (face-foreground 'nil)))
+;; (use-package lsp-ui
+;;   :hook (lsp-mode . lsp-ui-mode)
+;;   :custom
+;;   (setq lsp-ui-doc-border (face-foreground 'nil)))
 
 (use-package treemacs
   :config
@@ -384,9 +384,6 @@
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)
   (treemacs-fringe-indicator-mode 'always))
-
-(use-package lsp-treemacs
-  :after lsp)
 
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
@@ -426,49 +423,62 @@
 	:commands vterm)
 
   (use-package swift-mode
-    :hook (swift-mode . lsp-deferred)
+    :hook (swift-mode . eglot-ensure)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
 
-  (add-hook 'swift-mode-hook
-			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
+  ;; (add-hook 'swift-mode-hook
+  ;; 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
 
   (use-package swift-helpful
 	:commands swift-helpful)
 
   (use-package flycheck-swiftx
 	:after flycheck)
-  
+
   (use-package flycheck-swiftlint
   :config
   (with-eval-after-load 'flycheck
     (flycheck-swiftlint-setup)))
 
-  (use-package lsp-sourcekit
-    :after lsp-mode
-    :init
-    (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp"))))
-
-  (setq-local completion-category-defaults (add-to-list 'completion-category-defaults '(lsp-capf (styles basic))))
-
   (exec-path-from-shell-initialize)
 
+  (setq tee3-sourcekit-lsp-options '())
+  (defun tee3-sourcekit-lsp-executable ()
+	(setq tee3-sourcekit-lsp-executable
+          (cond ((executable-find "sourcekit-lsp"))
+				((equal system-type 'darwin)
+				 (cond ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
+					   ((executable-find "/usr/local/bin/sourcekit-lsp"))
+                       ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))))
+				((equal system-type 'gnu/linux)
+				 (cond ((executable-find "/home/linuxbrew/.linuxbrew/bin/sourcekit-lsp"))))
+				(t
+				 ("sourcekit-lsp")))))
+
+  (defun tee3-sourcekit-lsp-command (interactive)
+	(append (list (tee3-sourcekit-lsp-executable)) tee3-sourcekit-lsp-options))
+
+  (use-package eglot
+	:config
+	(add-to-list 'eglot-server-programs '((swift-mode) . tee3-sourcekit-lsp-command)))
+ 
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
 	(or (alist-get property (alist-get checker my/flycheck-local-cache))
 		(funcall fn checker property)))
 
   (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
-  (add-hook 'lsp-managed-mode-hook
+  (add-hook 'eglot-managed-mode-hook
 			(lambda ()
               (when (derived-mode-p 'swift-mode)
-				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swiftlint)))))))))
+				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftlint)))))))))
 
-  (add-hook 'lsp-managed-mode-hook
+  (add-hook 'eglot-managed-mode-hook
 			(lambda ()
               (when (derived-mode-p 'swift-mode)
-				(setq my/flycheck-local-cache '((lsp . ((next-checkers . (swiftx)))))))))
+				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftx)))))))))
 
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
