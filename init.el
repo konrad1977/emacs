@@ -179,10 +179,9 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   :config
-  (define-key evil-motion-state-map (kbd "M-0") 'treemacs)
+  (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
   (define-key evil-motion-state-map "/" 'swiper)
- ; (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
@@ -355,16 +354,6 @@
   (dolist (elt company-box-icons-all-the-icons)
     (setcdr elt (concat (cdr elt) " "))))
 
-;; (use-package lsp-mode
-;;   :commands (lsp lsp-deffered)
-;;   :config
-;;   (lsp-enable-which-key-integration t))
-
-;; (use-package lsp-ui
-;;   :hook (lsp-mode . lsp-ui-mode)
-;;   :custom
-;;   (setq lsp-ui-doc-border (face-foreground 'nil)))
-
 (use-package treemacs
   :config
   (setq treemacs-follow-after-init          t
@@ -373,11 +362,11 @@
         treemacs-git-integration            t
         treemacs-collapse-dirs              0
         treemacs-silent-refresh             t
-        treemacs-change-root-without-asking nil
+		treemacs-change-root-without-asking nil
         treemacs-sorting                    'alphabetic-case-insensitive-desc
         treemacs-show-hidden-files          nil
         treemacs-never-persist              nil
-        treemacs-is-never-other-window      t
+        ;treemacs-is-never-other-window      t
         treemacs-goto-tag-strategy          'refetch-index
 		treemacs-text-scale					0)
 
@@ -463,7 +452,7 @@
   (use-package eglot
 	:config
 	(add-to-list 'eglot-server-programs '((swift-mode) . tee3-sourcekit-lsp-command)))
- 
+
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
 	(or (alist-get property (alist-get checker my/flycheck-local-cache))
@@ -854,13 +843,19 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode"
-  ; (define-key evil-motion-state-map (kbd "M-<left>") 'xref-pop-marker-stack)
+  (define-key evil-motion-state-map (kbd "M-O") #'projectile--find-file)
+  (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
+  (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+
+  (electric-pair-mode) ;; Auto insert pairs {} () [] etc
+  (semantic-mode) 	   ;; Get a little extra help for autocompletion
+
   (setq company-mode t
-		electric-pair-mode t			;; Auto insert pairs {} () [] etc
+		electric-pair-mode t
 		highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
-		semantic-mode t					;; Get a little extra help for autocompletion
+		semantic-mode t
 		show-trailing-whitespace t		;; Show trailing whitespaces
 		column-number-mode t			;; Show current line number highlighted
 		display-line-numbers t))		;; Show line numbers
