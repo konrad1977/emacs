@@ -298,6 +298,9 @@
   :init
   (setq swiper-goto-start-of-match t))
 
+(use-package anzu
+  :hook (after-init . anzu-mode))
+
 ;; -- Company
 (use-package company
   :hook (prog-mode . company-mode)
@@ -379,9 +382,9 @@
 
   (exec-path-from-shell-initialize)
 
-  (setq tee3-sourcekit-lsp-options '("--sync"))
-  (defun tee3-sourcekit-lsp-executable ()
-	(setq tee3-sourcekit-lsp-executable
+  (setq mk-sourcekit-lsp-options '("--sync"))
+  (defun mk-sourcekit-lsp-executable ()
+	(setq mk-sourcekit-lsp-executable
           (cond ((executable-find "sourcekit-lsp"))
 				((equal system-type 'darwin)
 				 (cond ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
@@ -392,12 +395,12 @@
 				(t
 				 ("sourcekit-lsp")))))
 
-  (defun tee3-sourcekit-lsp-command (interactive)
-	(append (list (tee3-sourcekit-lsp-executable)) tee3-sourcekit-lsp-options))
+  (defun mk-sourcekit-lsp-command (interactive)
+	(append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
   (use-package eglot
 	:config
-	(add-to-list 'eglot-server-programs '((swift-mode) . tee3-sourcekit-lsp-command)))
+	(add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command)))
 
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
@@ -500,9 +503,7 @@
   :config
   (setq major-mode-hydra-title-generator
 		'(lambda (mode)
-           (s-concat "\n"
-					 (s-repeat 2 " ")
-					 (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
+           (s-concat (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
 
 (use-package major-mode-hydra
   :defer t
@@ -628,6 +629,7 @@
 
   (mk/leader-keys
     "t" '(:ignore t :which-key "Text")
+    "tr" '(anzu-query-replace-at-cursor-thing :which-key "Replace text")
     "ts" '(sort-lines :which-key "Sort lines")
 	"tS" '(hydra-text-scale/body :which-key "Scale text")
     "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace")
