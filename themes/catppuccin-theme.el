@@ -35,6 +35,8 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (gray-1     "#988BA2")
   (gray-2     "#C3BAC6")
   (white      "#DFDEF1")
+  (yellow-bg  "#383227")
+  
   )
 
  ;; Customize faces
@@ -55,7 +57,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background black-2 :foreground black-2))
   (line-number                          (:foreground black-4 :background nil))
-  (line-number-current-line             (:foreground green :background black-3))
+  (line-number-current-line             (:foreground mauve :background black-3 :bold t))
   (lv-separator                         (:foreground gray :background black-2))
   (match                                (:background green :foreground black))
   (menu                                 (:background black :foreground rosewater))
@@ -332,6 +334,14 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (flycheck-fringe-warning (:foreground yellow :background black-2))
   (flycheck-fringe-error (:foreground red :background black-2))
   (flycheck-fringe-info (:foreground green :background black-2))
+
+  (anzu-match-1 (:foreground green :background black-2))
+  (anzu-match-2 (:foreground yellow :background black-2))
+  (anzu-match-3 (:foreground teal :background black-2))
+
+  (anzu-mode-line		(:foreground black :background mauve))
+  (anzu-mode-no-match	(:foreground rosewater :background red))
+  (anzu-replace-to		(:foreground yellow :background yellow-bg))
 
  ))
 
