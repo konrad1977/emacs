@@ -501,11 +501,8 @@
   (setq major-mode-hydra-title-generator
 		'(lambda (mode)
            (s-concat "\n"
-					 (s-repeat 10 " ")
-					 (all-the-icons-icon-for-mode mode :v-adjust 0.05)
-					 " "
-					 (symbol-name mode)
-					 " commands"))))
+					 (s-repeat 2 " ")
+					 (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
 
 (use-package major-mode-hydra
   :defer t
@@ -958,9 +955,7 @@
     ("v" describe-variable "variable")
     ("i" info-lookup-symbol "info lookup"))))
 
-(defvar mk-swift--title (with-faicon "apple" "" 1.5 -0.225))
-(major-mode-hydra-define swift-mode
-  (:color amaranth :title mk-swift--title)
+(major-mode-hydra-define swift-mode nil
   ("Build/test:"
 	 (("r" xcode-run "Run" :exit t)
       ("b" xcode-build "Build" :exit t)
