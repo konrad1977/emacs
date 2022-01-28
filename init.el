@@ -298,61 +298,18 @@
   :init
   (setq swiper-goto-start-of-match t))
 
-;; company --------------------------------------------
+;; -- Company
 (use-package company
-  :bind (("C-." . #'company-complete))
   :hook (prog-mode . company-mode)
   :custom
- ; (company-dabbrev-downcase nil "Don't downcase returned candidates.")
-  (company-show-numbers nil)
-  (company-tooltip-limit 15 "The more the merrier.")
-  (company-tooltip-idle-delay 0.4 "Faster!")
-  (company-async-timeout 20 "Some requests can take a long time. That's fine."))
+  (company-dabbrev-downcase 'case-replace)
+  (company-tooltip-limit 10)
+  (company-tooltip-idle-delay 0.2)
+  (company-async-wait 0.5)
+  (company-async-timeout 3))
 
 (use-package company-box
-  :diminish company-box-mode
-  :hook (company-mode . company-box-mode)
-  :init
-  (setq company-box-icons-alist 'company-box-icons-all-the-icons)
-  :config
-  (require 'all-the-icons)
-  (setf (alist-get 'min-height company-box-frame-parameters) 6)
-  (setq company-box-icons-alist 'company-box-icons-all-the-icons
-        company-box-backends-colors nil
-
-        ;; These are the Doom Emacs defaults
-        company-box-icons-all-the-icons
-        `((Unknown       . ,(all-the-icons-material "find_in_page"             :face 'all-the-icons-purple))
-          (Text          . ,(all-the-icons-material "text_fields"              :face 'all-the-icons-green))
-          (Method        . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-          (Function      . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-          (Constructor   . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-          (Field         . ,(all-the-icons-material "functions"                :face 'all-the-icons-red))
-          (Variable      . ,(all-the-icons-material "adjust"                   :face 'all-the-icons-blue))
-          (Class         . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-          (Interface     . ,(all-the-icons-material "settings_input_component" :face 'all-the-icons-red))
-          (Module        . ,(all-the-icons-material "view_module"              :face 'all-the-icons-red))
-          (Property      . ,(all-the-icons-material "settings"                 :face 'all-the-icons-red))
-          (Unit          . ,(all-the-icons-material "straighten"               :face 'all-the-icons-red))
-          (Value         . ,(all-the-icons-material "filter_1"                 :face 'all-the-icons-red))
-          (Enum          . ,(all-the-icons-material "plus_one"                 :face 'all-the-icons-red))
-          (Keyword       . ,(all-the-icons-material "filter_center_focus"      :face 'all-the-icons-red))
-          (Snippet       . ,(all-the-icons-material "short_text"               :face 'all-the-icons-red))
-          (Color         . ,(all-the-icons-material "color_lens"               :face 'all-the-icons-red))
-          (File          . ,(all-the-icons-material "insert_drive_file"        :face 'all-the-icons-red))
-          (Reference     . ,(all-the-icons-material "collections_bookmark"     :face 'all-the-icons-red))
-          (Folder        . ,(all-the-icons-material "folder"                   :face 'all-the-icons-red))
-          (EnumMember    . ,(all-the-icons-material "people"                   :face 'all-the-icons-red))
-          (Constant      . ,(all-the-icons-material "pause_circle_filled"      :face 'all-the-icons-red))
-          (Struct        . ,(all-the-icons-material "streetview"               :face 'all-the-icons-red))
-          (Event         . ,(all-the-icons-material "event"                    :face 'all-the-icons-red))
-          (Operator      . ,(all-the-icons-material "control_point"            :face 'all-the-icons-red))
-          (TypeParameter . ,(all-the-icons-material "class"                    :face 'all-the-icons-red))
-          (Template      . ,(all-the-icons-material "short_text"               :face 'all-the-icons-green))))
-
-  ;; Add a space after the icon
-  (dolist (elt company-box-icons-all-the-icons)
-    (setcdr elt (concat (cdr elt) " "))))
+  :hook (company-mode . company-box-mode))
 
 (use-package treemacs
   :config
@@ -420,20 +377,9 @@
   ;; (add-hook 'swift-mode-hook
   ;; 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
 
-  (use-package swift-helpful
-	:commands swift-helpful)
-
-  (use-package flycheck-swiftx
-	:after flycheck)
-
-  (use-package flycheck-swiftlint
-  :config
-  (with-eval-after-load 'flycheck
-    (flycheck-swiftlint-setup)))
-
   (exec-path-from-shell-initialize)
 
-  (setq tee3-sourcekit-lsp-options '())
+  (setq tee3-sourcekit-lsp-options '("--sync"))
   (defun tee3-sourcekit-lsp-executable ()
 	(setq tee3-sourcekit-lsp-executable
           (cond ((executable-find "sourcekit-lsp"))
@@ -457,6 +403,17 @@
   (defun my/flycheck-checker-get (fn checker property)
 	(or (alist-get property (alist-get checker my/flycheck-local-cache))
 		(funcall fn checker property)))
+
+  (use-package swift-helpful
+	:commands swift-helpful)
+
+  (use-package flycheck-swiftx
+	:after flycheck)
+
+  (use-package flycheck-swiftlint
+	:config
+	(with-eval-after-load 'flycheck
+     (flycheck-swiftlint-setup)))
 
   (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
   (add-hook 'eglot-managed-mode-hook
