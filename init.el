@@ -377,8 +377,8 @@
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
 
-  ;; (add-hook 'swift-mode-hook
-  ;; 			(lambda () (local-set-key (kbd "M-RET") #'lsp-execute-code-action)))
+  (add-hook 'swift-mode-hook
+			(lambda () (local-set-key (kbd "M-RET") #'eglot-code-action-quickfix)))
 
   (exec-path-from-shell-initialize)
 
@@ -387,9 +387,10 @@
 	(setq mk-sourcekit-lsp-executable
           (cond ((executable-find "sourcekit-lsp"))
 				((equal system-type 'darwin)
-				 (cond ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
-					   ((executable-find "/usr/local/bin/sourcekit-lsp"))
-                       ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))))
+				 (cond
+					((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
+                    ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))
+					((executable-find "/usr/local/bin/sourcekit-lsp"))))
 				((equal system-type 'gnu/linux)
 				 (cond ((executable-find "/home/linuxbrew/.linuxbrew/bin/sourcekit-lsp"))))
 				(t
