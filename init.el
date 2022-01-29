@@ -11,7 +11,6 @@
 (setq auto-mode-case-fold nil)
 (setq ad-redefinition-action 'accept
 	  create-lockfiles nil
-	  word-wrap nil
 	  global-hl-line-mode 1
       display-time-24hr-format t
       display-time-default-load-average nil
@@ -23,6 +22,7 @@
 	  fast-but-imprecise-scrolling t
 	  read-process-output-max (* 8 1024 1024)
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
+
 
 (setenv "PATH" (concat (getenv "PATH") "/usr/local/bin"))
 (setq exec-path (append exec-path '("/usr/local/bin")))
@@ -36,7 +36,7 @@
 (display-time-mode t)		; Show time.
 (recentf-mode t)			; Recent file mode.
 (scroll-bar-mode -1)		; Dont use scrollbars.
-(set-fringe-mode 4)			; Give us some space.
+(set-fringe-mode 2)			; Give us some space.
 (tooltip-mode -1)			; Disable tooltip.
 (show-paren-mode t)			; Enable show paren matching mode.
 (delete-selection-mode t)	; Use a more sane delete mode than evil.
@@ -283,12 +283,6 @@
 
 (use-package deadgrep
   :commands deadgrep)
-
-;; (use-package tree-sitter
-;;   :init (global-tree-sitter-mode)
-;;   :hook ((swift-mode . tree-sitter-hl-mode)))
-;; (use-package tree-sitter-langs)
-
 ;; counsel
 (use-package counsel
   :hook (ivy-mode . counsel-mode))
@@ -802,18 +796,20 @@
   "Programming mode"
   (define-key evil-motion-state-map (kbd "M-O") #'projectile--find-file)
   (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
-  (define-key evil-insert-state-map (kbd "TAB") 'tab-to-tab-stop)
+  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+  (define-key evil-motion-state-map (kbd "C-M-e") #'anzu-query-replace-at-cursor-thing)
+  (define-key evil-motion-state-map (kbd "C-M-r") #'anzu-query-replace-at-cursor)
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
-  (semantic-mode) 	   ;; Get a little extra help for autocompletion
+  ;(semantic-mode) 	   ;; Get a little extra help for autocompletion
 
   (setq company-mode t
-		electric-pair-mode t
 		highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
-		semantic-mode t
 		show-trailing-whitespace t		;; Show trailing whitespaces
+		word-wrap nil
+		truncate-lines 1					;; Truncate lines
 		column-number-mode t			;; Show current line number highlighted
 		display-line-numbers t))		;; Show line numbers
 

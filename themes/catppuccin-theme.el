@@ -231,6 +231,12 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (company-preview-search     (:inherit 'company-tooltip-search))
   (company-template-field     (:inherit 'match))
 
+  (flycheck-posframe-background-face	(:background black))
+  (flycheck-posframe-face				(:background black))
+  (flycheck-posframe-info§-face  		(:background black :foreground teal))
+  (flycheck-posframe-warning-face  		(:background black :foreground yellow))
+  (flycheck-posframe-error-face  		(:background black :foreground mauve))
+
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground black-3))
   (highlight-indent-guides-stack-character-face (:foreground black-3))
@@ -267,6 +273,10 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (treemacs-git-renamed-face		   			(:foreground rosewater))
   (treemacs-git-modified-face		   			(:foreground maroon))
 
+  (tree-sitter-hl-face:constant					(:background red))
+  (tree-sitter-hl-face:constant.builtin			(:background red))
+  (tree-sitter-hl-face:function.call			(:background mauve))
+  
   ;; lets support solaire mode
   (solaire-default-face (:background black-1))
   ;; lsp
