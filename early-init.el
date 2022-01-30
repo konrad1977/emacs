@@ -6,6 +6,15 @@
       comp-async-query-on-exit t)
 
 (setq comp-deferred-compilation nil)
+(setq idle-update-delay 1.0)
+
+(setq highlight-nonselected-windows nil)
+(setq fast-but-imprecise-scrolling t)
+(setq redisplay-skip-fontification-on-input t)
+
+;; Inhibit resizing frame
+(setq frame-inhibit-implied-resize t
+      frame-resize-pixelwise t)
 
 (when (boundp 'read-process-output-max)
   ;; 1MB in bytes, default 4096 bytes
@@ -28,13 +37,8 @@
 (setq-default bidi-display-reordering 'left-to-right
 			  bidi-paragraph-direction 'left-to-right
 			  cursor-in-non-selected-windows nil
-			  highlight-nonselected-windows nil
 			  fringes-outside-margins nil
 			  indicate-buffer-boundaries nil
 			  indicate-empty-lines nil)
-
-(setq frame-resize-pixelwise t
-	  frame-inhibit-implied-resize t
-	  window-resize-pixelwise t)
 
 (provide 'early-init)

@@ -232,7 +232,7 @@
   :hook (after-init . doom-modeline-mode)
   :config
   (setq
-		doom-modeline-bar-width 3
+		doom-modeline-bar-width 4
 		doom-modeline-buffer-file-name-style 'file-name
 		doom-modeline-buffer-encoding nil
 		doom-modeline-icon t
@@ -241,13 +241,18 @@
 		doom-modeline-major-mode-icon t
 		doom-modeline-modal-icon t
 		doom-modeline-checker-simple-format t
-		doom-modeline-persp-icon nil
-		doom-modeline-persp-name nil
-		doom-modeline-env-version t
-		doom-modeline-hud t
-		doom-modeline-height 36)
-  (set-face-attribute 'mode-line nil :family "Source Code Pro" :height 148)
-  (set-face-attribute 'mode-line-inactive nil :family "Source Code Pro" :height 132))
+		doom-modeline-env-version nil
+		doom-modeline-hud nil
+		doom-modeline-height 32)
+  (set-face-attribute 'mode-line nil
+					  :family "Source Code Pro"
+					  :height 142
+					  :box '(:line-width 1 :color "#0C0A10"))
+
+  (set-face-attribute 'mode-line-inactive nil
+					  :family "Source Code Pro"
+					  :height 132
+					  :box '(:line-width 1 :color "#332E41"))
 
 ;; nyan cat
 (use-package nyan-mode
@@ -256,7 +261,7 @@
   (setq nyan-animate-nyancat t))
 
 (use-package beacon
-	:hook (after-init . beacon-mode))
+  :commands beacon-mode)
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -351,8 +356,12 @@
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :config
-  (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
-  (setq flycheck-display-errors-delay 0.1))
+  (setq flycheck-indication-mode 'left-margin
+		flycheck-check-syntax-automatically '(save newline)
+		flycheck-display-errors-delay 0.1)
+   ;; (use-package flycheck-popup-tip
+   ;;   :hook (flycheck-mode . flycheck-popup-tip-mode))
+   )
 
 (use-package exec-path-from-shell
   :commands vterm)
