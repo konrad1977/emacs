@@ -299,8 +299,11 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (lsp-ui-sideline-symbol							(:foreground gray-1))
 
   ;; dashboard
-  (dashboard-heading							(:foreground maroon :bold t))
-
+  (dashboard-heading								(:foreground mauve :bold t))
+  (dashboard-items-face								(:bold nil :foreground rosewater))
+  (dashboard-banner-logo-title						(:bold t :height 200))
+  (dashboard-no-items-face							(:foreground gray-2))
+  
   ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))
   (all-the-icons-green							(:foreground green))
