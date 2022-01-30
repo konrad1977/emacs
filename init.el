@@ -31,28 +31,27 @@
 (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
-
 (display-battery-mode t)	; Show battery.
 (display-time-mode t)		; Show time.
-(recentf-mode t)			; Recent file mode.
 (scroll-bar-mode -1)		; Dont use scrollbars.
 (set-fringe-mode 2)			; Give us some space.
 (tooltip-mode -1)			; Disable tooltip.
 (show-paren-mode t)			; Enable show paren matching mode.
 (delete-selection-mode t)	; Use a more sane delete mode than evil.
 
-(setq-default display-line-numbers-width 4		;; Set so we can display thousands of lines
-			  c-basic-offset 4					;; Set tab indent for c/c++ to 4 tabs
-			  tab-width 4						;; Use four tabs
-			  truncate-lines 1					;; Truncate lines
-			  indent-tabs-mode t				;; Indent tabs
-              indent-line-function 'insert-tab) ;; Use function to insert tabs
+(setq-default display-line-numbers-width 4		; Set so we can display thousands of lines
+			  c-basic-offset 4					; Set tab indent for c/c++ to 4 tabs
+			  tab-width 4						; Use four tabs
+			  truncate-lines 1					; Truncate lines
+			  indent-tabs-mode t				; Indent tabs
+              indent-line-function 'insert-tab) ; Use function to insert tabs
 
-(fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
-(global-font-lock-mode 1)		;; always highlight code
-(global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
-(desktop-save-mode 1)			;; Save desktop
-(savehist-mode 1)				;; Save autocompletions
+(fset 'yes-or-no-p 'y-or-n-p)	; Set yes or no to y/n
+(global-font-lock-mode 1)		; always highlight code
+(global-auto-revert-mode 1)		; refresh a buffer if changed on disk
+(desktop-save-mode 0)			; Save desktop
+(savehist-mode 0)				; Save autocompletions
+(recentf-mode 0)				; Recent file mode.
 
 (let* ((path (expand-file-name "localpackages" user-emacs-directory))
        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
@@ -158,6 +157,10 @@
 		which-key-min-display-lines 4
 		which-key-max-display-columns 5))
 
+ ; helpful
+(use-package helpful
+  :after which-key)
+
 (defun un-indent-by-removing-4-spaces ()
   "remove 4 spaces from beginning of of line"
   (interactive)
@@ -187,7 +190,7 @@
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
 (use-package undo-fu
-  :after evil
+  :commands (undo-fu-only-undo undo-fu-only-redo undo-fu-only-redo-all)
   :config
   (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
   (define-key evil-normal-state-map "U" 'undo-fu-only-redo)
@@ -222,7 +225,7 @@
   :after doom-modeline)
 
 (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+  :hook (dired-mode . all-the-icons-dired-mode))
 
 ;; Config and install modeline
 (use-package doom-modeline
@@ -251,6 +254,9 @@
   :hook (doom-modeline-mode . nyan-mode)
   :config
   (setq nyan-animate-nyancat t))
+
+(use-package beacon
+	:hook (after-init . beacon-mode))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -281,8 +287,6 @@
 		ivy-rich-switch-buffer-align-virtual-buffer nil
 		ivy-rich-path-style 'full))
 
-(use-package deadgrep
-  :commands deadgrep)
 ;; counsel
 (use-package counsel
   :hook (ivy-mode . counsel-mode))
@@ -292,10 +296,19 @@
   :init
   (setq swiper-goto-start-of-match t))
 
+;; ------------------ SEARCHING -------------------
+(use-package deadgrep
+  :commands deadgrep)
+
+;; the silver searcher
+(use-package ag
+  :defer t)
+
+;; - anzu search and replace
 (use-package anzu
   :hook (after-init . anzu-mode))
 
-;; -- Company
+;; ------------------ AUTOCOMPLETIONS -------------
 (use-package company
   :hook (prog-mode . company-mode)
   :custom
@@ -308,6 +321,10 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
+(use-package yasnippet
+  :defer t)
+
+;; ------------------ FILES -----------------------
 (use-package treemacs
   :config
   (setq treemacs-follow-after-init          t
@@ -337,54 +354,35 @@
   (setq flycheck-check-syntax-automatically '(save mode-enabled newline))
   (setq flycheck-display-errors-delay 0.1))
 
-(use-package yasnippet
-  :defer t)
+(use-package exec-path-from-shell
+  :commands vterm)
 
-; On macos use our custom settings ---------------------
-(when (eq system-type 'darwin)
+(defun setup-xcode-menus ()
 
-(defun xcode-build()
-  (interactive)
-  (shell-command-to-string
-    "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'"))
-(defun xcode-run()
-  (interactive)
-  (shell-command-to-string
-    "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'"))
-(defun xcode-test()
-  (interactive)
-  (shell-command-to-string
-   "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'"))
+  (defun xcode-build()
+	(interactive)
+	(shell-command-to-string
+     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'"))
+  (defun xcode-run()
+	(interactive)
+	(shell-command-to-string
+     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'"))
+  (defun xcode-test()
+	(interactive)
+	(shell-command-to-string
+	 "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")))
 
-(use-package ns-auto-titlebar
-	:config (ns-auto-titlebar-mode))
 
-  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-
-  (use-package exec-path-from-shell
-	:commands vterm)
-
-  (use-package swift-mode
-    :hook (swift-mode . eglot-ensure)
-    :config
-    (setq swift-mode:parenthesized-expression-offset 4
-		  swift-mode:multiline-statement-offset 4))
-
-  (add-hook 'swift-mode-hook
-			(lambda () (local-set-key (kbd "M-RET") #'eglot-code-action-quickfix)))
-
-  (exec-path-from-shell-initialize)
-
+(defun setup-eglot-for-swift ()
   (setq mk-sourcekit-lsp-options '("--sync"))
   (defun mk-sourcekit-lsp-executable ()
 	(setq mk-sourcekit-lsp-executable
           (cond ((executable-find "sourcekit-lsp"))
 				((equal system-type 'darwin)
 				 (cond
-					((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
-                    ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))
-					((executable-find "/usr/local/bin/sourcekit-lsp"))))
+				  ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
+                  ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))
+				  ((executable-find "/usr/local/bin/sourcekit-lsp"))))
 				((equal system-type 'gnu/linux)
 				 (cond ((executable-find "/home/linuxbrew/.linuxbrew/bin/sourcekit-lsp"))))
 				(t
@@ -395,7 +393,26 @@
 
   (use-package eglot
 	:config
-	(add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command)))
+	(add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command))))
+
+
+(defun setup-swift-programming ()
+
+  ;; (use-package tree-sitter
+  ;; 	:hook (tree-sitter-after-on . tree-sitter-hl-mode)
+  ;; 	:config (global-tree-sitter-mode))
+
+  ;; (use-package tree-sitter-langs
+  ;; 	:after (tree-sitter))
+
+  (use-package swift-mode
+    :hook (swift-mode . eglot-ensure)
+    :config
+    (setq swift-mode:parenthesized-expression-offset 4
+		  swift-mode:multiline-statement-offset 4))
+
+  (add-hook 'swift-mode-hook
+			(lambda () (local-set-key (kbd "M-RET") #'eglot-code-action-quickfix)))
 
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
@@ -413,6 +430,7 @@
 	(with-eval-after-load 'flycheck
      (flycheck-swiftlint-setup)))
 
+  (setup-eglot-for-swift)
   (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
   (add-hook 'eglot-managed-mode-hook
 			(lambda ()
@@ -422,7 +440,21 @@
   (add-hook 'eglot-managed-mode-hook
 			(lambda ()
               (when (derived-mode-p 'swift-mode)
-				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftx)))))))))
+				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftx))))))))))
+
+; On macos use our custom settings ---------------------
+(when (eq system-type 'darwin)
+
+  (setup-xcode-menus)
+  (setup-swift-programming)
+
+  (use-package ns-auto-titlebar
+	:config (ns-auto-titlebar-mode))
+
+  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+
+  (exec-path-from-shell-initialize)
 
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
@@ -431,12 +463,6 @@
 		dired-use-ls-dired nil
 		frame-title-format ""))
 
-(use-package ag
-  :defer t)
-
-; helpful
-(use-package helpful
-  :after which-key)
 
 (defun my-vterm/split-horizontal ()
   "Create a new vterm window under of the current one."
@@ -585,12 +611,14 @@
 
   (mk/leader-keys
     "c" '(:ignore t :which-key "Code")
+	"ce" '(:ignore t :which-key "Error")
+    "cee" '(counsel-flycheck :which-key "Counsel errors")
+    "cel" '(flycheck-list-errors :which-key "List errors")
     "cp" 'check-parens
     "co" 'projectile-find-other-file
     "cl" '(comment-line :which-key "Comment line")
     "cr" '(comment-region :which-key "Comment region")
     "cu" '(lsp-ui-imenu :which-key "Lsp-ui-menu")
-    "ce" '(lsp-treemacs-errors-list :which-key "Treemacs errors")
     "ct" '(lsp-treemacs-symbols :which-key "Treemacs symbols")
     "cf" '(dumb-jump-hydra/body :which-key "Go to definition"))
 
@@ -793,10 +821,11 @@
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
+
   "Programming mode"
-  (define-key evil-motion-state-map (kbd "M-O") #'projectile--find-file)
-  (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+  (define-key evil-motion-state-map (kbd "M-O") #'projectile-find-file)
+  (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
   (define-key evil-motion-state-map (kbd "C-M-e") #'anzu-query-replace-at-cursor-thing)
   (define-key evil-motion-state-map (kbd "C-M-r") #'anzu-query-replace-at-cursor)
 
@@ -808,8 +837,8 @@
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
 		show-trailing-whitespace t		;; Show trailing whitespaces
-		word-wrap nil
-		truncate-lines 1					;; Truncate lines
+		word-wrap nil					;; Dont word wrap in code mode
+		truncate-lines 1				;; Truncate lines
 		column-number-mode t			;; Show current line number highlighted
 		display-line-numbers t))		;; Show line numbers
 
@@ -934,9 +963,6 @@
    (("D" toggle-debug-on-error "debug on error" :toggle (default-value 'debug-on-error))
     ("X" toggle-debug-on-quit "debug on quit" :toggle (default-value 'debug-on-quit)))))
 
-(add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
-(add-hook 'org-mode-hook #'mk/setupOrgMode)
-
 (major-mode-hydra-define emacs-lisp-mode nil
   ("Eval"
    (("b" eval-buffer "buffer")
@@ -963,6 +989,9 @@
 	 (("." swift-helpful "Describe" :exit t)
 	  ("o" lsp-ui-imenu "Overview" :exit t)
 	  ("e" lsp-treemacs-error-list "Error list" :exit t))))
+
+(add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
+(add-hook 'org-mode-hook #'mk/setupOrgMode)
 
 (provide 'init)
 
