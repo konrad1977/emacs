@@ -51,9 +51,9 @@
 (fset 'yes-or-no-p 'y-or-n-p)	; Set yes or no to y/n
 (global-font-lock-mode 1)		; always highlight code
 (global-auto-revert-mode 1)		; refresh a buffer if changed on disk
-(desktop-save-mode 0)			; Save desktop
-(savehist-mode 0)				; Save autocompletions
-(recentf-mode 0)				; Recent file mode.
+(desktop-save-mode 1)			; Save desktop
+(recentf-mode)					; Recent file mode.
+(savehist-mode 1)
 
 (let* ((path (expand-file-name "localpackages" user-emacs-directory))
        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
@@ -83,10 +83,12 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
-(setq use-package-verbose nil)
+(setq use-package-verbose t)
 
 (use-package gcmh
   :init (gcmh-mode 1))
+
+(use-package smex)
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -108,6 +110,8 @@
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 154)
 (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 154)
+(unless (member "Fira Code" (font-family-list))
+  (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154))
 (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
 (use-package dired
@@ -250,14 +254,14 @@
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
 		doom-modeline-height 32)
-  :init 
+  :init
   (set-face-attribute 'mode-line nil
-					  :family "Fira Code"
+					  :family "Source Code Pro"
 					  :height 142
 					  :box '(:line-width 1 :color "#0C0A10"))
 
   (set-face-attribute 'mode-line-inactive nil
-					  :family "Fira Code"
+					  :family "Source Code Pro"
 					  :height 132
 					  :box '(:line-width 1 :color "#332E41")))
 
@@ -592,7 +596,7 @@
 
   (mk/leader-keys
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
-	"SPC" '(counsel-M-x :which-key "M-x")
+	"SPC" '(execute-extended-command :which-key "M-x")
 	"s" '(swiper :which-key "Swiper")
 	"S" '(swiper-thing-at-point :which-key "Swiper thing at point")
 	"0" '(treemacs-select-window :which-key "Treemacs")
@@ -804,9 +808,6 @@
 
 (use-package highlight-escape-sequences
   :hook (prog-mode . hes-mode))
-
-(use-package emojify
-  :hook (after-init . global-emojify-mode))
 
 (use-package prescient
   :after ivy)
