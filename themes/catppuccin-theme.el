@@ -4,8 +4,11 @@
 
 ;;; code:
 
+(unless (>= emacs-major-version 24)
+  (error "Requires Emacs 24 or later"))
+
 (autothemer-deftheme
-catppuccin "A theme based on catppuccin amazing color scheme"
+	catppuccin "A theme based on catppuccin's amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))) ;; We're only concerned with graphical Emacs
 
@@ -83,7 +86,6 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (font-lock-constant-face              (:foreground lavender))
   (font-lock-string-face                (:foreground green))
   (font-lock-builtin-face               (:foreground yellow))
-  (elisp-shorthand-font-lock-face       (:foreground peach))
   (font-lock-reference-face				(:foreground sky))
   (font-lock-constant-face              (:foreground flamingo))
   (font-lock-function-name-face         (:foreground blue))
@@ -94,6 +96,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (font-lock-doc-face                   (:foreground gray))
   (font-lock-doc-markup-face            (:foreground gray))
   (font-lock-preprocessor-face	   		(:foreground gray))
+  (elisp-shorthand-font-lock-face       (:foreground peach))
 
   (info-xref                            (:foreground yellow))
   (highlight-quoted-symbol              (:foreground maroon))
@@ -171,7 +174,8 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (org-level-8                          (:foreground maroon))
 
   ;; which-key
-  (which-key-key-face                   (:foreground green :bold t))
+  (which-key-key-face                   (:inherit 'font-lock-variable-name-face))
+  (which-func							(:inherit 'font-lock-function-name-face :bold t))
   (which-key-group-description-face     (:foreground pink))
   (which-key-command-description-face   (:foreground blue))
   (which-key-local-map-description-face (:foreground yellow))
@@ -233,9 +237,15 @@ catppuccin "A theme based on catppuccin amazing color scheme"
 
   (flycheck-posframe-background-face	(:background black))
   (flycheck-posframe-face				(:background black))
-  (flycheck-posframe-info§-face  		(:background black :foreground teal))
+  (flycheck-posframe-info-face  		(:background black :foreground teal))
   (flycheck-posframe-warning-face  		(:background black :foreground yellow))
   (flycheck-posframe-error-face  		(:background black :foreground mauve))
+  (flycheck-fringe-warning				(:foreground yellow :background black-2))
+  (flycheck-fringe-error				(:foreground red :background black-2))
+  (flycheck-fringe-info					(:foreground blue :background black-2))
+  (flycheck-error-list-warning          (:foreground yellow :bold t))
+  (flycheck-error-list-error            (:foreground red :bold t))
+  (flycheck-error-list-info             (:foreground blue :bold t))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground black-3))
@@ -336,9 +346,6 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
 
-  (flycheck-fringe-warning (:foreground yellow :background black-2))
-  (flycheck-fringe-error (:foreground red :background black-2))
-  (flycheck-fringe-info (:foreground green :background black-2))
 
   (anzu-match-1 (:foreground green :background black-2))
   (anzu-match-2 (:foreground yellow :background black-2))
@@ -349,6 +356,13 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (anzu-replace-to		(:foreground yellow :background yellow-bg))
 
  ))
+
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name))))
 
 (provide-theme 'catppuccin)
 ;;; catppuccin-theme.el ends here
