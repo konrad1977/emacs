@@ -252,7 +252,7 @@
   (set-face-attribute 'mode-line-inactive nil
 					  :family "Source Code Pro"
 					  :height 132
-					  :box '(:line-width 1 :color "#332E41"))
+					  :box '(:line-width 1 :color "#332E41")))
 
 ;; nyan cat
 (use-package nyan-mode
