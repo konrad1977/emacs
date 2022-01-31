@@ -210,7 +210,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (rainbow-delimiters-depth-9-face      (:foreground mauve))
 
   ;; show-paren
-  (show-paren-match								(:background gray-2 :foreground black))
+  (show-paren-match								(:background peach :foreground dark))
   (show-paren-match-expression					(:background black))
   (show-paren-mismatch							(:background red :foreground white))
 

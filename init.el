@@ -63,11 +63,6 @@
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 
-;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
-
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
@@ -106,6 +101,14 @@
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
 (setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
+
+(use-package fira-code-mode
+  :config (global-fira-code-mode))
+
+;; Setup fonts
+(set-face-attribute 'default nil :font "Source Code Pro" :height 154)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 154)
+(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
 (use-package dired
   :ensure nil
@@ -244,6 +247,7 @@
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
 		doom-modeline-height 32)
+  :init 
   (set-face-attribute 'mode-line nil
 					  :family "Source Code Pro"
 					  :height 142
@@ -260,8 +264,8 @@
   :config
   (setq nyan-animate-nyancat t))
 
-(use-package beacon
-  :commands beacon-mode)
+;; (use-package beacon
+;;   :init (beacon-mode 1))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -399,6 +403,17 @@
 
   (defun mk-sourcekit-lsp-command (interactive)
 	(append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
+
+  (use-package lsp-ui
+	:after lsp
+	:config
+	(setq lsp-ui-doc-enable t
+		  lsp-ui-doc-position 'top
+		  lsp-ui-doc-header t
+		  lsp-ui-doc-show-with-cursor t
+		  lsp-ui-doc-alignment 'window
+		  lsp-ui-doc-border nil 
+	 ))
 
   (use-package eglot
 	:config
