@@ -39,6 +39,8 @@
 (show-paren-mode t)			; Enable show paren matching mode.
 (delete-selection-mode t)	; Use a more sane delete mode than evil.
 
+(setq custom--inhibit-theme-enable nil)
+
 (setq-default display-line-numbers-width 4		; Set so we can display thousands of lines
 			  c-basic-offset 4					; Set tab indent for c/c++ to 4 tabs
 			  tab-width 4						; Use four tabs
@@ -102,8 +104,6 @@
 (setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
 
-(use-package fira-code-mode
-  :config (global-fira-code-mode))
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 154)
@@ -132,22 +132,22 @@
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
-  :init (progn
-		  (setq dashboard-startup-banner (concat user-emacs-directory "themes/catppuccin.png"))
-		  (setq dashboard-path-style 'truncate-beginning)
-		  (setq dashboard-banner-logo-title "Mikaels dashboard!"
-				dashboard-set-file-icons t
-				dashboard-set-init-info t
-				dashboard-center-content t
-				dashboard-set-heading-icons t
-				dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
-				dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-time
-				dashboard-week-agenda t
-				dashboard-items '(
-								  (projects . 5)
-								  (agenda)
-								  (recents . 3)
-								  ))))
+  :config
+  (setq dashboard-startup-banner (concat user-emacs-directory "themes/catppuccin.png")
+		dashboard-path-style 'truncate-beginning
+		dashboard-banner-logo-title "Mikaels dashboard!"
+		dashboard-set-file-icons t
+		dashboard-set-init-info t
+		dashboard-center-content t
+		dashboard-set-heading-icons t
+		dashboard-projects-switch-function 'counsel-projectile-switch-project-by-name
+		dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-time
+		dashboard-week-agenda t
+		dashboard-items '(
+						  (projects . 5)
+						  (agenda)
+						  (recents . 3)
+						  )))
 
 ;; Which key
 (use-package which-key
@@ -224,6 +224,9 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+(use-package fira-code-mode
+  :hook (prog-mode . fira-code-mode))
+
 (use-package all-the-icons
   :after doom-modeline)
 
@@ -249,12 +252,12 @@
 		doom-modeline-height 32)
   :init 
   (set-face-attribute 'mode-line nil
-					  :family "Source Code Pro"
+					  :family "Fira Code"
 					  :height 142
 					  :box '(:line-width 1 :color "#0C0A10"))
 
   (set-face-attribute 'mode-line-inactive nil
-					  :family "Source Code Pro"
+					  :family "Fira Code"
 					  :height 132
 					  :box '(:line-width 1 :color "#332E41")))
 
@@ -335,6 +338,7 @@
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
+  :commands (treemacs lsp-treemacs-symbols lsp-treemacs-error-list)
   :config
   (setq treemacs-follow-after-init          t
         treemacs-width                      40
@@ -480,6 +484,7 @@
 
   (exec-path-from-shell-initialize)
 
+  (setq org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/"))
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
@@ -747,8 +752,7 @@
 	org-hide-leading-stars t
 	org-agenda-start-with-log-mode t
 	org-log-into-drawer t
-	org-log-done 'time
-	org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/")))
+	org-log-done 'time))
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages

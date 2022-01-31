@@ -36,7 +36,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (gray-2     "#C3BAC6")
   (white      "#DFDEF1")
   (yellow-bg  "#383227")
-  
+
   )
 
  ;; Customize faces
@@ -169,7 +169,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (org-level-6                          (:foreground yellow))
   (org-level-7                          (:foreground peach))
   (org-level-8                          (:foreground maroon))
-  
+
   ;; which-key
   (which-key-key-face                   (:foreground green :bold t))
   (which-key-group-description-face     (:foreground pink))
@@ -276,7 +276,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (tree-sitter-hl-face:constant					(:background red))
   (tree-sitter-hl-face:constant.builtin			(:background red))
   (tree-sitter-hl-face:function.call			(:background mauve))
-  
+
   ;; lets support solaire mode
   (solaire-default-face (:background black-1))
   ;; lsp
@@ -303,7 +303,7 @@ catppuccin "A theme based on catppuccin amazing color scheme"
   (dashboard-items-face								(:bold nil :foreground rosewater))
   (dashboard-banner-logo-title						(:bold t :height 200))
   (dashboard-no-items-face							(:foreground gray-2))
-  
+
   ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))
   (all-the-icons-green							(:foreground green))
