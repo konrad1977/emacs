@@ -7,38 +7,46 @@
 (unless (>= emacs-major-version 24)
   (error "Requires Emacs 24 or later"))
 
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name))))
+
 (autothemer-deftheme
 	catppuccin "A theme based on catppuccin's amazing color scheme"
 
- ((((class color) (min-colors #xFFFFFF))) ;; We're only concerned with graphical Emacs
-
+ ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
+   ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
+  
   ;; Define our color palette
-  (rosewater  "#F5E0DC")
-  (flamingo   "#F2CDCD")
-  (mauve      "#DDB6F2")
-  (pink       "#F5C2E7")
-  (maroon     "#E8A2AF")
-  (red        "#F28FAD")
-  (peach      "#F8BD96")
-  (yellow     "#FAE3B0")
-  (green      "#ABE9B3")
-  (teal       "#B5E8E0")
-  (blue       "#96CDFB")
-  (sky        "#89DCEB")
-  (lavender   "#C9CBFF")
+  (rosewater  "#F5E0DC" "#e4d5d3")
+  (flamingo   "#F2CDCD" "#ecc7cd")
+  (mauve      "#DDB6F2" "#d7a9e3")
+  (pink       "#F5C2E7" "#e7bae4")
+  (maroon     "#E8A2AF" "#E89CAE ")
+  (red        "#F28FAD" "#ff87af")
+  (peach      "#F8BD96" "#ffd787")
+  (yellow     "#FAE3B0" "#ffd7af")
+  (green      "#ABE9B3" "#afd7af")
+  (teal       "#B5E8E0" "#afd7d7")
+  (blue       "#96CDFB" "#afd7ff")
+  (sky        "#89DCEB" "#afffff")
+  (lavender   "#C9CBFF" "#afafd7")
 
   ;; Dark - monochrome:ish
-  (dark       "#0C0A10")
-  (black      "#15121C")
-  (black-1    "#1B1923")
-  (black-2    "#1E1E28")
-  (black-3    "#332E41")
-  (black-4    "#575268")
-  (gray       "#6E6C7E")
-  (gray-1     "#988BA2")
-  (gray-2     "#C3BAC6")
-  (white      "#DFDEF1")
-  (yellow-bg  "#383227")
+  (dark       "#0C0A10" "#000000")
+  (black      "#15121C" "#080808")
+  (black-1    "#1B1923" "#121212")
+  (black-2    "#1E1E28" "#1c1c1c")
+  (black-3    "#332E41" "#303030")
+  (black-4    "#575268" "#4e4e4e")
+  (gray       "#6E6C7E" "#9e9e9e")
+  (gray-1     "#988BA2" "#dadada")
+  (gray-2     "#C3BAC6" "#e5e5e5")
+  (white      "#DFDEF1" "#eeeeee")
+  (yellow-bg  "#383227" "#af5f00")
 
   )
 
@@ -48,7 +56,7 @@
   (button                               (:foreground green))
   (child-frame		                    (:background black :foreground black-1))
   (child-frame-border                   (:background black-2 :foreground black-1))
-  (cursor                               (:background peach :foreground black-1))
+  (cursor                               (:background mauve :foreground black))
   (default								(:foreground rosewater :background black-2))
   (error                                (:foreground red))
   (fringe                               (:background black-2 :foreground gray))
@@ -214,8 +222,8 @@
   (rainbow-delimiters-depth-9-face      (:foreground mauve))
 
   ;; show-paren
-  (show-paren-match								(:background peach :foreground dark))
-  (show-paren-match-expression					(:background black))
+  (show-paren-match								(:background peach :foreground dark :bold t))
+  (show-paren-match-expression					(:background peach :foreground dark :bold t))
   (show-paren-mismatch							(:background red :foreground white))
 
   (tooltip (:background black))
@@ -357,12 +365,6 @@
 
  ))
 
-;;;###autoload
-(and load-file-name
-     (boundp 'custom-theme-load-path)
-     (add-to-list 'custom-theme-load-path
-                  (file-name-as-directory
-                   (file-name-directory load-file-name))))
 
 (provide-theme 'catppuccin)
 ;;; catppuccin-theme.el ends here

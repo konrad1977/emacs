@@ -39,7 +39,7 @@
 (show-paren-mode t)			; Enable show paren matching mode.
 (delete-selection-mode t)	; Use a more sane delete mode than evil.
 
-(setq custom--inhibit-theme-enable nil)
+; (setq custom--inhibit-theme-enable nil)
 
 (setq-default display-line-numbers-width 4		; Set so we can display thousands of lines
 			  c-basic-offset 4					; Set tab indent for c/c++ to 4 tabs
@@ -83,7 +83,7 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
-(setq use-package-verbose t)
+(setq use-package-verbose nil)
 
 (use-package gcmh
   :init (gcmh-mode 1))
@@ -375,8 +375,12 @@
    ;;   :hook (flycheck-mode . flycheck-popup-tip-mode))
    )
 
+(defun exec-path-from-shell-setup ()
+     (when (memq window-system '(mac ns x))
+       (exec-path-from-shell-initialize)))
+
 (use-package exec-path-from-shell
-  :commands vterm)
+  :hook (after-init . exec-path-from-shell-setup))
 
 (defun setup-xcode-menus ()
 
@@ -485,8 +489,6 @@
 
   (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-
-  (exec-path-from-shell-initialize)
 
   (setq org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/"))
   (setq mac-option-key-is-meta nil
