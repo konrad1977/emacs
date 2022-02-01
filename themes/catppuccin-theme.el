@@ -7,19 +7,13 @@
 (unless (>= emacs-major-version 24)
   (error "Requires Emacs 24 or later"))
 
-;;;###autoload
-(and load-file-name
-     (boundp 'custom-theme-load-path)
-     (add-to-list 'custom-theme-load-path
-                  (file-name-as-directory
-                   (file-name-directory load-file-name))))
 
 (autothemer-deftheme
 	catppuccin "A theme based on catppuccin's amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
-  
+
   ;; Define our color palette
   (rosewater  "#F5E0DC" "#e4d5d3")
   (flamingo   "#F2CDCD" "#ecc7cd")
@@ -363,8 +357,17 @@
   (anzu-mode-no-match	(:foreground rosewater :background red))
   (anzu-replace-to		(:foreground yellow :background yellow-bg))
 
+  (ace-jump-face-background (:foreground gray))
+  (ace-jump-face-foreground (:foreground red :background black :bold t))
+
  ))
 
+;;;###autoload
+(and load-file-name
+     (boundp 'custom-theme-load-path)
+     (add-to-list 'custom-theme-load-path
+                  (file-name-as-directory
+                   (file-name-directory load-file-name))))
 
 (provide-theme 'catppuccin)
 ;;; catppuccin-theme.el ends here

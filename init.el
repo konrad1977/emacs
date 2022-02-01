@@ -51,7 +51,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)	; Set yes or no to y/n
 (global-font-lock-mode 1)		; always highlight code
 (global-auto-revert-mode 1)		; refresh a buffer if changed on disk
-(desktop-save-mode 1)			; Save desktop
+(desktop-save-mode 0)			; Save desktop
 (recentf-mode)					; Recent file mode.
 (savehist-mode 1)
 
@@ -88,7 +88,6 @@
 (use-package gcmh
   :init (gcmh-mode 1))
 
-(use-package smex)
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -190,6 +189,7 @@
   (setq evil-want-C-i-jump nil)
   :config
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
+  (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
   (define-key evil-motion-state-map "/" 'swiper)
   (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
@@ -307,6 +307,9 @@
 (use-package counsel
   :hook (ivy-mode . counsel-mode))
 
+(use-package smex
+  :after ivy)
+
 (use-package swiper
   :after ivy
   :init
@@ -327,12 +330,17 @@
 ;; ------------------ AUTOCOMPLETIONS -------------
 (use-package company
   :hook (prog-mode . company-mode)
+  :config
+  (setq company-backends (delete 'company-semantic company-backends))
   :custom
   (company-dabbrev-downcase 'case-replace)
   (company-tooltip-limit 10)
   (company-tooltip-idle-delay 0.2)
   (company-async-wait 0.5)
   (company-async-timeout 3))
+
+(use-package ace-jump-mode
+  :bind ("M-g" . ace-jump-mode))
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
@@ -342,25 +350,25 @@
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
-  :commands (treemacs lsp-treemacs-symbols lsp-treemacs-error-list)
   :config
-  (setq treemacs-follow-after-init          t
-        treemacs-width                      40
-        treemacs-indentation                1
-        treemacs-git-integration            t
-        treemacs-collapse-dirs              0
-        treemacs-silent-refresh             t
+  (setq treemacs-follow-after-init t
+		treemacs-project-follow-mode t
+		treemacs-follow-mode t
+		treemacs-filewatch-mode t
+		treemacs-fringe-indicator-mode 'always
+        treemacs-width 40
+        treemacs-indentationv 1
+        treemacs-git-integration t
+        treemacs-collapse-dirs 0
+        treemacs-silent-refresh	t
 		treemacs-change-root-without-asking nil
-        treemacs-sorting                    'alphabetic-case-insensitive-desc
-        treemacs-show-hidden-files          nil
-        treemacs-never-persist              nil
-        ;treemacs-is-never-other-window      t
-        treemacs-goto-tag-strategy          'refetch-index
-		treemacs-text-scale					0)
-
-  (treemacs-follow-mode t)
-  (treemacs-filewatch-mode t)
-  (treemacs-fringe-indicator-mode 'always))
+        treemacs-sorting 'alphabetic-case-insensitive-desc
+        treemacs-show-hidden-files nil
+        treemacs-never-persist nil
+        treemacs-is-never-other-window nil
+		treemacs-display-current-project-exclusively t
+        treemacs-goto-tag-strategy 'refetch-index
+		treemacs-text-scale	0))
 
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
@@ -456,7 +464,9 @@
 		(funcall fn checker property)))
 
   (use-package swift-helpful
-	:commands swift-helpful)
+	:after swift-mode
+	:config
+	(setq swift-helpful-stdlib-path "~/source/swift/stdlib/public/"))
 
   (use-package flycheck-swiftx
 	:after flycheck)
@@ -530,12 +540,12 @@
 	(setq projectile-completion-system 'ivy
 		  projectile-enable-caching t
 		  projectile-sort-order 'recentf
-		  projectile-indexing-method 'native)
+		  projectile-indexing-method 'alien)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
     (setq projectile-project-search-path '("~/Documents/git")))
-  (setq projectile-switch-project-action #'projectile-dired))
+  (setq projectile-switch-project-action #'counsel-ag))
 
 ;; counsel-projectile
 (use-package counsel-projectile
@@ -859,9 +869,9 @@
   (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
   (define-key evil-motion-state-map (kbd "C-M-e") #'anzu-query-replace-at-cursor-thing)
   (define-key evil-motion-state-map (kbd "C-M-r") #'anzu-query-replace-at-cursor)
+  (define-key evil-motion-state-map (kbd "M-R") #'projectile-recentf)
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
-  ;(semantic-mode) 	   ;; Get a little extra help for autocompletion
 
   (setq company-mode t
 		highlight-indent-guides-mode t	;; Turn on indent-guides
