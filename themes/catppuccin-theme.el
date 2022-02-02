@@ -1,8 +1,11 @@
 ;;; commentary: catppuccin based theme
 
-(require 'autothemer)
 
-;;; code:
+;;; Code:
+(eval-when-compile
+  (require 'cl-lib))
+
+(require 'autothemer)
 
 (unless (>= emacs-major-version 24)
   (error "Requires Emacs 24 or later"))
@@ -15,32 +18,32 @@
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette
-  (rosewater  "#F5E0DC" "#e4d5d3")
-  (flamingo   "#F2CDCD" "#ecc7cd")
-  (mauve      "#DDB6F2" "#d7a9e3")
-  (pink       "#F5C2E7" "#e7bae4")
-  (maroon     "#E8A2AF" "#E89CAE ")
+  (rosewater  "#F5E0DC" "#ffffff")
+  (flamingo   "#F2CDCD" "#ffd7df")
+  (mauve      "#DDB6F2" "#d7afd7")
+  (pink       "#F5C2E7" "#d7afaf")
+  (maroon     "#E8A2AF" "#ffafaf")
   (red        "#F28FAD" "#ff87af")
-  (peach      "#F8BD96" "#ffd787")
+  (peach      "#F8BD96" "#ffaf87")
   (yellow     "#FAE3B0" "#ffd7af")
   (green      "#ABE9B3" "#afd7af")
   (teal       "#B5E8E0" "#afd7d7")
   (blue       "#96CDFB" "#afd7ff")
   (sky        "#89DCEB" "#afffff")
-  (lavender   "#C9CBFF" "#afafd7")
+  (lavender   "#C9CBFF" "#d7d7ff")
 
   ;; Dark - monochrome:ish
   (dark       "#0C0A10" "#000000")
   (black      "#15121C" "#080808")
-  (black-1    "#1B1923" "#121212")
-  (black-2    "#1E1E28" "#1c1c1c")
+  (black-1    "#1B1923" "#080808")
+  (black-2    "#1E1E28" "#121212")
   (black-3    "#332E41" "#303030")
   (black-4    "#575268" "#4e4e4e")
-  (gray       "#6E6C7E" "#9e9e9e")
-  (gray-1     "#988BA2" "#dadada")
-  (gray-2     "#C3BAC6" "#e5e5e5")
+  (gray       "#6E6C7E" "#585858")
+  (gray-1     "#988BA2" "#8a8a8a")
+  (gray-2     "#C3BAC6" "#9e9e9e")
   (white      "#DFDEF1" "#eeeeee")
-  (yellow-bg  "#383227" "#af5f00")
+  (yellow-bg  "#383227" "#875f5f")
 
   )
 
