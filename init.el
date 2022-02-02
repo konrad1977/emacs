@@ -31,6 +31,15 @@
 (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
+;; Helpout better with debugging
+(if init-file-debug
+    (setq use-package-verbose t
+          use-package-expand-minimally nil
+          use-package-compute-statistics t
+          debug-on-error t)
+  (setq use-package-verbose nil
+        use-package-expand-minimally t))
+
 (display-battery-mode t)	; Show battery.
 (display-time-mode t)		; Show time.
 (scroll-bar-mode -1)		; Dont use scrollbars.
@@ -88,7 +97,6 @@
 (use-package gcmh
   :init (gcmh-mode 1))
 
-
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
   :custom
@@ -104,7 +112,6 @@
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
 (setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
-
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 154)
@@ -361,14 +368,17 @@
         treemacs-git-integration t
         treemacs-collapse-dirs 0
         treemacs-silent-refresh	t
-		treemacs-change-root-without-asking nil
+		treemacs-change-root-without-asking t
         treemacs-sorting 'alphabetic-case-insensitive-desc
         treemacs-show-hidden-files nil
         treemacs-never-persist nil
         treemacs-is-never-other-window nil
 		treemacs-display-current-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
-		treemacs-text-scale	0))
+		treemacs-text-scale	0)
+  (treemacs-follow-mode)
+   (treemacs-project-follow-mode)
+  )
 
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
