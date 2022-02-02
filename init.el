@@ -384,8 +384,7 @@
         treemacs-goto-tag-strategy 'refetch-index
 		treemacs-text-scale	0)
   (treemacs-follow-mode)
-   (treemacs-project-follow-mode)
-  )
+  (treemacs-project-follow-mode))
 
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
@@ -583,7 +582,7 @@
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
     (setq projectile-project-search-path '("~/Documents/git")))
-  (setq projectile-switch-project-action #'counsel-ag))
+  (setq projectile-switch-project-action #'projectile-find-file))
 
 ;; counsel-projectile
 (use-package counsel-projectile
@@ -766,7 +765,9 @@
 
    (mk/leader-keys
      "v" '(:ignore t :which-key "Version control")
-     "vs" '(magit-status :which-key "Status"))
+     "vs" '(magit-status :which-key "Status")
+     "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
+     "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
 
    (mk/leader-keys
      "g" '(:ignore t :which-key "Games")
