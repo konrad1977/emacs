@@ -73,7 +73,7 @@
   (mode-line-highlight                  (:foreground rosewater))
   (mode-line-inactive                   (:background black-2 :foreground gray-1))
   (numbers                              (:background green :foreground black))
-  (region                               (:background black))
+  (region                               (:background rosewater :foreground black-2))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))

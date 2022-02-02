@@ -314,9 +314,16 @@
 (use-package counsel
   :hook (ivy-mode . counsel-mode))
 
-(use-package smex
-  :after ivy)
+;; Remember autocompletions
+(use-package amx
+  :after ivy
+  :config
+  (amx-mode 1))
 
+(use-package request
+  :commands counsel-search)
+
+;; Search files, and do it with speed and style
 (use-package swiper
   :after ivy
   :init
@@ -622,9 +629,6 @@
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package amx
-  :config (amx-mode 1))
-
 (use-package vterm
   :commands vterm)
 
@@ -640,8 +644,7 @@
   (mk/leader-keys
 	"TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
 	"SPC" '(execute-extended-command :which-key "M-x")
-	"s" '(swiper :which-key "Swiper")
-	"S" '(swiper-thing-at-point :which-key "Swiper thing at point")
+	"s" '(swiper-thing-at-point :which-key "Swiper thing at point")
 	"0" '(treemacs-select-window :which-key "Treemacs")
 	"1" '(winum-select-window-1 :which-key "Window 1")
 	"2" '(winum-select-window-2 :which-key "Window 2")
@@ -893,8 +896,11 @@
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
-
   "Programming mode"
+
+  (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
+  (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
+  
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O") #'projectile-find-file)
   (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
@@ -913,6 +919,7 @@
 		truncate-lines 1				;; Truncate lines
 		column-number-mode t			;; Show current line number highlighted
 		display-line-numbers t))		;; Show line numbers
+
 
 (defun mk/setupOrgMode ()
   (setq word-wrap t)
