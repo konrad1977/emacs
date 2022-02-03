@@ -347,6 +347,7 @@
   :config
   (setq company-backends (delete 'company-semantic company-backends))
   :custom
+  (add-to-list 'company-backends company-yasnippet)
   (company-dabbrev-downcase 'case-replace)
   (company-tooltip-limit 10)
   (company-tooltip-idle-delay 0.2)
@@ -360,7 +361,11 @@
   :hook (company-mode . company-box-mode))
 
 (use-package yasnippet
-  :defer t)
+  :hook (swift-mode . yas-minor-mode)
+  :config (yas-reload-all))
+
+(use-package yasnippet-snippets
+  :after yasnippet)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -437,32 +442,33 @@
 				(t
 				 ("sourcekit-lsp")))))
 
-  (defun mk-sourcekit-lsp-command (interactive)
-	(append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
- (use-package lsp-ui
+(defun mk-sourcekit-lsp-command (interactive)
+  (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
+
+(use-package lsp-ui
    :custom-face
    :hook (lsp-mode . lsp-ui-mode)
-   :init (setq lsp-ui-doc-enable t
-	       lsp-ui-doc-use-webkit nil
-	       lsp-ui-doc-delay 0.5
-	       lsp-ui-doc-include-signature t
-	       lsp-ui-doc-position 'top
-	       lsp-ui-doc-border (face-foreground 'default)
-	       lsp-eldoc-enable-hover nil ; Disable eldoc displays in minibuffer
-
-	       lsp-ui-sideline-enable t
-	       lsp-ui-sideline-show-hover nil
-	       lsp-ui-sideline-show-diagnostics nil
-	       lsp-ui-sideline-ignore-duplicate t
-
-	       lsp-ui-imenu-enable t
-	       lsp-ui-imenu-colors `(,(face-foreground 'font-lock-keyword-face)
-				     ,(face-foreground 'font-lock-string-face)
-				     ,(face-foreground 'font-lock-constant-face)
-				     ,(face-foreground 'font-lock-variable-name-face)))
-
    :config
+   (setq lsp-ui-doc-enable t
+	     lsp-ui-doc-delay 0.5
+		 lsp-ui-doc-use-child-frame nil
+	     lsp-ui-doc-include-signature t
+	     lsp-ui-doc-position 'top
+	     lsp-ui-doc-border (face-foreground 'default)
+	     lsp-eldoc-enable-hover nil ; Disable eldoc displays in minibuffer
+
+	     lsp-ui-sideline-enable t
+	     lsp-ui-sideline-show-hover t
+	     lsp-ui-sideline-show-diagnostics t
+	     lsp-ui-sideline-ignore-duplicate t
+
+	     lsp-ui-imenu-enable t
+	     lsp-ui-imenu-colors `(,(face-foreground 'font-lock-keyword-face)
+							   ,(face-foreground 'font-lock-string-face)
+							   ,(face-foreground 'font-lock-constant-face)
+							   ,(face-foreground 'font-lock-variable-name-face)))
+
    (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
 
    ;; Reset `lsp-ui-doc-background' after loading theme
