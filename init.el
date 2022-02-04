@@ -116,9 +116,7 @@
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 154)
-(unless (member "Fira Code" (font-family-list))
-  (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154))
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
 (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
 (use-package dired
@@ -327,7 +325,7 @@
 ;; Search files, and do it with speed and style
 (use-package swiper
   :after ivy
-  :init
+  :config
   (setq swiper-goto-start-of-match t))
 
 ;; ------------------ SEARCHING -------------------
