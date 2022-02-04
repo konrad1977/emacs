@@ -40,13 +40,19 @@
   (setq use-package-verbose nil
         use-package-expand-minimally t))
 
-(display-battery-mode t)	; Show battery.
-(display-time-mode t)		; Show time.
-(scroll-bar-mode -1)		; Dont use scrollbars.
-(set-fringe-mode 2)			; Give us some space.
-(tooltip-mode -1)			; Disable tooltip.
-(show-paren-mode t)			; Enable show paren matching mode.
-(delete-selection-mode t)	; Use a more sane delete mode than evil.
+(display-battery-mode t)		;; Show battery.
+(display-time-mode t)			;; Show time.
+(scroll-bar-mode -1)			;; Dont use scrollbars.
+(set-fringe-mode 2)				;; Give us some space.
+(tooltip-mode -1)				;; Disable tooltip.
+(show-paren-mode t)				;; Enable show paren matching mode.
+(delete-selection-mode t)		;; Use a more sane delete mode than evil.
+(fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
+(global-font-lock-mode 1)		;; always highlight code
+(global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
+(desktop-save-mode 0)			;; Save desktop
+(recentf-mode)					;; Recent file mode.
+(savehist-mode 1)				;; Save history
 
 ; (setq custom--inhibit-theme-enable nil)
 
@@ -58,12 +64,6 @@
 			  indent-tabs-mode t				;; Indent tabs
               indent-line-function 'insert-tab) ;; Use function to insert tabs
 
-(fset 'yes-or-no-p 'y-or-n-p)	; Set yes or no to y/n
-(global-font-lock-mode 1)		; always highlight code
-(global-auto-revert-mode 1)		; refresh a buffer if changed on disk
-(desktop-save-mode 0)			; Save desktop
-(recentf-mode)					; Recent file mode.
-(savehist-mode 1)
 
 (let* ((path (expand-file-name "localpackages" user-emacs-directory))
        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
@@ -120,7 +120,6 @@
 (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
 (use-package dired
-  :ensure nil
   :commands dired dired-jump
   :bind (("C-x C-j" . dired-jump)))
 
