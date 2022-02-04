@@ -70,8 +70,10 @@
   (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
   (mode-line                            (:background black))
-  (mode-line-highlight                  (:foreground rosewater))
-  (mode-line-inactive                   (:background black-2 :foreground gray-1))
+  (mode-line-inactive                   (:background nil :foreground gray-1 :bold nil))
+  (mode-line-active		                (:background black :foreground rosewater :bold nil))
+  (mode-line-highlight                  (:foreground flamingo))
+  (mode-line-buffer-id                  (:foreground green :bold t))
   (numbers                              (:background green :foreground black))
   (region                               (:background rosewater :foreground black-2))
   (separator-line                       (:background black-2))
@@ -112,7 +114,9 @@
 
   (trailing-whitespace                  (:background black-4))
 
-  ;; Battery colors
+  (mode-line (:background black :foreground rosewater :bold t))
+  
+  ;; ;; Battery colors
   (doom-modeline-battery-critical       (:foreground red))
   (doom-modeline-battery-warning        (:foreground maroon))
   (doom-modeline-battery-charging       (:foreground gray-2))

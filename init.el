@@ -50,12 +50,13 @@
 
 ; (setq custom--inhibit-theme-enable nil)
 
-(setq-default display-line-numbers-width 4		; Set so we can display thousands of lines
-			  c-basic-offset 4					; Set tab indent for c/c++ to 4 tabs
-			  tab-width 4						; Use four tabs
-			  truncate-lines 1					; Truncate lines
-			  indent-tabs-mode t				; Indent tabs
-              indent-line-function 'insert-tab) ; Use function to insert tabs
+(setq-default display-line-numbers-width 4		;; Set so we can display thousands of lines
+			  c-basic-offset 4					;; Set tab indent for c/c++ to 4 tabs
+			  tab-width 4						;: Use four tabs
+			  line-spacing 0.1					;; Increase linespacing a bit
+			  truncate-lines 10					;; Truncate lines
+			  indent-tabs-mode t				;; Indent tabs
+              indent-line-function 'insert-tab) ;; Use function to insert tabs
 
 (fset 'yes-or-no-p 'y-or-n-p)	; Set yes or no to y/n
 (global-font-lock-mode 1)		; always highlight code
@@ -115,9 +116,7 @@
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 154)
-(unless (member "Fira Code" (font-family-list))
-  (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154))
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
 (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
 (use-package dired
@@ -326,7 +325,7 @@
 ;; Search files, and do it with speed and style
 (use-package swiper
   :after ivy
-  :init
+  :config
   (setq swiper-goto-start-of-match t))
 
 ;; ------------------ SEARCHING -------------------
@@ -823,6 +822,9 @@
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(use-package ox-gfm
+  :after org)
 
 (defun mk/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
