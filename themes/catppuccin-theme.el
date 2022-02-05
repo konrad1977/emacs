@@ -267,13 +267,12 @@
 
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground black :bold t))
-  (ivy-subdir                                   (:background peach :foreground black))
-  (ivy-action                                   (:background nil :foreground peach))
+  (ivy-action                                   (:background nil :foreground lavender))
   (ivy-grep-line-number                         (:background nil :foreground peach))
-  (ivy-minibuffer-match-face-1                  (:background nil :foreground yellow))
-  (ivy-minibuffer-match-face-2                  (:background nil :foreground yellow))
-  (ivy-minibuffer-match-highlight               (:foreground teal))
-  (ivy-grep-info                                (:foreground teal))
+  (ivy-minibuffer-match-face-1                  (:background nil :foreground blue :bold t))
+  (ivy-minibuffer-match-face-2                  (:background nil :foreground green))
+  (ivy-minibuffer-match-highlight               (:foreground blue))
+  (ivy-grep-info                                (:foreground blue))
   (ivy-grep-line-number                         (:foreground mauve))
   (ivy-confirm-face                             (:foreground green))
 

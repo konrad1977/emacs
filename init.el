@@ -78,6 +78,17 @@
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
+;; Dont leave #file autosaves everywhere I go
+(defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
+(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
+(setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
+(setq custom-file (concat user-emacs-directory "var/custom.el"))
+
+;; Setup fonts
+(set-face-attribute 'default nil :font "Source Code Pro" :height 154)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
+(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
+
 ;; Initialize package sources
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -95,8 +106,6 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
-(use-package gcmh
-  :init (gcmh-mode 1))
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -106,25 +115,25 @@
 		auto-package-update-hide-results nil))
 
 (use-package no-littering)	;; Clean up all those temporary files
+(use-package gcmh
+  :init (gcmh-mode 1))
 
-(setq custom-file (concat user-emacs-directory "var/custom.el"))
 
-;; Dont leave #file autosaves everywhere I go
-(defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
-(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
-(setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
-
-;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
-
+<<<<<<< HEAD
 ;(use-package dired
  ; :commands dired dired-jump
  ; :bind (("C-x C-j" . dired-jump)))
 
 ;:(use-package dired-single
  ; :after dired)
+=======
+;; (use-package dired
+;;   :commands dired dired-jump
+;;   :bind (("C-x C-j" . dired-jump)))
+
+;; (use-package dired-single
+;;   :after dired)
+>>>>>>> 9cfde88de9f3b136359ad0cc924628daa58dbfd5
 
 (use-package autothemer
   :custom (setq custom-safe-themes t))
