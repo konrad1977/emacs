@@ -1,4 +1,6 @@
-;;; commentary: Kanagawa based theme
+;;; package: --- A simple dark theme based on Kanagawa colors
+
+;;; Commentary: Kanagawa based theme
 
 ;;; Code:
 (eval-when-compile
