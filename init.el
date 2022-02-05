@@ -909,6 +909,8 @@
 
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
+
+  (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
   
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O") #'projectile-find-file)
