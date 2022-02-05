@@ -24,7 +24,6 @@
   (sumiInk-0		"#16161D" "#000000")
   (sumiInk-1		"#1F1F28" "#080808")
   (sumiInk-2		"#2A2A37" "#121212")
-  (sumiInk-2		"#2A2A37" "#121212")
   (sumiInk-3		"#363646" "#303030")
   (sumiInk-4		"#54546D" "#303030")
 
@@ -69,21 +68,21 @@
 
  ;; Customize faces
   (
-  (border                               (:background sumiInk-2 :foreground black))
+  (border                               (:background sumiInk-1 :foreground black))
   (button                               (:foreground waveAqua2))
-  (child-frame		                    (:background sumiInk-0 :foreground sumiInk-1))
-  (child-frame-border                   (:background sumiInk-1 :foreground sumiInk-0))
+  (child-frame		                    (:background sumiInk-0 :foreground sumiInk-0))
+  (child-frame-border                   (:background sumiInk-0 :foreground sumiInk-0))
   (cursor                               (:background autumnRed :foreground black))
   (default								(:background sumiInk-1 :foreground fujiWhite ))
   (error                                (:foreground peachRed))
-  (fringe                               (:background sumiInk-2 :foreground sumiInk-0))
+  (fringe                               (:inherit 'default))
   (glyph-face                           (:background peachRed))
   (glyphless-char                       (:foreground waveBlue-2))
   (header-line							(:background black))
   (highlight                            (:background comet :foreground springViolet1))
-  (hl-line                              (:background sumiInk-1))
+  (hl-line                              (:background sumiInk-0))
   (homoglyph                            (:foreground lightBlue))
-  (internal-border                      (:background sumiInk-2 :foreground sumiInk-2))
+  (internal-border                      (:background sumiInk-1))
   (line-number                          (:foreground sumiInk-4))
   (line-number-current-line             (:foreground springViolet2 :background sumiInk-3 :bold t))
   (lv-separator                         (:foreground waveBlue-2 :background sumiInk-2))
@@ -96,13 +95,13 @@
   (mode-line-buffer-id                  (:foreground waveAqua2 :bold t))
   (numbers                              (:background sakuraPink))
   (region                               (:background waveBlue-1))
-  (separator-line                       (:background sumiInk-2))
+  (separator-line                       (:background sumiInk-0))
   (shadow                               (:background sumiInk-0))
   (success                              (:foreground waveAqua2))
-  (vertical-border                      (:foreground sumiInk-3 :background nil))
+  (vertical-border                      (:foreground sumiInk-2))
   (warning                              (:foreground springGreen))
-  (window-border                        (:background sumiInk-1 :foreground sumiInk-2))
-  (window-divider-first-pixel           (:foreground sumiInk-1))
+  (window-border                        (:background sumiInk-1))
+  (window-divider-first-pixel           (:background sumiInk-1))
   (window-divider-last-pixel            (:background sumiInk-1))
 
   ;; Font lock
@@ -248,8 +247,8 @@
   (show-paren-match-expression					(:background surimiOrange :foreground sumiInk-0 :bold t))
   (show-paren-mismatch							(:background peachRed :foreground old-white))
 
-  (tooltip (:background black))
-
+  (tooltip (:background sumiInk-4))
+  
   ;; company-box  (company-tooltip            :inherit 'tooltip)
   (company-tooltip			  (:background black))
   (company-box				  (:background black))

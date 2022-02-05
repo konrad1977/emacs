@@ -11,7 +11,6 @@
 (setq auto-mode-case-fold nil)
 (setq ad-redefinition-action 'accept
 	  create-lockfiles nil
-	  global-hl-line-mode 1
       display-time-24hr-format t
       display-time-default-load-average nil
       visible-bell nil
@@ -53,6 +52,7 @@
 (desktop-save-mode 0)			;; Save desktop
 (recentf-mode)					;; Recent file mode.
 (savehist-mode 1)				;; Save history
+(global-hl-line-mode 1)
 
 ; (setq custom--inhibit-theme-enable nil)
 
@@ -327,9 +327,12 @@
 (use-package ag
   :defer t)
 
+;; ------------------ EDITING -------------------
 ;; - anzu search and replace
 (use-package anzu
   :hook (after-init . anzu-mode))
+
+(use-package multiple-cursors)
 
 ;; ------------------ AUTOCOMPLETIONS -------------
 (use-package company
@@ -894,15 +897,42 @@
 		(set-frame-parameter nil 'alpha '(94 . 85))
       (set-frame-parameter nil 'alpha '(100 . 100))))))
 
+;;; esc quits
+
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode"
 
+  (defun minibuffer-keyboard-quit ()
+  "Abort recursive edit.
+In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
+  (interactive)
+  (if (and delete-selection-mode transient-mark-mode mark-active)
+      (setq deactivate-mark  t)
+    (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
+    (abort-recursive-edit)))
+
+  (define-key evil-normal-state-map [escape] (kbd "C-g"))
+  (define-key evil-visual-state-map [escape] (kbd "C-g"))
+  (define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+  (define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+  (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+  (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+  (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+
+  ;; Multiple cursors
+  (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
+  (global-set-key (kbd "C->") 'mc/mark-all-like-this-in-defun)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this-symbol)
+  ;; (define-key evil-motion-state-map (kbd "C-e") #'(lambda () (interactive) (mc/mark-next-word-like-this)))
+
+  ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
 
   (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
-  
+
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O") #'projectile-find-file)
   (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
