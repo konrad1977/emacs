@@ -119,12 +119,12 @@
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
 (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
 
-(use-package dired
-  :commands dired dired-jump
-  :bind (("C-x C-j" . dired-jump)))
+;(use-package dired
+ ; :commands dired dired-jump
+ ; :bind (("C-x C-j" . dired-jump)))
 
-(use-package dired-single
-  :after dired)
+;:(use-package dired-single
+ ; :after dired)
 
 (use-package autothemer
   :custom (setq custom-safe-themes t))
