@@ -69,14 +69,14 @@
 
  ;; Customize faces
   (
-  (border                               (:background sumiInk-2		:foreground black))
+  (border                               (:background sumiInk-2 :foreground black))
   (button                               (:foreground waveAqua2))
-  (child-frame		                    (:background sumiInk-0		:foreground sumiInk-1))
-  (child-frame-border                   (:background sumiInk-1		:foreground sumiInk-1))
-  (cursor                               (:background springViolet2	:foreground black))
-  (default								(:background sumiInk-1		:foreground fujiWhite ))
+  (child-frame		                    (:background sumiInk-0 :foreground sumiInk-1))
+  (child-frame-border                   (:background sumiInk-1 :foreground sumiInk-0))
+  (cursor                               (:background autumnRed :foreground black))
+  (default								(:background sumiInk-1 :foreground fujiWhite ))
   (error                                (:foreground peachRed))
-  (fringe                               (:background sumiInk-2		:foreground waveBlue-2))
+  (fringe                               (:background sumiInk-2 :foreground sumiInk-0))
   (glyph-face                           (:background peachRed))
   (glyphless-char                       (:foreground waveBlue-2))
   (header-line							(:background black))
@@ -127,8 +127,8 @@
 
   (info-xref                            (:foreground carpYellow))
   (highlight-quoted-symbol              (:foreground springGreen))
-  (minibuffer-prompt-end                (:foreground fujiWhite :background sumiInk-1))
-  (minibuffer-prompt                    (:foreground fujiWhite :background sumiInk-1))
+  (minibuffer-prompt-end                (:foreground fujiWhite :background sumiInk-0))
+  (minibuffer-prompt                    (:foreground fujiWhite :background sumiInk-0))
   (epa-mark                             (:foreground waveRed))
   (dired-mark                           (:foreground waveRed))
 
