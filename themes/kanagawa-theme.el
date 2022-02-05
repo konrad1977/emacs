@@ -1,6 +1,4 @@
-
-;;; commentary: catppuccin based theme
-
+;;; commentary: Kanagawa based theme
 
 ;;; Code:
 (eval-when-compile
@@ -79,7 +77,7 @@
   (mode-line-active		                (:background woodsmoke :foreground tana :bold nil))
   (mode-line-highlight                  (:foreground twine))
   (mode-line-buffer-id                  (:foreground sea-nymph :bold t))
-  (numbers                              (:background sea-nymph :foreground black))
+  (numbers                              (:background bittersweet :foreground black))
   (region                               (:background tana :foreground charade))
   (separator-line                       (:background charade))
   (shadow                               (:background black))
@@ -91,29 +89,29 @@
   (window-divider-last-pixel            (:background charade))
 
   ;; Font lock
-  (font-lock-type-face                  (:foreground bittersweet))
+  (font-lock-type-face                  (:foreground glacier))
   (font-lock-regexp-grouping-backslash  (:foreground yellow))
   (font-lock-keyword-face               (:bold t :foreground lynch))
   (font-lock-warning-face               (:foreground red))
-  (font-lock-constant-face              (:foreground glacier))
-  (font-lock-string-face                (:foreground sea-nymph))
-  (font-lock-builtin-face               (:foreground amethyst-smoke))
+  (font-lock-constant-face              (:foreground sea-nymph))
+  (font-lock-string-face                (:foreground olive))
+  (font-lock-builtin-face               (:foreground atomic-tangerine))
   (font-lock-reference-face				(:foreground lavender-purple))
   (font-lock-constant-face              (:foreground twine))
-  (font-lock-function-name-face         (:foreground teal))
+  (font-lock-function-name-face         (:foreground glacier))
   (font-lock-variable-name-face         (:foreground rock-blue))
   (font-lock-negation-char-face         (:foreground red))
-  (font-lock-comment-face               (:foreground comet))
-  (font-lock-comment-delimiter-face     (:foreground comet))
+  (font-lock-comment-face               (:foreground flint))
+  (font-lock-comment-delimiter-face     (:foreground flint))
   (font-lock-doc-face                   (:foreground comet))
   (font-lock-doc-markup-face            (:foreground comet))
-  (font-lock-preprocessor-face	   		(:foreground comet))
-  (elisp-shorthand-font-lock-face       (:foreground atomic-tangerine))
+  (font-lock-preprocessor-face	   		(:foreground twine))
+  (elisp-shorthand-font-lock-face       (:foreground tana))
 
   (info-xref                            (:foreground yellow))
   (highlight-quoted-symbol              (:foreground olive))
-  (minibuffer-prompt-end                (:background woodsmoke :foreground atomic-tangerine))
-  (minibuffer-prompt                    (:foreground atomic-tangerine :background black))
+  (minibuffer-prompt-end                (:background woodsmoke :foreground tana))
+  (minibuffer-prompt                    (:foreground tana :background black))
   (epa-mark                             (:foreground bittersweet))
   (dired-mark                           (:foreground bittersweet))
 
@@ -210,16 +208,17 @@
   (counsel-outline-default              (:foreground yellow))
   (info-header-xref                     (:foreground yellow))
   (xref-file-header                     (:foreground yellow))
-  (xref-match		                    (:foreground atomic-tangerine))
+  (xref-match		                    (:foreground yellow))
 
   ;; rainbow delimiter
   (rainbow-delimiters-mismatched-face   (:foreground red))
   (rainbow-delimiters-unmatched-face    (:foreground sea-nymph))
   (rainbow-delimiters-base-error-face   (:foreground red))
   (rainbow-delimiters-base-face         (:foreground gray-2))
-  (rainbow-delimiters-depth-1-face      (:foreground amethyst-smoke))
-  (rainbow-delimiters-depth-2-face      (:foreground atomic-tangerine))
-  (rainbow-delimiters-depth-3-face      (:foreground blue))
+  
+  (rainbow-delimiters-depth-1-face      (:foreground rock-blue))
+  (rainbow-delimiters-depth-2-face      (:foreground lynch))
+  (rainbow-delimiters-depth-3-face      (:foreground amethyst-smoke))
   (rainbow-delimiters-depth-4-face      (:foreground olive))
   (rainbow-delimiters-depth-5-face      (:foreground sea-nymph))
   (rainbow-delimiters-depth-6-face      (:foreground yellow))
@@ -272,11 +271,10 @@
 
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground black :bold t))
-  (ivy-subdir                                   (:background atomic-tangerine :foreground black))
-  (ivy-action                                   (:background nil :foreground atomic-tangerine))
-  (ivy-grep-line-number                         (:background nil :foreground atomic-tangerine))
-  (ivy-minibuffer-match-face-1                  (:background nil :foreground yellow))
-  (ivy-minibuffer-match-face-2                  (:background nil :foreground yellow))
+  (ivy-action                                   (:background nil :foreground tana))
+  (ivy-grep-line-number                         (:background nil :foreground olive))
+  (ivy-minibuffer-match-face-1                  (:background nil :foreground bittersweet))
+  (ivy-minibuffer-match-face-2                  (:background nil :foreground olive))
   (ivy-minibuffer-match-highlight               (:foreground teal))
   (ivy-grep-info                                (:foreground teal))
   (ivy-grep-line-number                         (:foreground rock-blue))
