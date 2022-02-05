@@ -67,7 +67,7 @@
   (line-number                          (:foreground black-4 :background nil))
   (line-number-current-line             (:foreground mauve :background black-3 :bold t))
   (lv-separator                         (:foreground gray :background black-2))
-  (match                                (:background green :foreground black))
+  (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
   (mode-line                            (:background black))
   (mode-line-inactive                   (:background nil :foreground gray-1 :bold nil))
@@ -194,7 +194,7 @@
   ;; swiper
   (swiper-line-face                     (:foreground yellow))
   (swiper-background-match-face-1       (:background peach :foreground black))
-  (swiper-background-match-face-2       (:background mauve :foreground black))
+  (swiper-background-match-face-2       (:background blue :foreground black))
   (swiper-background-match-face-3       (:background flamingo :foreground black))
   (swiper-background-match-face-4       (:background red :foreground black))
   (swiper-match-face-1					(:inherit 'swiper-background-match-face-1))
@@ -266,8 +266,8 @@
   (highlight-indent-guides-odd-face             (:foreground black-4))
 
    ;;;; ivy
-  (ivy-current-match                            (:background black-3))
-  (ivy-subdir                                   (:background nil :foreground peach))
+  (ivy-current-match                            (:background blue :foreground black :bold t))
+  (ivy-subdir                                   (:background peach :foreground black))
   (ivy-action                                   (:background nil :foreground peach))
   (ivy-grep-line-number                         (:background nil :foreground peach))
   (ivy-minibuffer-match-face-1                  (:background nil :foreground yellow))
@@ -366,6 +366,8 @@
 
   (ace-jump-face-background (:foreground gray))
   (ace-jump-face-foreground (:foreground red :background black :bold t))
+
+  (vertico-current (:background black-3 :foreground mauve :bold t))
 
  ))
 
