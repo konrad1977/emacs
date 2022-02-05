@@ -116,29 +116,12 @@
 
 (use-package no-littering)	;; Clean up all those temporary files
 (use-package gcmh
-  :init (gcmh-mode 1))
-
-
-<<<<<<< HEAD
-;(use-package dired
- ; :commands dired dired-jump
- ; :bind (("C-x C-j" . dired-jump)))
-
-;:(use-package dired-single
- ; :after dired)
-=======
-;; (use-package dired
-;;   :commands dired dired-jump
-;;   :bind (("C-x C-j" . dired-jump)))
-
-;; (use-package dired-single
-;;   :after dired)
->>>>>>> 9cfde88de9f3b136359ad0cc924628daa58dbfd5
+  :init (gcmh-mode 1))		;; Better garbage collection seetings
 
 (use-package autothemer
   :custom (setq custom-safe-themes t))
 
-(load-theme 'catppuccin t)
+(load-theme 'kanagawa t)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook
