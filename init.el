@@ -121,7 +121,7 @@
 (use-package autothemer
   :custom (setq custom-safe-themes t))
 
-(load-theme 'kanagawa t)
+(load-theme 'catppuccin t)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook

@@ -368,6 +368,26 @@
 
   (vertico-current (:background black-3 :foreground mauve :bold t))
 
+  (hydra-face-amaranth		(:foreground mauve))
+  (hydra-face-blue			(:foreground blue))
+  (hydra-face-pink			(:foreground pink))
+  (hydra-face-red			(:foreground red))
+  (hydra-face-teal			(:foreground teal))
+
+  (centaur-tabs-active-bar-face				(:background black-2 :foreground rosewater))
+  (centaur-tabs-selected					(:background black-2 :foreground rosewater :bold t))
+  (centaur-tabs-selected-modified			(:background black-2 :foreground rosewater))
+  (centaur-tabs-modified-marker-selected	(:background black-2 :foreground rosewater))
+  (centaur-tabs-close-selected				(:inherit 'centaur-tabs-selected))
+
+  (centaur-tabs-unselected					(:background black-1 :foreground gray-2))
+  (centaur-tabs-unselected-modified			(:background black-1 :foreground mauve))
+  (centaur-tabs-modified-marker-unselected	(:background black-1 :foreground gray-2))
+  (centaur-tabs-close-unselected			(:background black-1 :foreground gray-2))
+
+  (centaur-tabs-close-mouse-face			(:background nil :foreground red))
+  (centaur-tabs-default						(:background black-1))
+  (centaur-tabs-name-mouse-face				(:foreground blue :bold t))
  ))
 
 ;;;###autoload
