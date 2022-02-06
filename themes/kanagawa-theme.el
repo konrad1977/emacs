@@ -187,9 +187,9 @@
   (org-headline-done                    (:foreground dragonBlue :strike-through t))
   (org-todo                             (:foreground waveAqua2 :bold t))
   (org-headline-todo                    (:foreground sumiInk-2))
-  (org-upcoming-deadline                (:foreground peachRed)1
-  (org-footnote                         (:foreground waveAqua211
-  (org-indent                           (:background sumiInk-1 :foreground sumiInk11))
+  (org-upcoming-deadline                (:foreground peachRed))
+  (org-footnote                         (:foreground waveAqua2))
+  (org-indent                           (:background sumiInk-1 :foreground sumiInk-1))
   (org-hide	                            (:background sumiInk-1 :foreground sumiInk-1))
   (org-date                             (:foreground waveBlue-2))
   (org-ellipsis                         (:foreground waveBlue-2 :bold t))
