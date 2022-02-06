@@ -394,6 +394,21 @@
   (hydra-face-red			(:foreground peachRed))
   (hydra-face-teal			(:foreground lightBlue))
 
+  (centaur-tabs-active-bar-face				(:background sumiInk-1 :foreground fujiWhite))
+  (centaur-tabs-selected					(:background sumiInk-1 :foreground fujiWhite :bold t))
+  (centaur-tabs-selected-modified			(:background sumiInk-1 :foreground fujiWhite))
+  (centaur-tabs-modified-marker-selected	(:background sumiInk-1 :foreground fujiWhite))
+  (centaur-tabs-close-selected				(:inherit 'centaur-tabs-selected))
+
+  (centaur-tabs-unselected					(:background sumiInk-0 :foreground fujiGray))
+  (centaur-tabs-unselected-modified			(:background sumiInk-0 :foreground peachRed))
+  (centaur-tabs-modified-marker-unselected	(:background sumiInk-0 :foreground fujiGray))
+  (centaur-tabs-close-unselected			(:background sumiInk-0 :foreground fujiGray))
+
+  (centaur-tabs-close-mouse-face			(:background nil :foreground peachRed))
+  (centaur-tabs-default						(:background sumiInk-0))
+  (centaur-tabs-name-mouse-face				(:foreground springBlue :bold t))
+
  ))
 
 ;;;###autoload

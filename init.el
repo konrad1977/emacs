@@ -129,6 +129,22 @@
             (make-local-variable 'face-remapping-alist)
             (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
 
+(use-package centaur-tabs
+  :demand
+  :config
+  (setq centaur-tabs-style "chamfer"
+		centaur-tabs-height 36
+		x-underline-at-descent-line t
+		centaur-tabs-set-icons t
+		centaur-tabs-set-bar 'under)
+  (centaur-tabs-mode t)
+  (centaur-tabs-headline-match)
+  :bind
+  ("C-<prior>" . centaur-tabs-backward)
+  ("C-<next>" . centaur-tabs-forward))
+
+(setq x-underline-at-descent-line t)
+
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
