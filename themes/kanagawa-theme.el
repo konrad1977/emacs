@@ -139,9 +139,9 @@
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:foreground peachRed))
   (doom-modeline-battery-warning        (:foreground springGreen))
-  (doom-modeline-battery-charging       (:foreground sumiInk-4))
+  (doom-modeline-battery-charging       (:foreground fujiGray))
   (doom-modeline-battery-error          (:foreground peachRed))
-  (doom-modeline-battery-normal         (:foreground sumiInk-4))
+  (doom-modeline-battery-normal         (:foreground springViolet1))
   (doom-modeline-battery-full           (:foreground waveAqua2))
 
   ;; Doom visual state
@@ -186,11 +186,11 @@
   (org-block-end-line	                (:background sumiInk-0 :foreground dragonBlue))
   (org-headline-done                    (:foreground dragonBlue :strike-through t))
   (org-todo                             (:foreground waveAqua2 :bold t))
-  (org-headline-todo                    (:foreground sumiInk-4))
+  (org-headline-todo                    (:foreground sumiInk-2))
   (org-upcoming-deadline                (:foreground peachRed))
   (org-footnote                         (:foreground waveAqua2))
-  (org-indent                           (:background sumiInk-1 :foreground sumiInk-1))
-  (org-hide	                            (:background sumiInk-1 :foreground sumiInk-1))
+  (org-indent                           (:background sumiInk-1 :foreground sumiInk-2))
+  (org-hide	                            (:background sumiInk-1 :foreground sumiInk-2))
   (org-date                             (:foreground waveBlue-2))
   (org-ellipsis                         (:foreground waveBlue-2 :bold t))
   (org-level-1                          (:foreground peachRed :height 1.3 :bold t))
@@ -298,9 +298,9 @@
   (ivy-confirm-face                             (:foreground waveAqua2))
 
   ;; posframe's
-  (ivy-posframe                                 (:background sumiInk-0))
-  (ivy-posframe-border                          (:inherit 'ivy-posframe))
-
+  (ivy-posframe                                 (:background peachRed :foreground peachRed))
+  (ivy-posframe-border                          (:background peachRed :foreground peachRed))
+  
   (treemacs-directory-collapsed-face			(:foreground fujiWhite))
   (treemacs-directory-face						(:foreground fujiWhite))
   (treemacs-file-face							(:foreground fujiWhite))
