@@ -121,7 +121,7 @@
 (use-package autothemer
   :custom (setq custom-safe-themes t))
 
-(load-theme 'catppuccin t)
+(load-theme 'kanagawa t)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook
@@ -140,8 +140,7 @@
   (centaur-tabs-mode t)
   (centaur-tabs-headline-match)
   :bind
-  ("C-<prior>" . centaur-tabs-backward)
-  ("C-<next>" . centaur-tabs-forward))
+  ("C-TAB" . centaur-tabs-forward))
 
 (use-package dashboard
   :config
@@ -404,12 +403,18 @@
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :config
-  (setq flycheck-indication-mode 'left-margin
+  (setq flycheck-highlighting-mode 'symbols
 		flycheck-check-syntax-automatically '(save newline)
-		flycheck-display-errors-delay 0.1)
-   ;; (use-package flycheck-popup-tip
-   ;;   :hook (flycheck-mode . flycheck-popup-tip-mode))
-   )
+		flycheck-display-errors-delay 0.1
+		flycheck-indication-mode 'left-fringe))
+
+(defun my/set-flycheck-margins ()
+  (setq left-fringe-width 8 right-fringe-width 8
+        left-margin-width 1 right-margin-width 0)
+  (flycheck-refresh-fringes-and-margins))
+
+;; …every time Flycheck is activated in a new buffer
+(add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
 
 (defun exec-path-from-shell-setup ()
      (when (memq window-system '(mac ns x))
