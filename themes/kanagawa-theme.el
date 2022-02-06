@@ -186,11 +186,11 @@
   (org-block-end-line	                (:background sumiInk-0 :foreground dragonBlue))
   (org-headline-done                    (:foreground dragonBlue :strike-through t))
   (org-todo                             (:foreground waveAqua2 :bold t))
-  (org-headline-todo                    (:foreground sumiInk-2))
+  (org-headline-todo                    (:foreground sumiInk-4))
   (org-upcoming-deadline                (:foreground peachRed))
   (org-footnote                         (:foreground waveAqua2))
-  (org-indent                           (:background sumiInk-2 :foreground sumiInk-2))
-  (org-hide	                            (:background sumiInk-2 :foreground sumiInk-2))
+  (org-indent                           (:background sumiInk-1 :foreground sumiInk-1))
+  (org-hide	                            (:background sumiInk-1 :foreground sumiInk-1))
   (org-date                             (:foreground waveBlue-2))
   (org-ellipsis                         (:foreground waveBlue-2 :bold t))
   (org-level-1                          (:foreground peachRed :height 1.3 :bold t))
@@ -375,10 +375,9 @@
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
 
-
-  (anzu-match-1 (:foreground waveAqua2 :background sumiInk-2))
-  (anzu-match-2 (:foreground carpYellow :background sumiInk-2))
-  (anzu-match-3 (:foreground lightBlue :background sumiInk-2))
+  (anzu-match-1			(:foreground waveAqua2 :background sumiInk-2))
+  (anzu-match-2			(:foreground carpYellow :background sumiInk-2))
+  (anzu-match-3			(:foreground lightBlue :background sumiInk-2))
 
   (anzu-mode-line		(:foreground sumiInk-0 :background springViolet2))
   (anzu-mode-no-match	(:foreground fujiWhite :background peachRed))
@@ -387,7 +386,13 @@
   (ace-jump-face-background (:foreground waveBlue-2))
   (ace-jump-face-foreground (:foreground peachRed :background sumiInk-0 :bold t))
 
-  (vertico-current (:background sumiInk-3 :foreground springViolet2 :bold t))
+  (vertico-current			(:background sumiInk-3 :foreground springViolet2 :bold t))
+
+  (hydra-face-amaranth		(:foreground autumnRed))
+  (hydra-face-blue			(:foreground springBlue))
+  (hydra-face-pink			(:foreground sakuraPink))
+  (hydra-face-red			(:foreground peachRed))
+  (hydra-face-teal			(:foreground lightBlue))
 
  ))
 

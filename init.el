@@ -87,7 +87,7 @@
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 154)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'variable-pitch nil :font "Noto Sans" :height 154 :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 154 :weight 'regular)
 
 ;; Initialize package sources
 (require 'package)
@@ -253,12 +253,12 @@
 		doom-modeline-height 32)
   :init
   (set-face-attribute 'mode-line nil
-					  :family "Source Code Pro"
+					  :family "JetBrains Mono"
 					  :height 142
 					  :box '(:line-width 1 :color "#0C0A10"))
 
   (set-face-attribute 'mode-line-inactive nil
-					  :family "Source Code Pro"
+					  :family "JetBrains Mono"
 					  :height 132
 					  :box '(:line-width 1 :color "#332E41")))
 
@@ -283,7 +283,7 @@
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
-  (setq ivy-height 15
+  (setq ivy-height 10
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
 		ivy-use-selectable-prompt t
