@@ -132,9 +132,9 @@
 (use-package centaur-tabs
   :demand
   :config
-  (setq centaur-tabs-style "chamfer"
-		centaur-tabs-height 36
-		x-underline-at-descent-line t
+  (setq centaur-tabs-style "box"
+		centaur-tabs-height 28
+		centaur-tabs-plain-icons t
 		centaur-tabs-set-icons t
 		centaur-tabs-set-bar 'under)
   (centaur-tabs-mode t)
@@ -142,8 +142,6 @@
   :bind
   ("C-<prior>" . centaur-tabs-backward)
   ("C-<next>" . centaur-tabs-forward))
-
-(setq x-underline-at-descent-line t)
 
 (use-package dashboard
   :config
