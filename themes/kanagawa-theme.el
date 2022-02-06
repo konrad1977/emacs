@@ -1,4 +1,3 @@
-;;; kanagawa-theme.el --- 
 ;;; package: --- A simple dark theme based on Kanagawa colors
 
 ;;; Commentary: Kanagawa based theme
@@ -68,7 +67,7 @@
   (comet		"#54536D" "#4e4e4e")
   )
 
- ;; Customize faces
+  ;; Customize faces
   (
   (border                                        (:background sumiInk-1 :foreground sumiInk-0))
   (button                                        (:foreground waveAqua2))
@@ -135,7 +134,7 @@
   (trailing-whitespace                           (:background comet))
   (mode-line                                     (:background sumiInk-0 :foreground fujiWhite :bold t))
 
-  ;; ;; Battery colors
+  ;; Battery colors
   (doom-modeline-battery-critical                (:foreground peachRed))
   (doom-modeline-battery-warning                 (:foreground springGreen))
   (doom-modeline-battery-charging                (:foreground fujiGray))
@@ -163,7 +162,7 @@
   (doom-modeline-bar                             (:bold t :background springViolet1))
   (doom-modeline-panel                           (:inherit 'bold :background boatYellow2 :foreground sumiInk-2))
 
-  ;;elfeed
+  ;; elfeed
   (elfeed-search-feed-face                       (:foreground springViolet1))
   (elfeed-search-tag-face                        (:foreground waveAqua2))
 
@@ -226,7 +225,7 @@
   (xref-file-header                              (:foreground carpYellow))
   (xref-match		                         (:foreground carpYellow))
 
-  ;; rainbow delimiter
+  ;; rainbow delimiters
   (rainbow-delimiters-mismatched-face            (:foreground peachRed))
   (rainbow-delimiters-unmatched-face             (:foreground waveAqua2))
   (rainbow-delimiters-base-error-face            (:foreground peachRed))
@@ -248,7 +247,7 @@
   (show-paren-mismatch		                 (:background peachRed :foreground old-white))
   (tooltip                                       (:background sumiInk-4))
   
-  ;; company-box  (company-tooltip                        :inherit 'tooltip)
+  ;; company-box
   (company-tooltip		                 (:background sumiInk-0))
   (company-box			                 (:background sumiInk-0))
   (company-tooltip-common                        (:foreground carpYellow))
@@ -263,6 +262,7 @@
   (company-preview-search                        (:inherit 'company-tooltip-search))
   (company-template-field                        (:inherit 'match))
 
+  ;; flycheck
   (flycheck-posframe-background-face             (:background sumiInk-0))
   (flycheck-posframe-face	                 (:background sumiInk-0))
   (flycheck-posframe-info-face                   (:background sumiInk-0 :foreground lightBlue))
@@ -284,7 +284,7 @@
   (highlight-indent-guides-even-face             (:foreground sumiInk-2))
   (highlight-indent-guides-odd-face              (:foreground comet))
 
-   ;;;; ivy
+  ;; ivy
   (ivy-current-match                             (:background crystalBlue :foreground sumiInk-0 :bold t))
   (ivy-action                                    (:background nil :foreground fujiWhite))
   (ivy-grep-line-number                          (:background nil :foreground springGreen))
@@ -299,6 +299,7 @@
   (ivy-posframe                                  (:background peachRed :foreground peachRed))
   (ivy-posframe-border                           (:background peachRed :foreground peachRed))
   
+  ;;treemacs
   (treemacs-directory-collapsed-face		 (:foreground fujiWhite))
   (treemacs-directory-face			 (:foreground fujiWhite))
   (treemacs-file-face				 (:foreground fujiWhite))
@@ -310,13 +311,15 @@
   (treemacs-git-renamed-face		   	 (:foreground fujiWhite))
   (treemacs-git-modified-face		   	 (:foreground springGreen))
 
+  ;; tree-sitter 
   (tree-sitter-hl-face:constant			 (:background peachRed))
   (tree-sitter-hl-face:constant.builtin		 (:background peachRed))
   (tree-sitter-hl-face:function.call		 (:background springViolet2))
 
   ;; lets support solaire mode
   (solaire-default-face                          (:background sumiInk-1))
-  ;; lsp
+   
+  ;; lsp and lsp-ui
   (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
   (lsp-headerline-breadcrumb-path-face		 (:background sumiInk-0))
   (lsp-headerline-breadcrumb-path-hint-face	 (:background sumiInk-0))
@@ -350,6 +353,7 @@
   (evil-ex-substitute-replacement                (:foreground surimiOrange :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face  (:background carpYellow))
 
+  ;; term
   (term                                          (:background sumiInk-0 :foreground sumiInk-0))
   (term-color-blue                               (:background crystalBlue :foreround crystalBlue))
   (term-color-bright-blue                        (:inherit 'term-color-blue))
@@ -368,10 +372,12 @@
   (term-color-magenta                            (:background springViolet2 :foreground springViolet2))
   (term-color-bright-magenta                     (:background springViolet2 :foreground springViolet2))
 
+  ;; popup
   (popup-face                                    (:inherit 'tooltip))
   (popup-selection-face                          (:inherit 'tooltip))
   (popup-tip-face                                (:inherit 'tooltip))
 
+  ;; anzu
   (anzu-match-1			                 (:foreground waveAqua2 :background sumiInk-2))
   (anzu-match-2			                 (:foreground carpYellow :background sumiInk-2))
   (anzu-match-3			                 (:foreground lightBlue :background sumiInk-2))
@@ -380,17 +386,21 @@
   (anzu-mode-no-match	                         (:foreground fujiWhite :background peachRed))
   (anzu-replace-to		                 (:foreground carpYellow :background winterRed))
 
+  ;; ace
   (ace-jump-face-background                      (:foreground waveBlue-2))
   (ace-jump-face-foreground                      (:foreground peachRed :background sumiInk-0 :bold t))
-
+  
+  ;; vertico
   (vertico-current			         (:background sumiInk-3 :foreground springViolet2 :bold t))
-
+  
+  ;; hydra
   (hydra-face-amaranth		                 (:foreground autumnRed))
   (hydra-face-blue		                 (:foreground springBlue))
   (hydra-face-pink		                 (:foreground sakuraPink))
   (hydra-face-red		                 (:foreground peachRed))
   (hydra-face-teal		                 (:foreground lightBlue))
 
+  ;; centaur-tabs
   (centaur-tabs-active-bar-face			 (:background sumiInk-1 :foreground fujiWhite))
   (centaur-tabs-selected			 (:background sumiInk-1 :foreground fujiWhite :bold t))
   (centaur-tabs-selected-modified		 (:background sumiInk-1 :foreground fujiWhite))
@@ -406,7 +416,7 @@
   (centaur-tabs-close-mouse-face		 (:background nil :foreground peachRed))
   (centaur-tabs-default				 (:background sumiInk-0))
   (centaur-tabs-name-mouse-face			 (:foreground springBlue :bold t))
-
+   
  ))
 
 ;;;###autoload
