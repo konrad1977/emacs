@@ -1,8 +1,7 @@
-;;; package: --- A simple dark theme based on Kanagawa colors
-
-;;; Commentary: Kanagawa based theme
-
+;;; package: --- A theme inspired by the colors of the famous painting by Katsushika Hokusa
+;;; Commentary: Original theme created by rebelot see: https://github.com/rebelot/kanagawa.nvim
 ;;; Code:
+
 (eval-when-compile
   (require 'cl-lib))
 
@@ -13,9 +12,9 @@
 
 
 (autothemer-deftheme
-	kanagawa "A theme based on kanagawa color scheme"
+	kanagawa "A theme inspired by the colors of the famous painting by Katsushika Hokusa"
 
- ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
+ ((((Class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette

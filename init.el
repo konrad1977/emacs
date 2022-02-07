@@ -140,7 +140,7 @@
   (centaur-tabs-mode t)
   (centaur-tabs-headline-match)
   :bind
-  ("C-TAB" . centaur-tabs-forward))
+  ("C-<tab>" . centaur-tabs-forward))
 
 (use-package dashboard
   :config
