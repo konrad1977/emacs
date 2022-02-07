@@ -14,7 +14,7 @@
 (autothemer-deftheme
 	kanagawa "A theme inspired by the colors of the famous painting by Katsushika Hokusa"
 
- ((((Class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
+ ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette
