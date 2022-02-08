@@ -52,6 +52,7 @@
 (recentf-mode)					;; Recent file mode.
 (savehist-mode 1)				;; Save history
 (global-hl-line-mode 1)
+(semantic-mode 1)
 
 ; (setq custom--inhibit-theme-enable nil)
 
@@ -356,7 +357,8 @@
 (use-package anzu
   :hook (after-init . anzu-mode))
 
-(use-package multiple-cursors)
+;; Multiple cursors evil mode
+(use-package evil-mc)
 
 ;; ------------------ AUTOCOMPLETIONS -------------
 (use-package company-sourcekit
@@ -364,22 +366,21 @@
   (setq company-sourcekit-verbose nil
 		sourcekit-verbose nil
 		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-		(add-to-list 'company-backends 'company-sourcekit)
-  )
+		(add-to-list 'company-backends 'company-sourcekit))
 
 (use-package company
   :hook (prog-mode . company-mode)
-  :config
-  (setq company-backends (delete 'company-semantic company-backends)
-		completion-ignore-case t)
+  ;; :config
+  ;; (setq company-backends (delete 'company-semantic company-backends)
+  ;; 		completion-ignore-case t)
   :custom
   (add-to-list 'company-backends company-yasnippet)
   (add-to-list 'company-backends 'company-ispell)
-  (company-tooltip-limit 12)
-  (company-tooltip-idle-delay 0.1)
-  (company-async-wait 0.2)
+  (company-tooltip-limit 20)
+  (company-tooltip-idle-delay 0.2)
+  (company-async-wait 0.4)
   (company-dabbrev-ignore-case t)
-  (company-async-timeout 5))
+  (company-async-timeout 2))
 
 
 (use-package ace-jump-mode
@@ -769,9 +770,6 @@
 	"tS" '(hydra-text-scale/body :which-key "Scale text")
     "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace")
     "tw" '(mark-word :which-key "Select word")
-    "te" '(mark-sexp :which-key "Select expression")
-    "tf" '(mark-defun :which-key "Select function")
-    "tb" '(mark-whole-buffer :which-key "Select whole buffer")
     "tp" '(mark-page :which-key "Select page"))
 
    (mk/leader-keys
@@ -948,23 +946,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
     (abort-recursive-edit)))
 
-  (define-key evil-normal-state-map [escape] (kbd "C-g"))
-  (define-key evil-visual-state-map [escape] (kbd "C-g"))
-  (define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
-  (define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
-  (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
-  (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
-  (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
-
   ;; Multiple cursors
-  (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
-  (global-set-key (kbd "C->") 'mc/mark-all-like-this-in-defun)
-  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this-symbol)
-  ;; (define-key evil-motion-state-map (kbd "C-e") #'(lambda () (interactive) (mc/mark-next-word-like-this)))
+  (evil-mc-mode 1)
 
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
+  (define-key evil-motion-state-map (kbd "C-h") #'(lambda () (interactive) (evil-beginning-of-visual-line)))
+  (define-key evil-motion-state-map (kbd "C-l") #'(lambda () (interactive) (evil-end-of-line-or-visual-line)))
 
   (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
 
