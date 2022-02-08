@@ -25,7 +25,6 @@
 
 (setenv "PATH" (concat (getenv "PATH") "/usr/local/bin"))
 (setq exec-path (append exec-path '("/usr/local/bin")))
-
 ;; Setup garbage collector
 (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
@@ -59,7 +58,7 @@
 (setq-default display-line-numbers-width 4		;; Set so we can display thousands of lines
 			  c-basic-offset 4					;; Set tab indent for c/c++ to 4 tabs
 			  tab-width 4						;: Use four tabs
-			  line-spacing 0.1					;; Increase linespacing a bit
+			  line-spacing 0.05					;; Increase linespacing a bit
 			  truncate-lines 10					;; Truncate lines
 			  indent-tabs-mode t				;; Indent tabs
 			  completion-ignore-case t			;; Ignore case when completing
@@ -86,9 +85,9 @@
 (setq custom-file (concat user-emacs-directory "var/custom.el"))
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 154)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 154 :weight 'regular)
+(set-face-attribute 'default nil :font "Source Code Pro" :height 156)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 156)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 156 :weight 'regular)
 
 ;; Initialize package sources
 (require 'package)
@@ -277,14 +276,13 @@
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
 		doom-modeline-height 32)
-  :init
+  :custom
   (set-face-attribute 'mode-line nil
-					  :family "JetBrains Mono"
+					  :family "Iosevka Nerd Font Mono"
 					  :height 142
 					  :box '(:line-width 1 :color "#0C0A10"))
-
   (set-face-attribute 'mode-line-inactive nil
-					  :family "JetBrains Mono"
+					  :family "Iosevka Nerd Font Mono"
 					  :height 132
 					  :box '(:line-width 1 :color "#332E41")))
 
