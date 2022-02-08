@@ -62,6 +62,7 @@
 			  line-spacing 0.1					;; Increase linespacing a bit
 			  truncate-lines 10					;; Truncate lines
 			  indent-tabs-mode t				;; Indent tabs
+			  completion-ignore-case t			;; Ignore case when completing
               indent-line-function 'insert-tab) ;; Use function to insert tabs
 
 
@@ -131,16 +132,28 @@
 
 (use-package centaur-tabs
   :demand
+  :hook
+  (dashboard-mode . centaur-tabs-local-mode)
+  (term-mode . centaur-tabs-local-mode)
+  (calendar-mode . centaur-tabs-local-mode)
+  (org-agenda-mode . centaur-tabs-local-mode)
+  (helpful-mode . centaur-tabs-local-mode)
   :config
+  
   (setq centaur-tabs-style "box"
 		centaur-tabs-height 28
+		centaur-tabs-set-modified-marker t
+		centaur-tabs-show-navigation-buttons nil
 		centaur-tabs-plain-icons t
 		centaur-tabs-set-icons t
-		centaur-tabs-set-bar 'under)
+		centaur-tabs-set-bar 'under
+		x-underline-at-descent-line t
+		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
   (centaur-tabs-headline-match)
   :bind
-  ("C-<tab>" . centaur-tabs-forward))
+  ("C-<right>" . centaur-tabs-forward)
+  ("C-<left>" . centaur-tabs-backward))
 
 (use-package dashboard
   :config
@@ -348,17 +361,28 @@
 (use-package multiple-cursors)
 
 ;; ------------------ AUTOCOMPLETIONS -------------
+(use-package company-sourcekit
+  :config
+  (setq company-sourcekit-verbose nil
+		sourcekit-verbose nil
+		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
+		(add-to-list 'company-backends 'company-sourcekit)
+  )
+
 (use-package company
   :hook (prog-mode . company-mode)
   :config
-  (setq company-backends (delete 'company-semantic company-backends))
+  (setq company-backends (delete 'company-semantic company-backends)
+		completion-ignore-case t)
   :custom
   (add-to-list 'company-backends company-yasnippet)
-  (company-dabbrev-downcase 'case-replace)
-  (company-tooltip-limit 10)
-  (company-tooltip-idle-delay 0.2)
-  (company-async-wait 0.5)
-  (company-async-timeout 3))
+  (add-to-list 'company-backends 'company-ispell)
+  (company-tooltip-limit 12)
+  (company-tooltip-idle-delay 0.1)
+  (company-async-wait 0.2)
+  (company-dabbrev-ignore-case t)
+  (company-async-timeout 5))
+
 
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
@@ -497,15 +521,8 @@
 
 (defun setup-swift-programming ()
 
-  ;; (use-package tree-sitter
-  ;; 	:hook (tree-sitter-after-on . tree-sitter-hl-mode)
-  ;; 	:config (global-tree-sitter-mode))
-
-  ;; (use-package tree-sitter-langs
-  ;; 	:after (tree-sitter))
-
   (use-package swift-mode
-    :hook (swift-mode . eglot-ensure)
+    ;:hook (swift-mode . eglot-ensure)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
@@ -531,17 +548,18 @@
 	(with-eval-after-load 'flycheck
      (flycheck-swiftlint-setup)))
 
-  (setup-eglot-for-swift)
-  (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
-  (add-hook 'eglot-managed-mode-hook
-			(lambda ()
-              (when (derived-mode-p 'swift-mode)
-				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftlint)))))))))
+;  (setup-eglot-for-swift)
+  ;; (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
+  ;; (add-hook 'eglot-managed-mode-hook
+  ;; 			(lambda ()
+  ;;             (when (derived-mode-p 'swift-mode)
+  ;; 				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftlint)))))))))
 
-  (add-hook 'eglot-managed-mode-hook
-			(lambda ()
-              (when (derived-mode-p 'swift-mode)
-				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftx))))))))))
+  ;; (add-hook 'eglot-managed-mode-hook
+  ;; 			(lambda ()
+  ;;             (when (derived-mode-p 'swift-mode)
+  ;; 				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftx))))))))))
+  )
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
