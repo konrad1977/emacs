@@ -53,6 +53,7 @@
 (recentf-mode)					;; Recent file mode.
 (savehist-mode 1)				;; Save history
 (global-hl-line-mode 1)
+(semantic-mode 1)
 
 ; (setq custom--inhibit-theme-enable nil)
 
@@ -277,15 +278,15 @@
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
 		doom-modeline-height 32)
-  :init
+  :custom
   (set-face-attribute 'mode-line nil
-					  :family "JetBrains Mono"
+					  :family "Pragmata"
 					  :height 142
 					  :box '(:line-width 1 :color "#0C0A10"))
 
   (set-face-attribute 'mode-line-inactive nil
-					  :family "JetBrains Mono"
-					  :height 132
+					  :family "Pragmata"
+					  :height 140
 					  :box '(:line-width 1 :color "#332E41")))
 
 ;; nyan cat
@@ -366,22 +367,21 @@
   (setq company-sourcekit-verbose nil
 		sourcekit-verbose nil
 		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-		(add-to-list 'company-backends 'company-sourcekit)
-  )
+		(add-to-list 'company-backends 'company-sourcekit))
 
 (use-package company
   :hook (prog-mode . company-mode)
-  :config
-  (setq company-backends (delete 'company-semantic company-backends)
-		completion-ignore-case t)
+  ;; :config
+  ;; (setq company-backends (delete 'company-semantic company-backends)
+  ;; 		completion-ignore-case t)
   :custom
   (add-to-list 'company-backends company-yasnippet)
   (add-to-list 'company-backends 'company-ispell)
-  (company-tooltip-limit 12)
-  (company-tooltip-idle-delay 0.1)
-  (company-async-wait 0.2)
+  (company-tooltip-limit 20)
+  (company-tooltip-idle-delay 0.2)
+  (company-async-wait 0.4)
   (company-dabbrev-ignore-case t)
-  (company-async-timeout 5))
+  (company-async-timeout 2))
 
 
 (use-package ace-jump-mode
