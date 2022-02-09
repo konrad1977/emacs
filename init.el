@@ -139,7 +139,6 @@
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
   :config
-  
   (setq centaur-tabs-style "box"
 		centaur-tabs-height 28
 		centaur-tabs-set-modified-marker t
@@ -908,9 +907,7 @@
 
 ;; Drag lines and regions around
 (use-package drag-stuff
-  :config
-  (drag-stuff-global-mode 1)
-  (drag-stuff-define-keys))
+  :hook (prog-mode . drag-stuff-mode))
 
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
@@ -951,9 +948,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
     (abort-recursive-edit)))
 
-  ;; Multiple cursors
-  (evil-mc-mode 1)
-
+  ;; Drag stuff
+  (global-set-key (kbd "M-<down>") #'drag-stuff-down)
+  (global-set-key (kbd "M-<up>") #'drag-stuff-up)
+ 
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
