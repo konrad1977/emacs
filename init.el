@@ -370,18 +370,23 @@
 
 (use-package company
   :hook (prog-mode . company-mode)
-  ;; :config
-  ;; (setq company-backends (delete 'company-semantic company-backends)
-  ;; 		completion-ignore-case t)
   :custom
   (add-to-list 'company-backends company-yasnippet)
   (add-to-list 'company-backends 'company-ispell)
-  (company-tooltip-limit 20)
-  (company-tooltip-idle-delay 0.2)
-  (company-async-wait 0.4)
-  (company-dabbrev-ignore-case t)
-  (company-async-timeout 2))
+  (setq company-minimum-prefix-length 2
+		company-tooltip-align-annotations t
+		company-require-match 'never
+		company-tooltip-limit 20
+		company-tooltip-idle-delay 0.2
+		company-async-wait 0.4
+		company-async-timeout 2
+		company-dabbrev-code-ignore-case t
+		company-dabbrev-ignore-case t))
 
+(use-package company-prescient
+  :after company
+  :config
+  (company-prescient-mode 1))
 
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
@@ -405,7 +410,7 @@
 		treemacs-filewatch-mode t
 		treemacs-fringe-indicator-mode 'always
         treemacs-width 40
-        treemacs-indentationv 1
+        treemacs-indentation 1
         treemacs-git-integration t
         treemacs-collapse-dirs 0
         treemacs-silent-refresh	t
