@@ -54,14 +54,12 @@
 (global-hl-line-mode 1)
 (semantic-mode 1)
 
-; (setq custom--inhibit-theme-enable nil)
-
 (setq-default display-line-numbers-width 4		;; Set so we can display thousands of lines
 			  c-basic-offset 4					;; Set tab indent for c/c++ to 4 tabs
 			  tab-width 4						;: Use four tabs
 			  line-spacing 0.05					;; Increase linespacing a bit
 			  truncate-lines 10					;; Truncate lines
-			  indent-tabs-mode t				;; Indent tabs
+			  indent-tabs-mode nil				;; Never use tabs. Use spaces instead
 			  completion-ignore-case t			;; Ignore case when completing
               indent-line-function 'insert-tab) ;; Use function to insert tabs
 
@@ -357,7 +355,8 @@
   :hook (after-init . anzu-mode))
 
 ;; Multiple cursors evil mode
-(use-package evil-mc)
+(use-package evil-multiedit
+  :config (evil-multiedit-default-keybinds))
 
 ;; ------------------ AUTOCOMPLETIONS -------------
 (use-package company-sourcekit
@@ -370,8 +369,7 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :custom
-  (add-to-list 'company-backends company-yasnippet)
-  (add-to-list 'company-backends 'company-ispell)
+  (setq company-backends '(company-capf company-yasnippet company-ispell company-semantic))
   (setq company-minimum-prefix-length 2
 		company-tooltip-align-annotations t
 		company-require-match 'never
@@ -382,16 +380,17 @@
 		company-dabbrev-code-ignore-case t
 		company-dabbrev-ignore-case t))
 
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(use-package company-statistics
+  :hook (company-mode . company-statistics-mode))
+
 (use-package company-prescient
-  :after company
-  :config
-  (company-prescient-mode 1))
+  :hook (company-mode . company-prescient-mode))
 
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
 
 (use-package yasnippet
   :hook (swift-mode . yas-minor-mode)
@@ -542,6 +541,7 @@
   ;; 	:after swift-mode
   ;; 	:config
   ;; 	(setq swift-helpful-stdlib-path "~/source/swift/stdlib/public/"))
+;  (setup-eglot-for-swift)
 
   (use-package flycheck-swiftx
 	:after flycheck)
@@ -551,18 +551,16 @@
 	(with-eval-after-load 'flycheck
      (flycheck-swiftlint-setup)))
 
-;  (setup-eglot-for-swift)
-  ;; (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
-  ;; (add-hook 'eglot-managed-mode-hook
-  ;; 			(lambda ()
-  ;;             (when (derived-mode-p 'swift-mode)
-  ;; 				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftlint)))))))))
+   (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
+   (add-hook 'swift-mode-hook
+   			(lambda ()
+               (when (derived-mode-p 'swift-mode)
+   				(setq my/flycheck-local-cache '((((next-checkers . (swiftlint)))))))))
 
-  ;; (add-hook 'eglot-managed-mode-hook
-  ;; 			(lambda ()
-  ;;             (when (derived-mode-p 'swift-mode)
-  ;; 				(setq my/flycheck-local-cache '((eglot . ((next-checkers . (swiftx))))))))))
-  )
+   (add-hook 'swift-mode-hook
+   			(lambda ()
+               (when (derived-mode-p 'swift-mode)
+   				(setq my/flycheck-local-cache '((((next-checkers . (swiftx))))))))))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
