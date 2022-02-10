@@ -360,11 +360,17 @@
 
 ;; ------------------ AUTOCOMPLETIONS -------------
 (use-package company-sourcekit
+  :hook swift-mode
   :config
   (setq company-sourcekit-verbose nil
 		sourcekit-verbose nil
 		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
 		(add-to-list 'company-backends 'company-sourcekit))
+
+(use-package lsp-sourcekit
+  :after lsp-mode
+  :config
+  (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
 (use-package company
   :hook (prog-mode . company-mode)
@@ -523,8 +529,9 @@
 
 (defun setup-swift-programming ()
 
+ ;; (setup-eglot-for-swift)
   (use-package swift-mode
-    ;:hook (swift-mode . eglot-ensure)
+   ;; :hook (swift-mode . eglot-ensure)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4))
@@ -555,12 +562,12 @@
    (add-hook 'swift-mode-hook
    			(lambda ()
                (when (derived-mode-p 'swift-mode)
-   				(setq my/flycheck-local-cache '((((next-checkers . (swiftlint)))))))))
+   				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftlint)))))))))
 
    (add-hook 'swift-mode-hook
    			(lambda ()
                (when (derived-mode-p 'swift-mode)
-   				(setq my/flycheck-local-cache '((((next-checkers . (swiftx))))))))))
+   				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftx))))))))))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -971,7 +978,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 		highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
-		show-trailing-whitespace t		;; Show trailing whitespaces
+		show-trailing-whitespace nil    ;; Show or hide trailing whitespaces
 		word-wrap nil					;; Dont word wrap in code mode
 		truncate-lines 1				;; Truncate lines
 		column-number-mode t			;; Show current line number highlighted
