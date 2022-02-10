@@ -8,6 +8,9 @@
 (eval-when-compile (defvar display-time-24hr-format))
 (eval-when-compile (defvar display-time-default-load-average))
 
+(setq byte-compile-warnings '(cl-functions)) ;; Turn off cl package is depricated warning
+
+(setq split-width-threshold nil)        ;; Always split new buffers below
 (setq auto-mode-case-fold nil)
 (setq ad-redefinition-action 'accept
 	  create-lockfiles nil
@@ -22,10 +25,6 @@
 	  read-process-output-max (* 8 1024 1024)
       backup-directory-alist '(("." . "~/.emacs.d/backups")))
 
-
-(setenv "PATH" (concat (getenv "PATH") "/usr/local/bin"))
-(setq exec-path (append exec-path '("/usr/local/bin")))
-;; Setup garbage collector
 (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
 
@@ -220,8 +219,7 @@
   :commands (undo-fu-only-undo undo-fu-only-redo undo-fu-only-redo-all)
   :config
   (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
-  (define-key evil-normal-state-map "U" 'undo-fu-only-redo)
-  (define-key evil-normal-state-map "R" 'undo-fu-only-redo-all))
+  (define-key evil-normal-state-map "U" 'undo-fu-only-redo))
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -367,10 +365,10 @@
 		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
 		(add-to-list 'company-backends 'company-sourcekit))
 
-(use-package lsp-sourcekit
-  :after lsp-mode
-  :config
-  (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
+;; (use-package lsp-sourcekit
+;;   :after lsp-mode
+;;   :config
+;;   (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
 (use-package company
   :hook (prog-mode . company-mode)
@@ -490,45 +488,11 @@
 (defun mk-sourcekit-lsp-command (interactive)
   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
-(use-package lsp-ui
-   :custom-face
-   :hook (lsp-mode . lsp-ui-mode)
-   :config
-   (setq lsp-ui-doc-enable t
-	     lsp-ui-doc-delay 0.5
-		 lsp-ui-doc-use-child-frame nil
-	     lsp-ui-doc-include-signature t
-	     lsp-ui-doc-position 'top
-	     lsp-ui-doc-border (face-foreground 'default)
-	     lsp-eldoc-enable-hover nil ; Disable eldoc displays in minibuffer
-
-	     lsp-ui-sideline-enable t
-	     lsp-ui-sideline-show-hover t
-	     lsp-ui-sideline-show-diagnostics t
-	     lsp-ui-sideline-ignore-duplicate t
-
-	     lsp-ui-imenu-enable t
-	     lsp-ui-imenu-colors `(,(face-foreground 'font-lock-keyword-face)
-							   ,(face-foreground 'font-lock-string-face)
-							   ,(face-foreground 'font-lock-constant-face)
-							   ,(face-foreground 'font-lock-variable-name-face)))
-
-   (add-to-list 'lsp-ui-doc-frame-parameters '(right-fringe . 8))
-
-   ;; Reset `lsp-ui-doc-background' after loading theme
-   (add-hook 'after-load-theme-hook
-	     (lambda ()
-	       (setq lsp-ui-doc-border (face-foreground 'default))
-	       (set-face-background 'lsp-ui-doc-background
-								(face-background 'tooltip)))))
-
- (use-package eglot
-   :config
-   (add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command))))
-
+(use-package eglot
+  :config
+  (add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command))))
 
 (defun setup-swift-programming ()
-
  ;; (setup-eglot-for-swift)
   (use-package swift-mode
    ;; :hook (swift-mode . eglot-ensure)
@@ -595,6 +559,7 @@
   (interactive)
   (let* ((ignore-window-parameters t)
          (dedicated-p (window-dedicated-p)))
+    (delete-other-windows)
     (split-window-vertically)
     (other-window 1)
     (vterm default-directory)))
@@ -604,6 +569,7 @@
   (interactive)
   (let* ((ignore-window-parameters t)
          (dedicated-p (window-dedicated-p)))
+    (delete-other-windows)
     (split-window-horizontally)
     (other-window 1)
     (xwidget-webkit-browse-url "https://duckduckgo.com")))
@@ -787,6 +753,8 @@
      "wp" '(previous-window-any-frame :which-key "Previous window")
      "wx" '(delete-window :which-key "Delete window")
 	 "wk" '(delete-window-internal :which-key "Delete window")
+	 "wr" '(evil-window-rotate-upwards :which-key "Rotate clockwise")
+	 "wR" '(evil-window-rotate-downwards :which-key "Rotate counter clockwise")
 	 "w-" '(mk/split-window-below :which-key "Split window horizontally")
 	 "w/" '(mk/split-window-right :which-key "Split window vertically")
 	 "ww" '(hydra-windows-setup/body :which-key "Hydra menu")
