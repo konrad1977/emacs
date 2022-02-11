@@ -42,8 +42,6 @@
   (samuraiRed		"#E82424" "#585858")
   (roninYellow		"#FF9E3B" "#585858")
 
-  (roninYellow		"#FF9E3B" "#585858")
-
   (waveAqua1		"#6A9589" "#6a9589")
   (dragonBlue		"#658594" "#658594")
   (fujiGray         "#727169" "#717C7C")
@@ -109,7 +107,6 @@
   (font-lock-regexp-grouping-backslash           (:foreground boatYellow2))
   (font-lock-keyword-face                        (:bold t :foreground oniViolet))
   (font-lock-warning-face                        (:foreground roninYellow))
-  (font-lock-constant-face                       (:foreground carpYellow))
   (font-lock-string-face                         (:foreground springGreen))
   (font-lock-builtin-face                        (:foreground springBlue))
   (font-lock-reference-face                      (:foreground peachRed))
@@ -125,7 +122,6 @@
   (elisp-shorthand-font-lock-face                (:foreground fujiWhite))
 
   (info-xref                                     (:foreground carpYellow))
-  (highlight-quoted-symbol                       (:foreground springGreen))
   (minibuffer-prompt-end                         (:foreground fujiWhite :background sumiInk-0))
   (minibuffer-prompt                             (:foreground fujiWhite :background sumiInk-0))
   (epa-mark                                      (:foreground waveRed))
@@ -283,6 +279,12 @@
   (highlight-indent-guides-even-face             (:foreground sumiInk-2))
   (highlight-indent-guides-odd-face              (:foreground comet))
 
+  ;;
+  (highlight-operators-face                      (:foreground sakuraPink))
+  (highlight-quoted-symbol                       (:foreground springGreen))
+  (highlight-numbers-face                        (:foreground sakuraPink))
+  (highlight-symbol-face                         (:background waveBlue-1 :foreground lightBlue))
+  
   ;; ivy
   (ivy-current-match                             (:background crystalBlue :foreground sumiInk-0 :bold t))
   (ivy-action                                    (:background nil :foreground fujiWhite))

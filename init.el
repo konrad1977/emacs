@@ -126,7 +126,6 @@
             (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
 
 (use-package centaur-tabs
-  :demand
   :hook
   (dashboard-mode . centaur-tabs-local-mode)
   (term-mode . centaur-tabs-local-mode)
@@ -855,6 +854,9 @@
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
+
+(use-package highlight-operators
+  :hook (swift-mode . highlight-operators-mode))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
