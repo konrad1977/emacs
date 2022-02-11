@@ -112,7 +112,7 @@
   (font-lock-reference-face                      (:foreground peachRed))
   (font-lock-constant-face                       (:foreground carpYellow))
   (font-lock-function-name-face                  (:foreground crystalBlue))
-  (font-lock-variable-name-face                  (:foreground peachRed))
+  (font-lock-variable-name-face                  (:foreground waveRed))
   (font-lock-negation-char-face                  (:foreground peachRed))
   (font-lock-comment-face                        (:foreground fujiGray))
   (font-lock-comment-delimiter-face              (:foreground fujiGray))
@@ -280,7 +280,7 @@
   (highlight-indent-guides-odd-face              (:foreground comet))
 
   ;;
-  (highlight-operators-face                      (:foreground sakuraPink))
+  (highlight-operators-face                      (:foreground boatYellow2))
   (highlight-quoted-symbol                       (:foreground springGreen))
   (highlight-numbers-face                        (:foreground sakuraPink))
   (highlight-symbol-face                         (:background waveBlue-1 :foreground lightBlue))
