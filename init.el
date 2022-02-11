@@ -10,7 +10,7 @@
 
 (setq byte-compile-warnings '(cl-functions)) ;; Turn off cl package is depricated warning
 
-(setq split-width-threshold nil)        ;; Always split new buffers below
+; (setq split-width-threshold t)        ;; Always split new buffers below
 (setq auto-mode-case-fold nil)
 (setq ad-redefinition-action 'accept
 	  create-lockfiles nil
@@ -72,9 +72,8 @@
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
-
-;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -103,7 +102,6 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
-
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -1103,6 +1101,36 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
+
+
+(defun mk/display-buffer (buffer &optional alist)
+  "Select window for BUFFER (need to use word ALIST on the first line).
+Returns thirth visible window if there are three visible windows, nil otherwise.
+Minibuffer is ignored."
+  (let ((wnr (if (active-minibuffer-window) 3 2)))
+    (when (= (+ wnr 1) (length (window-list)))
+      (let ((window (nth wnr (window-list))))
+        (set-window-buffer window buffer)
+        window)))
+  )
+
+(defvar mk/buffers-to-display-below
+  '("^\\*Flycheck errors\\*$"
+    "^\\*Colors\\*$"
+    "^\\*Faces\\*$"
+    "^\\*Async Shell Command\\*$"))
+
+(while mk/buffers-to-display-below
+  (add-to-list 'display-buffer-alist
+               `(, (car mk/buffers-to-display-below)
+                   (display-buffer-reuse-window
+                    mk/display-buffer
+                    display-buffer-in-side-window)
+                   (reusable-frames     . visible)
+                   (side                . bottom)
+                   (window-height       . 0.25)
+                   ))
+  (setq mk/buffers-to-display-below (cdr mk/buffers-to-display-below)))
 
 (provide 'init)
 
