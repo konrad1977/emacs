@@ -133,6 +133,7 @@
   (calendar-mode . centaur-tabs-local-mode)
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
+  (swift-mode . centaur-tabs-local-mode)
   :config
   (setq centaur-tabs-style "box"
 		centaur-tabs-height 28
