@@ -110,7 +110,7 @@
   (font-lock-string-face                         (:foreground springGreen))
   (font-lock-builtin-face                        (:foreground springBlue))
   (font-lock-reference-face                      (:foreground peachRed))
-  (font-lock-constant-face                       (:foreground surimiOrange))
+  (font-lock-constant-face                       (:foreground carpYellow))
   (font-lock-function-name-face                  (:foreground crystalBlue))
   (font-lock-variable-name-face                  (:foreground peachRed))
   (font-lock-negation-char-face                  (:foreground peachRed))
