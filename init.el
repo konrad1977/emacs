@@ -138,13 +138,12 @@
 		centaur-tabs-height 28
 		centaur-tabs-set-modified-marker t
 		centaur-tabs-show-navigation-buttons nil
-		centaur-tabs-plain-icons t
+		centaur-tabs-plain-icons nil
 		centaur-tabs-set-icons t
-		centaur-tabs-set-bar 'under
+		centaur-tabs-set-bar 'over
 		x-underline-at-descent-line t
 		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
-  (centaur-tabs-headline-match)
   :bind
   ("C-<right>" . centaur-tabs-forward)
   ("C-<left>" . centaur-tabs-backward))
@@ -515,6 +514,10 @@
   (use-package flycheck-swiftx
 	:after flycheck)
 
+  (use-package flycheck-xcode
+    :after flycheck
+    :config(flycheck-xcode-setup))
+  
   (use-package flycheck-swiftlint
 	:config
 	(with-eval-after-load 'flycheck
@@ -526,6 +529,11 @@
                (when (derived-mode-p 'swift-mode)
    				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftlint)))))))))
 
+   (add-hook 'swift-mode-hook
+   			(lambda ()
+               (when (derived-mode-p 'swift-mode)
+   				 (setq my/flycheck-local-cache '(eglot . (((next-checkers . (xcode)))))))))
+   
    (add-hook 'swift-mode-hook
    			(lambda ()
                (when (derived-mode-p 'swift-mode)
@@ -818,7 +826,8 @@
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-modules 'org-tempo t))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
