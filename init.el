@@ -507,6 +507,9 @@
 	(or (alist-get property (alist-get checker my/flycheck-local-cache))
 		(funcall fn checker property)))
 
+  (require 'ios-simulator)
+  (load "ios-simulator")
+
   ;; (use-package swift-helpful
   ;; 	:after swift-mode
   ;; 	:config
@@ -1111,7 +1114,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	 "Help"
 	 (("." swift-helpful "Describe" :exit t)
 	  ("o" lsp-ui-imenu "Overview" :exit t)
-	  ("e" lsp-treemacs-error-list "Error list" :exit t))))
+	  ("e" lsp-treemacs-error-list "Error list" :exit t))
+     "Simulator menu"
+     (("s" ios-simulator-menu/body "Simcity"))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
@@ -1119,10 +1124,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (defun xcode-run-and-show-logs ()
   (interactive)
   (xcode-run)
- ;; (require 'ios-simulator-logs)
-  (load "ios-simulator")
   (ios-simulator-logs))
-
 
 (defun mk/display-buffer (buffer &optional alist)
   "Select window for BUFFER (need to use word ALIST on the first line).
