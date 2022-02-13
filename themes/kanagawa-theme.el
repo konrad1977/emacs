@@ -101,6 +101,7 @@
   (window-border                                 (:background sumiInk-1))
   (window-divider-first-pixel                    (:background sumiInk-1))
   (window-divider-last-pixel                     (:background sumiInk-1))
+  (hi-yellow                                     (:background carpYellow :foreground sumiInk-1))
 
   ;; Font lock
   (font-lock-type-face                           (:foreground waveAqua2))
@@ -263,11 +264,11 @@
   (flycheck-posframe-info-face                   (:background sumiInk-0 :foreground lightBlue))
   (flycheck-posframe-warning-face                (:background sumiInk-0 :foreground carpYellow))
   (flycheck-posframe-error-face                  (:background sumiInk-0 :foreground springViolet2))
-  (flycheck-fringe-warning                       (:inerit 'warning))
-  (flycheck-fringe-error                         (:inherit 'error))
+  (flycheck-fringe-warning                       (:foreground roninYellow))
+  (flycheck-fringe-error                         (:foreground samuraiRed))
   (flycheck-fringe-info                          (:foreground waveAqua1))
-  (flycheck-error-list-warning                   (:inherit 'warning :bold t))
-  (flycheck-error-list-error                     (:inherit 'error :bold t))
+  (flycheck-error-list-warning                   (:foreground roninYellow :bold t))
+  (flycheck-error-list-error                     (:foreground samuraiRed :bold t))
   (flycheck-error-list-info                      (:foreground waveAqua1 :bold t))
 
   ;; indent dots

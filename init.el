@@ -63,14 +63,16 @@
               indent-line-function 'insert-tab) ;; Use function to insert tabs
 
 
-(let* ((path (expand-file-name "localpackages" user-emacs-directory))
-       (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
-  (if (file-accessible-directory-p path)
-      (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
-    (make-directory path :parents)))
+;; (let* ((path (expand-file-name "localpackages" user-emacs-directory))
+;;        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
+;;   (if (file-accessible-directory-p path)
+;;       (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
+;;     (make-directory path :parents)))
+
 
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
+(add-to-list 'load-path (concat user-emacs-directory "localpackages/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
@@ -1094,7 +1096,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (major-mode-hydra-define swift-mode nil
   ("Build/test:"
-	 (("r" xcode-run "Run" :exit t)
+	 (("r" xcode-run-and-show-logs "Run" :exit t)
       ("b" xcode-build "Build" :exit t)
       ("t" xcode-test "Test" :exit t))
 	 "Help"
@@ -1104,6 +1106,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
+
+(defun xcode-run-and-show-logs ()
+  (interactive)
+  (xcode-run)
+ ;; (require 'ios-simulator-logs)
+  (load "ios-simulator")
+  (ios-simulator-logs))
 
 
 (defun mk/display-buffer (buffer &optional alist)
@@ -1120,6 +1129,7 @@ Minibuffer is ignored."
 (defvar mk/buffers-to-display-below
   '("^\\*Flycheck errors\\*$"
     "^\\*Colors\\*$"
+    "^\\*simulator logs\\*$"
     "^\\*Faces\\*$"
     "^\\*Async Shell Command\\*$"))
 
