@@ -321,7 +321,10 @@
 
 ;; counsel
 (use-package counsel
-  :hook (ivy-mode . counsel-mode))
+  :hook (ivy-mode . counsel-mode)
+  :config
+  (setq counsel-rg-base-command
+      "rg -i -M 120 --no-heading --line-number %s ."))
 
 ;; Remember autocompletions
 (use-package amx
@@ -608,7 +611,7 @@
   (when (file-directory-p "~/Documents/git")
     (setq projectile-project-search-path '("~/Documents/git")))
   (setq projectile-switch-project-action #'projectile-find-file)
-  (setq projectile-ignored-directories-rel '("Pods")))
+  (setq projectile-ignored-files '(".xcodeproj" ".m" ".h" ".pbxproj" ".orig")))
 
 ;; counsel-projectile
 (use-package counsel-projectile
@@ -957,12 +960,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
 
-  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-motion-state-map (kbd "M-O") #'projectile-find-file)
-  (define-key evil-motion-state-map (kbd "C-M-f") #'counsel-ag)
-  (define-key evil-motion-state-map (kbd "C-M-e") #'anzu-query-replace-at-cursor-thing)
-  (define-key evil-motion-state-map (kbd "C-M-r") #'anzu-query-replace-at-cursor)
-  (define-key evil-motion-state-map (kbd "M-R") #'projectile-recentf)
+  (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
+  (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file)
+  (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-projectile-rg)
+  (define-key evil-motion-state-map (kbd "M-F")     #'xref-find-definitions-other-window)
+  (define-key evil-motion-state-map (kbd "C-M-e")   #'anzu-replace-at-cursor-thing)
+  (define-key evil-motion-state-map (kbd "C-M-r")   #'anzu-query-replace-at-cursor)
+  (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
