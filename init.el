@@ -12,18 +12,19 @@
 
 ; (setq split-width-threshold t)        ;; Always split new buffers below
 (setq auto-mode-case-fold nil)
-(setq ad-redefinition-action 'accept
-	  create-lockfiles nil
-      display-time-24hr-format t
+(setq ad-redefinition-action            'accept
+	  create-lockfiles                  nil
+      display-time-24hr-format          t
       display-time-default-load-average nil
-      visible-bell nil
-      backup-by-copying t
-	  initial-scratch-message ""
-	  idle-update-delay 1.0			;; Speed things up by not updating so often
-	  blink-cursor-interval 0.6		;; Little slower cursor blinking . default is 0.5
-	  fast-but-imprecise-scrolling t
-	  read-process-output-max (* 8 1024 1024)
-      backup-directory-alist '(("." . "~/.emacs.d/backups")))
+      visible-bell                      nil
+      backup-by-copying                 t
+	  initial-scratch-message           ""
+	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
+	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
+      echo-keystrokes                   0.1
+	  fast-but-imprecise-scrolling      t
+	  read-process-output-max           (* 8 1024 1024)
+      backup-directory-alist            '(("." . "~/.emacs.d/backups")))
 
 (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
