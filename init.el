@@ -64,19 +64,17 @@
               indent-line-function 'insert-tab) ;; Use function to insert tabs
 
 
-;; (let* ((path (expand-file-name "localpackages" user-emacs-directory))
-;;        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
-;;   (if (file-accessible-directory-p path)
-;;       (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
-;;     (make-directory path :parents)))
-
+(let* ((path (expand-file-name "localpackages" user-emacs-directory))
+       (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
+  (if (file-accessible-directory-p path)
+      (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
+    (make-directory path :parents)))
 
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
-(add-to-list 'load-path (concat user-emacs-directory "localpackages/"))
+;(add-to-list 'load-path (concat user-emacs-directory "localpackages/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -147,9 +145,10 @@
 		x-underline-at-descent-line t
 		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
-  :bind
-  ("C-<right>" . centaur-tabs-forward)
-  ("C-<left>" . centaur-tabs-backward))
+  :bind  
+  (:map evil-normal-state-map
+	     ("g t" . centaur-tabs-forward)
+	     ("g T" . centaur-tabs-backward)))
 
 (use-package dashboard
   :config
@@ -363,7 +362,7 @@
   (setq company-sourcekit-verbose nil
 		sourcekit-verbose nil
 		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-		(add-to-list 'company-backends 'company-sourcekit))
+		(add-to-list 'company-backends '(company-sourcekit company-yasnippet company-semantic)))
 
 ;; (use-package lsp-sourcekit
 ;;   :after lsp-mode
@@ -398,7 +397,7 @@
 
 (use-package yasnippet
   :hook (swift-mode . yas-minor-mode)
-  :config (yas-reload-all))
+  :config (yas-global-mode 1))
 
 (use-package yasnippet-snippets
   :after yasnippet)
@@ -498,10 +497,10 @@
    ;; :hook (swift-mode . eglot-ensure)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
-		  swift-mode:multiline-statement-offset 4))
+		  swift-mode:multiline-statement-offset 4)) 
 
-  (add-hook 'swift-mode-hook
-			(lambda () (local-set-key (kbd "M-RET") #'eglot-code-action-quickfix)))
+  ;; (add-hook 'swift-mode-hook
+  ;;   		(lambda () (local-set-key (kbd "M-RET") #'eglot-code-action-quickfix)))
 
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
@@ -533,17 +532,21 @@
    (add-hook 'swift-mode-hook
    			(lambda ()
                (when (derived-mode-p 'swift-mode)
-   				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftlint)))))))))
-
-   (add-hook 'swift-mode-hook
-   			(lambda ()
-               (when (derived-mode-p 'swift-mode)
-   				 (setq my/flycheck-local-cache '(eglot . (((next-checkers . (xcode)))))))))
+   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (xcode))))))
+   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftlint))))))
+                 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftx)))))))))
    
-   (add-hook 'swift-mode-hook
-   			(lambda ()
-               (when (derived-mode-p 'swift-mode)
-   				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftx))))))))))
+   )
+
+   ;; (add-hook 'swift-mode-hook
+   ;; 			(lambda ()
+   ;;             (when (derived-mode-p 'swift-mode)
+   ;; 				 (setq my/flycheck-local-cache '(eglot . (((next-checkers . (xcode)))))))))
+   
+   ;; (add-hook 'swift-mode-hook
+   ;; 			(lambda ()
+   ;;             (when (derived-mode-p 'swift-mode)
+   ;; 				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftx))))))))))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -604,12 +607,14 @@
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
     (setq projectile-project-search-path '("~/Documents/git")))
-  (setq projectile-switch-project-action #'projectile-find-file))
+  (setq projectile-switch-project-action #'projectile-find-file)
+  (setq projectile-ignored-directories-rel '("Pods")))
 
 ;; counsel-projectile
 (use-package counsel-projectile
   :after projectile
-  :config (counsel-projectile-mode))
+  :config (counsel-projectile-mode)
+  (setq counsel-projectile-ag-use-gitignore-only nil))
 
 ;; Restart emacs
 (use-package restart-emacs
@@ -649,6 +654,9 @@
 (use-package magit
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package forge
+  :commands forge-pull)
 
 (use-package vterm
   :commands vterm)
@@ -1125,7 +1133,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (defun xcode-run-and-show-logs ()
   (interactive)
   (xcode-run)
-  (ios-simulator-logs))
+ ;; (ios-simulator-logs)
+  )
 
 (defun mk/display-buffer (buffer &optional alist)
   "Select window for BUFFER (need to use word ALIST on the first line).
