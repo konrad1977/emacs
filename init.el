@@ -383,16 +383,21 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :custom
-  (setq company-backends '(company-capf company-yasnippet company-ispell company-semantic))
-  (setq company-minimum-prefix-length 2
-		company-tooltip-align-annotations t
-		company-require-match 'never
-		company-tooltip-limit 20
-		company-tooltip-idle-delay 0.2
-		company-async-wait 0.4
-		company-async-timeout 2
-		company-dabbrev-code-ignore-case t
-		company-dabbrev-ignore-case t))
+  (setq company-backends                    '(company-capf company-yasnippet company-ispell company-semantic company-keywords)
+        company-frontends                   '(company-pseudo-tooltip-frontend))
+  (setq company-minimum-prefix-length       1
+		company-tooltip-align-annotations   t
+		company-require-match               'never
+		company-tooltip-limit               20
+		company-auto-complete               nil
+		company-tooltip-idle-delay          0.2
+		company-async-wait                  0.4
+		company-async-timeout               2
+        company-dabbrev-other-buffers       nil
+        company-dabbrev-downcase            nil
+		company-dabbrev-code-ignore-case    t
+		company-dabbrev-ignore-case         t
+        ))
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
