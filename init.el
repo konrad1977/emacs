@@ -43,7 +43,6 @@
 (scroll-bar-mode -1)			;; Dont use scrollbars.
 (set-fringe-mode 2)				;; Give us some space.
 (tooltip-mode -1)				;; Disable tooltip.
-(show-paren-mode t)				;; Enable show paren matching mode.
 (delete-selection-mode t)		;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight code
@@ -297,6 +296,15 @@
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
   :commands rainbow-mode)
+
+(use-package paren
+  :config
+  (setq show-paren-delay 0.1
+        show-paren-highlight-openparen t
+        show-paren-when-point-inside-paren t
+        show-paren-ring-bell-on-mismatch t
+        show-paren-when-point-in-periphery t)
+  (show-paren-mode t))
 
 ;; Use ivy
 (use-package ivy
@@ -1136,6 +1144,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (defun xcode-run-and-show-logs ()
   (interactive)
+  (save-some-buffers t)
   (xcode-run)
  ;; (ios-simulator-logs)
   )
