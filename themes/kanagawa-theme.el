@@ -39,7 +39,7 @@
   (autumnRed		"#C34043" "#585858")
   (autumnYellow		"#DCA561" "#585858")
 
-  (samuraiRed		"#E82424" "#585858")
+  (samuraiRed		"#E82424" "#585858") 
   (roninYellow		"#FF9E3B" "#585858")
 
   (waveAqua1		"#6A9589" "#6a9589")
@@ -244,15 +244,16 @@
   (tooltip                                       (:background sumiInk-4))
   
   ;; company-box
-  (company-tooltip                               (:background sumiInk-0))
   (company-box                                   (:background sumiInk-0))
+  (company-tooltip                               (:background sumiInk-0))
   (company-tooltip-common                        (:foreground carpYellow))
-  (company-tooltip-quick-access                  (:foreground samuraiRed))
-  (company-tooltip-scrollbar-thumb               (:background roninYellow))
+  (company-tooltip-quick-access                  (:foreground roninYellow))
+  (company-tooltip-scrollbar-thumb               (:background autumnRed))
+  (company-tooltip-scrollbar-track               (:background sumiInk-2))
   (company-tooltip-search                        (:background peachRed :foreground sumiInk-0 :distant-foreground fujiWhite))
-  (company-tooltip-selection                     (:background comet :foreground peachRed :bold t))
+  (company-tooltip-selection                     (:background sumiInk-3 :foreground roninYellow :bold t))
   (company-tooltip-mouse                         (:background peachRed :foreground sumiInk-0 :distant-foreground fujiWhite))
-  (company-tooltip-annotation                    (:foreground waveAqua2))
+  (company-tooltip-annotation                    (:foreground oniViolet))
   (company-scrollbar-bg                          (:inherit 'tooltip))
   (company-scrollbar-fg                          (:background peachRed))
   (company-preview                               (:foreground carpYellow))
