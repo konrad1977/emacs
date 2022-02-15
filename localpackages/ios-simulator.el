@@ -9,7 +9,7 @@
 ;; ----------------- READ SIMULATOR LOGS --------------------------------------------
 (setq simctl-command
       (concat "xcrun simctl spawn booted log stream "
-              "--level=Error "
+              "--level=error "
               "--style=compact "
               "--color=always "
               "| grep --color=always -v "
@@ -40,17 +40,13 @@
               "-e boringssl "
               "-e BackgroundTask"))
               
-
 (defun ios-simulator-logs ()
   (interactive)
   (with-output-to-temp-buffer "*simulator logs*"
     (async-shell-command (format "bash -c %s" (shell-quote-argument simctl-command)) "*simulator logs*")
     (pop-to-buffer "*simulator logs*")))
 
-;;    (highlight-
-
 ;; ----------------- OPEN SIMULATOR FOLDER --------------------------------------------
-
 (setq simulator-folder
       (shell-command-to-string "xcrun simctl getenv booted SIMULATOR_LOG_ROOT"))
 

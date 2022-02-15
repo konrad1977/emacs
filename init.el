@@ -23,6 +23,7 @@
 	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
       echo-keystrokes                   0.1
 	  fast-but-imprecise-scrolling      t
+      ediff-split-window-function       'split-window-horizontally
 	  read-process-output-max           (* 8 1024 1024)
       backup-directory-alist            '(("." . "~/.emacs.d/backups")))
 
@@ -205,6 +206,13 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   :config
+  (setq evil-emacs-state-cursor '("#A3D4D5" box)) 
+  (setq evil-normal-state-cursor '("#A3D4D5" box)) 
+  (setq evil-visual-state-cursor '("#7FB4CA" box))
+  (setq evil-insert-state-cursor '("#FF9E3B" bar))
+  (setq evil-replace-state-cursor '("red" hbar))
+  (setq evil-operator-state-cursor '("red" hollow))
+  
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
@@ -213,6 +221,7 @@
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
+;; Undo
 (use-package undo-fu
   :commands (undo-fu-only-undo undo-fu-only-redo undo-fu-only-redo-all)
   :config
@@ -965,8 +974,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Drag stuff
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
-
-  
   
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
