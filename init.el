@@ -978,8 +978,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
-  (setq company-mode t
-		highlight-indent-guides-mode t	;; Turn on indent-guides
+  (setq highlight-indent-guides-mode t	;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
 		show-trailing-whitespace nil    ;; Show or hide trailing whitespaces
