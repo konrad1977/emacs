@@ -247,6 +247,8 @@
   (company-tooltip                               (:background sumiInk-0))
   (company-box                                   (:background sumiInk-0))
   (company-tooltip-common                        (:foreground carpYellow))
+  (company-tooltip-quick-access                  (:foreground samuraiRed))
+  (company-tooltip-scrollbar-thumb               (:background roninYellow))
   (company-tooltip-search                        (:background peachRed :foreground sumiInk-0 :distant-foreground fujiWhite))
   (company-tooltip-selection                     (:background comet :foreground peachRed :bold t))
   (company-tooltip-mouse                         (:background peachRed :foreground sumiInk-0 :distant-foreground fujiWhite))

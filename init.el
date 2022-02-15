@@ -377,41 +377,46 @@
   :config (evil-multiedit-default-keybinds))
 
 ;; ------------------ AUTOCOMPLETIONS -------------
+(use-package company
+  :hook (prog-mode . company-mode)
+  :init
+  (setq company-format-margin-function      'company-dot-icons-margin)
+  (setq company-dot-icons-format            " ● ")
+  (setq company-backends                    '(
+                                              company-capf
+                                              company-sourcekit
+                                              company-semantic
+                                              company-keywords
+                                              company-files
+                                              company-dabbrev-code
+                                              )
+        company-frontends                   '(company-pseudo-tooltip-frontend)
+        company-tooltip-margin              2
+        company-minimum-prefix-length       2
+        company-tooltip-align-annotations   t
+        company-search-regexp-function      'company-search-flex-regexp
+        company-require-match               nil 
+        company-tooltip-limit               15
+        company-tooltip-flip-when-above     t
+        company-tooltip-idle-delay          0.2
+        company-async-wait                  0.4
+        company-show-quick-access           'left
+        company-async-timeout               2
+        company-dabbrev-downcase            nil
+        company-dabbrev-code-ignore-case    t
+        company-dabbrev-ignore-case         t))
+
 (use-package company-sourcekit
   :hook swift-mode
   :config
+  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
+  :custom
   (setq company-sourcekit-verbose nil
 		sourcekit-verbose nil
-		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-		(add-to-list 'company-backends '(company-sourcekit company-semantic)))
+        company-sourcekit-use-yasnippet nil))
 
-;; (use-package lsp-sourcekit
-;;   :after lsp-mode
-;;   :config
-;;   (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
-
-(use-package company
-  :hook (prog-mode . company-mode)
-  :custom
-  (setq company-backends                    '(company-sourcekit company-capf company-semantic company-yasnippet company-ispell company-keywords company-dabbrev-code)
-        company-frontends                   '(company-pseudo-tooltip-frontend))
-  (setq company-minimum-prefix-length       2
-		company-tooltip-align-annotations   t
-		company-require-match               nil 
-		company-tooltip-limit               30
-		company-auto-complete               nil
-		company-tooltip-idle-delay          0.2
-		company-async-wait                  0.4
-		company-async-timeout               2
-        company-dabbrev-other-buffers       nil
-        company-dabbrev-code-everywhere     t
-        company-dabbrev-downcase            nil
-		company-dabbrev-code-ignore-case    t
-		company-dabbrev-ignore-case         t
-        ))
-
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+;; (use-package company-box
+;;   :hook (company-mode . company-box-mode))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -422,12 +427,12 @@
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
 
-(use-package yasnippet
-  :hook (swift-mode . yas-minor-mode)
-  :config (yas-global-mode 1))
+;; (use-package yasnippet
+;;   :hook (swift-mode . yas-minor-mode)
+;;   :config (yas-global-mode 1))
 
-(use-package yasnippet-snippets
-  :after yasnippet)
+;; (use-package yasnippet-snippets
+;;   :after yasnippet)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -435,8 +440,7 @@
   (setq treemacs-follow-after-init t
 		treemacs-project-follow-mode t
 		treemacs-follow-mode t
-		treemacs-filewatch-mode t
-		treemacs-fringe-indicator-mode 'always
+		treemacs-filewatch-mode t		treemacs-fringe-indicator-mode 'always
         treemacs-width 40
         treemacs-indentation 1
         treemacs-git-integration t
@@ -447,7 +451,7 @@
         treemacs-show-hidden-files nil
         treemacs-never-persist nil
         treemacs-is-never-other-window nil
-		treemacs-display-current-project-exclusively t
+		treemacs-displacurrent-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
 		treemacs-text-scale	0)
   (treemacs-follow-mode)
@@ -457,8 +461,7 @@
   :hook (treemacs-mode-hook))
 
 (use-package flycheck
-  :hook (prog-mode . flycheck-mode)
-  :config
+  :hook (prog-mode . flycheck-mode)  :config
   (setq flycheck-highlighting-mode 'symbols
 		flycheck-check-syntax-automatically '(save newline)
 		flycheck-display-errors-delay 0.1
@@ -468,7 +471,6 @@
   (setq left-fringe-width 8 right-fringe-width 8
         left-margin-width 1 right-margin-width 0)
   (flycheck-refresh-fringes-and-margins))
-
 ;; …every time Flycheck is activated in a new buffer
 (add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
 
@@ -548,12 +550,11 @@
 
   (use-package flycheck-xcode
     :after flycheck
-    :config(flycheck-xcode-setup))
+    :custom (flycheck-xcode-setup))
   
   (use-package flycheck-swiftlint
-	:config
-	(with-eval-after-load 'flycheck
-     (flycheck-swiftlint-setup)))
+    :after flycheck
+    :custom (flycheck-swiftlint-setup))
 
    (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
    (add-hook 'swift-mode-hook
@@ -646,10 +647,6 @@
 ;; Restart emacs
 (use-package restart-emacs
   :commands restart-emacs)
-
-;; posframe
-(use-package posframe
-  :defer t)
 
 ;; hydra
 (use-package hydra
