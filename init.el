@@ -269,6 +269,7 @@
 		doom-modeline-checker-simple-format t
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
+        doom-modeline-vcs-max-length 40
 		doom-modeline-height 32)
   :custom
   (set-face-attribute 'mode-line nil
@@ -964,12 +965,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Drag stuff
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
- 
+
+  
+  
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
   (define-key evil-motion-state-map (kbd "C-h") #'(lambda () (interactive) (evil-beginning-of-visual-line)))
   (define-key evil-motion-state-map (kbd "C-l") #'(lambda () (interactive) (evil-end-of-line-or-visual-line)))
+
+  ; When jumping got forward and back
+  (define-key evil-motion-state-map (kbd "C-M-<left>") #'(lambda () (interactive) (xref-pop-marker-stack)))
+  (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
   (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
 
