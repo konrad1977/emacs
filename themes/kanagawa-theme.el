@@ -238,8 +238,8 @@
   (rainbow-delimiters-depth-9-face               (:foreground springViolet2))
 
   ;; show-paren
-  (show-paren-match                              (:background surimiOrange :foreground sumiInk-0 :bold t))
-  (show-paren-match-expression	                 (:background surimiOrange :foreground sumiInk-0 :bold t))
+  (show-paren-match                              (:background waveAqua1 :foreground sumiInk-0 :bold t))
+  (show-paren-match-expression	                 (:background waveAqua1 :foreground sumiInk-0 :bold t))
   (show-paren-mismatch                           (:background peachRed :foreground old-white))
   (tooltip                                       (:background sumiInk-4))
   

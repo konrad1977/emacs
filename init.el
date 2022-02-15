@@ -383,7 +383,7 @@
   (setq company-sourcekit-verbose nil
 		sourcekit-verbose nil
 		sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-		(add-to-list 'company-backends '(company-sourcekit company-yasnippet company-semantic)))
+		(add-to-list 'company-backends '(company-sourcekit company-semantic)))
 
 ;; (use-package lsp-sourcekit
 ;;   :after lsp-mode
@@ -393,17 +393,18 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :custom
-  (setq company-backends                    '(company-capf company-yasnippet company-ispell company-semantic company-keywords)
+  (setq company-backends                    '(company-sourcekit company-capf company-semantic company-yasnippet company-ispell company-keywords company-dabbrev-code)
         company-frontends                   '(company-pseudo-tooltip-frontend))
-  (setq company-minimum-prefix-length       1
+  (setq company-minimum-prefix-length       2
 		company-tooltip-align-annotations   t
-		company-require-match               'never
-		company-tooltip-limit               20
+		company-require-match               nil 
+		company-tooltip-limit               30
 		company-auto-complete               nil
 		company-tooltip-idle-delay          0.2
 		company-async-wait                  0.4
 		company-async-timeout               2
         company-dabbrev-other-buffers       nil
+        company-dabbrev-code-everywhere     t
         company-dabbrev-downcase            nil
 		company-dabbrev-code-ignore-case    t
 		company-dabbrev-ignore-case         t
@@ -781,7 +782,7 @@
     "hf" '(counsel-describe-function :which-key "Describe function")
     "hv" '(counsel-describe-variable :which-key "Describe variable")
     "ht" '(evil-tutor-start :which-key "Evil tutorial")
-    "h." '(helpful-at-point :which-key "Describe at-point")
+    "h." '(counsel-describe-symbol :which-key "Describe at-point")
     "hp" '(describe-package :which-key "Describe package"))
 
   (mk/leader-keys
@@ -919,7 +920,9 @@
   :hook (prog-mode . hes-mode))
 
 (use-package prescient
-  :after ivy)
+  :after ivy
+  :config
+  (prescient-persist-mode))
 
 (use-package ivy-prescient
   :hook (ivy-mode . ivy-prescient-mode))
