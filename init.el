@@ -502,6 +502,9 @@
 ;; …every time Flycheck is activated in a new buffer
 (add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
 
+(use-package imenu-anywhere
+  :bind ("M-f" . imenu-anywhere))
+
 (defun exec-path-from-shell-setup ()
      (when (memq window-system '(mac ns x))
        (exec-path-from-shell-initialize)))
@@ -549,6 +552,10 @@
   (use-package flycheck-swiftx
 	:after flycheck)
 
+  (use-package flycheck-swift3
+	:after flycheck
+    :custom (flycheck-swift3-setup))
+
   (use-package flycheck-xcode
     :after flycheck
     :custom (flycheck-xcode-setup))
@@ -561,9 +568,10 @@
    (add-hook 'swift-mode-hook
    			(lambda ()
                (when (derived-mode-p 'swift-mode)
-   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (xcode))))))
+   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swift3))))))
    				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftlint))))))
-                 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftx))))))))))
+                 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftx))))))
+   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (xcode))))))))))
 
 
 ; On macos use our custom settings ---------------------
