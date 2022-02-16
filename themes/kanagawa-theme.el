@@ -73,7 +73,7 @@
   (cursor                                        (:background lightBlue :foreground sumiInk-0))
   (default                                       (:background sumiInk-1 :foreground fujiWhite ))
   (error                                         (:foreground samuraiRed))
-  (fringe                                        (:inherit 'default))
+  (fringe                                        (:foreground sumiInk-3))
   (glyph-face                                    (:background sumiInk-4))
   (glyphless-char                                (:foreground sumiInk-4))
   (header-line                                   (:background sumiInk-0))
