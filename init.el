@@ -1,5 +1,4 @@
-;;; init.el --- My init.el
-
+;;; init.el --- -*- lexical-binding: t -*-
 ;;; Code:
 
 ;; Window
@@ -14,6 +13,7 @@
 (setq auto-mode-case-fold nil)
 (setq ad-redefinition-action            'accept
 	  create-lockfiles                  nil
+      compilation-scroll-output         t
       display-time-24hr-format          t
       display-time-default-load-average nil
       visible-bell                      nil
@@ -23,6 +23,7 @@
 	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
       echo-keystrokes                   0.1
 	  fast-but-imprecise-scrolling      t
+      confirm-kill-processes            nil
       ediff-split-window-function       'split-window-horizontally
 	  read-process-output-max           (* 8 1024 1024)
       backup-directory-alist            '(("." . "~/.emacs.d/backups")))
@@ -53,16 +54,17 @@
 (savehist-mode 1)				;; Save history
 (global-hl-line-mode 1)
 (semantic-mode 1)
+(save-place-mode 1)             ;; When buffer is closed, save the cursor position
 
-(setq-default display-line-numbers-width 4		;; Set so we can display thousands of lines
-			  c-basic-offset 4					;; Set tab indent for c/c++ to 4 tabs
-			  tab-width 4						;: Use four tabs
-			  line-spacing 0.05					;; Increase linespacing a bit
-			  truncate-lines 10					;; Truncate lines
-			  indent-tabs-mode nil				;; Never use tabs. Use spaces instead
-			  completion-ignore-case t			;; Ignore case when completing
-              indent-line-function 'insert-tab) ;; Use function to insert tabs
-
+(setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
+			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
+			  tab-width                     4            ;: Use four tabs
+			  line-spacing                  0.05         ;; Increase linespacing a bit
+			  truncate-lines                10			 ;; Truncate lines
+			  indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
+			  completion-ignore-case        t            ;; Ignore case when completing
+              indent-line-function          'insert-tab  ;; Use function to insert tabs
+              history-length                500)
 
 (let* ((path (expand-file-name "localpackages" user-emacs-directory))
        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
@@ -98,7 +100,8 @@
 
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
-   (package-install 'use-package))
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 (require 'use-package)
 (setq use-package-always-ensure t)
@@ -172,18 +175,27 @@
 
 ;; Which key
 (use-package which-key
-  :diminish which-key-mode
-  :config
-  (which-key-mode)
+  :diminish
+  :custom
   (which-key-setup-side-window-bottom)
+  (which-key-separator " ")
+  (which-key-prefix-prefix "● ")
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
 		which-key-min-display-lines 4
-		which-key-max-display-columns 5))
+		which-key-max-display-columns 5)
+  :config
+  (which-key-mode))
+
+(use-package discover-my-major
+  :commands discover-my-major)
 
  ; helpful
 (use-package helpful
   :after which-key)
+
+(use-package ace-window
+   :bind ("C-x C-o" . ace-window))
 
 (defun un-indent-by-removing-4-spaces ()
   "remove 4 spaces from beginning of of line"
@@ -400,8 +412,9 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
-                                              company-capf
+                                              company-sourcekit
                                               company-tabnine
+                                              company-capf
                                               company-dabbrev-code
                                               company-yasnippet
                                               company-semantic
@@ -420,24 +433,20 @@
         company-async-wait                  0.4
         company-idle-delay                  0
         company-show-quick-access           'left
-        company-async-timeout               2
-        company-dabbrev-downcase            nil
-        company-dabbrev-code-ignore-case    t
-        company-dabbrev-ignore-case         t))
+        company-async-timeout               2))
 
-;; (use-package company-sourcekit
-;;   :hook swift-mode
-;;   :config
-;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-;;   :custom
-;;   (setq company-sourcekit-verbose nil
-;; 		sourcekit-verbose nil
-;;         company-sourcekit-use-yasnippet t))
+(use-package company-sourcekit
+  :hook swift-mode
+  :config
+  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
+  :custom
+  (setq company-sourcekit-verbose nil
+		sourcekit-verbose nil
+        company-sourcekit-use-yasnippet t))
 
-;; (use-package company-box
-;;   :hook (company-mode . company-box-mode))
-
-(use-package company-tabnine)
+(use-package company-tabnine
+  :config
+  (setq company-tabnine-max-num-results 9))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -480,11 +489,11 @@
   :hook (treemacs-mode-hook))
 
 (use-package flycheck
-  :hook (prog-mode . flycheck-mode)  :config
-  (setq flycheck-highlighting-mode 'symbols
-		flycheck-check-syntax-automatically '(save newline)
-		flycheck-display-errors-delay 0.1
-		flycheck-indication-mode 'left-fringe))
+  :hook (prog-mode . flycheck-mode)
+  :diminish
+  :custom
+  (flycheck-indication-mode 'left-fringe)
+  (flycheck-display-errors-delay 0.1))
 
 (defun my/set-flycheck-margins ()
   (setq left-fringe-width 8 right-fringe-width 8
@@ -520,7 +529,7 @@
 
 (defun setup-swift-programming ()
   (use-package swift-mode
-    :config
+    :custom
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4)) 
 
@@ -918,7 +927,8 @@
 
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
-  :config
+  :custom
+  (dumb-jump-selector 'ivy)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq	dumb-jump-selector 'completing-read
 		xref-show-definitions-function #'xref-show-definitions-completing-read))
