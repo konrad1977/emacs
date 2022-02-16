@@ -251,7 +251,7 @@
   (company-tooltip-scrollbar-thumb               (:background autumnRed))
   (company-tooltip-scrollbar-track               (:background sumiInk-2))
   (company-tooltip-search                        (:background peachRed :foreground sumiInk-0 :distant-foreground fujiWhite))
-  (company-tooltip-selection                     (:background sumiInk-3 :foreground roninYellow :bold t))
+  (company-tooltip-selection                     (:background waveBlue-2 :foreground roninYellow :bold t))
   (company-tooltip-mouse                         (:background peachRed :foreground sumiInk-0 :distant-foreground fujiWhite))
   (company-tooltip-annotation                    (:foreground oniViolet))
   (company-scrollbar-bg                          (:inherit 'tooltip))

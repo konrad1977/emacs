@@ -377,18 +377,36 @@
   :config (evil-multiedit-default-keybinds))
 
 ;; ------------------ AUTOCOMPLETIONS -------------
+;; workaround for company-transformers
+(setq company-tabnine--disable-next-transform nil)
+(defun my-company--transform-candidates (func &rest args)
+  (if (not company-tabnine--disable-next-transform)
+      (apply func args)
+    (setq company-tabnine--disable-next-transform nil)
+    (car args)))
+
+(defun my-company-tabnine (func &rest args)
+  (when (eq (car args) 'candidates)
+    (setq company-tabnine--disable-next-transform t))
+  (apply func args))
+
+(advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
+(advice-add #'company-tabnine :around #'my-company-tabnine)
+
 (use-package company
   :hook (prog-mode . company-mode)
   :init
+  ;(setq company-format-margin-function      'company-vscode-dark-icons-margin)
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
                                               company-capf
-                                              company-sourcekit
+                                              company-tabnine
+                                              company-dabbrev-code
+                                              company-yasnippet
                                               company-semantic
                                               company-keywords
                                               company-files
-                                              company-dabbrev-code
                                               )
         company-frontends                   '(company-pseudo-tooltip-frontend)
         company-tooltip-margin              2
@@ -396,27 +414,30 @@
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               nil 
-        company-tooltip-limit               15
+        company-tooltip-limit               20
         company-tooltip-flip-when-above     t
         company-tooltip-idle-delay          0.2
         company-async-wait                  0.4
+        company-idle-delay                  0
         company-show-quick-access           'left
         company-async-timeout               2
         company-dabbrev-downcase            nil
         company-dabbrev-code-ignore-case    t
         company-dabbrev-ignore-case         t))
 
-(use-package company-sourcekit
-  :hook swift-mode
-  :config
-  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-  :custom
-  (setq company-sourcekit-verbose nil
-		sourcekit-verbose nil
-        company-sourcekit-use-yasnippet nil))
+;; (use-package company-sourcekit
+;;   :hook swift-mode
+;;   :config
+;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
+;;   :custom
+;;   (setq company-sourcekit-verbose nil
+;; 		sourcekit-verbose nil
+;;         company-sourcekit-use-yasnippet t))
 
 ;; (use-package company-box
 ;;   :hook (company-mode . company-box-mode))
+
+(use-package company-tabnine)
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -427,10 +448,8 @@
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
 
-;; (use-package yasnippet
-;;   :hook (swift-mode . yas-minor-mode)
-;;   :config (yas-global-mode 1))
-
+(use-package yasnippet
+  :hook (company-mode . yas-minor-mode))
 ;; (use-package yasnippet-snippets
 ;;   :after yasnippet)
 
@@ -496,40 +515,14 @@
 	(shell-command-to-string
 	 "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")))
 
-
-(defun setup-eglot-for-swift ()
-  (setq mk-sourcekit-lsp-options '("--sync"))
-  (defun mk-sourcekit-lsp-executable ()
-	(setq mk-sourcekit-lsp-executable
-          (cond ((executable-find "sourcekit-lsp"))
-				((equal system-type 'darwin)
-				 (cond
-				  ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
-                  ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))
-				  ((executable-find "/usr/local/bin/sourcekit-lsp"))))
-				((equal system-type 'gnu/linux)
-				 (cond ((executable-find "/home/linuxbrew/.linuxbrew/bin/sourcekit-lsp"))))
-				(t
-				 ("sourcekit-lsp")))))
-
-
 (defun mk-sourcekit-lsp-command (interactive)
   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
-(use-package eglot
-  :config
-  (add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command))))
-
 (defun setup-swift-programming ()
- ;; (setup-eglot-for-swift)
   (use-package swift-mode
-   ;; :hook (swift-mode . eglot-ensure)
     :config
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4)) 
-
-  ;; (add-hook 'swift-mode-hook
-  ;;   		(lambda () (local-set-key (kbd "M-RET") #'eglot-code-action-quickfix)))
 
   (defvar-local my/flycheck-local-cache nil)
   (defun my/flycheck-checker-get (fn checker property)
@@ -543,7 +536,6 @@
   ;; 	:after swift-mode
   ;; 	:config
   ;; 	(setq swift-helpful-stdlib-path "~/source/swift/stdlib/public/"))
-;  (setup-eglot-for-swift)
 
   (use-package flycheck-swiftx
 	:after flycheck)
@@ -562,19 +554,8 @@
                (when (derived-mode-p 'swift-mode)
    				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (xcode))))))
    				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftlint))))))
-                 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftx)))))))))
-   
-   )
+                 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftx))))))))))
 
-   ;; (add-hook 'swift-mode-hook
-   ;; 			(lambda ()
-   ;;             (when (derived-mode-p 'swift-mode)
-   ;; 				 (setq my/flycheck-local-cache '(eglot . (((next-checkers . (xcode)))))))))
-   
-   ;; (add-hook 'swift-mode-hook
-   ;; 			(lambda ()
-   ;;             (when (derived-mode-p 'swift-mode)
-   ;; 				(setq my/flycheck-local-cache '(eglot . (((next-checkers . (swiftx))))))))))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -662,7 +643,7 @@
 (use-package major-mode-hydra
   :defer t
   :config
-    (setq major-mode-hydra-invisible-quit-key "q"))
+  (setq major-mode-hydra-invisible-quit-key "q"))
 
 ;; ;; Winum - select windows easy
 (use-package winum
@@ -923,6 +904,9 @@
 
 (use-package ivy-prescient
   :hook (ivy-mode . ivy-prescient-mode))
+
+(use-package ivy-hydra
+  :after ivy)
 
 ;;  query stackoverflow
 (use-package sx
