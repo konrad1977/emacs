@@ -274,8 +274,8 @@
   (flycheck-error-list-error                     (:foreground samuraiRed :bold t))
   (flycheck-error-list-info                      (:foreground waveAqua1 :bold t))
   (flycheck-inline-error                         (:foreground samuraiRed :background winterRed :italic t))
-  (flycheck-inline-info                          (:foreground autumnGreen :background winterGreen :italic t))
-  (flycheck-inline-warning                       (:foreground lightBlue :background winterBlue :italic t))
+  (flycheck-inline-info                          (:foreground lightBlue :background winterBlue :italic t))
+  (flycheck-inline-warning                       (:foreground roninYellow :background winterYellow :italic t))
 
   ;; indent dots
   (highlight-indent-guides-character-face        (:foreground sumiInk-3))

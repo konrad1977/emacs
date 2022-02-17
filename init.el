@@ -175,17 +175,16 @@
 
 ;; Which key
 (use-package which-key
-  :diminish
+  :diminish which-key-mode
   :custom
+  (which-key-prefix-prefix "◉ ")
+  :config
+  (which-key-mode)
   (which-key-setup-side-window-bottom)
-  (which-key-separator " ")
-  (which-key-prefix-prefix "● ")
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
 		which-key-min-display-lines 4
-		which-key-max-display-columns 5)
-  :config
-  (which-key-mode))
+		which-key-max-display-columns 5))
 
 (use-package discover-my-major
   :commands discover-my-major)
@@ -279,7 +278,7 @@
   :hook (after-init . doom-modeline-mode)
   :config
   (setq
-		doom-modeline-bar-width 4
+		doom-modeline-bar-width 2
 		doom-modeline-buffer-file-name-style 'file-name
 		doom-modeline-buffer-encoding nil
 		doom-modeline-icon t
@@ -291,7 +290,7 @@
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
         doom-modeline-vcs-max-length 40
-		doom-modeline-height 32)
+		doom-modeline-height 24)
   :custom
   (set-face-attribute 'mode-line nil
 					  :family "Iosevka Nerd Font Mono"
@@ -413,10 +412,10 @@
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
                                               company-sourcekit
+                                              company-yasnippet
                                               company-tabnine
                                               company-capf
                                               company-dabbrev-code
-                                              company-yasnippet
                                               company-semantic
                                               company-keywords
                                               company-files
