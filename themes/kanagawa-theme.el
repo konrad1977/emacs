@@ -39,7 +39,7 @@
   (autumnRed		"#C34043" "#585858")
   (autumnYellow		"#DCA561" "#585858")
 
-  (samuraiRed		"#E82424" "#585858") 
+  (samuraiRed		"#E82424" "#585858")
   (roninYellow		"#FF9E3B" "#585858")
 
   (waveAqua1		"#6A9589" "#6a9589")
@@ -264,15 +264,18 @@
   ;; flycheck
   (flycheck-posframe-background-face             (:background sumiInk-0))
   (flycheck-posframe-face                        (:background sumiInk-0))
-  (flycheck-posframe-info-face                   (:background sumiInk-0 :foreground lightBlue))
-  (flycheck-posframe-warning-face                (:background sumiInk-0 :foreground carpYellow))
-  (flycheck-posframe-error-face                  (:background sumiInk-0 :foreground springViolet2))
-  (flycheck-fringe-warning                       (:foreground roninYellow))
+  (flycheck-posframe-info-face                   (:background sumiInk-0 :foreground autumnGreen))
+  (flycheck-posframe-warning-face                (:background sumiInk-0 :foreground lightBlue))
+  (flycheck-posframe-error-face                  (:background sumiInk-0 :foreground samuraiRed))
+  (flycheck-fringe-warning                       (:foreground lightBlue))
   (flycheck-fringe-error                         (:foreground samuraiRed))
-  (flycheck-fringe-info                          (:foreground waveAqua1))
+  (flycheck-fringe-info                          (:foreground autumnGreen))
   (flycheck-error-list-warning                   (:foreground roninYellow :bold t))
   (flycheck-error-list-error                     (:foreground samuraiRed :bold t))
   (flycheck-error-list-info                      (:foreground waveAqua1 :bold t))
+  (flycheck-inline-error                         (:foreground samuraiRed :background winterRed :italic t))
+  (flycheck-inline-info                          (:foreground autumnGreen :background winterGreen :italic t))
+  (flycheck-inline-warning                       (:foreground lightBlue :background winterBlue :italic t))
 
   ;; indent dots
   (highlight-indent-guides-character-face        (:foreground sumiInk-3))
@@ -316,7 +319,7 @@
   (treemacs-git-renamed-face		   	 (:foreground fujiWhite))
   (treemacs-git-modified-face		   	 (:foreground springGreen))
 
-  ;; tree-sitter 
+  ;; tree-sitter
   (tree-sitter-hl-face:constant                  (:background peachRed))
   (tree-sitter-hl-face:constant.builtin          (:background peachRed))
   (tree-sitter-hl-face:function.call             (:background springViolet2))

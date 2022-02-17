@@ -493,7 +493,13 @@
   :diminish
   :custom
   (flycheck-indication-mode 'left-fringe)
-  (flycheck-display-errors-delay 0.1))
+  (flycheck-display-errors-delay 0.1)
+  (flycheck-check-syntax-automatically '(save idle-change mode-enabled))
+  (flycheck-idle-change-delay 0.8))
+
+(use-package flycheck-inline
+  :ensure t
+  :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (defun my/set-flycheck-margins ()
   (setq left-fringe-width 8 right-fringe-width 8
@@ -501,9 +507,6 @@
   (flycheck-refresh-fringes-and-margins))
 ;; …every time Flycheck is activated in a new buffer
 (add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
-
-(use-package imenu-anywhere
-  :bind ("M-f" . imenu-anywhere))
 
 (defun exec-path-from-shell-setup ()
      (when (memq window-system '(mac ns x))
@@ -530,27 +533,27 @@
 (defun mk-sourcekit-lsp-command (interactive)
   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
+(defun ar/swift-public-interface ()
+  "Open an occur buffer with file's public interface."
+  (interactive)
+  (assert (eq major-mode 'swift-mode) nil "Not in swift-mode")
+  (let ((list-matching-lines-face nil))
+    (occur "\\(public\\)\\|\\(open\\)")))
+
 (defun setup-swift-programming ()
   (use-package swift-mode
     :custom
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4)) 
 
-  (defvar-local my/flycheck-local-cache nil)
-  (defun my/flycheck-checker-get (fn checker property)
-	(or (alist-get property (alist-get checker my/flycheck-local-cache))
-		(funcall fn checker property)))
+  ;; (require 'ios-simulator)
+  ;; (load "ios-simulator")
 
-  (require 'ios-simulator)
-  (load "ios-simulator")
-
-  ;; (use-package swift-helpful
-  ;; 	:after swift-mode
-  ;; 	:config
-  ;; 	(setq swift-helpful-stdlib-path "~/source/swift/stdlib/public/"))
-
+  (use-package swift-helpful
+	:after swift-mode)
+  
   (use-package flycheck-swiftx
-	:after flycheck)
+    :after flycheck)
 
   (use-package flycheck-swift3
 	:after flycheck
@@ -559,20 +562,21 @@
   (use-package flycheck-xcode
     :after flycheck
     :custom (flycheck-xcode-setup))
-  
+   
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
 
-   (advice-add 'flycheck-checker-get :around 'my/flycheck-checker-get)
-   (add-hook 'swift-mode-hook
-   			(lambda ()
-               (when (derived-mode-p 'swift-mode)
-   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swift3))))))
-   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftlint))))))
-                 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (swiftx))))))
-   				 (setq my/flycheck-local-cache '(swift-mode . (((next-checkers . (xcode))))))))))
+  (require 'flycheck)
+  
+  (add-to-list 'flycheck-checkers 'xcode)
+  (add-to-list 'flycheck-checkers 'swiftx)
+  (add-to-list 'flycheck-checkers 'swift3)
+  (add-to-list 'flycheck-checkers 'swiftlint)
 
+  (flycheck-add-next-checker 'swiftlint 'swift3)
+  (flycheck-add-next-checker 'swift3 'xcode)
+  (flycheck-add-next-checker 'xcode 'swiftx))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -988,6 +992,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
   (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
+  (define-key evil-motion-state-map (kbd "M-f") #'(lambda () (interactive) (counsel-imenu)))
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file)
