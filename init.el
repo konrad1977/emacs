@@ -213,6 +213,7 @@
 (use-package evil
   :hook (after-init . evil-mode)
   :init
+  (setq evil-undo-system 'undo-redo)
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
@@ -225,20 +226,15 @@
   (setq evil-replace-state-cursor '("red" hbar))
   (setq evil-operator-state-cursor '("red" hollow))
   
+  (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
+  
+  (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
+  (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
+
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
-  (define-key evil-motion-state-map "/" 'swiper)
-  (define-key evil-visual-state-map (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
-
-;; Undo
-(use-package undo-fu
-  :commands (undo-fu-only-undo undo-fu-only-redo undo-fu-only-redo-all)
-  :bind
-  ("M-u" . undo-fu-only-undo)
-  ("M-U" . undo-fu-only-redo))
+  (define-key evil-motion-state-map "/" 'swiper))
 
 (use-package evil-tutor
   :commands evil-tutor)
