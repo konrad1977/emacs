@@ -91,8 +91,9 @@
 
 ;; Initialize package sources
 (require 'package)
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
+(setq package-archives '(
+                         ("elpa" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
 
 (package-initialize)
 (unless package-archive-contents
@@ -235,9 +236,9 @@
 ;; Undo
 (use-package undo-fu
   :commands (undo-fu-only-undo undo-fu-only-redo undo-fu-only-redo-all)
-  :config
-  (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
-  (define-key evil-normal-state-map "U" 'undo-fu-only-redo))
+  :bind
+  ("M-u" . undo-fu-only-undo)
+  ("M-U" . undo-fu-only-redo))
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -412,8 +413,8 @@
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
                                               company-sourcekit
-                                              company-yasnippet
                                               company-tabnine
+                                              company-yasnippet
                                               company-capf
                                               company-dabbrev-code
                                               company-semantic
