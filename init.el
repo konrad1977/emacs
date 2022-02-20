@@ -408,8 +408,8 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
-                                              company-sourcekit
                                               company-tabnine
+                                              company-sourcekit
                                               company-yasnippet
                                               company-capf
                                               company-dabbrev-code
@@ -565,14 +565,14 @@
 
   (require 'flycheck)
   
-  (add-to-list 'flycheck-checkers 'xcode)
-  (add-to-list 'flycheck-checkers 'swiftx)
+ ; (add-to-list 'flycheck-checkers 'xcode)
+ ; (add-to-list 'flycheck-checkers 'swiftx)
   (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
 
-  (flycheck-add-next-checker 'swiftlint 'swift3)
-  (flycheck-add-next-checker 'swift3 'xcode)
-  (flycheck-add-next-checker 'xcode 'swiftx))
+  (flycheck-add-next-checker 'swiftlint 'swift3))
+ ; (flycheck-add-next-checker 'swift3 'xcode)
+ ; (flycheck-add-next-checker 'xcode 'swiftx))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
