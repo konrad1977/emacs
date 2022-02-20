@@ -538,12 +538,6 @@
 (defun mk-sourcekit-lsp-command (interactive)
   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
-(defun ar/swift-public-interface ()
-  "Open an occur buffer with file's public interface."
-  (interactive)
-  (assert (eq major-mode 'swift-mode) nil "Not in swift-mode")
-  (let ((list-matching-lines-face nil))
-    (occur "\\(public\\)\\|\\(open\\)")))
 
 (defun setup-swift-programming ()
   (use-package swift-mode
@@ -551,9 +545,10 @@
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4)) 
 
-  ;; (require 'ios-simulator)
-  ;; (load "ios-simulator")
-
+   (require 'ios-simulator)
+   (load "ios-simulator")
+   (load "swift-additions")
+   
   (use-package swift-helpful
 	:after swift-mode)
   
@@ -589,6 +584,17 @@
   (setup-xcode-menus)
   (setup-swift-programming)
 
+  ;; Fixes mode line separator issues on macOS.
+  (setq ns-use-srgb-colorspace nil)
+
+  ;; Use existing frame when opening files.
+  (setq ns-pop-up-frames nil)
+  
+    (defun macos-hardware-overview ()
+      "View macOS hardware overview."
+      (interactive)
+      (shell-command "system_profiler SPHardwareDataType"))
+  
   (use-package ns-auto-titlebar
 	:config (ns-auto-titlebar-mode))
 
