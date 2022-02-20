@@ -55,7 +55,6 @@
 (global-hl-line-mode 1)         ;; Highlight current line
 (semantic-mode 1)               ;; help out with semantics
 (save-place-mode 1)             ;; when buffer is closed, save the cursor position
-(global-prettify-symbols-mode nil) ;; Dont prettify code
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -545,9 +544,9 @@
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4)) 
 
-   (require 'ios-simulator)
-   (load "ios-simulator")
-   (load "swift-additions")
+   ;(require 'ios-simulator)
+   ;(load "ios-simulator")
+   ;(load "swift-additions")
    
   (use-package swift-helpful
 	:after swift-mode)
@@ -608,7 +607,6 @@
 		mac-option-modifier 'none
 		dired-use-ls-dired nil
 		frame-title-format ""))
-
 
 (defun my-vterm/split-horizontal ()
   "Create a new vterm window under of the current one."
@@ -930,19 +928,19 @@
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
 
-;; (use-package highlight-operators
-;;   :hook (swift-mode . highlight-operators-mode))
+(use-package highlight-operators
+  :hook (swift-mode . highlight-operators-mode))
 
-;; (use-package highlight-symbol
-;;   :hook (prog-mode . highlight-symbol-mode)
-;;   :config
-;;   (setq highlight-symbol-idle-delay 0.3))
+(use-package highlight-symbol
+  :hook (prog-mode . highlight-symbol-mode)
+  :config
+  (setq highlight-symbol-idle-delay 0.3))
 
-;; (use-package highlight-numbers
-;;   :hook (prog-mode . highlight-numbers-mode))
+(use-package highlight-numbers
+  :hook (prog-mode . highlight-numbers-mode))
 
-;; (use-package highlight-escape-sequences
-;;   :hook (prog-mode . hes-mode))
+(use-package highlight-escape-sequences
+  :hook (prog-mode . hes-mode))
 
  (use-package prescient
   :after ivy
