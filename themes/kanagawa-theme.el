@@ -409,20 +409,20 @@
   (hydra-face-teal                               (:foreground lightBlue))
 
   ;; centaur-tabs
-  (centaur-tabs-active-bar-face                  (:background sumiInk-1 :foreground fujiWhite))
+  (centaur-tabs-active-bar-face                  (:background springBlue :foreground fujiWhite))
   (centaur-tabs-selected                         (:background sumiInk-1 :foreground fujiWhite :bold t))
   (centaur-tabs-selected-modified                (:background sumiInk-1 :foreground fujiWhite))
-  (centaur-tabs-modified-marker-selected         (:background sumiInk-1 :foreground fujiWhite))
+  (centaur-tabs-modified-marker-selected         (:background sumiInk-1 :foreground autumnYellow))
   (centaur-tabs-close-selected                   (:inherit 'centaur-tabs-selected))
   (tab-line                                      (:background sumiInk-0))
 
-  (centaur-tabs-unselected                       (:background sumiInk-0 :foreground fujiGray))
+  (centaur-tabs-unselected                       (:background sumiInk-0 :foreground sumiInk-4))
   (centaur-tabs-unselected-modified              (:background sumiInk-0 :foreground peachRed))
-  (centaur-tabs-modified-marker-unselected       (:background sumiInk-0 :foreground fujiGray))
-  (centaur-tabs-close-unselected                 (:background sumiInk-0 :foreground fujiGray))
+  (centaur-tabs-modified-marker-unselected       (:background sumiInk-0 :foreground sumiInk-4))
+  (centaur-tabs-close-unselected                 (:background sumiInk-0 :foreground sumiInk-4))
 
   (centaur-tabs-close-mouse-face                 (:background nil :foreground peachRed))
-  (centaur-tabs-default                          (:background sumiInk-0))
+  (centaur-tabs-default                          (:background roninYellow ))
   (centaur-tabs-name-mouse-face                  (:foreground springBlue :bold t))
    
  ))

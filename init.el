@@ -52,9 +52,10 @@
 (desktop-save-mode 0)			;; Save desktop
 (recentf-mode)					;; Recent file mode.
 (savehist-mode 1)				;; Save history
-(global-hl-line-mode 1)
-(semantic-mode 1)
-(save-place-mode 1)             ;; When buffer is closed, save the cursor position
+(global-hl-line-mode 1)         ;; Highlight current line
+(semantic-mode 1)               ;; help out with semantics
+(save-place-mode 1)             ;; when buffer is closed, save the cursor position
+(global-prettify-symbols-mode nil) ;; Dont prettify code
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -139,13 +140,13 @@
   (helpful-mode . centaur-tabs-local-mode)
   (swift-mode . centaur-tabs-local-mode)
   :config
-  (setq centaur-tabs-style "box"
+  (setq centaur-tabs-style "bar"
 		centaur-tabs-height 28
 		centaur-tabs-set-modified-marker t
 		centaur-tabs-show-navigation-buttons nil
 		centaur-tabs-plain-icons nil
 		centaur-tabs-set-icons t
-		centaur-tabs-set-bar 'over
+		centaur-tabs-set-bar 'left
 		x-underline-at-descent-line t
 		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
@@ -192,7 +193,15 @@
 
  ; helpful
 (use-package helpful
-  :after which-key)
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
 
 (use-package ace-window
    :bind ("C-x C-o" . ace-window))
@@ -261,8 +270,8 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-(use-package fira-code-mode
-  :hook (prog-mode . fira-code-mode))
+;; (use-package fira-code-mode
+;;   :hook (prog-mode . fira-code-mode))
 
 (use-package all-the-icons
   :after doom-modeline)
@@ -853,6 +862,7 @@
 	org-hide-emphasis-markers t
 	org-hide-leading-stars t
 	org-agenda-start-with-log-mode t
+    org-src-fontify-natively t
 	org-log-into-drawer t
 	org-log-done 'time))
 
@@ -861,8 +871,22 @@
 			       '((emacs-lisp t)))
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
+
+  ;; Setup fonts for org-mode
+  (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
+
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
 
 (use-package org-bullets
@@ -900,21 +924,21 @@
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
 
-(use-package highlight-operators
-  :hook (swift-mode . highlight-operators-mode))
+;; (use-package highlight-operators
+;;   :hook (swift-mode . highlight-operators-mode))
 
-(use-package highlight-symbol
-  :hook (prog-mode . highlight-symbol-mode)
-  :config
-  (setq highlight-symbol-idle-delay 0.3))
+;; (use-package highlight-symbol
+;;   :hook (prog-mode . highlight-symbol-mode)
+;;   :config
+;;   (setq highlight-symbol-idle-delay 0.3))
 
-(use-package highlight-numbers
-  :hook (prog-mode . highlight-numbers-mode))
+;; (use-package highlight-numbers
+;;   :hook (prog-mode . highlight-numbers-mode))
 
-(use-package highlight-escape-sequences
-  :hook (prog-mode . hes-mode))
+;; (use-package highlight-escape-sequences
+;;   :hook (prog-mode . hes-mode))
 
-(use-package prescient
+ (use-package prescient
   :after ivy
   :config
   (prescient-persist-mode))
