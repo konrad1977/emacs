@@ -92,7 +92,7 @@
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground waveAqua2 :bold t))
   (numbers                                       (:background sakuraPink))
-  (region                                        (:background waveBlue-1))
+  (region                                        (:background waveBlue-2))
   (separator-line                                (:background sumiInk-0))
   (shadow                                        (:background sumiInk-0))
   (success                                       (:foreground waveAqua2))
