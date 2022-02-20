@@ -584,7 +584,7 @@
   (setup-swift-programming)
 
   ;; Fixes mode line separator issues on macOS.
-  (setq ns-use-srgb-colorspace nil)
+  ;(setq ns-use-srgb-colorspace nil)
 
   ;; Use existing frame when opening files.
   (setq ns-pop-up-frames nil)
@@ -866,7 +866,6 @@
 	org-hide-emphasis-markers t
 	org-hide-leading-stars t
 	org-agenda-start-with-log-mode t
-    org-src-fontify-natively t
 	org-log-into-drawer t
 	org-log-done 'time))
 
@@ -877,7 +876,7 @@
   (require 'org-tempo)
 
   ;; Setup fonts for org-mode
-  (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block nil    :inherit 'fixed-pitch)
   (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
   (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
