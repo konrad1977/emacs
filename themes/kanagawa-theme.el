@@ -424,7 +424,11 @@
   (centaur-tabs-close-mouse-face                 (:background nil :foreground peachRed))
   (centaur-tabs-default                          (:background roninYellow ))
   (centaur-tabs-name-mouse-face                  (:foreground springBlue :bold t))
-   
+
+  (git-gutter:added                              (:foreground springBlue :background winterBlue))
+  (git-gutter:deleted                            (:foreground peachRed :background winterRed))
+  (git-gutter:modified                           (:inherit 'git-gutter:added :foreground comet))
+  
  ))
 
 ;;;###autoload

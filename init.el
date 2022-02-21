@@ -43,7 +43,7 @@
 (display-battery-mode t)		;; Show battery.
 (display-time-mode t)			;; Show time.
 (scroll-bar-mode -1)			;; Dont use scrollbars.
-(set-fringe-mode 2)				;; Give us some space.
+(set-fringe-mode 4)				;; Give us some space.
 (tooltip-mode -1)				;; Disable tooltip.
 (delete-selection-mode t)		;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
@@ -418,8 +418,8 @@
   (setq company-backends                    '(
                                               company-tabnine
                                               company-sourcekit
-                                              company-yasnippet
                                               company-capf
+                                              company-yasnippet
                                               company-dabbrev-code
                                               company-semantic
                                               company-keywords
@@ -588,9 +588,6 @@
   (setup-xcode-menus)
   (setup-swift-programming)
 
-  ;; Fixes mode line separator issues on macOS.
-  ;(setq ns-use-srgb-colorspace nil)
-
   ;; Use existing frame when opening files.
   (setq ns-pop-up-frames nil)
   
@@ -711,6 +708,14 @@
                     :background nil
                     :height 140
                     :italic t))))
+
+(use-package git-gutter
+  :hook (prog-mode . git-gutter-mode))
+
+(custom-set-variables
+ '(git-gutter:modified-sign " ≈ ") ;; two space
+ '(git-gutter:added-sign " + ")    ;; multiple character is OK
+ '(git-gutter:deleted-sign " - "))
 
 (use-package forge
   :commands forge-pull)
