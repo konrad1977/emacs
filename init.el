@@ -690,6 +690,23 @@
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+(use-package blamer
+  :hook (prog-mode . global-blamer-mode)
+  :config
+  (setq blamer-view 'overlay-right)
+  (setq blamer-type 'both)
+  (setq blamer--overlay-popup-position 'smart)
+  (setq blamer-max-commit-message-length 120)
+  (setq blamer-author-formatter " ✎ %s ")
+  :custom
+  (blamer-idle-time 0.3)
+  (blamer-min-offset 70)
+  :custom-face
+  (blamer-face ((t :foreground "#7a88cf"
+                    :background nil
+                    :height 140
+                    :italic t))))
+
 (use-package forge
   :commands forge-pull)
 
@@ -787,10 +804,10 @@
     "h" '(:ignore t :which-key "Help")
     "hc" '(helpful-command :which-key "Describe command")
     "hk" '(helpful-key :which-key "Describe key")
-    "hf" '(counsel-describe-function :which-key "Describe function")
-    "hv" '(counsel-describe-variable :which-key "Describe variable")
+    "hf" '(helpful-function :which-key "Describe function")
+    "hv" '(helpful-variable :which-key "Describe variable")
     "ht" '(evil-tutor-start :which-key "Evil tutorial")
-    "h." '(counsel-describe-symbol :which-key "Describe at-point")
+    "h." '(helpful-at-point :which-key "Describe at-point")
     "hp" '(describe-package :which-key "Describe package"))
 
   (mk/leader-keys
@@ -830,6 +847,7 @@
    (mk/leader-keys
      "v" '(:ignore t :which-key "Version control")
      "vs" '(magit-status :which-key "Status")
+     "vb" '(blamer-show-commit-info :which-key "Show git blame")
      "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
      "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
 
