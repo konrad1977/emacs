@@ -520,25 +520,30 @@
   :hook (after-init . exec-path-from-shell-setup))
 
 (defun setup-xcode-menus ()
-
+"Setup menus for use of Xcode."
   (defun xcode-build()
+    "Start a build using Xcode."
 	(interactive)
 	(shell-command-to-string
      "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'"))
   (defun xcode-run()
+    "Run application from Xcode."
 	(interactive)
 	(shell-command-to-string
      "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'"))
   (defun xcode-test()
+    "Run current test scheme from Xcode."
 	(interactive)
 	(shell-command-to-string
 	 "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")))
 
-(defun mk-sourcekit-lsp-command (interactive)
+(defun mk-sourcekit-lsp-command ()
+    "Setup lsp."
+    (interactive)
   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
 
-
 (defun setup-swift-programming ()
+  "Setup swift development environment."
   (use-package swift-mode
     :custom
     (setq swift-mode:parenthesized-expression-offset 4
