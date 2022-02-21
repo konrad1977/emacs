@@ -41,10 +41,14 @@
               "-e BackgroundTask"))
               
 (defun ios-simulator-logs ()
+  "Show simulator logs in a buffer."
   (interactive)
   (with-output-to-temp-buffer "*simulator logs*"
-    (async-shell-command (format "bash -c %s" (shell-quote-argument simctl-command)) "*simulator logs*")
-    (pop-to-buffer "*simulator logs*")))
+    (async-shell-command
+     (format "bash -c %s"
+             (shell-quote-argument simctl-command)) "*simulator logs*")
+    (pop-to-buffer "*simulator logs*")
+    (auto-revert-tail-mode)))
 
 ;; ----------------- OPEN SIMULATOR FOLDER --------------------------------------------
 (setq simulator-folder
@@ -53,14 +57,16 @@
 (setq simulator-id
       (file-name-nondirectory simulator-folder))
 
-(setq simulator-type-and-name 
-      (s-chomp
-       (s-trim-left 
-        (shell-command-to-string (concat "xcrun simctl list | grep -m1 " simulator-id)))))
-
 (defun ios-simulator-print-type-and-name ()
+  "Print the currently booted simulator name."
   (interactive)
-  (message simulator-type-and-name))
+  (message
+   (string-trim
+    (shell-command-to-string
+     (concat "xcrun simctl list | grep -m1 "
+             (file-name-nondirectory
+              (shell-command-to-string "xcrun simctl getenv booted SIMULATOR_LOG_ROOT")))))))
+
 
 (defun ios-simulator-open-root ()
   "Opens up the folder of the currect simulator root"
