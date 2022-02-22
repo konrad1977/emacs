@@ -7,26 +7,41 @@
 (eval-when-compile (defvar display-time-24hr-format))
 (eval-when-compile (defvar display-time-default-load-average))
 
-(setq byte-compile-warnings '(cl-functions)) ;; Turn off cl package is depricated warning
+(display-battery-mode t)		;; Show battery.
+(display-time-mode t)			;; Show time.
+(scroll-bar-mode -1)			;; Dont use scrollbars.
+(set-fringe-mode 1)             ;; Give us some space.
+(tooltip-mode 1)                ;; Disable tooltip.
+(delete-selection-mode t)		;; Use a more sane delete mode than evil.
+(fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
+(global-font-lock-mode 1)		;; always highlight code
+(global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
+(desktop-save-mode 0)			;; Save desktop
+(global-hl-line-mode 1)         ;; Highlight current line
+(semantic-mode 1)               ;; help out with semantics
+(savehist-mode 1)				;; Save history
+(recentf-mode 1)				;; Recent file mode.
+(save-place-mode 1)             ;; when buffer is closed, save the cursor position
 
-; (setq split-width-threshold t)        ;; Always split new buffers below
-(setq auto-mode-case-fold nil)
 (setq ad-redefinition-action            'accept
+	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
 	  create-lockfiles                  nil
+	  fast-but-imprecise-scrolling      t
+	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
+	  initial-scratch-message           ""
+	  read-process-output-max           (* 8 1024 1024)
+      auto-mode-case-fold               nil
+      backup-by-copying                 t
+      backup-directory-alist            '(("." . "~/.emacs.d/backups"))
+      byte-compile-warnings             '(ck-functions)
       compilation-scroll-output         t
+      confirm-kill-processes            nil
       display-time-24hr-format          t
       display-time-default-load-average nil
-      visible-bell                      nil
-      backup-by-copying                 t
-	  initial-scratch-message           ""
-	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
-	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
       echo-keystrokes                   0.1
-	  fast-but-imprecise-scrolling      t
-      confirm-kill-processes            nil
       ediff-split-window-function       'split-window-horizontally
-	  read-process-output-max           (* 8 1024 1024)
-      backup-directory-alist            '(("." . "~/.emacs.d/backups")))
+      use-dialog-box                    nil
+      visible-bell                      nil)
 
 (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 2 t (lambda () (garbage-collect)))
@@ -40,21 +55,6 @@
   (setq use-package-verbose nil
         use-package-expand-minimally t))
 
-(display-battery-mode t)		;; Show battery.
-(display-time-mode t)			;; Show time.
-(scroll-bar-mode -1)			;; Dont use scrollbars.
-(set-fringe-mode 4)				;; Give us some space.
-(tooltip-mode -1)				;; Disable tooltip.
-(delete-selection-mode t)		;; Use a more sane delete mode than evil.
-(fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
-(global-font-lock-mode 1)		;; always highlight code
-(global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
-(desktop-save-mode 0)			;; Save desktop
-(recentf-mode)					;; Recent file mode.
-(savehist-mode 1)				;; Save history
-(global-hl-line-mode 1)         ;; Highlight current line
-(semantic-mode 1)               ;; help out with semantics
-(save-place-mode 1)             ;; when buffer is closed, save the cursor position
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -64,7 +64,7 @@
 			  indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
 			  completion-ignore-case        t            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
-              history-length                500)
+              history-length                50)
 
 (let* ((path (expand-file-name "localpackages" user-emacs-directory))
        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
@@ -312,8 +312,8 @@
   :config
   (setq nyan-animate-nyancat t))
 
-;; (use-package beacon
-;;   :init (beacon-mode 1))
+(use-package beacon
+  :init (beacon-mode 1))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -509,7 +509,7 @@
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (defun my/set-flycheck-margins ()
-  (setq left-fringe-width 8 right-fringe-width 8
+  (setq left-fringe-width 12 right-fringe-width 12
         left-margin-width 1 right-margin-width 0)
   (flycheck-refresh-fringes-and-margins))
 ;; …every time Flycheck is activated in a new buffer
@@ -552,8 +552,8 @@
     (setq swift-mode:parenthesized-expression-offset 4
 		  swift-mode:multiline-statement-offset 4)) 
 
-   ;(require 'ios-simulator)
-                                        ;(load "ios-simulator")
+    ;(require 'ios-simulator)
+    ;(load "ios-simulator")
   (require 'swift-additions)
   (load "swift-additions")
    
@@ -717,9 +717,9 @@
   :hook (prog-mode . git-gutter-mode))
 
 (custom-set-variables
- '(git-gutter:modified-sign " ≈ ") ;; two space
- '(git-gutter:added-sign " + ")    ;; multiple character is OK
- '(git-gutter:deleted-sign " - "))
+ '(git-gutter:modified-sign "≈") ;; two space
+ '(git-gutter:added-sign "+")    ;; multiple character is OK
+ '(git-gutter:deleted-sign "-"))
 
 (use-package forge
   :commands forge-pull)
@@ -993,12 +993,11 @@
   :hook (prog-mode . drag-stuff-mode))
 
 (use-package dumb-jump
-  :hook (prog-mode . dumb-jump-mode)
-  :custom
-  (dumb-jump-selector 'ivy)
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-  (setq	dumb-jump-selector 'completing-read
-		xref-show-definitions-function #'xref-show-definitions-completing-read))
+  :hook (prog-mode . dumb-jump-mode))
+
+  ;; (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+  ;; (setq	dumb-jump-selector 'completing-read
+  ;;   	xref-show-definitions-function #'xref-show-definitions-completing-read))
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()

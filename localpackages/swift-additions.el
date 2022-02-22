@@ -31,6 +31,7 @@
   (interactive)
   (require 'request)
   (require 'json)
+  (require 'url-http)
   (ivy-read "apple docs: "
             (lambda (input)
               (let* ((url (url-encode-url (format "https://developer.apple.com/search/search_data.php?q=%s" input)))

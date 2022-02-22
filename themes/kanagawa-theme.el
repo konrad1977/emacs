@@ -428,6 +428,10 @@
   (git-gutter:added                              (:foreground springBlue :background winterBlue))
   (git-gutter:deleted                            (:foreground peachRed :background winterRed))
   (git-gutter:modified                           (:inherit 'git-gutter:added :foreground comet))
+
+  (diff-hl-margin-change                         (:foreground springBlue :background winterBlue))
+  (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
+  (diff-hl-margin-insert                         (:foreground comet :background winterBlue))
   
  ))
 
