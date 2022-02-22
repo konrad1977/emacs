@@ -388,6 +388,9 @@
 (use-package anzu
   :hook (after-init . anzu-mode))
 
+(use-package cycle-at-point
+  :bind ("M-n" . cycle-at-point))
+
 ;; Multiple cursors evil mode
 (use-package evil-multiedit
   :config (evil-multiedit-default-keybinds))
@@ -550,8 +553,9 @@
 		  swift-mode:multiline-statement-offset 4)) 
 
    ;(require 'ios-simulator)
-   ;(load "ios-simulator")
-   ;(load "swift-additions")
+                                        ;(load "ios-simulator")
+  (require 'swift-additions)
+  (load "swift-additions")
    
   (use-package swift-helpful
 	:after swift-mode)
