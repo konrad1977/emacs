@@ -87,7 +87,7 @@
   (match                                         (:background carpYellow :foreground sumiInk-0))
   (menu                                          (:background sumiInk-0 :foreground fujiWhite))
   (mode-line                                     (:background sumiInk-0))
-  (mode-line-inactive                            (:background nil :foreground dragonBlue :bold nil))
+  (mode-line-inactive                            (:background nil :foreground sumiInk-4 :bold nil))
   (mode-line-active                              (:background sumiInk-0 :foreground old-white :bold nil))
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground waveAqua2 :bold t))

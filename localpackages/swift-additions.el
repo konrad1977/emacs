@@ -65,6 +65,15 @@
             :dynamic-collection t
             :caller 'ar/counsel-apple-search))
 
+(defun swift-print-thing-at-point ()
+  "Print thing thing at point"
+  (interactive)
+  (let* ((word (thing-at-point 'word))
+         (oldpos (point)))
+    (end-of-line)
+    (newline-and-indent)
+    (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
+
 (provide 'swift-additions)
 
 ;;; swift-additions.el ends here
