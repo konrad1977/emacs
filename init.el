@@ -1034,7 +1034,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Drag stuff
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
-  
+
+  (if (eq major-mode 'swift-mode)
+    (define-key evil-motion-state-map (kbd "M-p") #'swift-print-thing-at-point)) 
+
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))

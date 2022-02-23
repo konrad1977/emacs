@@ -66,10 +66,9 @@
             :caller 'ar/counsel-apple-search))
 
 (defun swift-print-thing-at-point ()
-  "Print thing thing at point"
+  "Print thing at point."
   (interactive)
-  (let* ((word (thing-at-point 'word))
-         (oldpos (point)))
+  (let ((word (thing-at-point 'word)))
     (end-of-line)
     (newline-and-indent)
     (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
