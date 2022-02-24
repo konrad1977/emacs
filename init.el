@@ -426,12 +426,12 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
-                                              company-tabnine
                                               company-sourcekit
                                               company-capf
-                                              company-yasnippet
-                                              company-dabbrev-code
                                               company-semantic
+                                              company-yasnippet
+                                              company-tabnine
+                                              company-dabbrev-code
                                               company-keywords
                                               company-files
                                               )
@@ -599,6 +599,9 @@
   (setup-xcode-menus)
   (setup-swift-programming)
 
+   (if window-system
+       (setq browse-url-browser-function 'mk/browser-split-window))
+ 
   ;; Use existing frame when opening files.
   (setq ns-pop-up-frames nil)
   
@@ -640,6 +643,16 @@
     (split-window-horizontally)
     (other-window 1)
     (xwidget-webkit-browse-url "https://duckduckgo.com")))
+
+(defun mk/browser-split-window (url &optional new-window)
+  "Create a new browser window to the right of the current one."
+  (interactive)
+  (let* ((ignore-window-parameters t)
+         (dedicated-p (window-dedicated-p)))
+    (delete-other-windows)
+    (split-window-horizontally)
+    (other-window 1)
+    (xwidget-webkit-browse-url url))) 
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -1026,7 +1039,7 @@
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
-  "Programming mode"
+  "Programming mode."
 
   (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.
@@ -1049,19 +1062,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
-  (define-key evil-motion-state-map (kbd "C-h") #'(lambda () (interactive) (evil-beginning-of-visual-line)))
-  (define-key evil-motion-state-map (kbd "C-l") #'(lambda () (interactive) (evil-end-of-line-or-visual-line)))
+  (define-key evil-motion-state-map (kbd "C-h") #'(lambda () (interactive) (evil-first-non-blank)))
+  (define-key evil-motion-state-map (kbd "C-l") #'(lambda () (interactive) (evil-last-non-blank)))
 
   ; When jumping got forward and back
-  (define-key evil-motion-state-map (kbd "C-M-<left>") #'(lambda () (interactive) (xref-pop-marker-stack)))
+  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
-  (define-key evil-motion-state-map (kbd "M-.") #'(dumb-jump-go))
-  (define-key evil-motion-state-map (kbd "M-f") #'(lambda () (interactive) (counsel-imenu)))
+  (define-key evil-motion-state-map (kbd "M-.")     #'(dumb-jump-go))
+  (define-key evil-motion-state-map (kbd "M-f")     #'(lambda () (interactive) (counsel-imenu)))
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file)
-  (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-projectile-rg)
+  (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-projectile-ag)
   (define-key evil-motion-state-map (kbd "M-F")     #'xref-find-definitions-other-window)
   (define-key evil-motion-state-map (kbd "C-M-e")   #'anzu-replace-at-cursor-thing)
   (define-key evil-motion-state-map (kbd "C-M-r")   #'anzu-query-replace-at-cursor)
