@@ -353,6 +353,13 @@
 		ivy-rich-switch-buffer-align-virtual-buffer nil
 		ivy-rich-path-style 'full))
 
+(use-package all-the-icons-ivy-rich
+  :init (all-the-icons-ivy-rich-mode 1)
+  :custom
+  (setq all-the-icons-ivy-rich-icon t
+        all-the-icons-ivy-rich-color-icon nil
+        all-the-icons-ivy-rich-icon-size 1.0))
+
 ;; counsel
 (use-package counsel
   :hook (ivy-mode . counsel-mode)
@@ -1035,9 +1042,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
 
-  (if (eq major-mode 'swift-mode)
-    (define-key evil-motion-state-map (kbd "M-p") #'swift-print-thing-at-point)) 
-
+  (add-hook 'swift-mode-hook
+            (lambda ()
+              (local-set-key (kbd "M-p") #'swift-print-thing-at-point)))
+  
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
