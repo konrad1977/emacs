@@ -73,6 +73,38 @@
     (newline-and-indent)
     (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
 
+
+(defun ar/counsel-hacking-with-swift-search ()
+  "Ivy interface to query hackingwithswift.com."
+  (interactive)
+  (require 'request)
+  (require 'json)
+  (require 'url-http)
+  (ivy-read "hacking with swift: "
+            (lambda (input)
+              (or
+               (ivy-more-chars)
+               (let ((request-curl-options (list "-H" (string-trim (url-http-user-agent-string)))))
+                 (request
+                   "https://www.hackingwithswift.com/example-code/search"
+                   :type "GET"
+                   :params (list
+                            (cons "search" input))
+                   :parser 'json-read
+                   :success (cl-function
+                             (lambda (&key data &allow-other-keys)
+                               (ivy-update-candidates
+                                (mapcar (lambda (item)
+                                          (let-alist item
+                                            (propertize .title 'url .url)))
+                                        data)))))
+                 0)))
+            :action (lambda (selection)
+                      (browse-url (concat "https://www.hackingwithswift.com"
+                                          (get-text-property 0 'url selection))))
+            :dynamic-collection t
+            :caller 'ar/counsel-hacking-with-swift-search))
+
 (provide 'swift-additions)
 
 ;;; swift-additions.el ends here
