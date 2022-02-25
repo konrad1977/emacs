@@ -636,16 +636,6 @@
     (other-window 1)
     (vterm default-directory)))
 
-(defun mk/browser-split-vertically ()
-  "Create a new browser window to the right of the current one."
-  (interactive)
-  (let* ((ignore-window-parameters t)
-         (dedicated-p (window-dedicated-p)))
-    (delete-other-windows)
-    (split-window-horizontally)
-    (other-window 1)
-    (xwidget-webkit-browse-url "https://duckduckgo.com")))
-
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
   (interactive)
@@ -857,7 +847,7 @@
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "Windows")
-	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "Start a browser")
+	 "wb" '((lambda () (interactive) (mk/browser-split-window "https://www.duckduckgo.com")) :which-key "Start a browser")
      "wp" '(previous-window-any-frame :which-key "Previous window")
      "wx" '(delete-window :which-key "Delete window")
 	 "wk" '(delete-window-internal :which-key "Delete window")
