@@ -5,7 +5,7 @@
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (eval-when-compile (defvar display-time-24hr-format))
-(eval-when-compile (defvar display-time-default-load-average))
+(eval-when-compile (defvar display-time-default-load-average nil))
 
 (display-battery-mode t)		;; Show battery.
 (display-time-mode t)			;; Show time.
@@ -234,6 +234,8 @@
   (setq evil-replace-state-cursor '("red" hbar))
   (setq evil-operator-state-cursor '("red" hollow))
   
+  (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
+
   (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
@@ -342,7 +344,7 @@
 		ivy-use-selectable-prompt t
 		ivy-display-style 'fancy)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
-  (define-key ivy-mode-map       (kbd "<escape>") nil)
+  (define-key ivy-mode-map       (kbd "<escape>") #'kill-current-buffer)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
 
 ;; ;; Ivy rich
@@ -352,6 +354,13 @@
   (setq ivy-virtual-abbreviate 'abbreviate
 		ivy-rich-switch-buffer-align-virtual-buffer nil
 		ivy-rich-path-style 'full))
+
+(use-package all-the-icons-ivy-rich
+  :init (all-the-icons-ivy-rich-mode 1)
+  :custom
+  (setq all-the-icons-ivy-rich-icon t
+        all-the-icons-ivy-rich-color-icon nil
+        all-the-icons-ivy-rich-icon-size 1.0))
 
 ;; counsel
 (use-package counsel
@@ -627,16 +636,6 @@
     (other-window 1)
     (vterm default-directory)))
 
-(defun mk/browser-split-vertically ()
-  "Create a new browser window to the right of the current one."
-  (interactive)
-  (let* ((ignore-window-parameters t)
-         (dedicated-p (window-dedicated-p)))
-    (delete-other-windows)
-    (split-window-horizontally)
-    (other-window 1)
-    (xwidget-webkit-browse-url "https://duckduckgo.com")))
-
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
   (interactive)
@@ -848,7 +847,7 @@
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "Windows")
-	 "wb" '((lambda () (interactive) (mk/browser-split-vertically)) :which-key "Start a browser")
+	 "wb" '((lambda () (interactive) (mk/browser-split-window "https://www.duckduckgo.com")) :which-key "Start a browser")
      "wp" '(previous-window-any-frame :which-key "Previous window")
      "wx" '(delete-window :which-key "Delete window")
 	 "wk" '(delete-window-internal :which-key "Delete window")
@@ -1048,10 +1047,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
 
-  (if (eq major-mode 'swift-mode)
-    (add-to-list 'auto-mode-alist '("\\.strings\\'" . c-mode))
-    (define-key evil-motion-state-map (kbd "M-p") #'swift-print-thing-at-point)) 
-
+  (add-hook 'swift-mode-hook
+            (lambda ()
+              (local-set-key (kbd "M-p") #'swift-print-thing-at-point)))
+  
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
