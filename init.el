@@ -649,10 +649,12 @@
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
   (interactive)
-  (delete-other-windows)
-  (split-window-horizontally)
-  (other-window 1)
-  (xwidget-webkit-browse-url url)) 
+  (let* ((ignore-window-parameters t)
+         (dedicated-p (window-dedicated-p)))
+    (delete-other-windows)
+    (split-window-horizontally)
+    (other-window 1)
+    (xwidget-webkit-browse-url url))) 
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
