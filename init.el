@@ -5,7 +5,7 @@
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (eval-when-compile (defvar display-time-24hr-format))
-(eval-when-compile (defvar display-time-default-load-average))
+(eval-when-compile (defvar display-time-default-load-average nil))
 
 (display-battery-mode t)		;; Show battery.
 (display-time-mode t)			;; Show time.
@@ -234,6 +234,8 @@
   (setq evil-replace-state-cursor '("red" hbar))
   (setq evil-operator-state-cursor '("red" hollow))
   
+  (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
+
   (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
   
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
@@ -342,7 +344,7 @@
 		ivy-use-selectable-prompt t
 		ivy-display-style 'fancy)
   (define-key ivy-minibuffer-map (kbd "RET") #'ivy-alt-done)
-  (define-key ivy-mode-map       (kbd "<escape>") nil)
+  (define-key ivy-mode-map       (kbd "<escape>") #'kill-current-buffer)
   (define-key ivy-minibuffer-map (kbd "<escape>") #'minibuffer-keyboard-quit))
 
 ;; ;; Ivy rich
@@ -647,12 +649,10 @@
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
   (interactive)
-  (let* ((ignore-window-parameters t)
-         (dedicated-p (window-dedicated-p)))
-    (delete-other-windows)
-    (split-window-horizontally)
-    (other-window 1)
-    (xwidget-webkit-browse-url url))) 
+  (delete-other-windows)
+  (split-window-horizontally)
+  (other-window 1)
+  (xwidget-webkit-browse-url url)) 
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
