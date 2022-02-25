@@ -419,11 +419,11 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
+                                              company-tabnine
                                               company-sourcekit
                                               company-capf
                                               company-semantic
                                               company-yasnippet
-                                              company-tabnine
                                               company-dabbrev-code
                                               company-keywords
                                               company-files
