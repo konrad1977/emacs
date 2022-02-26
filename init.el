@@ -688,7 +688,38 @@
   :config
   (setq major-mode-hydra-invisible-quit-key "q"))
 
-;; ;; Winum - select windows easy
+; Window / buffer configuration -----------------------------
+(use-package window
+  :ensure nil
+  :custom
+  (display-buffer-alist
+   '(("*xwidget*"
+       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window) 
+       (body-function . (lambda (window) 
+                          (select-window window)))
+       (window-width . 0.5)
+       (side . right))
+     ("\\*Faces\\|[Hh]elp\\*"
+      (display-buffer-in-side-window)
+      (body-function . (lambda (window) 
+                         (select-window window)))
+      (window-width . 0.33)
+      (side . right)
+      (slot . 1))
+     ("\\*e?shell\\|vterm*"
+      (display-buffer-in-side-window)
+      (body-function . (lambda (window) 
+                         (select-window window)))
+      (window-height . 0.2)
+      (side . bottom)
+      (slot . -1))
+     ("\\*simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*"
+      (display-buffer-in-side-window)
+      (window-height . 0.3)
+      (side . bottom)
+      (slot . 0)))))
+
+;; Winum - select windows easy ---------------------------
 (use-package winum
   :after doom-modeline
   :init
@@ -696,7 +727,7 @@
 
 ;; darkroom (go to focus mode)
 (use-package darkroom
-  :commands darkroom)
+  :commands darkroom-mode)
 
 ;; Use git
 (use-package magit
@@ -1042,6 +1073,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
 
+  (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
+  
   (add-hook 'swift-mode-hook
             (lambda ()
               (local-set-key (kbd "M-p") #'swift-print-thing-at-point)))
@@ -1238,36 +1271,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (xcode-run)
  ;; (ios-simulator-logs)
   )
-
-(use-package window
-  :ensure nil
-  :custom
-  (display-buffer-alist
-   '(("*xwidget*"
-       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window) 
-       (body-function . (lambda (window) 
-                          (select-window window)))
-       (window-width . 0.5)
-       (side . right))
-     ("\\*Faces\\|[Hh]elp\\*"
-      (display-buffer-in-side-window)
-      (body-function . (lambda (window) 
-                         (select-window window)))
-      (window-width . 0.33)
-      (side . right)
-      (slot . 1))
-     ("\\*e?shell\\|vterm*"
-      (display-buffer-in-side-window)
-      (body-function . (lambda (window) 
-                         (select-window window)))
-      (window-height . 0.2)
-      (side . bottom)
-      (slot . -1))
-     ("\\*simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*"
-      (display-buffer-in-side-window)
-      (window-height . 0.25)
-      (side . bottom)
-      (slot . 0)))))
 
 (provide 'init)
 

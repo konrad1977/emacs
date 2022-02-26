@@ -105,6 +105,13 @@
             :dynamic-collection t
             :caller 'ar/counsel-hacking-with-swift-search))
 
+(defun mk/toggle-flycheck-errors ()
+  "Function to toggle flycheck errors."
+  (interactive)
+  (if (get-buffer "*Flycheck errors*")
+      (kill-buffer "*Flycheck errors*")
+    (list-flycheck-errors)))
+
 (provide 'swift-additions)
 
 ;;; swift-additions.el ends here
