@@ -133,12 +133,10 @@
 (use-package centaur-tabs
   :hook
   (dashboard-mode . centaur-tabs-local-mode)
-  (term-mode . centaur-tabs-local-mode)
   (calendar-mode . centaur-tabs-local-mode)
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
   (swift-mode . centaur-tabs-local-mode)
-  (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
@@ -754,7 +752,7 @@
 	"5" '(winum-select-window-5 :which-key "Window 5")
 	"6" '(winum-select-window-6 :which-key "Window 6")
 	"P" 'package-install
-	"'" '((lambda () (interactive) (vterm default-directory)) :which-key "Term")
+	"'" '((lambda () (interactive) (eshell default-directory)) :which-key "Term")
 	"!" 'shell-command
 	":" 'eval-expression)
 
@@ -1242,16 +1240,26 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :ensure nil
   :custom
   (display-buffer-alist
-   '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode))
+   '(("^\\*xwidget.*"
        (display-buffer-in-side-window)
-       (window-height . 0.25)
-       (side . bottom)
-       (slow . -1))
+       (body-function . (lambda (window) 
+                          (select-window window)))
+       (window-width . 0.5)
+       (side . right))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
+      (body-function . (lambda (window) 
+                         (select-window window)))
       (window-width . 0.33)
       (side . right)
       (slot . 1))
+     ("\\*e?shell\\*"
+      (display-buffer-in-side-window)
+      (body-function . (lambda (window) 
+                         (select-window window)))
+      (window-height . 0.35)
+      (side . bottom)
+      (slot . -1))
      ("\\*simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*"
       (display-buffer-in-side-window)
       (window-height . 0.25)
