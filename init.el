@@ -138,9 +138,13 @@
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
   (swift-mode . centaur-tabs-local-mode)
+  (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
+  (centaur-tabs-headline-match)
+  (centaur-tabs-group-by-projectile-project)
   (setq centaur-tabs-style "bar"
 		centaur-tabs-height 28
+        centaur-tabs-gray-out-icons 'buffer
 		centaur-tabs-set-modified-marker t
 		centaur-tabs-show-navigation-buttons nil
 		centaur-tabs-plain-icons nil
@@ -338,7 +342,7 @@
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
-  (setq ivy-height 10
+  (setq ivy-height 14
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
 		ivy-use-selectable-prompt t
@@ -626,25 +630,15 @@
 		dired-use-ls-dired nil
 		frame-title-format ""))
 
-(defun my-vterm/split-horizontal ()
-  "Create a new vterm window under of the current one."
-  (interactive)
-  (let* ((ignore-window-parameters t)
-         (dedicated-p (window-dedicated-p)))
-    (delete-other-windows)
-    (split-window-vertically)
-    (other-window 1)
-    (vterm default-directory)))
-
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
   (interactive)
-  (let* ((ignore-window-parameters t)
-         (dedicated-p (window-dedicated-p)))
+   (let* ((ignore-window-parameters t)
+          (dedicated-p (window-dedicated-p)))
     (delete-other-windows)
     (split-window-horizontally)
     (other-window 1)
-    (xwidget-webkit-browse-url url))) 
+    (xwidget-webkit-browse-url url)))
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -760,7 +754,7 @@
 	"5" '(winum-select-window-5 :which-key "Window 5")
 	"6" '(winum-select-window-6 :which-key "Window 6")
 	"P" 'package-install
-	"'" '((lambda () (interactive) (my-vterm/split-horizontal)) :which-key "Term")
+	"'" '((lambda () (interactive) (vterm default-directory)) :which-key "Term")
 	"!" 'shell-command
 	":" 'eval-expression)
 
@@ -847,7 +841,7 @@
 
    (mk/leader-keys
      "w" '(:ignore t :which-key "Windows")
-	 "wb" '((lambda () (interactive) (mk/browser-split-window "https://www.duckduckgo.com")) :which-key "Start a browser")
+	 "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
      "wp" '(previous-window-any-frame :which-key "Previous window")
      "wx" '(delete-window :which-key "Delete window")
 	 "wk" '(delete-window-internal :which-key "Delete window")
@@ -1244,35 +1238,26 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
  ;; (ios-simulator-logs)
   )
 
-(defun mk/display-buffer (buffer &optional alist)
-  "Select window for BUFFER (need to use word ALIST on the first line).
-Returns thirth visible window if there are three visible windows, nil otherwise.
-Minibuffer is ignored."
-  (let ((wnr (if (active-minibuffer-window) 3 2)))
-    (when (= (+ wnr 1) (length (window-list)))
-      (let ((window (nth wnr (window-list))))
-        (set-window-buffer window buffer)
-        window)))
-  )
-
-(defvar mk/buffers-to-display-below
-  '("^\\*Flycheck errors\\*$"
-    "^\\*Colors\\*$"
-    "^\\*simulator logs\\*$"
-    "^\\*Faces\\*$"
-    "^\\*Async Shell Command\\*$"))
-
-(while mk/buffers-to-display-below
-  (add-to-list 'display-buffer-alist
-               `(, (car mk/buffers-to-display-below)
-                   (display-buffer-reuse-window
-                    mk/display-buffer
-                    display-buffer-in-side-window)
-                   (reusable-frames     . visible)
-                   (side                . bottom)
-                   (window-height       . 0.25)
-                   ))
-  (setq mk/buffers-to-display-below (cdr mk/buffers-to-display-below)))
+(use-package window
+  :ensure nil
+  :custom
+  (display-buffer-alist
+   '((lambda(bufname _) (with-current-buffer bufname (equal major-mode 'vterm-mode))
+       (display-buffer-in-side-window)
+       (window-height . 0.25)
+       (side . bottom)
+       (slow . -1))
+     ("\\*Faces\\|[Hh]elp\\*"
+      (display-buffer-in-side-window)
+      (window-width . 0.33)
+      (side . right)
+      (slot . 1))
+     ("\\*simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*"
+      (display-buffer-in-side-window)
+      (window-height . 0.25)
+      (side . bottom)
+      (slot . 0))
+     )))
 
 (provide 'init)
 
