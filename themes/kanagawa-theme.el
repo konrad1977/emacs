@@ -257,7 +257,7 @@
   (company-scrollbar-bg                          (:inherit 'tooltip))
   (company-scrollbar-fg                          (:background peachRed))
   (company-preview                               (:foreground carpYellow))
-  (company-preview-common                        (:background peachRed :foreground sumiInk-0))
+  (company-preview-common                        (:foreground peachRed :bold t))
   (company-preview-search                        (:inherit 'company-tooltip-search))
   (company-template-field                        (:inherit 'match))
 

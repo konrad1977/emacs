@@ -137,6 +137,7 @@
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
   (swift-mode . centaur-tabs-local-mode)
+  (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
@@ -239,10 +240,10 @@
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
   (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
-  
+
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
-
+ 
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
@@ -430,22 +431,24 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
-                                              company-tabnine
                                               company-sourcekit
+                                              company-yasnippet
                                               company-capf
                                               company-semantic
-                                              company-yasnippet
+                                              company-tabnine
                                               company-dabbrev-code
-                                              company-keywords
                                               company-files
+                                              company-keywords
                                               )
         company-frontends                   '(company-pseudo-tooltip-frontend)
+        company-preview-frontend            '(company-preview-search)
         company-tooltip-margin              2
         company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               nil 
         company-tooltip-limit               20
+        company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
         company-tooltip-idle-delay          0.2
         company-async-wait                  0.4
@@ -752,7 +755,7 @@
 	"5" '(winum-select-window-5 :which-key "Window 5")
 	"6" '(winum-select-window-6 :which-key "Window 6")
 	"P" 'package-install
-	"'" '((lambda () (interactive) (eshell default-directory)) :which-key "Term")
+	"'" '((lambda () (interactive) (vterm)) :which-key "Term")
 	"!" 'shell-command
 	":" 'eval-expression)
 
@@ -1240,8 +1243,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :ensure nil
   :custom
   (display-buffer-alist
-   '(("^\\*xwidget.*"
-       (display-buffer-in-side-window)
+   '(("*xwidget*"
+       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window) 
        (body-function . (lambda (window) 
                           (select-window window)))
        (window-width . 0.5)
@@ -1253,19 +1256,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (window-width . 0.33)
       (side . right)
       (slot . 1))
-     ("\\*e?shell\\*"
+     ("\\*e?shell\\|vterm*"
       (display-buffer-in-side-window)
       (body-function . (lambda (window) 
                          (select-window window)))
-      (window-height . 0.35)
+      (window-height . 0.2)
       (side . bottom)
       (slot . -1))
      ("\\*simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*"
       (display-buffer-in-side-window)
       (window-height . 0.25)
       (side . bottom)
-      (slot . 0))
-     )))
+      (slot . 0)))))
 
 (provide 'init)
 
