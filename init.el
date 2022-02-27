@@ -136,7 +136,6 @@
   (calendar-mode . centaur-tabs-local-mode)
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
-  (swift-mode . centaur-tabs-local-mode)
   (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
   (centaur-tabs-headline-match)
@@ -149,7 +148,6 @@
 		centaur-tabs-plain-icons nil
 		centaur-tabs-set-icons t
 		centaur-tabs-set-bar 'left
-		x-underline-at-descent-line t
 		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
   :bind  
@@ -205,8 +203,6 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(use-package ace-window
-   :bind ("C-x C-o" . ace-window))
 
 (defun un-indent-by-removing-4-spaces ()
   "remove 4 spaces from beginning of of line"
@@ -240,6 +236,13 @@
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
   (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
+
+  (global-set-key (kbd "M-1") 'winum-select-window-1)
+  (global-set-key (kbd "M-2") 'winum-select-window-2)
+  (global-set-key (kbd "M-3") 'winum-select-window-3)
+  (global-set-key (kbd "M-4") 'winum-select-window-4)
+  (global-set-key (kbd "M-5") 'winum-select-window-5)
+  (global-set-key (kbd "M-6") 'winum-select-window-6)
 
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
@@ -719,6 +722,16 @@
       (side . bottom)
       (slot . 0)))))
 
+;; (use-package winner
+;;   :hook (after-init . winner-mode)
+;;   :bind (
+;;          ("C-u" . winner-undo)
+;;          ("C-U" . winner-redo)))
+
+;; ACE-WINDOW --------------------------------------------
+(use-package ace-window
+  :bind ("C-x C-o" . ace-window))
+
 ;; Winum - select windows easy ---------------------------
 (use-package winum
   :after doom-modeline
@@ -986,10 +999,10 @@
 		       ("https://www.reddit.com/r/emacs.rss")
 		       ("https://www.reddit.com/r/swift.rss")
 			   ("https://www.osnews.com/feed/")
-			   ("https://www.feber.se/rss/")
+               ("https://swiftbysundell.com/rss")
 		       ("https://www.reddit.com/r/haikuos.rss"))))
 
-(setq-default elfeed-search-filter "@2-days-ago +unread")
+(setq-default elfeed-search-filter "@1-days-ago +unread")
 (setq-default elfeed-search-title-max-width 100)
 (setq-default elfeed-search-title-min-width 100)
 
