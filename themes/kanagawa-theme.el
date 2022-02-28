@@ -241,7 +241,7 @@
   (show-paren-match                              (:background waveAqua1 :foreground sumiInk-0 :bold t))
   (show-paren-match-expression	                 (:background waveAqua1 :foreground sumiInk-0 :bold t))
   (show-paren-mismatch                           (:background peachRed :foreground old-white))
-  (tooltip                                       (:background sumiInk-4))
+  (tooltip                                       (:foreground sumiInk-0 :background carpYellow :bold t))
   
   ;; company-box
   (company-box                                   (:background sumiInk-0))
