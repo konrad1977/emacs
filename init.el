@@ -493,10 +493,11 @@
   (setq treemacs-follow-after-init t
 		treemacs-project-follow-mode t
 		treemacs-follow-mode t
-		treemacs-filewatch-mode t		treemacs-fringe-indicator-mode 'always
+		treemacs-filewatch-mode t
         treemacs-width 40
         treemacs-indentation 1
         treemacs-git-integration t
+        treemacs-git-mode 'extended
         treemacs-collapse-dirs 0
         treemacs-silent-refresh	t
 		treemacs-change-root-without-asking t
@@ -507,8 +508,9 @@
 		treemacs-displacurrent-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
 		treemacs-text-scale	0)
-  (treemacs-follow-mode)
-  (treemacs-project-follow-mode))
+  (treemacs-fringe-indicator-mode 'always)
+  (treemacs-follow-mode t)
+  (treemacs-project-follow-mode t))
 
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
@@ -699,21 +701,18 @@
   (display-buffer-alist
    '(("*xwidget*"
        (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window) 
-       (body-function . (lambda (window) 
-                          (select-window window)))
+       (body-function . select-window) 
        (window-width . 0.5)
        (side . right))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
-      (body-function . (lambda (window) 
-                         (select-window window)))
+      (body-function . select-window) 
       (window-width . 0.33)
       (side . right)
       (slot . 1))
      ("\\*e?shell\\|vterm*"
       (display-buffer-in-side-window)
-      (body-function . (lambda (window) 
-                         (select-window window)))
+      (body-function . select-window) 
       (window-height . 0.2)
       (side . bottom)
       (slot . -1))
@@ -751,18 +750,20 @@
 (use-package blamer
   :hook (prog-mode . global-blamer-mode)
   :config
-  (setq blamer-view 'overlay-right)
-  (setq blamer-type 'both)
-  (setq blamer--overlay-popup-position 'smart)
+  (setq blamer-view 'overlay)
+  (setq blamer-type 'visual)
+  (setq blamer--overlay-popup-position 'top)
   (setq blamer-max-commit-message-length 120)
-  (setq blamer-author-formatter " ✎ %s ")
+  (setq blamer-author-formatter " ✎ [%s] - ")
+  
+  (setq blamer-commit-formatter "● %s ● ")
   :custom
-  (blamer-idle-time 0.3)
+  (blamer-idle-time 1.0)
   (blamer-min-offset 70)
   :custom-face
-  (blamer-face ((t :foreground "#7a88cf"
+  (blamer-face ((t :foreground "#FFA066"
                     :background nil
-                    :height 140
+                    :height 142
                     :italic t))))
 
 (use-package git-gutter
@@ -822,6 +823,7 @@
   (mk/leader-keys
     "b" '(:ignore t :which-key "Buffer")
     "bb" '(counsel-switch-buffer :which-key "List buffers")
+    "bi" '(ibuffer :which-key "ibuffers")
     "bx" '(evil-delete-buffer :which-key "Delete buffer")
     "bk" '((lambda () (interactive) (kill-other-buffers)) :which-key "Kill other buffers")
     "bd" '(kill-current-buffer :which-key "Kill current buffer")
