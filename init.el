@@ -721,7 +721,7 @@
       (window-height . 0.2)
       (side . bottom)
       (slot . -1))
-     ("\\*simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*"
+     ("simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*\\|Warnings"
       (display-buffer-in-side-window)
       (window-height . 0.3)
       (side . bottom)
