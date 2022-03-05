@@ -432,6 +432,9 @@
   (diff-hl-margin-change                         (:foreground springBlue :background winterBlue))
   (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
   (diff-hl-margin-insert                         (:foreground comet :background winterBlue))
+
+  (bm-fringe-face                                (:background peachRed :foreground sumiInk-3))
+  (bm-fringe-persistent-face                     (:background peachRed :foreground sumiInk-3))
   
  ))
 
