@@ -722,16 +722,6 @@
       (side . bottom)
       (slot . 0)))))
 
-;; (use-package winner
-;;   :hook (after-init . winner-mode)
-;;   :bind (
-;;          ("C-u" . winner-undo)
-;;          ("C-U" . winner-redo)))
-
-;; ACE-WINDOW --------------------------------------------
-(use-package ace-window
-  :bind ("C-x C-o" . ace-window))
-
 ;; Winum - select windows easy ---------------------------
 (use-package winum
   :after doom-modeline
@@ -752,25 +742,23 @@
   :hook (magit-mode . magit-todos-mode)
   :config
   (setq magit-todos-recursive t
-        magit-todos-depth 100)
+        magit-todos-depth 10)
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME"))))
 
 (use-package blamer
   :hook (prog-mode . global-blamer-mode)
   :config
-  (setq blamer-view 'overlay)
+  (setq blamer-view 'overlay-right)
   (setq blamer-type 'visual)
-  (setq blamer--overlay-popup-position 'top)
-  (setq blamer-max-commit-message-length 120)
+  (setq blamer-max-commit-message-length 180)
   (setq blamer-author-formatter " ✎ [%s] - ")
-  
   (setq blamer-commit-formatter "● %s ● ")
   :custom
   (blamer-idle-time 1.0)
   (blamer-min-offset 70)
   :custom-face
-  (blamer-face ((t :foreground "#FFA066"
+  (blamer-face ((t :foreground "#E46876"
                     :background nil
                     :height 142
                     :italic t))))
