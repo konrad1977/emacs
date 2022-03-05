@@ -747,6 +747,15 @@
   :commands magit-status
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+(use-package magit-todos
+  :commands (magit-todos-mode)
+  :hook (magit-mode . magit-todos-mode)
+  :config
+  (setq magit-todos-recursive t
+        magit-todos-depth 100)
+  (custom-set-variables
+   '(magit-todos-keywords (list "TODO" "FIXME"))))
+
 (use-package blamer
   :hook (prog-mode . global-blamer-mode)
   :config
@@ -1090,7 +1099,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
 
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
-  
+
   (add-hook 'swift-mode-hook
             (lambda ()
               (local-set-key (kbd "M-p") #'swift-print-thing-at-point)))
