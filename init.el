@@ -39,6 +39,7 @@
       display-time-24hr-format          t
       display-time-default-load-average nil
       echo-keystrokes                   0.1
+      kill-buffer-query-functions       nil ; - Dont ask for closing spawned processes
       ediff-split-window-function       'split-window-horizontally
       use-dialog-box                    nil
       visible-bell                      nil)
@@ -360,6 +361,9 @@
   (setq ivy-virtual-abbreviate 'abbreviate
 		ivy-rich-switch-buffer-align-virtual-buffer nil
 		ivy-rich-path-style 'full))
+
+(use-package all-the-icons-ivy
+  :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
 
 (use-package all-the-icons-ivy-rich
   :init (all-the-icons-ivy-rich-mode 1)
@@ -703,7 +707,7 @@
        (body-function . select-window) 
        (window-width . 0.5)
        (side . right))
-     ("\\*Faces\\|[Hh]elp\\*"
+     ("\\*Faces\\|[Hh]elp\\*\\|\\*occur\\*"
       (display-buffer-in-side-window)
       (body-function . select-window) 
       (window-width . 0.33)

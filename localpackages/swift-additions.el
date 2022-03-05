@@ -4,19 +4,35 @@
 
 (require 'cl-lib)
 
-(defvar public-variables-expr (regexp-quote "(public let)|(public var)|(let)|(var)"))
-(defun list-swift-public-variables ()
+(defun list-swift-publics-or-open ()
   "Open an occur buffer with file's public interface."
   (interactive)
   (let ((list-matching-lines-face nil))
-    (occur public-variables-expr)))
+    (occur "\\(public\\)\\|\\(open\\)")))
 
-(defvar marks-expr (regexp-quote "<(MARK):"))
 (defun list-swift-marks ()
   "Open an occur buffer with files mark."
     (interactive)
     (let ((list-matching-lines-face nil))
-      (occur marks-expr)))
+      (occur (regexp-quote "MARK:"))))
+
+(defun list-swift-extensions ()
+  "Open an occur buffer with all the extensions."
+    (interactive)
+    (let ((list-matching-lines-face nil))
+      (occur "\\(extension\\)")))
+
+(defun list-swift-lazy-variables ()
+  "Open an occur buffer with swift functions."
+  (interactive)
+  (let ((list-matching-lines-face nil))
+    (occur "\\(lazy\\)")))
+
+(defun list-swift-functions ()
+  "Open an occur buffer with swift functions."
+  (interactive)
+  (let ((list-matching-lines-face nil))
+    (occur "\\(func\\)")))
 
 (defvar extensions-expr (regexp-quote "(extension)"))
 (defun list-swift-extensions ()
