@@ -117,8 +117,8 @@
 		auto-package-update-hide-results nil))
 
 (use-package no-littering)	;; Clean up all those temporary files
-(use-package gcmh
-  :init (gcmh-mode 1))		;; Better garbage collection seetings
+;; (use-package gcmh
+;;   :init (gcmh-mode 1))		;; Better garbage collection seetings
 
 (use-package autothemer
   :custom (setq custom-safe-themes t))
@@ -134,6 +134,7 @@
 (use-package centaur-tabs
   :hook
   (dashboard-mode . centaur-tabs-local-mode)
+  (emacs-lisp-mode . centaur-tabs-local-mode)  
   (vterm-mode . centaur-tabs-local-mode)
   (calendar-mode . centaur-tabs-local-mode)
   (org-agenda-mode . centaur-tabs-local-mode)
@@ -751,7 +752,7 @@
    '(magit-todos-keywords (list "TODO" "FIXME"))))
 
 (use-package blamer
-  :hook (prog-mode . global-blamer-mode)
+  :commands blamer-mode
   :config
   (setq blamer-view 'overlay-right)
   (setq blamer-type 'visual)
@@ -1051,9 +1052,10 @@
   :hook (prog-mode . dumb-jump-mode))
 
 (use-package bm
+  :ensure t
+  :demand t
   :init
-  ;; restore on load (even before you require bm)
-  (setq bm-restore-repository-on-load t)
+  (setq bm-restore-repository-on-load t) ;; restore on load (even before you require bm)
   :config
   (setq bm-highlight-style 'bm-highlight-only-fringe)
   (setq bm-cycle-all-buffers t)
@@ -1073,7 +1075,7 @@
   ;; but it makes the bookmark data in repository more in sync with the file
   ;; state.
   (add-hook 'after-save-hook #'bm-buffer-save)
-
+  
   ;; Restoring bookmarks
   (add-hook 'find-file-hooks   #'bm-buffer-restore)
   (add-hook 'after-revert-hook #'bm-buffer-restore)
@@ -1090,10 +1092,6 @@
   :bind (("M-n" . bm-next)
          ("M-p" . bm-previous)
          ("M-b" . bm-toggle)))
-
-  ;; (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-  ;; (setq	dumb-jump-selector 'completing-read
-  ;;   	xref-show-definitions-function #'xref-show-definitions-completing-read))
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
@@ -1135,7 +1133,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-hook 'swift-mode-hook
             (lambda ()
-              (local-set-key (kbd "M-p") #'swift-print-thing-at-point)))
+              (local-set-key (kbd "M-P") #'swift-print-thing-at-point)))
   
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
