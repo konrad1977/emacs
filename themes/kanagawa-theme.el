@@ -417,6 +417,7 @@
   (tab-line                                      (:background sumiInk-0))
 
   (centaur-tabs-unselected                       (:background sumiInk-0 :foreground sumiInk-4))
+  (centaur-tabs-default                          (:background sumiInk-0 :foreground sumiInk-4))
   (centaur-tabs-unselected-modified              (:background sumiInk-0 :foreground peachRed))
   (centaur-tabs-modified-marker-unselected       (:background sumiInk-0 :foreground sumiInk-4))
   (centaur-tabs-close-unselected                 (:background sumiInk-0 :foreground sumiInk-4))

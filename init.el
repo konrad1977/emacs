@@ -117,8 +117,6 @@
 		auto-package-update-hide-results nil))
 
 (use-package no-littering)	;; Clean up all those temporary files
-;; (use-package gcmh
-;;   :init (gcmh-mode 1))		;; Better garbage collection seetings
 
 (use-package autothemer
   :custom (setq custom-safe-themes t))
@@ -134,7 +132,6 @@
 (use-package centaur-tabs
   :hook
   (dashboard-mode . centaur-tabs-local-mode)
-  (emacs-lisp-mode . centaur-tabs-local-mode)  
   (vterm-mode . centaur-tabs-local-mode)
   (calendar-mode . centaur-tabs-local-mode)
   (org-agenda-mode . centaur-tabs-local-mode)
@@ -143,14 +140,14 @@
   :config
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
-  (setq centaur-tabs-style "bar"
-		centaur-tabs-height 28
+  (setq centaur-tabs-style "box"
+		centaur-tabs-height 27
         centaur-tabs-gray-out-icons 'buffer
 		centaur-tabs-set-modified-marker t
 		centaur-tabs-show-navigation-buttons nil
-		centaur-tabs-plain-icons nil
+		centaur-tabs-plain-icons t
 		centaur-tabs-set-icons t
-		centaur-tabs-set-bar 'left
+	;	centaur-tabs-set-bar 'left
 		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
   :bind  
@@ -436,15 +433,14 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  ;(setq company-format-margin-function      'company-vscode-dark-icons-margin)
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
                                               company-sourcekit
-                                              company-yasnippet
                                               company-capf
-                                              company-semantic
                                               company-tabnine
+                                              company-semantic
+                                              company-yasnippet
                                               company-dabbrev-code
                                               company-files
                                               company-keywords
