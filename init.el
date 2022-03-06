@@ -158,7 +158,6 @@
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
-  :config
   (setq dashboard-startup-banner (concat user-emacs-directory "themes/catppuccin.png")
 		dashboard-path-style 'truncate-beginning
 		dashboard-banner-logo-title "Mikaels dashboard!"
@@ -170,10 +169,9 @@
 		dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-time
 		dashboard-week-agenda t
 		dashboard-items '(
-						  (projects . 5)
-						  (agenda)
-						  (recents . 3)
-						  )))
+						  (projects . 3)
+						  (recents . 5)
+						  (agenda . 3))))
 
 ;; Which key
 (use-package which-key
@@ -216,6 +214,8 @@
       (when (looking-at "^    ")
         (replace-match "")))))
 
+
+
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
@@ -235,18 +235,8 @@
   
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
-  (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
-
-  (global-set-key (kbd "M-1") 'winum-select-window-1)
-  (global-set-key (kbd "M-2") 'winum-select-window-2)
-  (global-set-key (kbd "M-3") 'winum-select-window-3)
-  (global-set-key (kbd "M-4") 'winum-select-window-4)
-  (global-set-key (kbd "M-5") 'winum-select-window-5)
-  (global-set-key (kbd "M-6") 'winum-select-window-6)
-
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
- 
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
@@ -259,6 +249,18 @@
   :after evil
   :config
   (evil-collection-init))
+
+(global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
+(global-set-key (kbd "M-1") 'winum-select-window-1)
+(global-set-key (kbd "M-2") 'winum-select-window-2)
+(global-set-key (kbd "M-3") 'winum-select-window-3)
+(global-set-key (kbd "M-4") 'winum-select-window-4)
+(global-set-key (kbd "M-5") 'winum-select-window-5)
+(global-set-key (kbd "M-6") 'winum-select-window-6)
+
+(global-set-key (kbd "C-c C-b") #'bm-toggle)
+(global-set-key (kbd "C-c C-p") #'bm-previous)
+(global-set-key (kbd "C-c C-n") #'bm-next)
 
 ;; Theming
 (use-package doom-themes
@@ -321,7 +323,14 @@
   (setq nyan-animate-nyancat t))
 
 (use-package beacon
-  :init (beacon-mode 1))
+  :init (beacon-mode 1)
+  :config
+  (setq beacon-color "#2D4F67"
+        beacon-blink-when-focused t
+        beacon-size 50
+        beacon-blink-duration 0.5
+        beacon-blink-delay 0.1
+        beacon-blink-when-window-scrolls nil))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -667,7 +676,8 @@
   (when (file-directory-p "~/Documents/git")
     (setq projectile-project-search-path '("~/Documents/git")))
   (setq projectile-switch-project-action #'projectile-find-file)
-  (setq projectile-ignored-files '(".xcodeproj" ".m" ".h" ".pbxproj" ".orig")))
+  (setq projectile-globally-ignored-directories '("*pods" "*xcodeproj" "*pbxproj"))
+  (setq projectile-ignored-files '(".m" ".h" ".orig" ".yml" ".gitignore")))
 
 ;; counsel-projectile
 (use-package counsel-projectile
@@ -708,7 +718,7 @@
      ("\\*Faces\\|[Hh]elp\\*\\|\\*occur\\*"
       (display-buffer-in-side-window)
       (body-function . select-window) 
-      (window-width . 0.33)
+      (window-width . 0.4)
       (side . right)
       (slot . 1))
      ("\\*e?shell\\|vterm*"
@@ -1047,6 +1057,9 @@
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode))
 
+(use-package ctrlf
+  :hook (after-init . ctrlf-mode))
+
 (use-package bm
   :ensure t
   :demand t
@@ -1084,10 +1097,7 @@
   ;; called before the buffer is reverted (like `vc-before-checkin-hook').
   ;; Then new bookmarks can be saved before the buffer is reverted.
   ;; Make sure bookmarks is saved before check-in (and revert-buffer)
-  (add-hook 'vc-before-checkin-hook #'bm-buffer-save)
-  :bind (("M-n" . bm-next)
-         ("M-p" . bm-previous)
-         ("M-b" . bm-toggle)))
+  (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
 ;; Kill all other buffers
 (defun kill-other-buffers ()
@@ -1146,8 +1156,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file)
-  (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-projectile-ag)
-  (define-key evil-motion-state-map (kbd "M-F")     #'xref-find-definitions-other-window)
+  (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-semantic-or-imenu)
+  (define-key evil-motion-state-map (kbd "M-F")     #'counsel-projectile-ag)
   (define-key evil-motion-state-map (kbd "C-M-e")   #'anzu-replace-at-cursor-thing)
   (define-key evil-motion-state-map (kbd "C-M-r")   #'anzu-query-replace-at-cursor)
   (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)
