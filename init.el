@@ -753,7 +753,8 @@
   :hook (magit-mode . magit-todos-mode)
   :config
   (setq magit-todos-recursive t
-        magit-todos-depth 10)
+        magit-todos-depth 10
+        magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*"))
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME"))))
 
