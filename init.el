@@ -26,7 +26,7 @@
 (setq ad-redefinition-action            'accept
 	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
 	  create-lockfiles                  nil
-	  fast-but-imprecise-scrolling      t
+	  fast-but-imprecise-scrolling      1
 	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
 	  initial-scratch-message           ""
 	  read-process-output-max           (* 8 1024 1024)
@@ -785,7 +785,8 @@
  '(git-gutter:deleted-sign "-"))
 
 (use-package forge
-  :commands forge-pull)
+  :commands forge-pull
+  :config (setq auth-sources '("~/.authinfo")))
 
 (use-package vterm
   :commands vterm)
