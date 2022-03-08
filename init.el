@@ -12,11 +12,11 @@
 (scroll-bar-mode -1)			;; Dont use scrollbars.
 (set-fringe-mode 1)             ;; Give us some space.
 (tooltip-mode 1)                ;; Disable tooltip.
-(delete-selection-mode t)		;; Use a more sane delete mode than evil.
+(delete-selection-mode 1)		;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight code
 (global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
-(desktop-save-mode 0)			;; Save desktop
+(desktop-save-mode nil)			;; Save desktop
 (global-hl-line-mode 1)         ;; Highlight current line
 (semantic-mode 1)               ;; help out with semantics
 (savehist-mode 1)				;; Save history
@@ -550,18 +550,26 @@
   (defun xcode-build()
     "Start a build using Xcode."
 	(interactive)
+    (save-some-buffers t)
 	(shell-command-to-string
-     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'"))
+     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'")
+    (message "Build project using Xcode..."))
+  
   (defun xcode-run()
     "Run application from Xcode."
 	(interactive)
+    (save-some-buffers t)
 	(shell-command-to-string
-     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'"))
+     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'")
+    (message "Run project using Xcode..."))
+  
   (defun xcode-test()
     "Run current test scheme from Xcode."
 	(interactive)
+    (save-some-buffers t)
 	(shell-command-to-string
-	 "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")))
+	 "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")
+    (message "Test project using Xcode...")))
 
 (defun mk-sourcekit-lsp-command ()
     "Setup lsp."
@@ -1133,7 +1141,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-hook 'swift-mode-hook
             (lambda ()
-              (local-set-key (kbd "M-P") #'swift-print-thing-at-point)))
+              (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
+              (local-set-key (kbd "M-r") #'xcode-run)))
   
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
@@ -1257,8 +1266,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	("s" scroll-bar-mode "Scrollbar"))
 
    "Sizing"
-   (("<left> " evil-window-decrease-width "⇢⇠ Decrease")
-	("<right>" evil-window-increase-width "⇠⇢ Increase")
+   (("<left> " evil-window-increase-width "⇢⇠ Decrease")
+	("<right>" evil-window-decrease-width "⇠⇢ Increase")
 	("<up>   " evil-window-decrease-height "Decrease height")
 	("<down> " evil-window-increase-height "Incease height"))
 
