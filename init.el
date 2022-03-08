@@ -88,7 +88,7 @@
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 156)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 156)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 156 :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'regular)
 
 ;; Initialize package sources
 (require 'package)
@@ -214,8 +214,6 @@
       (when (looking-at "^    ")
         (replace-match "")))))
 
-
-
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
@@ -327,9 +325,7 @@
   :config
   (setq beacon-color "#2D4F67"
         beacon-blink-when-focused t
-        beacon-size 50
-        beacon-blink-duration 0.5
-        beacon-blink-delay 0.1
+        beacon-size 40
         beacon-blink-when-window-scrolls nil))
 
 ;; rainbow-delimieters
@@ -414,9 +410,6 @@
 ;; - anzu search and replace
 (use-package anzu
   :hook (after-init . anzu-mode))
-
-(use-package cycle-at-point
-  :bind ("M-n" . cycle-at-point))
 
 ;; Multiple cursors evil mode
 (use-package evil-multiedit
@@ -1036,7 +1029,7 @@
 (use-package highlight-escape-sequences
   :hook (prog-mode . hes-mode))
 
- (use-package prescient
+(use-package prescient
   :after ivy
   :config
   (prescient-persist-mode))
