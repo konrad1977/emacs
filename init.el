@@ -755,7 +755,7 @@
   :config
   (setq magit-todos-recursive t
         magit-todos-depth 10
-        magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*"))
+        magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME"))))
 
