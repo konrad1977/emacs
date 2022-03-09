@@ -4,6 +4,12 @@
 
 (require 'cl-lib)
 
+(defun swift-funcs-and-pragmas ()
+  "Show swift file compressed functions and pragmas"
+  (interactive)
+  (let ((list-matching-lines-face nil))
+    (occur "\\(func\\)\\|\\(#pragma mark\\)\\|\\(MARK:\\)")))
+
 (defun list-swift-publics-or-open ()
   "Open an occur buffer with file's public interface."
   (interactive)

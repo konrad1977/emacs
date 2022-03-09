@@ -415,6 +415,15 @@
 (use-package evil-multiedit
   :config (evil-multiedit-default-keybinds))
 
+;; Navigate through blocks
+(use-package block-nav
+  :commands (block-nav-next-block block-nav-previous-block block-nav-next-indentation-level block-nav-previous-indentation-level)
+  :bind
+  ("C-c C-j" . block-nav-next-block)
+  ("C-c C-k" . block-nav-previous-block)
+  ("C-c C-n" . block-nav-next-indentation-level)
+  ("C-c C-p" . block-nav-previous-indentation-level))
+
 ;; ------------------ AUTOCOMPLETIONS -------------
 ;; workaround for company-transformers
 (setq company-tabnine--disable-next-transform nil)
@@ -487,8 +496,6 @@
 
 (use-package yasnippet
   :hook (company-mode . yas-minor-mode))
-;; (use-package yasnippet-snippets
-;;   :after yasnippet)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -716,7 +723,13 @@
        (body-function . select-window) 
        (window-width . 0.5)
        (side . right))
-     ("\\*Faces\\|[Hh]elp\\*\\|\\*occur\\*"
+     ("\\*occur\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window) 
+      (window-height . 0.4)
+      (side . bottom)
+      (slot . 1))
+     ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
       (body-function . select-window) 
       (window-width . 0.4)
