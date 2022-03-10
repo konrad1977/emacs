@@ -562,6 +562,14 @@
      "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'")
     (message "Build project using Xcode..."))
   
+  (defun xcode-stop()
+    "Stop application from Xcode."
+	(interactive)
+    (save-some-buffers t)
+	(shell-command-to-string
+     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'end tell'")
+    (message "Stopping simulator ..."))
+
   (defun xcode-run()
     "Run application from Xcode."
 	(interactive)
@@ -1078,7 +1086,6 @@
 (use-package ctrlf
   :hook (after-init . ctrlf-mode))
 
-;; Book marks that persist
 (use-package bm
   :ensure t
   :demand t
