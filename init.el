@@ -16,7 +16,6 @@
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight code
 (global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
-(desktop-save-mode nil)			;; Save desktop
 (global-hl-line-mode 1)         ;; Highlight current line
 (semantic-mode 1)               ;; help out with semantics
 (savehist-mode 1)				;; Save history
@@ -36,11 +35,13 @@
       byte-compile-warnings             '(ck-functions)
       compilation-scroll-output         t
       confirm-kill-processes            nil
+      desktop-save-mode                 nil ;; Done save desktop (open buffers)
       display-time-24hr-format          t
       display-time-default-load-average nil
       echo-keystrokes                   0.1
-      kill-buffer-query-functions       nil ; - Dont ask for closing spawned processes
       ediff-split-window-function       'split-window-horizontally
+      kill-buffer-query-functions       nil ; - Dont ask for closing spawned processes
+      line-number-mode                  nil
       use-dialog-box                    nil
       visible-bell                      nil)
 
@@ -291,7 +292,7 @@
   :hook (after-init . doom-modeline-mode)
   :config
   (setq
-		doom-modeline-bar-width 2
+		doom-modeline-bar-width 5
 		doom-modeline-buffer-file-name-style 'file-name
 		doom-modeline-buffer-encoding nil
 		doom-modeline-icon t
@@ -303,15 +304,14 @@
 		doom-modeline-env-version nil
 		doom-modeline-hud nil
         doom-modeline-vcs-max-length 40
-		doom-modeline-height 24)
-  :custom
+		doom-modeline-height 35)
   (set-face-attribute 'mode-line nil
-					  :family "Iosevka Nerd Font Mono"
-					  :height 142
+					  :family "JetBrains Mono"
+					  :height 152
 					  :box '(:line-width 1 :color "#0C0A10"))
   (set-face-attribute 'mode-line-inactive nil
-					  :family "Iosevka Nerd Font Mono"
-					  :height 132
+					  :family "JetBrains Mono"
+					  :height 142
 					  :box '(:line-width 1 :color "#332E41")))
 
 ;; nyan cat
@@ -1167,7 +1167,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
             (lambda ()
               (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
-              (local-set-key (kbd "M-r") #'xcode-run)))
+              (local-set-key (kbd "M-r") #'xcode-run)
+              (local-set-key (kbd "M-s") #'xcode-stop)))
   
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
@@ -1198,7 +1199,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 		show-trailing-whitespace nil    ;; Show or hide trailing whitespaces
 		word-wrap nil					;; Dont word wrap in code mode
 		truncate-lines 1				;; Truncate lines
-		column-number-mode t			;; Show current line number highlighted
+		column-number-mode nil			;; Show current line number highlighted
 		display-line-numbers t))		;; Show line numbers
 
 
