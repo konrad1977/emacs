@@ -151,7 +151,7 @@
 	;	centaur-tabs-set-bar 'left
 		uniquify-buffer-name-style 'forward)
   (centaur-tabs-mode t)
-  :bind  
+  :bind
   (:map evil-normal-state-map
 	     ("g t" . centaur-tabs-forward)
 	     ("g T" . centaur-tabs-backward)))
@@ -204,7 +204,7 @@
 
 
 (defun un-indent-by-removing-4-spaces ()
-  "remove 4 spaces from beginning of of line"
+  "Remove 4 spaces from beginning of of line."
   (interactive)
   (save-excursion
     (save-match-data
@@ -225,8 +225,8 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   :config
-  (setq evil-emacs-state-cursor '("#A3D4D5" box)) 
-  (setq evil-normal-state-cursor '("#A3D4D5" box)) 
+  (setq evil-emacs-state-cursor '("#A3D4D5" box))
+  (setq evil-normal-state-cursor '("#A3D4D5" box))
   (setq evil-visual-state-cursor '("#7FB4CA" box))
   (setq evil-insert-state-cursor '("#FF9E3B" bar))
   (setq evil-replace-state-cursor '("red" hbar))
@@ -291,28 +291,21 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :config
-  (setq
-		doom-modeline-bar-width 5
+  (setq doom-modeline-buffer-encoding nil
 		doom-modeline-buffer-file-name-style 'file-name
-		doom-modeline-buffer-encoding nil
-		doom-modeline-icon t
-		doom-modeline-indent-info nil
-		doom-modeline-major-mode-color-icon t
-		doom-modeline-major-mode-icon t
-		doom-modeline-modal-icon t
-		doom-modeline-checker-simple-format t
-		doom-modeline-env-version nil
-		doom-modeline-hud nil
-        doom-modeline-vcs-max-length 40
-		doom-modeline-height 35)
-  (set-face-attribute 'mode-line nil
-					  :family "JetBrains Mono"
-					  :height 152
-					  :box '(:line-width 1 :color "#0C0A10"))
-  (set-face-attribute 'mode-line-inactive nil
-					  :family "JetBrains Mono"
-					  :height 142
-					  :box '(:line-width 1 :color "#332E41")))
+        doom-modeline-checker-simple-format nil
+        doom-modeline-vcs-max-length 50
+       	doom-modeline-height 35)
+  ;; (set-face-attribute 'mode-line nil
+  ;;   				  ;; :family "Fira Code"
+  ;;   				  ;; :height 152
+  ;;   				  :box '(:line-width 1 :color "#0C0A10"))
+  ;; (set-face-attribute 'mode-line-inactive nil
+  ;;   				  ;; :family "Fira Code"
+  ;;   				  ;; :height 142
+  ;;   				  :box '(:line-width 1 :color "#332E41"))
+
+  )
 
 ;; nyan cat
 (use-package nyan-mode
@@ -462,7 +455,7 @@
         company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
-        company-require-match               nil 
+        company-require-match               nil
         company-tooltip-limit               20
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
@@ -539,6 +532,7 @@
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (defun my/set-flycheck-margins ()
+  "Setup margins for flycheck."
   (setq left-fringe-width 12 right-fringe-width 12
         left-margin-width 1 right-margin-width 0)
   (flycheck-refresh-fringes-and-margins))
@@ -546,14 +540,14 @@
 (add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
 
 (defun exec-path-from-shell-setup ()
-     (when (memq window-system '(mac ns x))
-       (exec-path-from-shell-initialize)))
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
 
 (use-package exec-path-from-shell
   :hook (after-init . exec-path-from-shell-setup))
 
 (defun setup-xcode-menus ()
-"Setup menus for use of Xcode."
+  "Setup menus for use of Xcode."
   (defun xcode-build()
     "Start a build using Xcode."
 	(interactive)
@@ -596,7 +590,7 @@
   (use-package swift-mode
     :custom
     (setq swift-mode:parenthesized-expression-offset 4
-		  swift-mode:multiline-statement-offset 4)) 
+		  swift-mode:multiline-statement-offset 4))
 
     ;(require 'ios-simulator)
     ;(load "ios-simulator")
@@ -727,25 +721,25 @@
   :custom
   (display-buffer-alist
    '(("*xwidget*"
-       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window) 
-       (body-function . select-window) 
-       (window-width . 0.5)
-       (side . right))
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      (body-function . select-window)
+      (window-width . 0.5)
+      (side . right))
      ("\\*occur\\*"
       (display-buffer-in-side-window)
-      (body-function . select-window) 
+      (body-function . select-window)
       (window-height . 0.4)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
-      (body-function . select-window) 
+      (body-function . select-window)
       (window-width . 0.4)
       (side . right)
       (slot . 1))
      ("\\*e?shell\\|vterm*"
       (display-buffer-in-side-window)
-      (body-function . select-window) 
+      (body-function . select-window)
       (window-height . 0.2)
       (side . bottom)
       (slot . -1))
@@ -876,7 +870,7 @@
     "cel" '(flycheck-list-errors :which-key "List errors")
     "cp" 'check-parens
     "co" 'projectile-find-other-file
-    "cl" '(comment-line :which-key "Comment line")
+    "cl" '(comment-dwim :which-key "Comment line")
     "cr" '(comment-region :which-key "Comment region")
     "cu" '(lsp-ui-imenu :which-key "Lsp-ui-menu")
     "ct" '(lsp-treemacs-symbols :which-key "Treemacs symbols")
@@ -1218,7 +1212,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (other-window 1))
 
 (defun with-faicon (icon str &optional height v-adjust)
-  "Displays an icon from Font Awesome icon."
+  "Displays an ICON from Font Awesome icon."
 	(s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
 (defun with-fileicon (icon str &optional height v-adjust)
