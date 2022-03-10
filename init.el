@@ -1070,12 +1070,15 @@
 (use-package drag-stuff
   :hook (prog-mode . drag-stuff-mode))
 
+;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode))
 
+;; Quickly query whole source tree
 (use-package ctrlf
   :hook (after-init . ctrlf-mode))
 
+;; Book marks that persist
 (use-package bm
   :ensure t
   :demand t
@@ -1156,6 +1159,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (add-hook 'swift-mode-hook
             (lambda ()
               (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
+              (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
               (local-set-key (kbd "M-r") #'xcode-run)))
   
   ;; Line movement
