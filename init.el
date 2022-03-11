@@ -82,9 +82,12 @@
 
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
-;(add-to-list 'load-path (concat user-emacs-directory "localpackages/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+(define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+(define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+;;(substitute-key-definition 'kill-buffer 'kill-buffer-and-its-windows global-map)
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -407,8 +410,8 @@
   :bind
   ("C-c C-j" . block-nav-next-block)
   ("C-c C-k" . block-nav-previous-block)
-  ("C-c C-n" . block-nav-next-indentation-level)
-  ("C-c C-p" . block-nav-previous-indentation-level))
+  ("C-c C-l" . block-nav-next-indentation-level)
+  ("C-c C-h" . block-nav-previous-indentation-level))
 
 ;; ------------------ AUTOCOMPLETIONS -------------
 ;; workaround for company-transformers
@@ -678,7 +681,7 @@
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
     (setq projectile-project-search-path '("~/Documents/git")))
-  (setq projectile-switch-project-action #'projectile-find-file)
+  (setq projectile-switch-project-action #'projectile-find-file-dwim)
   (setq projectile-globally-ignored-directories '("*pods" "*xcodeproj" "*pbxproj"))
   (setq projectile-ignored-files '(".m" ".h" ".orig" ".yml" ".gitignore")))
 
@@ -768,20 +771,19 @@
    '(magit-todos-keywords (list "TODO" "FIXME"))))
 
 (use-package blamer
-  :commands blamer-mode
+  :hook (prog-mode . blamer-mode)
   :config
-  (setq blamer-view 'overlay-right)
-  (setq blamer-type 'visual)
-  (setq blamer-max-commit-message-length 180)
-  (setq blamer-author-formatter " ✎ [%s] - ")
-  (setq blamer-commit-formatter "● %s ● ")
+  (setq blamer-view 'overlay-right
+        blamer-type 'visual
+        blamer-max-commit-message-length 180
+        blamer-author-formatter " ✎ [%s] - "
+        blamer-commit-formatter "● %s ● ")
   :custom
   (blamer-idle-time 1.0)
-  (blamer-min-offset 70)
+  (blamer-min-offset 10)
   :custom-face
   (blamer-face ((t :foreground "#E46876"
-                    :background nil
-                    :height 142
+                    :height 140
                     :italic t))))
 
 (use-package git-gutter
@@ -1152,6 +1154,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-hook 'swift-mode-hook
             (lambda ()
+              (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
               (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
               (local-set-key (kbd "M-r") #'xcode-run)
@@ -1180,7 +1183,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
-  (setq highlight-indent-guides-mode t	;; Turn on indent-guides
+  (setq highlight-indent-guides-mode t  ;; Turn on indent-guides
 		indicate-empty-lines t			;; Show empty lines
 		indicate-unused-lines t			;; Show unused lines
 		show-trailing-whitespace nil    ;; Show or hide trailing whitespaces
@@ -1330,7 +1333,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (major-mode-hydra-define swift-mode nil
   ("Build/test:"
-	 (("r" xcode-run-and-show-logs "Run" :exit t)
+	 (("r" xcode-run "Run" :exit t)
       ("b" xcode-build "Build" :exit t)
       ("t" xcode-test "Test" :exit t))
 	 "Help"
@@ -1342,13 +1345,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
-
-(defun xcode-run-and-show-logs ()
-  (interactive)
-  (save-some-buffers t)
-  (xcode-run)
- ;; (ios-simulator-logs)
-  )
 
 (provide 'init)
 
