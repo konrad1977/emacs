@@ -22,10 +22,16 @@
 (recentf-mode 1)				;; Recent file mode.
 (save-place-mode 1)             ;; when buffer is closed, save the cursor position
 
+;; Setup fonts
+(set-face-attribute 'default nil :font "Source Code Pro" :height 156)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 156)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'regular)
+
 (setq ad-redefinition-action            'accept
 	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
 	  create-lockfiles                  nil
 	  fast-but-imprecise-scrolling      1
+      inhibit-compacting-font-caches t
 	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
 	  initial-scratch-message           ""
 	  read-process-output-max           (* 8 1024 1024)
@@ -86,11 +92,6 @@
 (setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
 (setq custom-file (concat user-emacs-directory "var/custom.el"))
 
-;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 156)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 156)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'regular)
-
 ;; Initialize package sources
 (require 'package)
 (setq package-archives '(
@@ -119,6 +120,18 @@
 
 (use-package no-littering)	;; Clean up all those temporary files
 
+;; Config and install modeline
+(use-package doom-modeline
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (setq doom-modeline-buffer-encoding nil
+		doom-modeline-buffer-file-name-style 'file-name
+        doom-modeline-checker-simple-format t
+        doom-modeline-vcs-max-length 50
+       	doom-modeline-height 37)
+  (set-face-attribute 'mode-line nil :height 160 :box '(:line-width -1 :color "#0C0A10"))
+  (set-face-attribute 'mode-line-inactive nil :height 150 :box '(:line-width -1 :color "#332E41")))
+
 (use-package autothemer
   :custom (setq custom-safe-themes t))
 
@@ -139,6 +152,7 @@
   (helpful-mode . centaur-tabs-local-mode)
   (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
+  (centaur-tabs-mode)
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
   (setq centaur-tabs-style "box"
@@ -148,9 +162,7 @@
 		centaur-tabs-show-navigation-buttons nil
 		centaur-tabs-plain-icons t
 		centaur-tabs-set-icons t
-	;	centaur-tabs-set-bar 'left
 		uniquify-buffer-name-style 'forward)
-  (centaur-tabs-mode t)
   :bind
   (:map evil-normal-state-map
 	     ("g t" . centaur-tabs-forward)
@@ -287,25 +299,6 @@
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
-;; Config and install modeline
-(use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
-  :config
-  (setq doom-modeline-buffer-encoding nil
-		doom-modeline-buffer-file-name-style 'file-name
-        doom-modeline-checker-simple-format nil
-        doom-modeline-vcs-max-length 50
-       	doom-modeline-height 35)
-  ;; (set-face-attribute 'mode-line nil
-  ;;   				  ;; :family "Fira Code"
-  ;;   				  ;; :height 152
-  ;;   				  :box '(:line-width 1 :color "#0C0A10"))
-  ;; (set-face-attribute 'mode-line-inactive nil
-  ;;   				  ;; :family "Fira Code"
-  ;;   				  ;; :height 142
-  ;;   				  :box '(:line-width 1 :color "#332E41"))
-
-  )
 
 ;; nyan cat
 (use-package nyan-mode
