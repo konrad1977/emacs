@@ -83,11 +83,6 @@
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 (add-to-list 'savehist-additional-variables 'kill-ring)
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
-(define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-(define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-;;(substitute-key-definition 'kill-buffer 'kill-buffer-and-its-windows global-map)
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -264,6 +259,11 @@
   :config
   (evil-collection-init))
 
+
+(define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+(define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
 (global-set-key (kbd "M-1") 'winum-select-window-1)
 (global-set-key (kbd "M-2") 'winum-select-window-2)
@@ -275,6 +275,7 @@
 (global-set-key (kbd "C-c C-b") #'bm-toggle)
 (global-set-key (kbd "C-c C-p") #'bm-previous)
 (global-set-key (kbd "C-c C-n") #'bm-next)
+(global-set-key (kbd "C-c C-g") #'counsel-git)
 
 ;; Theming
 (use-package doom-themes
@@ -399,9 +400,6 @@
 (use-package anzu
   :hook (after-init . anzu-mode))
 
-(use-package electric-operator
-  :hook (prog-mode . electric-operator-mode))
-  
 ;; Multiple cursors evil mode
 (use-package evil-multiedit
   :config (evil-multiedit-default-keybinds))
