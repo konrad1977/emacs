@@ -302,7 +302,6 @@
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
-
 ;; nyan cat
 (use-package nyan-mode
   :hook (doom-modeline-mode . nyan-mode)
@@ -400,6 +399,9 @@
 (use-package anzu
   :hook (after-init . anzu-mode))
 
+(use-package electric-operator
+  :hook (prog-mode . electric-operator-mode))
+  
 ;; Multiple cursors evil mode
 (use-package evil-multiedit
   :config (evil-multiedit-default-keybinds))
