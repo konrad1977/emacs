@@ -179,7 +179,7 @@
   (org-block-begin-line                          (:background sumiInk-0 :foreground sumiInk-2))
   (org-block-end-line	                         (:background sumiInk-0 :foreground sumiInk-2))
   (org-headline-done                             (:foreground dragonBlue :strike-through t))
-  (org-todo                                      (:foreground waveAqua2 :bold t))
+  (org-todo                                      (:foreground surimiOrange :bold t))
   (org-headline-todo                             (:foreground sumiInk-2))
   (org-upcoming-deadline                         (:foreground peachRed))
   (org-footnote                                  (:foreground waveAqua2))

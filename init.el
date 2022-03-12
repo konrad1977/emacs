@@ -294,14 +294,26 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-;; (use-package fira-code-mode
-;;   :hook (prog-mode . fira-code-mode))
+(use-package fira-code-mode
+  :hook (prog-mode . fira-code-mode))
 
 (use-package all-the-icons
   :after doom-modeline)
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
+
+; TODO Fix this
+(use-package svg-tag-mode
+  :hook ((prog-mode . svg-tag-mode)
+         (org-mode . svg-tag-mode))
+  :config
+  (setq svg-tag-tags
+        '(
+          ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0))))
+          ("FIXME" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0))))
+          ("MARK" . ((lambda (tag) (svg-tag-make "MARK" :face 'font-lock-doc-face :inverse t :margin 0))))
+          ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0)))))))
 
 ;; nyan cat
 (use-package nyan-mode
