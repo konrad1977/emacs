@@ -311,9 +311,11 @@
   (setq svg-tag-tags
         '(
           ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0))))
+          ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
           ("FIXME" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0))))
           ("MARK" . ((lambda (tag) (svg-tag-make "MARK" :face 'font-lock-doc-face :inverse t :margin 0))))
-          ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0)))))))
+          ("swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-done :inverse t :margin 0))))
+          )))
 
 ;; nyan cat
 (use-package nyan-mode
