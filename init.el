@@ -310,12 +310,21 @@
   :config
   (setq svg-tag-tags
         '(
-          ("TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0))))
           ("DONE" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
           ("FIXME" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0))))
-          ("MARK" . ((lambda (tag) (svg-tag-make "MARK" :face 'font-lock-doc-face :inverse t :margin 0))))
-          ("swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-done :inverse t :margin 0))))
+          ("\\/\\/\\W?MARK:\\|MARK:" . ((lambda (tag) (svg-tag-make "MARK" :face 'font-lock-doc-face :inverse t :margin 0 :crop-right t))))
+          ("MARK:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-doc-face :crop-left t))))
+          
+          ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "disabled lint rule:" :face 'org-done :inverse t :margin 0 :crop-right t))))
+          ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-done :crop-left t))))
+          
+          ;; TODOS
+          ("\\/\\/\\W?TODO\\|TODO" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0 :crop-right t))))
+          ("TODO\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
+
           )))
+; TODO fix me later
+; //swiftlint:disable hello
 
 ;; nyan cat
 (use-package nyan-mode
