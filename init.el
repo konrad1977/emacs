@@ -317,10 +317,8 @@
           ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-level-3 :inverse t :margin 0 :crop-right t))))
           ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-3 :crop-left t))))
           
-          ;; TODOS
           ("\\/\\/\\W?TODO\\b\\|TODO\\b" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0 :crop-right t))))
           ("TODO\\b\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
-
           )))
 ; //MARK: - Do something
 ; TODO fix me later
@@ -460,9 +458,9 @@
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
                                               company-sourcekit
-                                              company-capf
                                               company-tabnine
                                               company-semantic
+                                              company-capf
                                               company-yasnippet
                                               company-dabbrev-code
                                               company-files
@@ -792,9 +790,9 @@
         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME"))))
-
+ 
 (use-package blamer
-  :hook (prog-mode . blamer-mode)
+  :commands (blamer-mode)
   :config
   (setq blamer-view 'overlay-right
         blamer-type 'visual
@@ -810,12 +808,15 @@
                     :italic t))))
 
 (use-package git-gutter
-  :hook (prog-mode . git-gutter-mode))
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
 
-(custom-set-variables
- '(git-gutter:modified-sign "≈") ;; two space
- '(git-gutter:added-sign "+")    ;; multiple character is OK
- '(git-gutter:deleted-sign "-"))
+(use-package git-gutter-fringe
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package forge
   :commands forge-pull
@@ -1181,7 +1182,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
               (local-set-key (kbd "M-r") #'xcode-run)
-              (local-set-key (kbd "M-s") #'xcode-stop)))
+              (local-set-key (kbd "M-s") #'xcode-stop)
+              (local-set-key (kbd "M-b") #'xcode-build)))
   
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))

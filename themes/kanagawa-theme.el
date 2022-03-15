@@ -426,9 +426,9 @@
   (centaur-tabs-default                          (:background roninYellow ))
   (centaur-tabs-name-mouse-face                  (:foreground springBlue :bold t))
 
-  (git-gutter:added                              (:foreground springBlue :background winterBlue))
-  (git-gutter:deleted                            (:foreground peachRed :background winterRed))
-  (git-gutter:modified                           (:inherit 'git-gutter:added :foreground comet))
+  (git-gutter:added                              (:foreground autumnGreen))
+  (git-gutter:deleted                            (:foreground waveRed))
+  (git-gutter:modified                           (:foreground springBlue))
 
   (diff-hl-margin-change                         (:foreground springBlue :background winterBlue))
   (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
