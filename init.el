@@ -31,7 +31,7 @@
 	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
 	  create-lockfiles                  nil
 	  fast-but-imprecise-scrolling      1
-      inhibit-compacting-font-caches t
+      inhibit-compacting-font-caches    t
 	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
 	  initial-scratch-message           ""
 	  read-process-output-max           (* 8 1024 1024)
@@ -68,7 +68,7 @@
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
 			  tab-width                     4            ;: Use four tabs
 			  line-spacing                  0.05         ;; Increase linespacing a bit
-			  truncate-lines                10			 ;; Truncate lines
+			  ;truncate-lines                1			 ;; Truncate lines
 			  indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
 			  completion-ignore-case        t            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
@@ -548,13 +548,13 @@
   :ensure t
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
-(defun my/set-flycheck-margins ()
+(defun mk/setup-flycheck ()
   "Setup margins for flycheck."
   (setq left-fringe-width 12 right-fringe-width 12
         left-margin-width 1 right-margin-width 0)
   (flycheck-refresh-fringes-and-margins))
-;; …every time Flycheck is activated in a new buffer
-(add-hook 'flycheck-mode-hook #'my/set-flycheck-margins)
+
+(add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
 
 (defun exec-path-from-shell-setup ()
   (when (memq window-system '(mac ns x))
@@ -1178,13 +1178,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-hook 'swift-mode-hook
             (lambda ()
+              
               (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
               (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
               (local-set-key (kbd "M-r") #'xcode-run)
               (local-set-key (kbd "M-s") #'xcode-stop)
               (local-set-key (kbd "M-b") #'xcode-build)))
-  
+
+  (hs-minor-mode)
+  (local-set-key (kbd "C-c C-c") #'hs-toggle-hiding)
+  (local-set-key (kbd "C-c C-l") #'hs-hide-level)
+  (local-set-key (kbd "C-c C-b") #'hs-hide-block)
+  (local-set-key (kbd "C-c C-x") #'hs-hide-all)
+  (local-set-key (kbd "C-c C-v") #'hs-show-all)
+
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
   (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
@@ -1208,15 +1216,14 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
-  (setq highlight-indent-guides-mode t  ;; Turn on indent-guides
-		indicate-empty-lines t			;; Show empty lines
-		indicate-unused-lines t			;; Show unused lines
-		show-trailing-whitespace nil    ;; Show or hide trailing whitespaces
-		word-wrap nil					;; Dont word wrap in code mode
-		truncate-lines 1				;; Truncate lines
-		column-number-mode nil			;; Show current line number highlighted
-		display-line-numbers t))		;; Show line numbers
-
+  (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
+		indicate-empty-lines t            ;; Show empty lines
+		indicate-unused-lines t           ;; Show unused lines
+		show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
+		word-wrap nil                     ;; Dont word wrap in code mode
+		truncate-lines t                  ;; Truncate lines
+		column-number-mode nil            ;; Show current line number highlighted
+		display-line-numbers t))          ;; Show line numbers
 
 (defun mk/setupOrgMode ()
   (setq word-wrap t)
