@@ -304,8 +304,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook ((prog-mode . svg-tag-mode)
-         (org-mode . svg-tag-mode))
+  :hook (org-mode . svg-tag-mode)
   :config
   (setq svg-tag-tags
         '(
@@ -434,7 +433,7 @@
   ("C-c C-l" . block-nav-next-indentation-level)
   ("C-c C-h" . block-nav-previous-indentation-level))
 
-;; ------------------ AUTOCOMPLETIONS -------------
+;; ------------------ autocompletions -------------
 ;; workaround for company-transformers
 (setq company-tabnine--disable-next-transform nil)
 (defun my-company--transform-candidates (func &rest args)
@@ -459,9 +458,9 @@
   (setq company-backends                    '(
                                               company-tabnine
                                               company-sourcekit
-                                              company-semantic
                                               company-capf
                                               company-yasnippet
+                                              company-semantic
                                               company-dabbrev-code
                                               company-files
                                               company-keywords
@@ -493,7 +492,8 @@
 
 (use-package company-tabnine
   :config
-  (setq company-tabnine-max-num-results 9))
+  (setq company-tabnine-max-num-results 9
+        company-tabnine-wait 0.1))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -1178,7 +1178,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (add-hook 'swift-mode-hook
             (lambda ()
-              
+              (svg-tag-mode) 
               (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
               (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
@@ -1238,6 +1238,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
   (split-window-right)
   (other-window 1))
+
+(defun mk/tabnine-off ()
+  "turn off TabNine for this buffer."
+  (interactive)
+  (setq-local company-backends (delete 'company-tabnine company-backends))
+  (message "Turning off TabNine auto completion for current buffer"))
+
+(defun mk/tabnine-on ()
+  "turn on TabNine for this buffer."
+  (interactive)
+  (setq-local company-backends (add-to-list 'company-backends 'company-tabnine))
+  (message "Turning on TabNine auto completion for current buffer"))
 
 (defun with-faicon (icon str &optional height v-adjust)
   "Displays an ICON from Font Awesome icon."
@@ -1368,6 +1380,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 	 (("r" xcode-run "Run" :exit t)
       ("b" xcode-build "Build" :exit t)
       ("t" xcode-test "Test" :exit t))
+	 "Tabnine"
+	 (("1" mk/tabnine-on "TabNine on" :exit t)
+	  ("0" mk/tabnine-off "TabNine off" :exit t))
 	 "Help"
 	 (("." swift-helpful "Describe" :exit t)
 	  ("o" lsp-ui-imenu "Overview" :exit t)
