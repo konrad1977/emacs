@@ -456,8 +456,8 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
-                                              company-sourcekit
                                               company-tabnine
+                                              company-sourcekit
                                               company-semantic
                                               company-capf
                                               company-yasnippet
