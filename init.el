@@ -458,9 +458,9 @@
   (setq company-backends                    '(
                                               company-tabnine
                                               company-sourcekit
-                                              company-semantic
                                               company-capf
                                               company-yasnippet
+                                              company-semantic
                                               company-dabbrev-code
                                               company-files
                                               company-keywords
@@ -492,7 +492,8 @@
 
 (use-package company-tabnine
   :config
-  (setq company-tabnine-max-num-results 9))
+  (setq company-tabnine-max-num-results 9
+        company-tabnine-wait 0.1))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
