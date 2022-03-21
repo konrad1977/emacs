@@ -150,6 +150,7 @@
   (helpful-mode . centaur-tabs-local-mode)
   (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
+  (add-to-list 'centaur-tabs-excluded-prefixes "*xcodebuild")
   (centaur-tabs-mode)
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
@@ -559,46 +560,8 @@
 
 (add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
 
-(defun exec-path-from-shell-setup ()
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
-
 (use-package exec-path-from-shell
-  :hook (after-init . exec-path-from-shell-setup))
-
-(defun setup-xcode-menus ()
-  "Setup menus for use of Xcode."
-  (defun xcode-build()
-    "Start a build using Xcode."
-	(interactive)
-    (save-some-buffers t)
-	(shell-command-to-string
-     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'")
-    (message "Build project using Xcode..."))
-  
-  (defun xcode-stop()
-    "Stop application from Xcode."
-	(interactive)
-    (save-some-buffers t)
-	(shell-command-to-string
-     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'end tell'")
-    (message "Stopping simulator ..."))
-
-  (defun xcode-run()
-    "Run application from Xcode."
-	(interactive)
-    (save-some-buffers t)
-	(shell-command-to-string
-     "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'")
-    (message "Run project using Xcode..."))
-  
-  (defun xcode-test()
-    "Run current test scheme from Xcode."
-	(interactive)
-    (save-some-buffers t)
-	(shell-command-to-string
-	 "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")
-    (message "Test project using Xcode...")))
+  :hook (after-init . exec-path-from-shell-initialize))
 
 (defun mk-sourcekit-lsp-command ()
     "Setup lsp."
@@ -618,7 +581,7 @@
   (load "swift-additions")
    
   (use-package swift-helpful
-	:after swift-mode)
+	:commands swift-helpful)
   
   (use-package flycheck-swiftx
     :after flycheck)
@@ -649,7 +612,6 @@
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
-  (setup-xcode-menus)
   (setup-swift-programming)
 
    (if window-system
@@ -749,6 +711,12 @@
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.4)
+      (side . bottom)
+      (slot . 1))
+     ("\\*xcodebuild\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-height . 0.25)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -1183,16 +1151,16 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
             (lambda ()
               (svg-tag-mode) 
               (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
-              (local-set-key (kbd "M-P") #'swift-print-thing-at-point)
-              (local-set-key (kbd "C-c C-f") #'swift-funcs-and-pragmas)
-              (local-set-key (kbd "M-r") #'xcode-run)
+              (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
+              (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
+              (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
               (local-set-key (kbd "M-s") #'xcode-stop)
               (local-set-key (kbd "M-b") #'xcode-build)))
 
   (hs-minor-mode)
   (local-set-key (kbd "C-c C-c") #'hs-toggle-hiding)
   (local-set-key (kbd "C-c C-l") #'hs-hide-level)
-  (local-set-key (kbd "C-c C-b") #'hs-hide-block)
+  ;(local-set-key (kbd "C-c C-b") #'hs-hide-block)
   (local-set-key (kbd "C-c C-x") #'hs-hide-all)
   (local-set-key (kbd "C-c C-v") #'hs-show-all)
 
