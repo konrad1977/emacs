@@ -2,19 +2,22 @@
 
 ;;; code:
 
+(require 'ansi-color)
+(require 'comint)
+(require 'f)
+(require 'dash)
 (require 'cl-lib)
 (require 'projectile)
+(require 'subr-x)
+(require 'wid-edit)
+
+(defconst xcodebuild-buffer "*xcodebuild*"
+  "Xcodebuild buffer.")
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
-
-(defcustom swift-additions:xcode-workspace "SecoTools"
-  "Current xcode workspace."
-  :type 'string
-  :group 'swift-additions
-  :safe 'stringp)
 
 (defcustom swift-additions:xcode-scheme "SecoTools-dev"
   "Current xcode scheme."
@@ -34,37 +37,46 @@
   :group 'swift-additions
   :safe 'stringp)
 
-(defun swift-additions:functions-and-pragmas ()
-  "Show swift file compressed functions and pragmas."
-   (interactive)
-  (let ((list-matching-lines-face nil))
-    (occur "\\(func\\)\\|\\(#pragma mark\\)\\|\\(MARK:\\)")))
+(defcustom swift-additions:build-configuration "Debug"
+  "Build name from configuration."
+  :type 'string
+  :group 'swift-additions
+  :safe 'stringp)
 
-(defun swift-additions:print-thing-at-point ()
-  "Print thing at point."
-  (interactive)
-  (let ((word (thing-at-point 'word)))
-    (end-of-line)
-    (newline-and-indent)
-    (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
+(defun swift-additions:match-product-name (text)
+  "Match product name from (as TEXT)."
+  (string-match "FULL_PRODUCT_NAME = \\(.*\\)" text)
+  (match-string 1 text))
 
-(defun swift-additions:add-mark ()
-  "Insert a mark at line."
-  (interactive)
-  (end-of-line)
-  (newline)
-  (insert "// MARK: - ")
-  (move-end-of-line nil))
+(defun swift-additions:build-settings-command ()
+  (concat
+   "xcrun xcodebuild \\"
+   (format "-scheme %s \\" swift-additions:xcode-scheme)
+   (format "-workspace %s.xcworkspace \\" (swift-additions:xcode-workspace))
+   (format "-configuration %s \\" swift-additions:build-configuration)
+   "-showBuildSettings | grep 'FULL_PRODUCT_NAME'"))
 
-(defun swift-additions:insert-todo ()
-  "Insert a Todo."
-  (interactive)
-  (newline-and-indent)
-  (indent-for-tab-command)
-  (insert "// TODO ")
-  (move-end-of-line nil))
+(defun swift-additions:read-app-product-name ()
+  "Read app product name."
+  (swift-additions:match-product-name 
+    (async-shell-command (swift-additions:build-settings-command))))
   
-(defvar swift-additions:install-folder
+(defun swift-additions:find-app ()
+  "Find app to install in simulator."
+    (car
+     (directory-files-recursively
+      (projectile-project-root) "\\.app$")))
+
+(defun swift-additions:xcode-workspace ()
+  "Get workspace name."
+  (file-name-sans-extension
+   (file-name-nondirectory
+    (car
+     (directory-files
+      (projectile-project-root) t ".xcworkspace")))))
+
+  
+(defconst swift-additions:install-folder
   "build/Build/Products/Debug-iphonesimulator/")
 
 (defun build-and-run-command (simulator-id)
@@ -73,14 +85,56 @@
        "env /usr/bin/arch -x86_64 \\"
        "xcrun xcodebuild \\"
        (format "-scheme %s \\" swift-additions:xcode-scheme)
-       (format "-workspace %s.xcworkspace \\" swift-additions:xcode-workspace)
-       "-configuration Debug \\"
+       (format "-workspace %s.xcworkspace \\" (swift-additions:xcode-workspace))
+       (format "-configuration %s \\" swift-additions:build-configuration)
        "-sdk iphonesimulator \\"
+       "-jobs 4 \\"
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id)
        "-derivedDataPath \\"
-       "build | xcbeautify \n"
-       (format "xcrun simctl install %s %s%s.app\n" swift-additions:simulator-id swift-additions:install-folder swift-additions:xcode-scheme)
-       (format "xcrun simctl launch %s %s" swift-additions:simulator-id swift-additions:app-identifier)))
+       "build | xcbeautify \n"))
+
+(defun swift-additions:install-and-run-simulator-command ()
+  "Install and launch app."
+  (concat
+   "env /usr/bin/arch -x86_64 \\"
+   (format "xcrun simctl install %s %s%s.app\n" swift-additions:simulator-id swift-additions:install-folder swift-additions:xcode-scheme)
+   (format "xcrun simctl launch %s %s" swift-additions:simulator-id swift-additions:app-identifier)))
+
+(defun start-simulator-when-done (process signal)
+  "Launching simular when done building (as PROCESS SIGNAL)."
+  (when (memq (process-status process) '(exit signal))
+    (with-current-buffer (get-buffer-create xcodebuild-buffer)
+      (progn
+        (if (swift-additions:buffer-contains-substring "Build Succeeded")
+            (let ((default-directory (projectile-project-root)))
+              (call-process-shell-command (swift-additions:install-and-run-simulator-command))))))
+      (shell-command-sentinel process signal)))
+
+(defun swift-additions:build-and-run-ios-app ()
+  "Build project using xcodebuild."
+  (interactive)
+  (save-some-buffers t)
+  (swift-additions:terminate-app-in-simulator)
+  (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (erase-buffer)
+    (pop-to-buffer (current-buffer))
+    (setq buffer-read-only nil)
+    (fundamental-mode)
+    (compilation-minor-mode)
+    (let* ((default-directory (projectile-project-root))
+          (proc (progn 
+      (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer)
+      (get-buffer-process xcodebuild-buffer))))
+      (if (process-live-p proc)
+          (set-process-sentinel proc #'start-simulator-when-done))
+      (message "No process running."))))
+
+(defun swift-additions:buffer-contains-substring (string)
+  "Check if buffer contain (as STRING)."
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (search-forward string nil t))))
 
 (defun swift-additions:launch-app-in-simulator ()
   "Launch simulator and app."
@@ -96,19 +150,6 @@
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" swift-additions:simulator-id swift-additions:app-identifier))))
-
-(defun swift-additions:build-and-run-ios-app ()
-  "Build project using xcodebuild."
-  (interactive)
-  (save-some-buffers t)
-  (swift-additions:terminate-app-in-simulator)
-  (let ((buffer "*xcodebuild*"))
-    (with-output-to-temp-buffer buffer
-      (let ((default-directory (projectile-project-root)))
-        (async-shell-command
-         (format "bash -c %s"
-                 (shell-quote-argument (build-and-run-command swift-additions:simulator-id))) buffer)
-        (pop-to-buffer buffer)))))
 
 (defun swift-additions:xcode-build()
   "Start a build using Xcode."
@@ -211,6 +252,33 @@
                                           (get-text-property 0 'url selection))))
             :dynamic-collection t
             :caller 'ar/counsel-hacking-with-swift-search))
+
+(defun swift-additions:functions-and-pragmas ()
+  "Show swift file compressed functions and pragmas."
+   (interactive)
+  (let ((list-matching-lines-face nil))
+    (occur "\\(func\\)\\|\\(#pragma mark\\)\\|\\(MARK:\\)")))
+
+(defun swift-additions:print-thing-at-point ()
+  "Print thing at point."
+  (interactive)
+  (let ((word (thing-at-point 'word)))
+    (end-of-line)
+    (newline-and-indent)
+    (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
+
+(defun swift-additions:insert-mark ()
+  "Insert a mark at line."
+  (interactive)
+  (insert "// MARK: - ")
+  (move-end-of-line nil))
+
+(defun swift-additions:insert-todo ()
+  "Insert a Todo."
+  (interactive)
+  (indent-for-tab-command)
+  (insert "// TODO: ")
+  (move-end-of-line nil))
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."

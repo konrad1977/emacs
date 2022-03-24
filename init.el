@@ -320,8 +320,8 @@
           ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "swiftlint:enabled" :face 'org-level-2 :inverse t :margin 0 :crop-right t))))
           ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-2 :crop-left t))))
           
-          ("\\/\\/\\W?TODO\\b\\|TODO\\b" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0 :crop-right t))))
-          ("TODO\\b\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
+          ("\\/\\/\\W?TODO: \\b\\|TODO: \\b" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0 :crop-right t))))
+          ("TODO: \\b\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
           )))
 ; //MARK: - Do something
 ; TODO fix me later
@@ -1154,7 +1154,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
               (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
-              (local-set-key (kbd "M-s") #'xcode-stop)
+              (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
               (local-set-key (kbd "M-b") #'xcode-build)))
 
   (hs-minor-mode)
