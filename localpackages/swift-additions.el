@@ -1,15 +1,16 @@
-;;; swift-additions.el -*- lexical-binding: t; -*-
+;;; swift-additions.el --- Package for compiling and running swift apps in Emacs -*- lexical-binding: t; -*-
 
-;;; code:
+;;; Commentary:
+
+;; Package for building and runnning iOS/macos apps from Emacs
+
+;;; Code:
 
 (require 'ansi-color)
 (require 'comint)
-(require 'f)
 (require 'dash)
 (require 'cl-lib)
 (require 'projectile)
-(require 'subr-x)
-(require 'wid-edit)
 
 (defconst xcodebuild-buffer "*xcodebuild*"
   "Xcodebuild buffer.")
@@ -43,12 +44,29 @@
   :group 'swift-additions
   :safe 'stringp)
 
+(defun swift-additions:simulator-log-command ()
+    "Command to filter and log the simulator."
+    (concat "xcrun simctl spawn booted log stream "
+            "--level error "
+            "--style compact "
+            "--color always "
+            "| grep -Ei "
+            "\'[Cc]onstraint|%s\'" (swift-additions:project-name)))
+              
+(defun swift-additions:show-ios-simulator-logs ()
+  "Show simulator logs in a buffer."
+  (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (async-shell-command (swift-additions:simulator-log-command) xcodebuild-buffer)
+    (ansi-color-apply-on-region (point-min) (point-max))
+    (auto-revert-tail-mode t)))
+    
 (defun swift-additions:match-product-name (text)
   "Match product name from (as TEXT)."
   (string-match "FULL_PRODUCT_NAME = \\(.*\\)" text)
   (match-string 1 text))
 
 (defun swift-additions:build-settings-command ()
+  "Build settings command."
   (concat
    "xcrun xcodebuild \\"
    (format "-scheme %s \\" swift-additions:xcode-scheme)
@@ -58,7 +76,7 @@
 
 (defun swift-additions:read-app-product-name ()
   "Read app product name."
-  (swift-additions:match-product-name 
+  (swift-additions:match-product-name
     (async-shell-command (swift-additions:build-settings-command))))
   
 (defun swift-additions:find-app ()
@@ -67,14 +85,13 @@
      (directory-files-recursively
       (projectile-project-root) "\\.app$")))
 
-(defun swift-additions:xcode-workspace ()
+(defun swift-additions:project-name ()
   "Get workspace name."
   (file-name-sans-extension
    (file-name-nondirectory
     (car
      (directory-files
       (projectile-project-root) t ".xcworkspace")))))
-
   
 (defconst swift-additions:install-folder
   "build/Build/Products/Debug-iphonesimulator/")
@@ -85,7 +102,7 @@
        "env /usr/bin/arch -x86_64 \\"
        "xcrun xcodebuild \\"
        (format "-scheme %s \\" swift-additions:xcode-scheme)
-       (format "-workspace %s.xcworkspace \\" (swift-additions:xcode-workspace))
+       (format "-workspace %s.xcworkspace \\" (swift-additions:project-name))
        (format "-configuration %s \\" swift-additions:build-configuration)
        "-sdk iphonesimulator \\"
        "-jobs 4 \\"
@@ -107,10 +124,37 @@
       (progn
         (if (swift-additions:buffer-contains-substring "Build Succeeded")
             (let ((default-directory (projectile-project-root)))
-              (call-process-shell-command (swift-additions:install-and-run-simulator-command))))))
+              (call-process-shell-command (swift-additions:install-and-run-simulator-command))
+              (swift-additions:show-ios-simulator-logs))))
+              )
       (shell-command-sentinel process signal)))
 
+(defun swift-additions:clear-xcodebuild-buffer ()
+  "Clear the xcodebuild buffer."
+  (interactive)
+  (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (erase-buffer)))
+
 (defun swift-additions:build-and-run-ios-app ()
+  "Build project using xcodebuild and then run iOS simulator."
+  (interactive)
+  (save-some-buffers t)
+  (swift-additions:terminate-app-in-simulator)
+  (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (erase-buffer)
+    (pop-to-buffer (current-buffer))
+    (setq buffer-read-only nil)
+    (fundamental-mode)
+    (compilation-shell-minor-mode)
+    (let* ((default-directory (projectile-project-root))
+           (proc (progn
+                   (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer)
+                   (get-buffer-process xcodebuild-buffer))))
+      (if (process-live-p proc)
+          (set-process-sentinel proc #'start-simulator-when-done))
+      (message "No process running."))))
+
+(defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
   (interactive)
   (save-some-buffers t)
@@ -121,13 +165,18 @@
     (setq buffer-read-only nil)
     (fundamental-mode)
     (compilation-minor-mode)
-    (let* ((default-directory (projectile-project-root))
-          (proc (progn 
-      (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer)
-      (get-buffer-process xcodebuild-buffer))))
-      (if (process-live-p proc)
-          (set-process-sentinel proc #'start-simulator-when-done))
-      (message "No process running."))))
+    (let ((default-directory (projectile-project-root)))
+      (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer))))
+
+(defun swift-additions:clean-build-folder ()
+  "Clean app build folder."
+  (interactive)
+  (let ((default-directory (concat (projectile-project-root) "build")))
+    (if (file-directory-p default-directory)
+        (progn
+          (delete-directory default-directory t nil)
+            (message "Removing build folder %s" default-directory))
+    (message "Build folder %s doesnt exist" default-directory))))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."
@@ -150,38 +199,6 @@
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" swift-additions:simulator-id swift-additions:app-identifier))))
-
-(defun swift-additions:xcode-build()
-  "Start a build using Xcode."
-  (interactive)
-  (save-some-buffers t)
-  (shell-command-to-string
-   "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'")
-  (message "Build project using Xcode..."))
-
-(defun swift-additions:xcode-stop()
-  "Stop application from Xcode."
-  (interactive)
-  (save-some-buffers t)
-  (shell-command-to-string
-   "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'end tell'")
-  (message "Stopping simulator ..."))
-
-(defun swift-additions:xcode-run()
-  "Run application from Xcode."
-  (interactive)
-  (save-some-buffers t)
-  (shell-command-to-string
-   "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'run targetProject' -e 'end tell'")
-  (message "Run project using Xcode..."))
-
-(defun swift-additions:xcode-test()
-  "Run current test scheme from Xcode."
-  (interactive)
-  (save-some-buffers t)
-  (shell-command-to-string
-   "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'stop targetProject' -e 'test targetProject' -e 'end tell'")
-  (message "Test project using Xcode..."))
 
 (defun ar/counsel-apple-search ()
   "Ivy interface for dynamically querying apple.com docs."

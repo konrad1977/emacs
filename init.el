@@ -1155,7 +1155,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
               (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
               (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
-              (local-set-key (kbd "M-b") #'xcode-build)))
+              (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
+              (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
+              (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)))
 
   (hs-minor-mode)
   (local-set-key (kbd "C-c C-c") #'hs-toggle-hiding)
