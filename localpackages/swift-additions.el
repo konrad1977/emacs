@@ -11,6 +11,7 @@
 (require 'dash)
 (require 'cl-lib)
 (require 'projectile)
+(require 'flycheck)
 
 (defconst xcodebuild-buffer "*xcodebuild*"
   "Xcodebuild buffer.")
@@ -43,6 +44,8 @@
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
+
+(setq invoked-from-buffer "")
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -122,11 +125,16 @@
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
+        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
+            (progn
+              (kill-buffer xcodebuild-buffer)
+              (with-current-buffer invoked-from-buffer
+                (list-flycheck-errors)
+                (flycheck-first-error))))
         (if (swift-additions:buffer-contains-substring "Build Succeeded")
             (let ((default-directory (projectile-project-root)))
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
-              (swift-additions:show-ios-simulator-logs))))
-              )
+              (swift-additions:show-ios-simulator-logs)))))
       (shell-command-sentinel process signal)))
 
 (defun swift-additions:clear-xcodebuild-buffer ()
@@ -138,14 +146,17 @@
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
   (interactive)
+  (setq invoked-from-buffer (current-buffer))
   (save-some-buffers t)
   (swift-additions:terminate-app-in-simulator)
+  (if (get-buffer-process xcodebuild-buffer)
+        (delete-process xcodebuild-buffer))
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (erase-buffer)
     (pop-to-buffer (current-buffer))
     (setq buffer-read-only nil)
-    (fundamental-mode)
-    (compilation-shell-minor-mode)
+    (compilation-minor-mode t)
+    (auto-revert-mode t)
     (let* ((default-directory (projectile-project-root))
            (proc (progn
                    (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer)
@@ -159,6 +170,8 @@
   (interactive)
   (save-some-buffers t)
   (swift-additions:terminate-app-in-simulator)
+  (if (get-buffer-process xcodebuild-buffer)
+        (delete-process xcodebuild-buffer))
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (erase-buffer)
     (pop-to-buffer (current-buffer))

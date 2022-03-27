@@ -1144,7 +1144,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Drag stuff
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
-
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
 
   (add-hook 'swift-mode-hook
