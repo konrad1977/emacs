@@ -580,6 +580,9 @@
   (require 'swift-additions)
   (load "swift-additions")
    
+  (require 'swift-querying)
+  (load "swift-querying")
+
   (use-package swift-helpful
 	:commands swift-helpful)
   
@@ -1146,6 +1149,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
 
+  (require 'xcode-build)
+  (load "xcode-build")
+  
   (add-hook 'swift-mode-hook
             (lambda ()
               (svg-tag-mode) 
@@ -1156,7 +1162,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
               (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
               (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
-              (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)))
+              (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
+              (local-set-key (kbd "C-c C-r") #'xcode-build:run)))
 
   (hs-minor-mode)
   (local-set-key (kbd "C-c C-c") #'hs-toggle-hiding)
@@ -1232,6 +1239,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (s-concat (all-the-icons-fileicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
 
 (defvar mk-elfeed--title (with-faicon "rss-square" "" 1.5 -0.225))
+
 (pretty-hydra-define elfeed-hydra
   (:color pink :quit-key "q" :title mk-elfeed--title)
   ("Feed"

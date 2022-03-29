@@ -21,31 +21,40 @@
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
 
-(defcustom swift-additions:xcode-scheme "SecoTools-dev"
+(defcustom xcode-scheme "SecoTools-dev"
   "Current xcode scheme."
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
 
-(defcustom swift-additions:simulator-id "C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
+(defcustom current-simulator-id "C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
   "Current simulator ID of choice."
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
 
-(defcustom swift-additions:app-identifier "com.secotools.dev"
+(defcustom local-device-id nil ;"00008110-001E34EC2EE1801E"
+  "Local device-id ID of choice."
+  :type 'string
+  :group 'swift-additions
+  :safe 'stringp)
+
+(defcustom app-identifier "com.secotools.dev"
   "Current app-identifier of choice."
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
 
-(defcustom swift-additions:build-configuration "Debug"
+(defcustom build-configuration "Debug"
   "Build name from configuration."
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
 
 (setq invoked-from-buffer "")
+
+(defconst build-folder
+  "build/Build/Products/Debug-iphonesimulator/")
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -54,7 +63,7 @@
             "--style compact "
             "--color always "
             "| grep -Ei "
-            "\'[Cc]onstraint|%s\'" (swift-additions:project-name)))
+            "\'[Cc]onstraint|%s\'" (swift-project-name)))
               
 (defun swift-additions:show-ios-simulator-logs ()
   "Show simulator logs in a buffer."
@@ -62,25 +71,6 @@
     (async-shell-command (swift-additions:simulator-log-command) xcodebuild-buffer)
     (ansi-color-apply-on-region (point-min) (point-max))
     (auto-revert-tail-mode t)))
-    
-(defun swift-additions:match-product-name (text)
-  "Match product name from (as TEXT)."
-  (string-match "FULL_PRODUCT_NAME = \\(.*\\)" text)
-  (match-string 1 text))
-
-(defun swift-additions:build-settings-command ()
-  "Build settings command."
-  (concat
-   "xcrun xcodebuild \\"
-   (format "-scheme %s \\" swift-additions:xcode-scheme)
-   (format "-workspace %s.xcworkspace \\" (swift-additions:xcode-workspace))
-   (format "-configuration %s \\" swift-additions:build-configuration)
-   "-showBuildSettings | grep 'FULL_PRODUCT_NAME'"))
-
-(defun swift-additions:read-app-product-name ()
-  "Read app product name."
-  (swift-additions:match-product-name
-    (async-shell-command (swift-additions:build-settings-command))))
   
 (defun swift-additions:find-app ()
   "Find app to install in simulator."
@@ -88,28 +78,32 @@
      (directory-files-recursively
       (projectile-project-root) "\\.app$")))
 
-(defun swift-additions:project-name ()
+(defun swift-project-name ()
   "Get workspace name."
   (file-name-sans-extension
    (file-name-nondirectory
     (car
      (directory-files
       (projectile-project-root) t ".xcworkspace")))))
-  
-(defconst swift-additions:install-folder
-  "build/Build/Products/Debug-iphonesimulator/")
+
+(defun current-sdk ()
+  "Return the current SDK."
+  (if local-device-id
+      "iphoneos"
+    "iphonesimulator"))
 
 (defun build-and-run-command (simulator-id)
-  "Xcodebuild with simulator id (as SIMULATOR-ID)."
+  "Xcodebuild with (as SIMULATOR-ID)."
       (concat
        "env /usr/bin/arch -x86_64 \\"
        "xcrun xcodebuild \\"
-       (format "-scheme %s \\" swift-additions:xcode-scheme)
-       (format "-workspace %s.xcworkspace \\" (swift-additions:project-name))
-       (format "-configuration %s \\" swift-additions:build-configuration)
-       "-sdk iphonesimulator \\"
+       (format "-scheme %s \\" xcode-scheme)
+       (format "-workspace %s.xcworkspace \\" (swift-project-name))
+       (format "-configuration %s \\" build-configuration)
        "-jobs 4 \\"
-       (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id)
+       (format "-sdk %s \\" (current-sdk))
+       (if (not local-device-id)
+           (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
        "-derivedDataPath \\"
        "build | xcbeautify \n"))
 
@@ -117,8 +111,8 @@
   "Install and launch app."
   (concat
    "env /usr/bin/arch -x86_64 \\"
-   (format "xcrun simctl install %s %s%s.app\n" swift-additions:simulator-id swift-additions:install-folder swift-additions:xcode-scheme)
-   (format "xcrun simctl launch %s %s" swift-additions:simulator-id swift-additions:app-identifier)))
+   (format "xcrun simctl install %s %s%s.app\n" current-simulator-id build-folder xcode-scheme)
+   (format "xcrun simctl launch %s %s" current-simulator-id app-identifier)))
 
 (defun start-simulator-when-done (process signal)
   "Launching simular when done building (as PROCESS SIGNAL)."
@@ -159,7 +153,7 @@
     (auto-revert-mode t)
     (let* ((default-directory (projectile-project-root))
            (proc (progn
-                   (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer)
+                   (async-shell-command (build-and-run-command current-simulator-id) xcodebuild-buffer)
                    (get-buffer-process xcodebuild-buffer))))
       (if (process-live-p proc)
           (set-process-sentinel proc #'start-simulator-when-done))
@@ -179,7 +173,7 @@
     (fundamental-mode)
     (compilation-minor-mode)
     (let ((default-directory (projectile-project-root)))
-      (async-shell-command (build-and-run-command swift-additions:simulator-id) xcodebuild-buffer))))
+      (async-shell-command (build-and-run-command current-simulator-id) xcodebuild-buffer))))
 
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
@@ -204,14 +198,14 @@
   (shell-command
    (concat
     "open -a simulator \n"
-    (format "xcrun simctl launch %s %s" swift-additions:simulator-id swift-additions:app-identifier))))
+    (format "xcrun simctl launch %s %s" current-simulator-id app-identifier))))
 
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app."
   (interactive)
   (shell-command
    (concat
-    (format "xcrun simctl terminate %s %s" swift-additions:simulator-id swift-additions:app-identifier))))
+    (format "xcrun simctl terminate %s %s" current-simulator-id app-identifier))))
 
 (defun ar/counsel-apple-search ()
   "Ivy interface for dynamically querying apple.com docs."
