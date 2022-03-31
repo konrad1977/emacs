@@ -1148,7 +1148,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
-
+  (global-set-key (kbd "C-x C-d") #'darkroom-mode)
+  
   (require 'xcode-build)
   (load "xcode-build")
   

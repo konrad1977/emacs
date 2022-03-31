@@ -7,11 +7,11 @@
 ;;; Code:
 
 (require 'ansi-color)
-(require 'comint)
 (require 'dash)
 (require 'cl-lib)
 (require 'projectile)
 (require 'flycheck)
+(require 'swift-mode)
 
 (defconst xcodebuild-buffer "*xcodebuild*"
   "Xcodebuild buffer.")
@@ -53,8 +53,52 @@
 
 (setq invoked-from-buffer "")
 
-(defconst build-folder
-  "build/Build/Products/Debug-iphonesimulator/")
+
+(defun command-string-to-list (cmd)
+  "Split the CMD unless it is a list. This function respects quotes."
+  (if (listp cmd) cmd (split-string-and-unquote cmd)))
+
+(defun do-call-process (executable infile destination display args)
+  "Wrapper for `call-process'.
+
+EXECUTABLE may be a string or a list.  The string is split by spaces,
+then unquoted.
+For INFILE, DESTINATION, DISPLAY, see `call-process'.
+ARGS are rest arguments, appended to the argument list.
+Returns the exit status."
+  (let ((command-list
+         (append (command-string-to-list executable) args)))
+    (apply 'call-process
+           (append
+            (list (car command-list))
+            (list infile destination display)
+            (cdr command-list)))))
+
+(defun call-process-to-json (executable &rest args)
+  "Call EXECUTABLE synchronously in separate process.
+
+The output is parsed as a JSON document.
+EXECUTABLE may be a string or a list.  The string is split by spaces,
+then unquoted.
+ARGS are rest arguments, appended to the argument list."
+  (with-temp-buffer
+    (unless (zerop
+             (do-call-process executable
+                                         nil
+                                         ;; Disregard stderr output, as it
+                                         ;; corrupts JSON.
+                                         (list t nil)
+                                         nil
+                                         args))
+      (error "%s: %s" "Cannot invoke executable" (buffer-string)))
+    (goto-char (point-min))
+    (json-read)))
+
+(defun build-folder ()
+  "Fetch build folder."
+  (if local-device-id
+      "build/Build/Products/Debug-iphoneos/"
+    "build/Build/Products/Debug-iphonesimulator/"))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -71,7 +115,14 @@
     (async-shell-command (swift-additions:simulator-log-command) xcodebuild-buffer)
     (ansi-color-apply-on-region (point-min) (point-max))
     (auto-revert-tail-mode t)))
-  
+
+(defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
+"Run async-command in xcodebuild buffer (as COMMAND)."
+  (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (async-shell-command command xcodebuild-buffer)
+    (ansi-color-apply-on-region (point-min) (point-max))
+    (auto-revert-tail-mode t)))
+
 (defun swift-additions:find-app ()
   "Find app to install in simulator."
     (car
@@ -86,13 +137,22 @@
      (directory-files
       (projectile-project-root) t ".xcworkspace")))))
 
+(defun get-connected-device-id ()
+  "Get the id of the connected device."
+  (let ((device-id
+         (replace-regexp-in-string "\n$" ""
+          (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
+    (if (= (length device-id) 0)
+        nil
+      device-id)))
+
 (defun current-sdk ()
   "Return the current SDK."
   (if local-device-id
       "iphoneos"
     "iphonesimulator"))
 
-(defun build-and-run-command (simulator-id)
+(defun build-app (simulator-id)
   "Xcodebuild with (as SIMULATOR-ID)."
       (concat
        "env /usr/bin/arch -x86_64 \\"
@@ -111,10 +171,23 @@
   "Install and launch app."
   (concat
    "env /usr/bin/arch -x86_64 \\"
-   (format "xcrun simctl install %s %s%s.app\n" current-simulator-id build-folder xcode-scheme)
+   (format "xcrun simctl install %s %s%s.app\n" current-simulator-id (build-folder) xcode-scheme)
    (format "xcrun simctl launch %s %s" current-simulator-id app-identifier)))
 
 (defun start-simulator-when-done (process signal)
+  "Launching simular when done building (as PROCESS SIGNAL)."
+  (when (memq (process-status process) '(exit signal))
+    (with-current-buffer (get-buffer-create xcodebuild-buffer)
+      (progn
+        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
+            (compilation-minor-mode))
+        (if (swift-additions:buffer-contains-substring "Build Succeeded")
+            (let ((default-directory (projectile-project-root)))
+              (call-process-shell-command (swift-additions:install-and-run-simulator-command))
+              (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))))
+      (shell-command-sentinel process signal)))
+
+(defun install-and-launch-app-on-local-device-when-done (process signal)
   "Launching simular when done building (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
@@ -126,9 +199,8 @@
                 (list-flycheck-errors)
                 (flycheck-first-error))))
         (if (swift-additions:buffer-contains-substring "Build Succeeded")
-            (let ((default-directory (projectile-project-root)))
-              (call-process-shell-command (swift-additions:install-and-run-simulator-command))
-              (swift-additions:show-ios-simulator-logs)))))
+            (let ((default-directory (concat (projectile-project-root) (build-folder))))
+              (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" xcode-scheme))))))
       (shell-command-sentinel process signal)))
 
 (defun swift-additions:clear-xcodebuild-buffer ()
@@ -140,8 +212,9 @@
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
   (interactive)
-  (setq invoked-from-buffer (current-buffer))
   (save-some-buffers t)
+  (setq local-device-id (get-connected-device-id))
+  (setq invoked-from-buffer (current-buffer))
   (swift-additions:terminate-app-in-simulator)
   (if (get-buffer-process xcodebuild-buffer)
         (delete-process xcodebuild-buffer))
@@ -153,11 +226,16 @@
     (auto-revert-mode t)
     (let* ((default-directory (projectile-project-root))
            (proc (progn
-                   (async-shell-command (build-and-run-command current-simulator-id) xcodebuild-buffer)
+                   (if local-device-id
+                       (async-shell-command (build-app local-device-id) xcodebuild-buffer)
+                     (async-shell-command (build-app current-simulator-id) xcodebuild-buffer))
                    (get-buffer-process xcodebuild-buffer))))
       (if (process-live-p proc)
-          (set-process-sentinel proc #'start-simulator-when-done))
-      (message "No process running."))))
+          (progn
+            (if local-device-id
+                (set-process-sentinel proc #'install-and-launch-app-on-local-device-when-done)
+            (set-process-sentinel proc #'start-simulator-when-done)))))
+      (message "No process running.")))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -173,7 +251,7 @@
     (fundamental-mode)
     (compilation-minor-mode)
     (let ((default-directory (projectile-project-root)))
-      (async-shell-command (build-and-run-command current-simulator-id) xcodebuild-buffer))))
+      (async-shell-command (build-app current-simulator-id) xcodebuild-buffer))))
 
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
@@ -206,76 +284,6 @@
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" current-simulator-id app-identifier))))
-
-(defun ar/counsel-apple-search ()
-  "Ivy interface for dynamically querying apple.com docs."
-  (interactive)
-  (require 'request)
-  (require 'json)
-  (require 'url-http)
-  (ivy-read "apple docs: "
-            (lambda (input)
-              (let* ((url (url-encode-url (format "https://developer.apple.com/search/search_data.php?q=%s" input)))
-                     (c1-width (round (* (- (window-width) 9) 0.3)))
-                     (c2-width (round (* (- (window-width) 9) 0.5)))
-                     (c3-width (- (window-width) 9 c1-width c2-width)))
-                (or
-                 (ivy-more-chars)
-                 (let ((request-curl-options (list "-H" (string-trim (url-http-user-agent-string)))))
-                   (request url
-                     :type "GET"
-                     :parser 'json-read
-                     :success (cl-function
-                               (lambda (&key data &allow-other-keys)
-                                 (ivy-update-candidates
-                                  (mapcar (lambda (item)
-                                            (let-alist item
-                                              (propertize
-                                               (format "%s   %s   %s"
-                                                       (truncate-string-to-width (propertize (or .title "")
-                                                                                             'face '(:foreground "yellow")) c1-width nil ?\s "…")
-                                                       (truncate-string-to-width (or .description "") c2-width nil ?\s "…")
-                                                       (truncate-string-to-width (propertize (string-join (or .api_ref_data.languages "") "/")
-                                                                                             'face '(:foreground "cyan1")) c3-width nil ?\s "…"))
-                                               'url .url)))
-                                          (cdr (car data)))))))
-                   0))))
-            :action (lambda (selection)
-                      (browse-url (concat "https://developer.apple.com"
-                                          (get-text-property 0 'url selection))))
-            :dynamic-collection t
-            :caller 'ar/counsel-apple-search))
-
-(defun ar/counsel-hacking-with-swift-search ()
-  "Ivy interface to query hackingwithswift.com."
-  (interactive)
-  (require 'request)
-  (require 'json)
-  (require 'url-http)
-  (ivy-read "hacking with swift: "
-            (lambda (input)
-              (or
-               (ivy-more-chars)
-               (let ((request-curl-options (list "-H" (string-trim (url-http-user-agent-string)))))
-                 (request
-                   "https://www.hackingwithswift.com/example-code/search"
-                   :type "GET"
-                   :params (list
-                            (cons "search" input))
-                   :parser 'json-read
-                   :success (cl-function
-                             (lambda (&key data &allow-other-keys)
-                               (ivy-update-candidates
-                                (mapcar (lambda (item)
-                                          (let-alist item
-                                            (propertize .title 'url .url)))
-                                        data)))))
-                 0)))
-            :action (lambda (selection)
-                      (browse-url (concat "https://www.hackingwithswift.com"
-                                          (get-text-property 0 'url selection))))
-            :dynamic-collection t
-            :caller 'ar/counsel-hacking-with-swift-search))
 
 (defun swift-additions:functions-and-pragmas ()
   "Show swift file compressed functions and pragmas."
