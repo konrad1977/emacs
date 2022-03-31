@@ -165,7 +165,7 @@ ARGS are rest arguments, appended to the argument list."
        (if (not local-device-id)
            (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
        "-derivedDataPath \\"
-       "build | xcbeautify \n"))
+       "build | xcpretty \n"))
 
 (defun swift-additions:install-and-run-simulator-command ()
   "Install and launch app."
@@ -180,7 +180,10 @@ ARGS are rest arguments, appended to the argument list."
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
         (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (compilation-minor-mode))
+            (progn
+              (compilation-mode) 
+              (message "Bummer build failed stupid!"))
+              )
         (if (swift-additions:buffer-contains-substring "Build Succeeded")
             (let ((default-directory (projectile-project-root)))
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
@@ -194,10 +197,9 @@ ARGS are rest arguments, appended to the argument list."
       (progn
         (if (swift-additions:buffer-contains-substring "BUILD FAILED")
             (progn
-              (kill-buffer xcodebuild-buffer)
-              (with-current-buffer invoked-from-buffer
-                (list-flycheck-errors)
-                (flycheck-first-error))))
+              (compilation-mode)
+              (message "Build failed stupid!"))
+              )
         (if (swift-additions:buffer-contains-substring "Build Succeeded")
             (let ((default-directory (concat (projectile-project-root) (build-folder))))
               (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" xcode-scheme))))))
@@ -216,14 +218,14 @@ ARGS are rest arguments, appended to the argument list."
   (setq local-device-id (get-connected-device-id))
   (setq invoked-from-buffer (current-buffer))
   (swift-additions:terminate-app-in-simulator)
+
   (if (get-buffer-process xcodebuild-buffer)
-        (delete-process xcodebuild-buffer))
+      (delete-process xcodebuild-buffer))
+  
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (erase-buffer)
-    (pop-to-buffer (current-buffer))
     (setq buffer-read-only nil)
-    (compilation-minor-mode t)
-    (auto-revert-mode t)
+    (erase-buffer)
+    (setq inhibit-message t)
     (let* ((default-directory (projectile-project-root))
            (proc (progn
                    (if local-device-id
@@ -245,23 +247,26 @@ ARGS are rest arguments, appended to the argument list."
   (if (get-buffer-process xcodebuild-buffer)
         (delete-process xcodebuild-buffer))
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (setq buffer-read-only nil)
+    (setq inhibit-message t)
     (erase-buffer)
     (pop-to-buffer (current-buffer))
-    (setq buffer-read-only nil)
-    (fundamental-mode)
-    (compilation-minor-mode)
+    (compilation-mode)
     (let ((default-directory (projectile-project-root)))
       (async-shell-command (build-app current-simulator-id) xcodebuild-buffer))))
 
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
+  (setq inhibit-message nil)
+  (message "Cleaning build folder for %s. Standby..." xcode-scheme)
   (let ((default-directory (concat (projectile-project-root) "build")))
     (if (file-directory-p default-directory)
         (progn
-          (delete-directory default-directory t nil)
-            (message "Removing build folder %s" default-directory))
-    (message "Build folder %s doesnt exist" default-directory))))
+          (message "Removing build folder %s" default-directory)
+          (delete-directory default-directory t nil))
+      (message "Build folder %s doesnt exist" default-directory)))
+  (message "Done."))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."
