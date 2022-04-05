@@ -21,11 +21,7 @@
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
 
-(defcustom xcode-scheme "SecoTools-dev"
-  "Current xcode scheme."
-  :type 'string
-  :group 'swift-additions
-  :safe 'stringp)
+(defvar xcode-scheme nil)
 
 (defcustom current-simulator-id "C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
   "Current simulator ID of choice."
@@ -33,7 +29,7 @@
   :group 'swift-additions
   :safe 'stringp)
 
-(defcustom local-device-id nil ;"00008110-001E34EC2EE1801E"
+(defcustom local-device-id nil
   "Local device-id ID of choice."
   :type 'string
   :group 'swift-additions
@@ -51,11 +47,10 @@
   :group 'swift-additions
   :safe 'stringp)
 
-(setq invoked-from-buffer "")
-
+(defconst build-info-command "xcrun xcodebuild -list -json")
 
 (defun command-string-to-list (cmd)
-  "Split the CMD unless it is a list. This function respects quotes."
+  "Split the CMD unless it is a list.  This function respects quotes."
   (if (listp cmd) cmd (split-string-and-unquote cmd)))
 
 (defun do-call-process (executable infile destination display args)
@@ -94,11 +89,65 @@ ARGS are rest arguments, appended to the argument list."
     (goto-char (point-min))
     (json-read)))
 
+(defun fetch-or-load-xcode-scheme ()
+  "Get the xcode scheme if set otherwuse prompt user."
+  (unless xcode-scheme
+    (setq xcode-scheme (build-menu "Choose scheme:" (swift-additions:get-scheme-list))))
+  xcode-scheme)
+
 (defun build-folder ()
   "Fetch build folder."
   (if local-device-id
       "build/Build/Products/Debug-iphoneos/"
     "build/Build/Products/Debug-iphonesimulator/"))
+
+(defun number-of-available-cores ()
+  "Fetch number of available cores."
+  (let ((cores
+         (replace-regexp-in-string "\n$" ""
+          (shell-command-to-string "sysctl -n hw.ncpu"))))
+    (if (= (length cores) 0)
+        1
+      cores)))
+
+(defun get-workspace-or-project ()
+  "Check if there is workspace or project."
+  (let ((workspace (workspace-name))
+        (projectname (project-name)))
+    (if workspace
+        (format "-workspace %s.xcworkspace \\" workspace)
+      (format "-project %s.xcodeproj \\" projectname))))
+
+(defun build-app-command (simulator-id)
+  "Xcodebuild with (as SIMULATOR-ID)."
+      (concat
+       "env /usr/bin/arch -x86_64 \\"
+       "xcrun xcodebuild \\"
+       (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
+       (get-workspace-or-project)
+       (format "-configuration %s \\" build-configuration)
+       (format "-jobs %s \\" (number-of-available-cores))
+       (format "-sdk %s \\" (current-sdk))
+       "-parallelizeTargets \\"
+       ;; "-showBuildTimingSummary \\"
+       (if (not local-device-id)
+           (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
+       "-derivedDataPath \\"
+       "build"))
+
+(defun swift-additions:install-and-run-simulator-command ()
+  "Install and launch app."
+  (concat
+   "env /usr/bin/arch -x86_64 \\"
+   (format "xcrun simctl install %s %s%s.app\n" current-simulator-id (build-folder) (fetch-or-load-xcode-scheme))
+   (format "xcrun simctl launch %s %s" current-simulator-id app-identifier)))
+
+(defun swift-additions:terminate-app-in-simulator ()
+  "Terminate app that is running in simulator."
+  (interactive)
+  (shell-command
+   (concat
+    (format "xcrun simctl terminate %s %s" current-simulator-id app-identifier))))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -107,7 +156,7 @@ ARGS are rest arguments, appended to the argument list."
             "--style compact "
             "--color always "
             "| grep -Ei "
-            "\'[Cc]onstraint|%s\'" (swift-project-name)))
+            "\'[Cc]onstraint|%s\'" xcode-scheme))
               
 (defun swift-additions:show-ios-simulator-logs ()
   "Show simulator logs in a buffer."
@@ -129,13 +178,20 @@ ARGS are rest arguments, appended to the argument list."
      (directory-files-recursively
       (projectile-project-root) "\\.app$")))
 
-(defun swift-project-name ()
+(defun filename-by-extension (extension)
+  "Get filename based on (as EXTENSION)."
+  (let ((name (directory-files (projectile-project-root) t extension)))
+    (if name
+        (file-name-sans-extension (file-name-nondirectory (car name)))
+      nil)))
+
+(defun project-name ()
+  "Get project name."
+  (filename-by-extension ".xcodeproj"))
+
+(defun workspace-name ()
   "Get workspace name."
-  (file-name-sans-extension
-   (file-name-nondirectory
-    (car
-     (directory-files
-      (projectile-project-root) t ".xcworkspace")))))
+  (filename-by-extension ".xcworkspace"))
 
 (defun get-connected-device-id ()
   "Get the id of the connected device."
@@ -152,58 +208,50 @@ ARGS are rest arguments, appended to the argument list."
       "iphoneos"
     "iphonesimulator"))
 
-(defun build-app (simulator-id)
-  "Xcodebuild with (as SIMULATOR-ID)."
-      (concat
-       "env /usr/bin/arch -x86_64 \\"
-       "xcrun xcodebuild \\"
-       (format "-scheme %s \\" xcode-scheme)
-       (format "-workspace %s.xcworkspace \\" (swift-project-name))
-       (format "-configuration %s \\" build-configuration)
-       "-jobs 4 \\"
-       (format "-sdk %s \\" (current-sdk))
-       (if (not local-device-id)
-           (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
-       "-derivedDataPath \\"
-       "build | xcpretty \n"))
-
-(defun swift-additions:install-and-run-simulator-command ()
-  "Install and launch app."
-  (concat
-   "env /usr/bin/arch -x86_64 \\"
-   (format "xcrun simctl install %s %s%s.app\n" current-simulator-id (build-folder) xcode-scheme)
-   (format "xcrun simctl launch %s %s" current-simulator-id app-identifier)))
-
 (defun start-simulator-when-done (process signal)
   "Launching simular when done building (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
-        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
+        (unless
+            (swift-additions:buffer-contains-substring "BUILD FAILED")
+          (let ((default-directory (projectile-project-root)))
             (progn
-              (compilation-mode) 
-              (message "Bummer build failed stupid!"))
-              )
-        (if (swift-additions:buffer-contains-substring "Build Succeeded")
-            (let ((default-directory (projectile-project-root)))
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
-              (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))))
-      (shell-command-sentinel process signal)))
+              (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))
+              )
+            )
+          )
+        (first-error)))
+    (shell-command-sentinel process signal)))
 
 (defun install-and-launch-app-on-local-device-when-done (process signal)
-  "Launching simular when done building (as PROCESS SIGNAL)."
+  "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
-        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (progn
-              (compilation-mode)
-              (message "Build failed stupid!"))
-              )
-        (if (swift-additions:buffer-contains-substring "Build Succeeded")
-            (let ((default-directory (concat (projectile-project-root) (build-folder))))
-              (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" xcode-scheme))))))
-      (shell-command-sentinel process signal)))
+        (unless
+            (swift-additions:buffer-contains-substring "BUILD FAILED")
+          (let ((default-directory (concat (projectile-project-root) (build-folder))))
+            (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
+        (first-error)))
+    (shell-command-sentinel process signal)))
+
+(defun check-for-errors (process signal)
+  "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
+  (when (memq (process-status process) '(exit signal))
+    (with-current-buffer (get-buffer-create xcodebuild-buffer)
+      (if (swift-additions:buffer-contains-substring "BUILD FAILED")
+          (first-error)
+        (message "Build successful")))
+    (shell-command-sentinel process signal)))
+
+(defun build-using-compilation-mode ()
+  "Build using builtin compile and 'compilation-mode'."
+  (interactive)
+  (let* ((default-directory (projectile-project-root))
+         (compile-command (build-app-command current-simulator-id)))
+    (compile compile-command)))
 
 (defun swift-additions:clear-xcodebuild-buffer ()
   "Clear the xcodebuild buffer."
@@ -211,27 +259,33 @@ ARGS are rest arguments, appended to the argument list."
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (erase-buffer)))
 
+(defun swift-additions:clear-settings ()
+  "Clear current settings.  Change current configuration."
+  (setq xcode-scheme nil))
+
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
   (interactive)
   (save-some-buffers t)
   (setq local-device-id (get-connected-device-id))
-  (setq invoked-from-buffer (current-buffer))
   (swift-additions:terminate-app-in-simulator)
 
   (if (get-buffer-process xcodebuild-buffer)
       (delete-process xcodebuild-buffer))
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setq buffer-read-only nil)
+    (setq-local buffer-read-only nil)
     (erase-buffer)
     (setq inhibit-message t)
     (let* ((default-directory (projectile-project-root))
            (proc (progn
                    (if local-device-id
-                       (async-shell-command (build-app local-device-id) xcodebuild-buffer)
-                     (async-shell-command (build-app current-simulator-id) xcodebuild-buffer))
-                   (get-buffer-process xcodebuild-buffer))))
+                       (async-shell-command (concat (build-app-command local-device-id) " | xcpretty") xcodebuild-buffer)
+                     (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer))
+                   (progn
+                     (compilation-minor-mode)
+                     (setq-local buffer-read-only t)
+                     (get-buffer-process xcodebuild-buffer)))))
       (if (process-live-p proc)
           (progn
             (if local-device-id
@@ -245,15 +299,20 @@ ARGS are rest arguments, appended to the argument list."
   (save-some-buffers t)
   (swift-additions:terminate-app-in-simulator)
   (if (get-buffer-process xcodebuild-buffer)
-        (delete-process xcodebuild-buffer))
+      (delete-process xcodebuild-buffer))
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setq buffer-read-only nil)
     (setq inhibit-message t)
+    (setq-local buffer-read-only nil)
     (erase-buffer)
-    (pop-to-buffer (current-buffer))
-    (compilation-mode)
-    (let ((default-directory (projectile-project-root)))
-      (async-shell-command (build-app current-simulator-id) xcodebuild-buffer))))
+    (let* ((default-directory (projectile-project-root))
+          (proc (progn
+                  (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
+                  (compilation-minor-mode)
+                  (setq-local buffer-read-only t)
+                  (get-buffer-process xcodebuild-buffer))))
+      (if (process-live-p proc)
+          (set-process-sentinel proc #'check-for-errors)
+        ))))
 
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
@@ -272,23 +331,8 @@ ARGS are rest arguments, appended to the argument list."
   "Check if buffer contain (as STRING)."
   (save-excursion
     (save-match-data
-      (goto-char (point-min))
-      (search-forward string nil t))))
-
-(defun swift-additions:launch-app-in-simulator ()
-  "Launch simulator and app."
-  (interactive)
-  (shell-command
-   (concat
-    "open -a simulator \n"
-    (format "xcrun simctl launch %s %s" current-simulator-id app-identifier))))
-
-(defun swift-additions:terminate-app-in-simulator ()
-  "Terminate app."
-  (interactive)
-  (shell-command
-   (concat
-    (format "xcrun simctl terminate %s %s" current-simulator-id app-identifier))))
+      (goto-char (point-max))
+      (search-backward string nil t))))
 
 (defun swift-additions:functions-and-pragmas ()
   "Show swift file compressed functions and pragmas."
@@ -323,6 +367,53 @@ ARGS are rest arguments, appended to the argument list."
   (if (get-buffer "*Flycheck errors*")
       (kill-buffer "*Flycheck errors*")
     (list-flycheck-errors)))
+
+(defun swift-additions:toggle-xcodebuild-buffer ()
+  "Function to toggle xcodebuild-buffer."
+  (interactive)
+  (if (get-buffer xcodebuild-buffer)
+      (bury-buffer xcodebuild-buffer)
+      (pop-to-buffer xcodebuild-buffer)))
+
+(defun swift-additions:get-bundle-identifier (config)
+  "Get bundle identifier (as CONFIG)."
+  (let* ((default-directory (projectile-project-root))
+         (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
+    (let-alist (seq-elt json 0)
+      .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
+
+(defun swift-additions:get-target-list ()
+  "Get list of project targets."
+  (let* ((default-directory (projectile-project-root))
+         (json (call-process-to-json build-info-command))
+         (project (assoc 'project json))
+         (targets (cdr (assoc 'targets project))))
+    targets))
+
+(defun swift-additions:get-scheme-list ()
+  "Get list of project schemes."
+  (let* ((default-directory (projectile-project-root))
+         (json (call-process-to-json build-info-command))
+         (project (assoc 'project json))
+         (result (cdr (assoc 'schemes project))))
+    result))
+
+(defun swift-additions:get-configuration-list ()
+  "Get list of project configurations."
+  (let* ((default-directory (projectile-project-root))
+         (json (call-process-to-json build-info-command))
+         (project (assoc 'project json))
+         (result (cdr (assoc 'configurations project))))
+    result))
+
+
+(defun build-menu (title list)
+  "Builds a widget menu from (as TITLE as LIST)."
+  (let* ((choices (seq-map (lambda (item) (cons item item)) list)))
+    (pcase (length list)
+      (1 (car list))
+      (0 nil)
+      (_ (widget-choose title choices)))))
 
 (provide 'swift-additions)
 

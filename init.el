@@ -167,6 +167,11 @@
 	     ("g t" . centaur-tabs-forward)
 	     ("g T" . centaur-tabs-backward)))
 
+(use-package compile
+  :config
+  (setq compilation-skip-threshold 2
+        compilation-auto-jump-to-first-error t))
+
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
