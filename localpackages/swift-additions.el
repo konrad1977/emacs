@@ -22,6 +22,8 @@
   :group 'swift-additions)
 
 (defvar xcode-scheme nil)
+(defvar app-identifier nil)
+(defvar current-project-root nil)
 
 (defcustom current-simulator-id "C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
   "Current simulator ID of choice."
@@ -31,12 +33,6 @@
 
 (defcustom local-device-id nil
   "Local device-id ID of choice."
-  :type 'string
-  :group 'swift-additions
-  :safe 'stringp)
-
-(defcustom app-identifier "com.secotools.dev"
-  "Current app-identifier of choice."
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
@@ -89,11 +85,27 @@ ARGS are rest arguments, appended to the argument list."
     (goto-char (point-min))
     (json-read)))
 
+(defun setup-current-project (project)
+  "Check if we have a new project (as PROJECT).  If true reset settings."
+  (unless current-project-root
+    (setq current-project-root project))
+  (if (not
+       (string= current-project-root project))
+       (progn
+         (setq current-project-root project)
+         (swift-additions:reset-settings))))
+
 (defun fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
   (unless xcode-scheme
     (setq xcode-scheme (build-menu "Choose scheme:" (swift-additions:get-scheme-list))))
   xcode-scheme)
+
+(defun fetch-or-load-app-identifier ()
+  "Get the app identifier for the current configiration."
+  (unless app-identifier
+    (setq app-identifier (swift-additions:get-bundle-identifier build-configuration)))
+  app-identifier)
 
 (defun build-folder ()
   "Fetch build folder."
@@ -140,14 +152,14 @@ ARGS are rest arguments, appended to the argument list."
   (concat
    "env /usr/bin/arch -x86_64 \\"
    (format "xcrun simctl install %s %s%s.app\n" current-simulator-id (build-folder) (fetch-or-load-xcode-scheme))
-   (format "xcrun simctl launch %s %s" current-simulator-id app-identifier)))
+   (format "xcrun simctl launch %s %s" current-simulator-id (fetch-or-load-app-identifier))))
 
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
   (interactive)
   (shell-command
    (concat
-    (format "xcrun simctl terminate %s %s" current-simulator-id app-identifier))))
+    (format "xcrun simctl terminate %s %s" current-simulator-id (fetch-or-load-app-identifier)))))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -217,6 +229,7 @@ ARGS are rest arguments, appended to the argument list."
             (swift-additions:buffer-contains-substring "BUILD FAILED")
           (let ((default-directory (projectile-project-root)))
             (progn
+              (message "Installing on simulator. Will launch it when done.")
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
               (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))
               )
@@ -249,6 +262,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
   (interactive)
+  
   (let* ((default-directory (projectile-project-root))
          (compile-command (build-app-command current-simulator-id)))
     (compile compile-command)))
@@ -259,14 +273,28 @@ ARGS are rest arguments, appended to the argument list."
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (erase-buffer)))
 
-(defun swift-additions:clear-settings ()
-  "Clear current settings.  Change current configuration."
-  (setq xcode-scheme nil))
+(defun swift-additions:reset-settings ()
+  "Reset current settings.  Change current configuration."
+  (setq xcode-scheme nil)
+  (setq app-identifier nil))
+
+(defun setup-default-buffer-state ()
+  "Setup buffer default state."
+  (setq-local buffer-read-only nil)
+  (erase-buffer)
+  (setq inhibit-message t))
+
+(defun reset-default-buffer-state ()
+  "Reset buffer default state."
+  (setq-local buffer-read-only t)
+  ;(setq inhibit-message nil)
+  )
 
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
   (interactive)
   (save-some-buffers t)
+  (setup-current-project (projectile-project-root))
   (setq local-device-id (get-connected-device-id))
   (swift-additions:terminate-app-in-simulator)
 
@@ -274,17 +302,15 @@ ARGS are rest arguments, appended to the argument list."
       (delete-process xcodebuild-buffer))
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setq-local buffer-read-only nil)
-    (erase-buffer)
-    (setq inhibit-message t)
-    (let* ((default-directory (projectile-project-root))
+    (setup-default-buffer-state)
+    (let* ((default-directory current-project-root)
            (proc (progn
                    (if local-device-id
                        (async-shell-command (concat (build-app-command local-device-id) " | xcpretty") xcodebuild-buffer)
                      (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer))
                    (progn
                      (compilation-minor-mode)
-                     (setq-local buffer-read-only t)
+                     (reset-default-buffer-state)
                      (get-buffer-process xcodebuild-buffer)))))
       (if (process-live-p proc)
           (progn
@@ -297,18 +323,19 @@ ARGS are rest arguments, appended to the argument list."
   "Build project using xcodebuild."
   (interactive)
   (save-some-buffers t)
+  (setup-current-project (projectile-project-root))
   (swift-additions:terminate-app-in-simulator)
+
   (if (get-buffer-process xcodebuild-buffer)
       (delete-process xcodebuild-buffer))
+  
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setq inhibit-message t)
-    (setq-local buffer-read-only nil)
-    (erase-buffer)
-    (let* ((default-directory (projectile-project-root))
+    (setup-default-buffer-state)
+    (let* ((default-directory current-project-root)
           (proc (progn
                   (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
                   (compilation-minor-mode)
-                  (setq-local buffer-read-only t)
+                  (reset-default-buffer-state)
                   (get-buffer-process xcodebuild-buffer))))
       (if (process-live-p proc)
           (set-process-sentinel proc #'check-for-errors)
@@ -318,8 +345,10 @@ ARGS are rest arguments, appended to the argument list."
   "Clean app build folder."
   (interactive)
   (setq inhibit-message nil)
+  (setup-current-project (projectile-project-root))
+  
   (message "Cleaning build folder for %s. Standby..." xcode-scheme)
-  (let ((default-directory (concat (projectile-project-root) "build")))
+  (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
         (progn
           (message "Removing build folder %s" default-directory)
