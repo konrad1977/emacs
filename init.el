@@ -237,10 +237,10 @@
   :config
   (setq evil-emacs-state-cursor '("#A3D4D5" box))
   (setq evil-normal-state-cursor '("#A3D4D5" box))
-  (setq evil-visual-state-cursor '("#7FB4CA" box))
-  (setq evil-insert-state-cursor '("#FF9E3B" bar))
-  (setq evil-replace-state-cursor '("red" hbar))
-  (setq evil-operator-state-cursor '("red" hollow))
+  (setq evil-visual-state-cursor '("#98BB6C" box))
+  (setq evil-insert-state-cursor '("#FF5D62" bar))
+  (setq evil-replace-state-cursor '("#FF9E3B" hbar))
+  (setq evil-operator-state-cursor '("#7E9CD8" hollow))
   
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
@@ -321,10 +321,8 @@
           
           ("\\/\\/\\W?TODO\\b\\|TODO\\b" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0 :crop-right t))))
           ("TODO\\b\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
+
           )))
-; //MARK: - Do something
-; TODO fix me later
-; //swiftlint:disable hello
 
 ;; nyan cat
 (use-package nyan-mode
@@ -335,7 +333,7 @@
 (use-package beacon
   :init (beacon-mode 1)
   :config
-  (setq beacon-color "#2D4F67"
+  (setq beacon-color "#A3D4D5"
         beacon-blink-when-focused t
         beacon-size 40
         beacon-blink-when-window-scrolls nil))

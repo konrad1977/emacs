@@ -141,10 +141,10 @@
   ;; Doom visual state
   (doom-modeline-evil-motion-state               (:foreground lightBlue))
   (doom-modeline-evil-emacs-state                (:foreground crystalBlue))
-  (doom-modeline-evil-insert-state               (:foreground roninYellow))
+  (doom-modeline-evil-insert-state               (:foreground peachRed))
   (doom-modeline-evil-normal-state               (:foreground lightBlue))
-  (doom-modeline-evil-visual-state               (:foreground springBlue))
-  (doom-modeline-evil-replace-state              (:foreground peachRed))
+  (doom-modeline-evil-visual-state               (:foreground springGreen))
+  (doom-modeline-evil-replace-state              (:foreground roninYellow))
   (doom-modeline-evil-operator-state             (:foreground crystalBlue))
 
   (doom-modeline-project-dir                     (:bold t :foreground waveAqua2))
