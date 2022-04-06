@@ -1,11 +1,8 @@
-(setq native-comp-speed 2
-      comp-speed 2)
-(setq native-comp-async-report-warnings-errors nil
-      comp-async-report-warnings-errors nil)
-(setq native-comp-async-query-on-exit t
-      comp-async-query-on-exit t)
+;;; early-init.el --- Early init
 
-(setq comp-deferred-compilation nil)
+;;; Commentary: My early init file
+
+;;; Code:
 (setq idle-update-delay 1.0)
 
 (setq highlight-nonselected-windows nil)
@@ -42,3 +39,4 @@
 			  indicate-empty-lines nil)
 
 (provide 'early-init)
+;;; early-init.el ends here
