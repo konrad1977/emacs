@@ -21,9 +21,10 @@
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
 
-(defvar xcode-scheme nil)
-(defvar app-identifier nil)
+(defvar current-xcode-scheme nil)
+(defvar current-app-identifier nil)
 (defvar current-project-root nil)
+(defvar current-build-configuration nil)
 
 (defcustom current-simulator-id "C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
   "Current simulator ID of choice."
@@ -37,11 +38,6 @@
   :group 'swift-additions
   :safe 'stringp)
 
-(defcustom build-configuration "Debug"
-  "Build name from configuration."
-  :type 'string
-  :group 'swift-additions
-  :safe 'stringp)
 
 (defconst build-info-command "xcrun xcodebuild -list -json")
 
@@ -97,15 +93,21 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
-  (unless xcode-scheme
-    (setq xcode-scheme (build-menu "Choose scheme:" (swift-additions:get-scheme-list))))
-  xcode-scheme)
+  (unless current-xcode-scheme
+    (setq current-xcode-scheme (build-menu "Choose scheme:" (swift-additions:get-scheme-list))))
+  current-xcode-scheme)
 
+(defun fetch-or-load-build-configuration ()
+  "Get the build configuration or promp user."
+  (unless current-build-configuration
+    (setq current-build-configuration (build-menu "Choose configuration:" (swift-additions:get-configuration-list))))
+  current-build-configuration)
+    
 (defun fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."
-  (unless app-identifier
-    (setq app-identifier (swift-additions:get-bundle-identifier build-configuration)))
-  app-identifier)
+  (unless current-app-identifier
+    (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
+  current-app-identifier)
 
 (defun build-folder ()
   "Fetch build folder."
@@ -137,7 +139,7 @@ ARGS are rest arguments, appended to the argument list."
        "xcrun xcodebuild \\"
        (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
        (get-workspace-or-project)
-       (format "-configuration %s \\" build-configuration)
+       (format "-configuration %s \\" (fetch-or-load-build-configuration))
        (format "-jobs %s \\" (number-of-available-cores))
        (format "-sdk %s \\" (current-sdk))
        "-parallelizeTargets \\"
@@ -168,7 +170,7 @@ ARGS are rest arguments, appended to the argument list."
             "--style compact "
             "--color always "
             "| grep -Ei "
-            "\'[Cc]onstraint|%s\'" xcode-scheme))
+            "\'[Cc]onstraint|%s\'" current-xcode-scheme))
               
 (defun swift-additions:show-ios-simulator-logs ()
   "Show simulator logs in a buffer."
@@ -275,20 +277,20 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:reset-settings ()
   "Reset current settings.  Change current configuration."
-  (setq xcode-scheme nil)
-  (setq app-identifier nil))
+  (interactive)
+  (setq current-xcode-scheme nil)
+  (setq current-app-identifier nil)
+  (setq current-build-configuration nil))
 
 (defun setup-default-buffer-state ()
   "Setup buffer default state."
   (setq-local buffer-read-only nil)
-  (erase-buffer)
-  (setq inhibit-message t))
+  (erase-buffer))
 
 (defun reset-default-buffer-state ()
   "Reset buffer default state."
   (setq-local buffer-read-only t)
-  ;(setq inhibit-message nil)
-  )
+  (setq-local inhibit-message t))
 
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
@@ -333,8 +335,8 @@ ARGS are rest arguments, appended to the argument list."
     (setup-default-buffer-state)
     (let* ((default-directory current-project-root)
           (proc (progn
-                  (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
                   (compilation-minor-mode)
+                  (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
                   (reset-default-buffer-state)
                   (get-buffer-process xcodebuild-buffer))))
       (if (process-live-p proc)
@@ -347,7 +349,7 @@ ARGS are rest arguments, appended to the argument list."
   (setq inhibit-message nil)
   (setup-current-project (projectile-project-root))
   
-  (message "Cleaning build folder for %s. Standby..." xcode-scheme)
+  (message "Cleaning build folder for %s. Standby..." current-xcode-scheme)
   (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
         (progn
@@ -413,6 +415,8 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
+  (setq inhibit-message nil)
+  (message "Fetching targets...")
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -421,6 +425,8 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
+  (setq inhibit-message nil)
+  (message "Fetching build schemes...")
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -429,6 +435,8 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
+  (setq inhibit-message nil)
+  (message "Fetching configurations...")
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))

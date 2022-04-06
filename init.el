@@ -465,12 +465,12 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ● ")
   (setq company-backends                    '(
-                                              company-tabnine
                                               company-sourcekit
                                               company-capf
                                               company-yasnippet
-                                              company-semantic
                                               company-dabbrev-code
+                                              company-semantic
+                                              company-tabnine
                                               company-files
                                               company-keywords
                                               )
