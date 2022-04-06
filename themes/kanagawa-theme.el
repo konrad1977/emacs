@@ -61,8 +61,7 @@
   (peachRed         "#FF5D62" "#717C7C")
   (surimiOrange		"#FFA066" "#717C7C")
   (katanaGray		"#717C7C" "#717C7C")
-  (comet            "#54536D" "#4e4e4e")
-  )
+  (comet            "#54536D" "#4e4e4e"))
 
   ;; Customize faces
   (
@@ -436,7 +435,17 @@
 
   (bm-fringe-face                                (:background peachRed :foreground sumiInk-3))
   (bm-fringe-persistent-face                     (:background peachRed :foreground sumiInk-3))
-  
+
+  (ansi-color-green                              (:foreground springGreen))
+  (ansi-color-cyan                               (:foreground waveAqua2))
+  (ansi-color-magenta                            (:foreground sakuraPink))
+  (ansi-color-blue                               (:foreground crystalBlue))
+  (ansi-color-red                                (:foreground peachRed))
+  (ansi-color-white                              (:foreground fujiWhite))
+  (ansi-color-yellow                             (:foreground autumnYellow))
+  (ansi-color-bright-white                       (:foreground old-white))
+  (ansi-color-bright-white                       (:foreground old-white))
+      
  ))
 
 ;;;###autoload
