@@ -26,7 +26,7 @@
 (defvar current-project-root nil)
 (defvar current-build-configuration nil)
 
-(defcustom current-simulator-id "C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
+(defcustom current-simulator-id "AD84EA9E-692B-4B44-9BBB-F3C25264D9F4" ;"C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
   "Current simulator ID of choice."
   :type 'string
   :group 'swift-additions
@@ -134,23 +134,24 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun build-app-command (simulator-id)
   "Xcodebuild with (as SIMULATOR-ID)."
-      (concat
-       "env /usr/bin/arch -x86_64 \\"
-       "xcrun xcodebuild \\"
-       (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
-       (get-workspace-or-project)
-       (format "-configuration %s \\" (fetch-or-load-build-configuration))
-       (format "-jobs %s \\" (number-of-available-cores))
-       (format "-sdk %s \\" (current-sdk))
-       "-parallelizeTargets \\"
-       ;; "-showBuildTimingSummary \\"
-       (if (not local-device-id)
-           (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
-       "-derivedDataPath \\"
-       "build"))
+  (concat
+   "env /usr/bin/arch -x86_64 \\"
+   "xcrun xcodebuild \\"
+   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
+   (get-workspace-or-project)
+   (format "-configuration %s \\" (fetch-or-load-build-configuration))
+   (format "-jobs %s \\" (number-of-available-cores))
+   (format "-sdk %s \\" (current-sdk))
+   "-parallelizeTargets \\"
+   ;; "-showBuildTimingSummary \\"
+   (if (not local-device-id)
+       (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
+   "-derivedDataPath \\"
+   "build"))
 
 (defun swift-additions:install-and-run-simulator-command ()
   "Install and launch app."
+  (swift-additions:message "Installing on simulator...")
   (concat
    "env /usr/bin/arch -x86_64 \\"
    (format "xcrun simctl install %s %s%s.app\n" current-simulator-id (build-folder) (fetch-or-load-xcode-scheme))
@@ -159,6 +160,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
   (interactive)
+  (swift-additions:message (format "Terminating %s" current-xcode-scheme))
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" current-simulator-id (fetch-or-load-app-identifier)))))
@@ -176,15 +178,13 @@ ARGS are rest arguments, appended to the argument list."
   "Show simulator logs in a buffer."
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (async-shell-command (swift-additions:simulator-log-command) xcodebuild-buffer)
-    (ansi-color-apply-on-region (point-min) (point-max))
-    (auto-revert-tail-mode t)))
+    (ansi-color-apply-on-region (point-min) (point-max))))
 
 (defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
 "Run async-command in xcodebuild buffer (as COMMAND)."
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (async-shell-command command xcodebuild-buffer)
-    (ansi-color-apply-on-region (point-min) (point-max))
-    (auto-revert-tail-mode t)))
+    (ansi-color-apply-on-region (point-min) (point-max))))
 
 (defun swift-additions:find-app ()
   "Find app to install in simulator."
@@ -231,7 +231,7 @@ ARGS are rest arguments, appended to the argument list."
             (swift-additions:buffer-contains-substring "BUILD FAILED")
           (let ((default-directory (projectile-project-root)))
             (progn
-              (message "Installing on simulator. Will launch it when done.")
+              (swift-additions:message "Installing on simulator. Will launch it when done.")
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
               (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))
               )
@@ -248,17 +248,28 @@ ARGS are rest arguments, appended to the argument list."
         (unless
             (swift-additions:buffer-contains-substring "BUILD FAILED")
           (let ((default-directory (concat (projectile-project-root) (build-folder))))
-            (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
+            (progn
+              (swift-additions:message "Installing on physical device. Will launch it when done.")
+              (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
+              )
         (first-error)))
     (shell-command-sentinel process signal)))
+
+(defun swift-additions:message (text)
+  (setq-local inhibit-message nil)
+  (message text)
+  (setq-local inhibit-message t))
 
 (defun check-for-errors (process signal)
   "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-          (first-error)
-        (message "Build successful")))
+          (progn
+            (first-error)
+            (swift-additions:message "Build failed. Taking you to the first error.")
+            )
+        (swift-additions:message "Build successful")))
     (shell-command-sentinel process signal)))
 
 (defun build-using-compilation-mode ()
@@ -289,8 +300,13 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun reset-default-buffer-state ()
   "Reset buffer default state."
-  (setq-local buffer-read-only t)
-  (setq-local inhibit-message t))
+  (setq-local buffer-read-only t))
+
+(defun current-device-type ()
+  "Function that check we should run on simulator or device."
+  (if local-device-id
+      "physical device"
+    "simulator"))
 
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
@@ -319,7 +335,8 @@ ARGS are rest arguments, appended to the argument list."
             (if local-device-id
                 (set-process-sentinel proc #'install-and-launch-app-on-local-device-when-done)
             (set-process-sentinel proc #'start-simulator-when-done)))))
-      (message "No process running.")))
+    (swift-additions:message (format "Building and installing %s on %s" current-xcode-scheme (current-device-type)))
+    ))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -327,18 +344,18 @@ ARGS are rest arguments, appended to the argument list."
   (save-some-buffers t)
   (setup-current-project (projectile-project-root))
   (swift-additions:terminate-app-in-simulator)
-
   (if (get-buffer-process xcodebuild-buffer)
       (delete-process xcodebuild-buffer))
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
+    (swift-additions:message (format "Building %s" current-xcode-scheme))
     (let* ((default-directory current-project-root)
-          (proc (progn
-                  (compilation-minor-mode)
-                  (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
-                  (reset-default-buffer-state)
-                  (get-buffer-process xcodebuild-buffer))))
+           (proc (progn
+                   (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
+                   (compilation-minor-mode)
+                   (reset-default-buffer-state)
+                   (get-buffer-process xcodebuild-buffer))))
       (if (process-live-p proc)
           (set-process-sentinel proc #'check-for-errors)
         ))))
@@ -346,17 +363,16 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (setq inhibit-message nil)
   (setup-current-project (projectile-project-root))
   
-  (message "Cleaning build folder for %s. Standby..." current-xcode-scheme)
+  (swift-additions:message (format "Cleaning build folder for %s. Standby..." current-xcode-scheme))
   (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
         (progn
-          (message "Removing build folder %s" default-directory)
+          (swift-additions:message (format "Removing build folder %s" default-directory))
           (delete-directory default-directory t nil))
-      (message "Build folder %s doesnt exist" default-directory)))
-  (message "Done."))
+      (swift-additions:message (format "Build folder %s doesnt exist" default-directory))))
+  (swift-additions:message "Done."))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."
@@ -415,8 +431,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
-  (setq inhibit-message nil)
-  (message "Fetching targets...")
+  (swift-additions:message "Fetching targets...")
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -425,8 +440,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
-  (setq inhibit-message nil)
-  (message "Fetching build schemes...")
+  (swift-additions:message "Fetching build schemes...")
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -435,14 +449,12 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
-  (setq inhibit-message nil)
-  (message "Fetching configurations...")
+  (swift-additions:message "Fetching configurations...")
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
     result))
-
 
 (defun build-menu (title list)
   "Builds a widget menu from (as TITLE as LIST)."
