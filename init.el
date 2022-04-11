@@ -109,6 +109,9 @@
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
 
+(use-package exec-path-from-shell
+  :hook (after-init . exec-path-from-shell-initialize))
+
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
   :custom
@@ -550,7 +553,7 @@
   (flycheck-indication-mode 'left-fringe)
   (flycheck-display-errors-delay 0.1)
   (flycheck-check-syntax-automatically '(save idle-change mode-enabled))
-  (flycheck-idle-change-delay 0.8))
+  (flycheck-idle-change-delay 1))
 
 (use-package flycheck-inline
   :ensure t
@@ -563,9 +566,6 @@
   (flycheck-refresh-fringes-and-margins))
 
 (add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
-
-(use-package exec-path-from-shell
-  :hook (after-init . exec-path-from-shell-initialize))
 
 (defun mk-sourcekit-lsp-command ()
     "Setup lsp."
