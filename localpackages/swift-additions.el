@@ -456,13 +456,17 @@ ARGS are rest arguments, appended to the argument list."
          (result (cdr (assoc 'configurations project))))
     result))
 
+
 (defun build-menu (title list)
   "Builds a widget menu from (as TITLE as LIST)."
-  (let* ((choices (seq-map (lambda (item) (cons item item)) list)))
-    (pcase (length list)
-      (1 (car list))
-      (0 nil)
-      (_ (widget-choose title choices)))))
+  (if (<= (length list) 1)
+      (elt list 0)
+    (progn
+      (let* ((choices (seq-map (lambda (item) (cons item item)) list)))
+        (pcase (length list)
+          (1 (car list))
+          (0 nil)
+          (_ (widget-choose title choices)))))))
 
 (provide 'swift-additions)
 
