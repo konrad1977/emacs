@@ -1161,6 +1161,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
             (lambda ()
               (svg-tag-mode) 
               (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
+              (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
+              (local-set-key (kbd "C-M-K") #'kill-other-buffers)
               (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
               (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
@@ -1192,6 +1194,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
   (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file)
+  (define-key evil-motion-state-map (kbd "C-M-O")   #'projectile-find-file-other-window)
   (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-semantic-or-imenu)
   (define-key evil-motion-state-map (kbd "M-F")     #'counsel-projectile-ag)
   (define-key evil-motion-state-map (kbd "C-M-e")   #'anzu-replace-at-cursor-thing)
