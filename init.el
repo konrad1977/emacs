@@ -1159,10 +1159,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   
   (add-hook 'swift-mode-hook
             (lambda ()
-              (svg-tag-mode) 
-              (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
-              (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
-              (local-set-key (kbd "C-M-K") #'kill-other-buffers)
+              (svg-tag-mode)
               (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
               (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
               (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
@@ -1173,9 +1170,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
               (local-set-key (kbd "C-c C-r") #'xcode-build:run)))
 
   (hs-minor-mode)
+  (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
+  (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
+  (local-set-key (kbd "M-t") #'ivy-magit-todos)
+  (local-set-key (kbd "C-M-K") #'kill-other-buffers)
   (local-set-key (kbd "C-c C-c") #'hs-toggle-hiding)
   (local-set-key (kbd "C-c C-l") #'hs-hide-level)
-  ;(local-set-key (kbd "C-c C-b") #'hs-hide-block)
   (local-set-key (kbd "C-c C-x") #'hs-hide-all)
   (local-set-key (kbd "C-c C-v") #'hs-show-all)
 
