@@ -12,6 +12,7 @@
 (require 'projectile)
 (require 'flycheck)
 (require 'swift-mode)
+(require 'evil-states)
 
 (defconst xcodebuild-buffer "*xcodebuild*"
   "Xcodebuild buffer.")
@@ -25,6 +26,7 @@
 (defvar current-app-identifier nil)
 (defvar current-project-root nil)
 (defvar current-build-configuration nil)
+(defvar current-environment-x86 nil)
 
 (defcustom current-simulator-id "AD84EA9E-692B-4B44-9BBB-F3C25264D9F4" ;"C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
   "Current simulator ID of choice."
@@ -37,7 +39,6 @@
   :type 'string
   :group 'swift-additions
   :safe 'stringp)
-
 
 (defconst build-info-command "xcrun xcodebuild -list -json")
 
@@ -109,6 +110,12 @@ ARGS are rest arguments, appended to the argument list."
     (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
   current-app-identifier)
 
+(defun xcodebuild-command ()
+  "Use x86 environement."
+  (if current-environment-x86
+   "env /usr/bin/arch -x86_64 xcrun xcodebuild \\"
+    "xcrun xcodebuild \\"))
+
 (defun build-folder ()
   "Fetch build folder."
   (if local-device-id
@@ -135,8 +142,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun build-app-command (simulator-id)
   "Xcodebuild with (as SIMULATOR-ID)."
   (concat
-   "env /usr/bin/arch -x86_64 \\"
-   "xcrun xcodebuild \\"
+   (xcodebuild-command)
    (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (get-workspace-or-project)
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
@@ -245,14 +251,16 @@ ARGS are rest arguments, appended to the argument list."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
-        (unless
-            (swift-additions:buffer-contains-substring "BUILD FAILED")
-          (let ((default-directory (concat (projectile-project-root) (build-folder))))
-            (progn
+        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
+            (first-error)
+          (progn
+            (let ((default-directory (concat (projectile-project-root) (build-folder))))
               (swift-additions:message "Installing on physical device. Will launch it when done.")
-              (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
-              )
-        (first-error)))
+              (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme))))
+            )
+          )
+        )
+      )
     (shell-command-sentinel process signal)))
 
 (defun swift-additions:message (text)
@@ -265,12 +273,9 @@ ARGS are rest arguments, appended to the argument list."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-          (progn
             (first-error)
-            (swift-additions:message "Build failed. Taking you to the first error.")
-            )
-        (swift-additions:message "Build successful")))
-    (shell-command-sentinel process signal)))
+        )))
+    (shell-command-sentinel process signal))
 
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
@@ -324,8 +329,8 @@ ARGS are rest arguments, appended to the argument list."
     (let* ((default-directory current-project-root)
            (proc (progn
                    (if local-device-id
-                       (async-shell-command (concat (build-app-command local-device-id) " | xcpretty") xcodebuild-buffer)
-                     (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer))
+                       (async-shell-command (concat (build-app-command local-device-id) " | xcbeautify") xcodebuild-buffer)
+                     (async-shell-command (concat (build-app-command current-simulator-id) " | xcbeautify") xcodebuild-buffer))
                    (progn
                      (compilation-minor-mode)
                      (reset-default-buffer-state)
@@ -335,8 +340,7 @@ ARGS are rest arguments, appended to the argument list."
             (if local-device-id
                 (set-process-sentinel proc #'install-and-launch-app-on-local-device-when-done)
             (set-process-sentinel proc #'start-simulator-when-done)))))
-    (swift-additions:message (format "Building and installing %s on %s" current-xcode-scheme (current-device-type)))
-    ))
+    (swift-additions:message (format "Building and installing %s on %s" current-xcode-scheme (current-device-type)))))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -352,13 +356,12 @@ ARGS are rest arguments, appended to the argument list."
     (swift-additions:message (format "Building %s" current-xcode-scheme))
     (let* ((default-directory current-project-root)
            (proc (progn
-                   (async-shell-command (concat (build-app-command current-simulator-id) " | xcpretty") xcodebuild-buffer)
+                   (async-shell-command (build-app-command current-simulator-id) xcodebuild-buffer)
                    (compilation-minor-mode)
                    (reset-default-buffer-state)
                    (get-buffer-process xcodebuild-buffer))))
       (if (process-live-p proc)
-          (set-process-sentinel proc #'check-for-errors)
-        ))))
+          (set-process-sentinel proc #'check-for-errors)))))
 
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
@@ -395,18 +398,25 @@ ARGS are rest arguments, appended to the argument list."
     (newline-and-indent)
     (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
 
+
+(defun insert-text-and-go-to-eol (text)
+  "Function that that insert (as TEXT) and go to end of line."
+  (save-excursion
+    (indent-for-tab-command)
+    (insert text)
+    (move-end-of-line nil))
+  (goto-char (point-at-eol))
+  (evil-insert-state t))
+
 (defun swift-additions:insert-mark ()
   "Insert a mark at line."
   (interactive)
-  (insert "// MARK: - ")
-  (move-end-of-line nil))
+    (insert-text-and-go-to-eol "// MARK: - "))
 
 (defun swift-additions:insert-todo ()
   "Insert a Todo."
   (interactive)
-  (indent-for-tab-command)
-  (insert "// TODO: ")
-  (move-end-of-line nil))
+  (insert-text-and-go-to-eol "// TODO:"))
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."

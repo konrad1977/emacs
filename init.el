@@ -39,7 +39,6 @@
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
       byte-compile-warnings             '(ck-functions)
-      compilation-scroll-output         t
       confirm-kill-processes            nil
       desktop-save-mode                 nil ;; Done save desktop (open buffers)
       display-time-24hr-format          t
@@ -51,8 +50,8 @@
       use-dialog-box                    nil
       visible-bell                      nil)
 
-(setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
-(run-with-idle-timer 2 t (lambda () (garbage-collect)))
+(setq gc-cons-threshold (eval-when-compile (* 36 1024 1024)))
+(run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 ;; Helpout better with debugging
 (if init-file-debug
@@ -142,7 +141,7 @@
 (add-hook 'minibuffer-setup-hook
           (lambda ()
             (make-local-variable 'face-remapping-alist)
-            (add-to-list 'face-remapping-alist '(default (:background "#15121C")))))
+            (add-to-list 'face-remapping-alist '(default (:background "#16161D")))))
 
 (use-package centaur-tabs
   :hook
@@ -173,6 +172,7 @@
 (use-package compile
   :config
   (setq compilation-skip-threshold 2
+        compilation-scroll-output t
         compilation-auto-jump-to-first-error t))
 
 (use-package dashboard
@@ -191,7 +191,7 @@
 		dashboard-items '(
 						  (projects . 3)
 						  (recents . 5)
-						  (agenda . 3))))
+                          )))
 
 ;; Which key
 (use-package which-key
@@ -313,11 +313,14 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook (org-mode . svg-tag-mode)
   :config
   (setq svg-tag-tags
         '(
           ("DONE\\b" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
+
+          ("\\/\\/\\W?TODO\\b:" . ((lambda (tag) (svg-tag-make "TODO" :face 'font-lock-constant-face :inverse t :margin 0 :crop-right t))))
+          ("TODO\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-constant-face :crop-left t))))
+          
           ("\\/\\/\\W?MARK\\b:\\|MARK\\b:" . ((lambda (tag) (svg-tag-make "MARK" :face 'font-lock-doc-face :inverse t :margin 0 :crop-right t))))
           ("MARK\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-doc-face :crop-left t))))
           
@@ -326,13 +329,12 @@
 
           ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "swiftlint:enabled" :face 'org-level-2 :inverse t :margin 0 :crop-right t))))
           ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-2 :crop-left t))))
-          
-          ("\\/\\/\\W?TODO: \\b\\|TODO: \\b" . ((lambda (tag) (svg-tag-make "TODO" :face 'org-todo :inverse t :margin 0 :crop-right t))))
-          ("TODO: \\b\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
 
-          ("\\/\\/\\W?FIXME: \\b\\|FIXME: \\b" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0 :crop-right t))))
-          ("FIXME: \\b\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
+          ("\\/\\/\\W?FIXME\\b:\\|FIXME\\b:" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0 :crop-right t))))
+          ("FIXME\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
           )))
+
+;; // TODO: Hello world
 
 ;; nyan cat
 (use-package nyan-mode
@@ -369,7 +371,7 @@
 (use-package ivy
   :hook (after-init . ivy-mode)
   :config
-  (setq ivy-height 14
+  (setq ivy-height 10
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
 		ivy-use-selectable-prompt t
@@ -384,7 +386,7 @@
   :custom
   (setq ivy-virtual-abbreviate 'abbreviate
 		ivy-rich-switch-buffer-align-virtual-buffer nil
-		ivy-rich-path-style 'full))
+		ivy-rich-path-style 'abbreviate))
 
 (use-package all-the-icons-ivy
   :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
@@ -1161,6 +1163,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
             (lambda ()
               (svg-tag-mode)
               (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
+              (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
+              (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
               (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
               (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
               (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
