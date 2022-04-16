@@ -27,12 +27,7 @@
 (defvar current-project-root nil)
 (defvar current-build-configuration nil)
 (defvar current-environment-x86 nil)
-
-(defcustom current-simulator-id "AD84EA9E-692B-4B44-9BBB-F3C25264D9F4" ;"C1278718-C3C4-4AAD-AF0A-A51794D0F6BB"
-  "Current simulator ID of choice."
-  :type 'string
-  :group 'swift-additions
-  :safe 'stringp)
+(defvar current-simulator-id nil)
 
 (defcustom local-device-id nil
   "Local device-id ID of choice."
@@ -41,6 +36,14 @@
   :safe 'stringp)
 
 (defconst build-info-command "xcrun xcodebuild -list -json")
+(defconst list-simulators-command "xcrun simctl list -j")
+(defun get-booted-simulator-command ()
+  "Get booted simulator id if any."
+  "xcrun simctl list devices | grep \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\"")
+
+(defun get-booted-simulator ()
+ "Get booted simulator if any."
+  (shell-command-to-string (get-booted-simulator-command)))
 
 (defun command-string-to-list (cmd)
   "Split the CMD unless it is a list.  This function respects quotes."
@@ -110,6 +113,13 @@ ARGS are rest arguments, appended to the argument list."
     (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
   current-app-identifier)
 
+(defun fetch-or-load-simulator-id ()
+  "Get the booted simulator id or fetch a suiting one."
+  (unless current-simulator-id
+    (setq current-simulator-id
+          (replace-regexp-in-string "\n$" "" (get-booted-simulator))))
+  current-simulator-id)
+
 (defun xcodebuild-command ()
   "Use x86 environement."
   (if current-environment-x86
@@ -160,8 +170,8 @@ ARGS are rest arguments, appended to the argument list."
   (swift-additions:message "Installing on simulator...")
   (concat
    "env /usr/bin/arch -x86_64 \\"
-   (format "xcrun simctl install %s %s%s.app\n" current-simulator-id (build-folder) (fetch-or-load-xcode-scheme))
-   (format "xcrun simctl launch %s %s" current-simulator-id (fetch-or-load-app-identifier))))
+   (format "xcrun simctl install %s %s%s.app\n" (fetch-or-load-simulator-id) (build-folder) (fetch-or-load-xcode-scheme))
+   (format "xcrun simctl launch %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier))))
 
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
@@ -169,7 +179,7 @@ ARGS are rest arguments, appended to the argument list."
   (swift-additions:message (format "Terminating %s" current-xcode-scheme))
   (shell-command
    (concat
-    (format "xcrun simctl terminate %s %s" current-simulator-id (fetch-or-load-app-identifier)))))
+    (format "xcrun simctl terminate %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -282,7 +292,7 @@ ARGS are rest arguments, appended to the argument list."
   (interactive)
   
   (let* ((default-directory (projectile-project-root))
-         (compile-command (build-app-command current-simulator-id)))
+         (compile-command (build-app-command (fetch-or-load-simulator-id))))
     (compile compile-command)))
 
 (defun swift-additions:clear-xcodebuild-buffer ()
@@ -296,6 +306,7 @@ ARGS are rest arguments, appended to the argument list."
   (interactive)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
+  (setq current-simulator-id nil)
   (setq current-build-configuration nil))
 
 (defun setup-default-buffer-state ()
@@ -330,7 +341,7 @@ ARGS are rest arguments, appended to the argument list."
            (proc (progn
                    (if local-device-id
                        (async-shell-command (concat (build-app-command local-device-id) " | xcbeautify") xcodebuild-buffer)
-                     (async-shell-command (concat (build-app-command current-simulator-id) " | xcbeautify") xcodebuild-buffer))
+                     (async-shell-command (concat (build-app-command (fetch-or-load-simulator-id)) " | xcbeautify") xcodebuild-buffer))
                    (progn
                      (compilation-minor-mode)
                      (reset-default-buffer-state)
@@ -356,7 +367,7 @@ ARGS are rest arguments, appended to the argument list."
     (swift-additions:message (format "Building %s" current-xcode-scheme))
     (let* ((default-directory current-project-root)
            (proc (progn
-                   (async-shell-command (build-app-command current-simulator-id) xcodebuild-buffer)
+                   (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
                    (compilation-minor-mode)
                    (reset-default-buffer-state)
                    (get-buffer-process xcodebuild-buffer))))
@@ -465,6 +476,22 @@ ARGS are rest arguments, appended to the argument list."
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
     result))
+
+(defun swift-additions:list-simulators ()
+  "List available simulators."
+  (swift-additions:message "Fetching available simulators...")
+  (let* ((json (call-process-to-json list-simulators-command))
+         (devices (cdr (assoc 'devices json)))
+         (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
+         (available-devices
+          (seq-filter
+           (lambda (device) (cdr (assoc 'isAvailable device)))
+           flattened))
+        )
+        available-devices
+    )
+  )
+
 
 
 (defun build-menu (title list)
