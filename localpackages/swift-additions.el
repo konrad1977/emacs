@@ -26,8 +26,9 @@
 (defvar current-app-identifier nil)
 (defvar current-project-root nil)
 (defvar current-build-configuration nil)
-(defvar current-environment-x86 nil)
+(defvar current-environment-x86 t)
 (defvar current-simulator-id nil)
+(defvar current-simulator-name nil)
 
 (defcustom local-device-id nil
   "Local device-id ID of choice."
@@ -42,8 +43,11 @@
   "xcrun simctl list devices | grep \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\"")
 
 (defun get-booted-simulator ()
- "Get booted simulator if any."
-  (shell-command-to-string (get-booted-simulator-command)))
+  "Get booted simulator if any."
+  (let ((device-id (shell-command-to-string (get-booted-simulator-command))))
+    (if (not (string= "" device-id))
+        (clean-up-newlines device-id)
+      nil)))
 
 (defun command-string-to-list (cmd)
   "Split the CMD unless it is a list.  This function respects quotes."
@@ -85,6 +89,72 @@ ARGS are rest arguments, appended to the argument list."
     (goto-char (point-min))
     (json-read)))
 
+(defun start-simulator-with-id (id)
+  "Launch a specific simulator with (as ID)."
+  (message "Starting simulator with id %s" id)
+  (call-process-shell-command (format "open -a simulator --args -CurrentDeviceUDID %s" id)))
+
+(defun boot-simuator-with-id (id)
+  "Simulator app is running.  Boot simulator (as ID)."
+  (message "Booting simulator...")
+  (call-process-shell-command (format "xcrun simctl boot %s" id)))
+
+(defun is-simulator-app-running ()
+  "Check if simulator is running."
+  (let ((output (shell-command-to-string "ps ax | grep -v grep | grep Simulator.app")))
+    (not (string= "" output))))
+
+(defun get-simulator-name (id)
+  "Get simulator name (as ID)."
+  (clean-up-newlines
+   (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk '{print $1 $2 $3}'" id))))
+
+(defun setup-simulator-dwim (id)
+  "Setup simulator dwim (as ID)."
+  (if (not (is-simulator-app-running))
+      (start-simulator-with-id id)
+    (boot-simuator-with-id id)))
+
+(defun fetch-simulator-name ()
+  "Fetches simulator name."
+  (unless current-simulator-name
+    (let ((simulator-name (get-simulator-name current-simulator-id)))
+      (if simulator-name
+          (setq current-simulator-name (format "%s (simulator)" simulator-name))
+        (setq current-simulator-name "Simulator (unknown)"))))
+    current-simulator-name)
+
+(defun fetch-or-load-xcode-scheme ()
+  "Get the xcode scheme if set otherwuse prompt user."
+  (unless current-xcode-scheme
+    (setq current-xcode-scheme (build-menu "Choose a scheme:" (swift-additions:get-scheme-list))))
+  current-xcode-scheme)
+
+(defun fetch-or-load-build-configuration ()
+  "Get the build configuration or promp user."
+  (unless current-build-configuration
+    (setq current-build-configuration (build-menu "Choose a configuration:" (swift-additions:get-configuration-list))))
+  current-build-configuration)
+    
+(defun fetch-or-load-app-identifier ()
+  "Get the app identifier for the current configiration."
+  (unless current-app-identifier
+    (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
+  current-app-identifier)
+  
+(defun fetch-or-load-simulator-id ()
+  "Get the booted simulator id or fetch a suiting one."
+   (if current-simulator-id
+       (setup-simulator-dwim current-simulator-id)
+     (progn
+       (let ((device-id
+              (or (get-booted-simulator)
+                  (widget-choose "Choose a simulator:" (swift-additions:list-available-simulators)))))
+         (progn
+           (setup-simulator-dwim current-simulator-id)
+           (setq current-simulator-id device-id)))))
+     current-simulator-id)
+
 (defun setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
   (unless current-project-root
@@ -94,31 +164,6 @@ ARGS are rest arguments, appended to the argument list."
        (progn
          (setq current-project-root project)
          (swift-additions:reset-settings))))
-
-(defun fetch-or-load-xcode-scheme ()
-  "Get the xcode scheme if set otherwuse prompt user."
-  (unless current-xcode-scheme
-    (setq current-xcode-scheme (build-menu "Choose scheme:" (swift-additions:get-scheme-list))))
-  current-xcode-scheme)
-
-(defun fetch-or-load-build-configuration ()
-  "Get the build configuration or promp user."
-  (unless current-build-configuration
-    (setq current-build-configuration (build-menu "Choose configuration:" (swift-additions:get-configuration-list))))
-  current-build-configuration)
-    
-(defun fetch-or-load-app-identifier ()
-  "Get the app identifier for the current configiration."
-  (unless current-app-identifier
-    (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
-  current-app-identifier)
-
-(defun fetch-or-load-simulator-id ()
-  "Get the booted simulator id or fetch a suiting one."
-  (unless current-simulator-id
-    (setq current-simulator-id
-          (replace-regexp-in-string "\n$" "" (get-booted-simulator))))
-  current-simulator-id)
 
 (defun xcodebuild-command ()
   "Use x86 environement."
@@ -223,6 +268,10 @@ ARGS are rest arguments, appended to the argument list."
   "Get workspace name."
   (filename-by-extension ".xcworkspace"))
 
+(defun clean-up-newlines (text)
+  "Clean up new lines (as TEXT)."
+  (replace-regexp-in-string "\n$" "" text))
+
 (defun get-connected-device-id ()
   "Get the id of the connected device."
   (let ((device-id
@@ -322,7 +371,7 @@ ARGS are rest arguments, appended to the argument list."
   "Function that check we should run on simulator or device."
   (if local-device-id
       "physical device"
-    "simulator"))
+    (fetch-simulator-name)))
 
 (defun swift-additions:build-and-run-ios-app ()
   "Build project using xcodebuild and then run iOS simulator."
@@ -485,14 +534,17 @@ ARGS are rest arguments, appended to the argument list."
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
          (available-devices
           (seq-filter
-           (lambda (device) (cdr (assoc 'isAvailable device)))
-           flattened))
-        )
-        available-devices
-    )
-  )
+           (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
+         ) available-devices))
 
-
+(defun swift-additions:list-available-simulators ()
+  "List available simulators."
+  (let* ((devices (swift-additions:list-simulators))
+         (items (seq-map
+                 (lambda (device)
+                   (cons (cdr (assoc 'name device))
+                         (cdr (assoc 'udid device)))) devices)))
+    items))
 
 (defun build-menu (title list)
   "Builds a widget menu from (as TITLE as LIST)."
