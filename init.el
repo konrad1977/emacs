@@ -198,12 +198,11 @@
 
 ;; Which key
 (use-package which-key
-  :defer t
+  :hook (after-init . which-key-mode)
   :diminish which-key-mode
   :custom
   (which-key-prefix-prefix "◉ ")
   :config
-  (which-key-mode)
   (which-key-setup-side-window-bottom)
   (setq which-key-sort-order 'which-key-key-order-alpha
         which-key-idle-delay 0.3
