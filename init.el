@@ -20,6 +20,7 @@
 (semantic-mode 1)               ;; help out with semantics
 (savehist-mode 1)				;; Save history
 (save-place-mode 1)             ;; when buffer is closed, save the cursor position
+(blink-cursor-mode)
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 156)
@@ -465,15 +466,14 @@
 
 ;; (advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
 ;; (advice-add #'company-tabnine :around #'my-company-tabnine)
-
 (use-package company
   :hook (prog-mode . company-mode)
   :init
   (setq company-format-margin-function      'company-dot-icons-margin)
-  (setq company-dot-icons-format            " ● ")
+  (setq company-dot-icons-format            " ●")
   (setq company-backends                    '(
-                                              company-tabnine
                                               company-sourcekit
+                                              company-tabnine
                                               company-capf
                                               company-yasnippet
                                               company-dabbrev-code
@@ -482,18 +482,18 @@
                                               company-keywords
                                               )
         company-frontends                   '(company-pseudo-tooltip-frontend)
-        company-preview-frontend            '(company-preview-search)
-        company-tooltip-margin              2
-        company-minimum-prefix-length       2
+        company-preview-frontend            '(company-preview)
+        company-tooltip-margin              3
+        company-minimum-prefix-length       3
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               nil
-        company-tooltip-limit               20
+        company-tooltip-limit               10
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
-        company-tooltip-idle-delay          0.2
+        company-tooltip-idle-delay          0.3
         company-async-wait                  0.4
-        company-idle-delay                  0
+        company-idle-delay                  0.2
         company-show-quick-access           'left
         company-async-timeout               2))
 
@@ -1147,6 +1147,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Drag stuff
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
+  ;; (global-set-key (kbd "M-<left>") #'drag-stuff-left)
+  ;; (global-set-key (kbd "M-<right>") #'drag-stuff-right)
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (global-set-key (kbd "C-x C-d") #'darkroom-mode)
   
