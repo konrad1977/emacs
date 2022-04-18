@@ -1033,19 +1033,19 @@
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
 
-;; (use-package highlight-operators
-;;   :hook (swift-mode . highlight-operators-mode))
+(use-package highlight-operators
+  :hook (swift-mode . highlight-operators-mode))
 
-;; (use-package highlight-symbol
-;;   :hook (prog-mode . highlight-symbol-mode)
-;;   :config
-;;   (setq highlight-symbol-idle-delay 0.3))
+(use-package highlight-symbol
+  :hook (prog-mode . highlight-symbol-mode)
+  :config
+  (setq highlight-symbol-idle-delay 0.3))
 
-;; (use-package highlight-numbers
-;;   :hook (prog-mode . highlight-numbers-mode))
+(use-package highlight-numbers
+  :hook (prog-mode . highlight-numbers-mode))
 
-;; (use-package highlight-escape-sequences
-;;   :hook (prog-mode . hes-mode))
+(use-package highlight-escape-sequences
+  :hook (prog-mode . hes-mode))
 
 (use-package prescient
   :after ivy
