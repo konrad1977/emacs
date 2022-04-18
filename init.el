@@ -106,11 +106,9 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
-(setq use-package-verbose nil)
 
 (use-package recentf
-  :hook (after-init . recentf-mode)
-  :defer 1)
+  :hook (after-init . recentf-mode))
 
 (use-package exec-path-from-shell
   :hook (after-init . exec-path-from-shell-initialize))
@@ -174,6 +172,7 @@
 	     ("g T" . centaur-tabs-backward)))
 
 (use-package compile
+  :defer t
   :config
   (setq compilation-skip-threshold 2
         compilation-scroll-output t
@@ -199,6 +198,7 @@
 
 ;; Which key
 (use-package which-key
+  :defer t
   :diminish which-key-mode
   :custom
   (which-key-prefix-prefix "◉ ")
@@ -317,6 +317,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
+  :hook (swift-mode . svg-tag-mode)
   :config
   (setq svg-tag-tags
         '(
@@ -347,7 +348,7 @@
   (setq nyan-animate-nyancat t))
 
 (use-package beacon
-  :init (beacon-mode 1)
+  :hook (after-init . beacon-mode)
   :config
   (setq beacon-color "#A3D4D5"
         beacon-blink-when-focused t
@@ -363,13 +364,13 @@
   :commands rainbow-mode)
 
 (use-package paren
+  :hook (prog-mode . show-paren-mode)
   :config
   (setq show-paren-delay 0.1
         show-paren-highlight-openparen t
         show-paren-when-point-inside-paren t
         show-paren-ring-bell-on-mismatch t
-        show-paren-when-point-in-periphery t)
-  (show-paren-mode t))
+        show-paren-when-point-in-periphery t))
 
 ;; Use ivy
 (use-package ivy
@@ -452,20 +453,20 @@
 
 ;; ------------------ autocompletions -------------
 ;; workaround for company-transformers
-(setq company-tabnine--disable-next-transform nil)
-(defun my-company--transform-candidates (func &rest args)
-  (if (not company-tabnine--disable-next-transform)
-      (apply func args)
-    (setq company-tabnine--disable-next-transform nil)
-    (car args)))
+;; (setq company-tabnine--disable-next-transform nil)
+;; (defun my-company--transform-candidates (func &rest args)
+;;   (if (not company-tabnine--disable-next-transform)
+;;       (apply func args)
+;;     (setq company-tabnine--disable-next-transform nil)
+;;     (car args)))
 
-(defun my-company-tabnine (func &rest args)
-  (when (eq (car args) 'candidates)
-    (setq company-tabnine--disable-next-transform t))
-  (apply func args))
+;; (defun my-company-tabnine (func &rest args)
+;;   (when (eq (car args) 'candidates)
+;;     (setq company-tabnine--disable-next-transform t))
+;;   (apply func args))
 
-(advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
-(advice-add #'company-tabnine :around #'my-company-tabnine)
+;; (advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
+;; (advice-add #'company-tabnine :around #'my-company-tabnine)
 
 (use-package company
   :hook (prog-mode . company-mode)
@@ -508,6 +509,7 @@
         company-sourcekit-use-yasnippet t))
 
 (use-package company-tabnine
+  :defer t
   :config
   (setq company-tabnine-max-num-results 9
         company-tabnine-wait 0.1))
@@ -574,32 +576,36 @@
 
 (add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
 
+(use-package swift-mode
+  :custom
+  (setup-swift-programming)
+  (setq swift-mode:parenthesized-expression-offset 4
+		swift-mode:multiline-statement-offset 4))
+
+(add-hook 'swift-mode-hook
+          (lambda ()
+            (setup-swift-programming)
+            (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
+            (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
+            (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
+            (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
+            (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
+            (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
+            (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
+            (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
+            (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
+            (local-set-key (kbd "C-c C-r") #'xcode-build:run)))
+
 (defun setup-swift-programming ()
   "Setup swift development environment."
-  (use-package swift-mode
-    :custom
-    (setq swift-mode:parenthesized-expression-offset 4
-		  swift-mode:multiline-statement-offset 4))
 
-    ;(require 'ios-simulator)
-    ;(load "ios-simulator")
   (load "swift-additions")
   (load "swift-querying")
 ;  (load "xcode-build")
 
-  (use-package swift-helpful
-	:commands swift-helpful)
-  
-  (use-package flycheck-swiftx
-    :after flycheck)
-
   (use-package flycheck-swift3
 	:after flycheck
     :custom (flycheck-swift3-setup))
-
-  (use-package flycheck-xcode
-    :after flycheck
-    :custom (flycheck-xcode-setup))
    
   (use-package flycheck-swiftlint
     :after flycheck
@@ -607,20 +613,13 @@
 
   (require 'flycheck)
   
- ; (add-to-list 'flycheck-checkers 'xcode)
- ; (add-to-list 'flycheck-checkers 'swiftx)
   (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
 
   (flycheck-add-next-checker 'swiftlint 'swift3))
- ; (flycheck-add-next-checker 'swift3 'xcode)
- ; (flycheck-add-next-checker 'xcode 'swiftx))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-
-  (setup-swift-programming)
-
    (if window-system
        (setq browse-url-browser-function 'mk/browser-split-window))
  
@@ -788,7 +787,7 @@
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
   :config
-  (setq git-gutter:update-interval 0.02))
+  (setq git-gutter:update-interval 0.1))
 
 (use-package git-gutter-fringe
   :config
@@ -1036,19 +1035,19 @@
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
 
-(use-package highlight-operators
-  :hook (swift-mode . highlight-operators-mode))
+;; (use-package highlight-operators
+;;   :hook (swift-mode . highlight-operators-mode))
 
-(use-package highlight-symbol
-  :hook (prog-mode . highlight-symbol-mode)
-  :config
-  (setq highlight-symbol-idle-delay 0.3))
+;; (use-package highlight-symbol
+;;   :hook (prog-mode . highlight-symbol-mode)
+;;   :config
+;;   (setq highlight-symbol-idle-delay 0.3))
 
-(use-package highlight-numbers
-  :hook (prog-mode . highlight-numbers-mode))
+;; (use-package highlight-numbers
+;;   :hook (prog-mode . highlight-numbers-mode))
 
-(use-package highlight-escape-sequences
-  :hook (prog-mode . hes-mode))
+;; (use-package highlight-escape-sequences
+;;   :hook (prog-mode . hes-mode))
 
 (use-package prescient
   :after ivy
@@ -1078,7 +1077,6 @@
   :hook (after-init . ctrlf-mode))
 
 (use-package bm
-  :ensure t
   :demand t
   :init
   (setq bm-restore-repository-on-load t) ;; restore on load (even before you require bm)
@@ -1154,20 +1152,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (global-set-key (kbd "C-x C-d") #'darkroom-mode)
   
-  
-  (add-hook 'swift-mode-hook
-            (lambda ()
-              (svg-tag-mode)
-              (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
-              (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
-              (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
-              (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
-              (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
-              (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
-              (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
-              (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
-              (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
-              (local-set-key (kbd "C-c C-r") #'xcode-build:run)))
 
   (hs-minor-mode)
   (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
