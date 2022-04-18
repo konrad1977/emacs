@@ -224,7 +224,6 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-
 (defun un-indent-by-removing-4-spaces ()
   "Remove 4 spaces from beginning of of line."
   (interactive)
@@ -1364,7 +1363,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
 
-(setq gc-cons-threshold (* 2 1000 1000))
+(setq gc-cons-threshold (* 2 1024 1024))
 
 (provide 'init)
 
