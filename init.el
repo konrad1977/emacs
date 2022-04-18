@@ -63,7 +63,6 @@
         use-package-computer-statistics nil
         use-package-expand-minimally t))
 
-
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
 			  tab-width                     4            ;: Use four tabs
@@ -116,6 +115,7 @@
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
+  :defer t
   :custom
   (setq auto-package-update-interval 7
 		auto-package-update-prompt-before-update t
@@ -225,18 +225,6 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(defun un-indent-by-removing-4-spaces ()
-  "Remove 4 spaces from beginning of of line."
-  (interactive)
-  (save-excursion
-    (save-match-data
-      (beginning-of-line)
-      ;; get rid of tabs at beginning of line
-      (when (looking-at "^\\s-+")
-        (untabify (match-beginning 0) (match-end 0)))
-      (when (looking-at "^    ")
-        (replace-match "")))))
-
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
@@ -271,7 +259,6 @@
   :config
   (evil-collection-init))
 
-
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 
@@ -305,9 +292,6 @@
   (doom-themes-treemacs-config)
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
-
-(use-package fira-code-mode
-  :hook (prog-mode . fira-code-mode))
 
 (use-package all-the-icons
   :after doom-modeline)
@@ -396,6 +380,7 @@
   :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
 
 (use-package all-the-icons-ivy-rich
+  :after ivy
   :init (all-the-icons-ivy-rich-mode 1)
   :custom
   (setq all-the-icons-ivy-rich-icon t
@@ -507,7 +492,7 @@
         company-sourcekit-use-yasnippet t))
 
 (use-package company-tabnine
-  :defer t
+  :after company
   :config
   (setq company-tabnine-max-num-results 9
         company-tabnine-wait 0.1))
@@ -566,14 +551,6 @@
   :ensure t
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
-(defun mk/setup-flycheck ()
-  "Setup margins for flycheck."
-  (setq left-fringe-width 12 right-fringe-width 12
-        left-margin-width 1 right-margin-width 0)
-  (flycheck-refresh-fringes-and-margins))
-
-(add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
-
 (use-package swift-mode
   :custom
   (setup-swift-programming)
@@ -593,28 +570,6 @@
             (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
             (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
             (local-set-key (kbd "C-c C-r") #'xcode-build:run)))
-
-(defun setup-swift-programming ()
-  "Setup swift development environment."
-
-  (load "swift-additions")
-  (load "swift-querying")
-;  (load "xcode-build")
-
-  (use-package flycheck-swift3
-	:after flycheck
-    :custom (flycheck-swift3-setup))
-   
-  (use-package flycheck-swiftlint
-    :after flycheck
-    :custom (flycheck-swiftlint-setup))
-
-  (require 'flycheck)
-  
-  (add-to-list 'flycheck-checkers 'swift3)
-  (add-to-list 'flycheck-checkers 'swiftlint)
-
-  (flycheck-add-next-checker 'swiftlint 'swift3))
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
@@ -642,16 +597,6 @@
 		mac-option-modifier 'none
 		dired-use-ls-dired nil
 		frame-title-format ""))
-
-(defun mk/browser-split-window (url &optional new-window)
-  "Create a new browser window to the right of the current one."
-  (interactive)
-   (let* ((ignore-window-parameters t)
-          (dedicated-p (window-dedicated-p)))
-    (delete-other-windows)
-    (split-window-horizontally)
-    (other-window 1)
-    (xwidget-webkit-browse-url url)))
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -958,12 +903,6 @@
     "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
     "qr" '(restart-emacs :which-key "Restart emacs")))
 
-
-(defun mk/org-mode-setup()
-  (org-indent-mode 1)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1))
-
 (use-package org
   :hook (org-mode . mk/org-mode-setup)
   :config
@@ -1005,11 +944,6 @@
 
 (use-package ox-gfm
   :after org)
-
-(defun mk/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
-        visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
   :hook (org-mode . mk/org-mode-visual-fill))
@@ -1112,6 +1046,50 @@
   ;; Make sure bookmarks is saved before check-in (and revert-buffer)
   (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
+(defun setup-swift-programming ()
+  "Setup swift development environment."
+
+  (load "swift-additions")
+  (load "swift-querying")
+;  (load "xcode-build")
+
+  (use-package flycheck-swift3
+	:after flycheck
+    :custom (flycheck-swift3-setup))
+   
+  (use-package flycheck-swiftlint
+    :after flycheck
+    :custom (flycheck-swiftlint-setup))
+
+  (require 'flycheck)
+  
+  (add-to-list 'flycheck-checkers 'swift3)
+  (add-to-list 'flycheck-checkers 'swiftlint)
+
+  (flycheck-add-next-checker 'swiftlint 'swift3))
+
+(defun mk/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(defun mk/org-mode-setup()
+  (org-indent-mode 1)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
+(defun un-indent-by-removing-4-spaces ()
+  "Remove 4 spaces from beginning of of line."
+  (interactive)
+  (save-excursion
+    (save-match-data
+      (beginning-of-line)
+      ;; get rid of tabs at beginning of line
+      (when (looking-at "^\\s-+")
+        (untabify (match-beginning 0) (match-end 0)))
+      (when (looking-at "^    ")
+        (replace-match "")))))
+
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   (interactive)
@@ -1129,6 +1107,15 @@
       (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 ;;; esc quits
+(defun mk/browser-split-window (url &optional new-window)
+  "Create a new browser window to the right of the current one."
+  (interactive)
+   (let* ((ignore-window-parameters t)
+          (dedicated-p (window-dedicated-p)))
+    (delete-other-windows)
+    (split-window-horizontally)
+    (other-window 1)
+    (xwidget-webkit-browse-url url)))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
@@ -1151,7 +1138,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; (global-set-key (kbd "M-<right>") #'drag-stuff-right)
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (global-set-key (kbd "C-x C-d") #'darkroom-mode)
-  
 
   (hs-minor-mode)
   (local-set-key (kbd "M-B") #'counsel-projectile-switch-to-buffer)
@@ -1195,6 +1181,21 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 		truncate-lines t                  ;; Truncate lines
 		column-number-mode nil            ;; Show current line number highlighted
 		display-line-numbers t))          ;; Show line numbers
+
+(defun mk/setup-flycheck ()
+  "Setup margins for flycheck."
+  (setq left-fringe-width 12 right-fringe-width 12
+        left-margin-width 1 right-margin-width 0)
+  (flycheck-refresh-fringes-and-margins))
+
+(add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
+
+(defun mk/toggle-flycheck-errors ()
+  "Function to toggle flycheck errors."
+  (interactive)
+  (if (get-buffer "*Flycheck errors*")
+      (kill-buffer "*Flycheck errors*")
+    (list-flycheck-errors)))
 
 (defun mk/setupOrgMode ()
   (setq word-wrap t)

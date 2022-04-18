@@ -478,12 +478,6 @@ ARGS are rest arguments, appended to the argument list."
   (interactive)
   (insert-text-and-go-to-eol "// TODO:"))
 
-(defun mk/toggle-flycheck-errors ()
-  "Function to toggle flycheck errors."
-  (interactive)
-  (if (get-buffer "*Flycheck errors*")
-      (kill-buffer "*Flycheck errors*")
-    (list-flycheck-errors)))
 
 (defun swift-additions:toggle-xcodebuild-buffer ()
   "Function to toggle xcodebuild-buffer."
