@@ -1,4 +1,5 @@
 ;;; package: --- A theme inspired by the colors of the famous painting by Katsushika Hokusa
+
 ;;; Commentary: Original theme created by rebelot see: https://github.com/rebelot/kanagawa.nvim
 ;;; Code:
 
@@ -136,7 +137,7 @@
   (doom-modeline-battery-error                   (:foreground peachRed))
   (doom-modeline-battery-normal                  (:foreground springViolet1))
   (doom-modeline-battery-full                    (:foreground waveAqua2))
-
+  
   ;; Doom visual state
   (doom-modeline-evil-motion-state               (:foreground lightBlue))
   (doom-modeline-evil-emacs-state                (:foreground crystalBlue))
@@ -285,7 +286,6 @@
   (highlight-indent-guides-even-face             (:foreground sumiInk-2))
   (highlight-indent-guides-odd-face              (:foreground comet))
 
-  ;;
   (highlight-operators-face                      (:foreground boatYellow2))
   (highlight-quoted-symbol                       (:foreground springGreen))
   (highlight-numbers-face                        (:foreground sakuraPink))
