@@ -19,7 +19,6 @@
 (global-hl-line-mode 1)         ;; Highlight current line
 (semantic-mode 1)               ;; help out with semantics
 (savehist-mode 1)				;; Save history
-(recentf-mode 1)				;; Recent file mode.
 (save-place-mode 1)             ;; when buffer is closed, save the cursor position
 
 ;; Setup fonts
@@ -51,8 +50,8 @@
       use-dialog-box                    nil
       visible-bell                      nil)
 
-(setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
-(run-with-idle-timer 2 t (lambda () (garbage-collect)))
+(setq gc-cons-threshold (eval-when-compile (* 36 1024 1024)))
+(run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 ;; Helpout better with debugging
 (if init-file-debug
@@ -61,6 +60,7 @@
           use-package-compute-statistics t
           debug-on-error t)
   (setq use-package-verbose nil
+        use-package-computer-statistics nil
         use-package-expand-minimally t))
 
 
@@ -108,6 +108,10 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 (setq use-package-verbose nil)
+
+(use-package recentf
+  :hook (after-init . recentf-mode)
+  :defer 1)
 
 (use-package exec-path-from-shell
   :hook (after-init . exec-path-from-shell-initialize))
@@ -520,6 +524,7 @@
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
+  :commands (treemacs-select-window)
   :config
   (setq treemacs-follow-after-init t
 		treemacs-project-follow-mode t
@@ -567,11 +572,6 @@
 
 (add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
 
-(defun mk-sourcekit-lsp-command ()
-    "Setup lsp."
-    (interactive)
-  (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
-
 (defun setup-swift-programming ()
   "Setup swift development environment."
   (use-package swift-mode
@@ -581,11 +581,9 @@
 
     ;(require 'ios-simulator)
     ;(load "ios-simulator")
-  (require 'swift-additions)
   (load "swift-additions")
-   
-  (require 'swift-querying)
   (load "swift-querying")
+;  (load "xcode-build")
 
   (use-package swift-helpful
 	:commands swift-helpful)
@@ -638,7 +636,7 @@
   (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 
-  (setq org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/"))
+  ;; (setq org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/"))
   (setq mac-option-key-is-meta nil
 		mac-command-key-is-meta t
 		mac-command-modifier 'meta
@@ -1154,8 +1152,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (global-set-key (kbd "C-x C-d") #'darkroom-mode)
   
-  (require 'xcode-build)
-  (load "xcode-build")
   
   (add-hook 'swift-mode-hook
             (lambda ()
@@ -1380,6 +1376,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
+
+(setq gc-cons-threshold (* 2 1000 1000))
 
 (provide 'init)
 
