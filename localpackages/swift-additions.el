@@ -244,16 +244,9 @@ ARGS are rest arguments, appended to the argument list."
     (ansi-color-apply-on-region (point-min) (point-max))))
 
 (defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
-"Run async-command in xcodebuild buffer (as COMMAND)."
-  (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (async-shell-command command xcodebuild-buffer)
-    (ansi-color-apply-on-region (point-min) (point-max))))
-
-(defun swift-additions:find-app ()
-  "Find app to install in simulator."
-    (car
-     (directory-files-recursively
-      (projectile-project-root) "\\.app$")))
+  "Run async-command in xcodebuild buffer (as COMMAND)."
+  (async-shell-command command xcodebuild-buffer)
+  (ansi-color-apply-on-region (point-min) (point-max)))
 
 (defun filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
@@ -273,13 +266,11 @@ ARGS are rest arguments, appended to the argument list."
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
   (trim-leading-whitespace
-   (replace-regexp-in-string "\n$" "" text)
-   ))
+   (replace-regexp-in-string "\n$" "" text)))
 
 (defun show-notification (title message)
   "Show notification (as TITLE as MESSAGE)."
-  (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message))
-  )
+  (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
 
 (defun trim-leading-whitespace (s)
   "Remove whitespace at the beginning of S."
@@ -290,7 +281,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun get-connected-device-id ()
   "Get the id of the connected device."
   (let ((device-id
-         (replace-regexp-in-string "\n$" ""
+         (clean-up-newlines
           (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
     (if (= (length device-id) 0)
         nil
@@ -313,7 +304,7 @@ ARGS are rest arguments, appended to the argument list."
               (first-error))
           (progn
             (let ((default-directory (projectile-project-root)))
-              (show-notification "Build successful" "Starting simulator")
+              (show-notification "Build successful" "Starting app in simulator")
               (swift-additions:message "Installing on simulator. Will launch it when done.")
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
               (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
@@ -326,9 +317,13 @@ ARGS are rest arguments, appended to the argument list."
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
         (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (first-error)
+            (progn
+              (first-error)
+              (show-notification "Build failed" "Happy bug hunting.")
+              )
           (progn
             (let ((default-directory (concat (projectile-project-root) (build-folder))))
+              (show-notification "Build successful" "Starting app on device.")
               (swift-additions:message "Installing on physical device. Will launch it when done.")
               (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme))))
             )
@@ -338,6 +333,7 @@ ARGS are rest arguments, appended to the argument list."
     (shell-command-sentinel process signal)))
 
 (defun swift-additions:message (text)
+  "Show (as TEXT) and then hide from echo area."
   (setq-local inhibit-message nil)
   (message text)
   (setq-local inhibit-message t))
@@ -358,12 +354,6 @@ ARGS are rest arguments, appended to the argument list."
   (let* ((default-directory (projectile-project-root))
          (compile-command (build-app-command (fetch-or-load-simulator-id))))
     (compile compile-command)))
-
-(defun swift-additions:clear-xcodebuild-buffer ()
-  "Clear the xcodebuild buffer."
-  (interactive)
-  (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (erase-buffer)))
 
 (defun swift-additions:reset-settings ()
   "Reset current settings.  Change current configuration."
@@ -473,7 +463,6 @@ ARGS are rest arguments, appended to the argument list."
     (newline-and-indent)
     (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
 
-
 (defun insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."
   (save-excursion
@@ -492,7 +481,6 @@ ARGS are rest arguments, appended to the argument list."
   "Insert a Todo."
   (interactive)
   (insert-text-and-go-to-eol "// TODO:"))
-
 
 (defun swift-additions:toggle-xcodebuild-buffer ()
   "Function to toggle xcodebuild-buffer."
