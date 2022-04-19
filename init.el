@@ -437,28 +437,28 @@
 
 ;; ------------------ autocompletions -------------
 ;; workaround for company-transformers
-;; (setq company-tabnine--disable-next-transform nil)
-;; (defun my-company--transform-candidates (func &rest args)
-;;   (if (not company-tabnine--disable-next-transform)
-;;       (apply func args)
-;;     (setq company-tabnine--disable-next-transform nil)
-;;     (car args)))
+(setq company-tabnine--disable-next-transform nil)
+(defun my-company--transform-candidates (func &rest args)
+  (if (not company-tabnine--disable-next-transform)
+      (apply func args)
+    (setq company-tabnine--disable-next-transform nil)
+    (car args)))
 
-;; (defun my-company-tabnine (func &rest args)
-;;   (when (eq (car args) 'candidates)
-;;     (setq company-tabnine--disable-next-transform t))
-;;   (apply func args))
+(defun my-company-tabnine (func &rest args)
+  (when (eq (car args) 'candidates)
+    (setq company-tabnine--disable-next-transform t))
+  (apply func args))
 
-;; (advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
-;; (advice-add #'company-tabnine :around #'my-company-tabnine)
+(advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
+(advice-add #'company-tabnine :around #'my-company-tabnine)
 (use-package company
   :hook (prog-mode . company-mode)
   :init
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ●")
   (setq company-backends                    '(
-                                              company-sourcekit
                                               company-tabnine
+                                              company-sourcekit
                                               company-capf
                                               company-yasnippet
                                               company-dabbrev-code
@@ -467,9 +467,8 @@
                                               company-keywords
                                               )
         company-frontends                   '(company-pseudo-tooltip-frontend)
-        company-preview-frontend            '(company-preview)
         company-tooltip-margin              3
-        company-minimum-prefix-length       3
+        company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               nil
