@@ -36,7 +36,7 @@
   :group 'swift-additions
   :safe 'stringp)
 
-(defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\"")
+(defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-info-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list -j")
 (defun get-booted-simulator-command ()
