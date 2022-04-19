@@ -36,6 +36,7 @@
   :group 'swift-additions
   :safe 'stringp)
 
+(defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\"")
 (defconst build-info-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list -j")
 (defun get-booted-simulator-command ()
@@ -273,7 +274,12 @@ ARGS are rest arguments, appended to the argument list."
   "Clean up new lines (as TEXT)."
   (trim-leading-whitespace
    (replace-regexp-in-string "\n$" "" text)
-  ))
+   ))
+
+(defun show-notification (title message)
+  "Show notification (as TITLE as MESSAGE)."
+  (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message))
+  )
 
 (defun trim-leading-whitespace (s)
   "Remove whitespace at the beginning of S."
@@ -301,17 +307,17 @@ ARGS are rest arguments, appended to the argument list."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
-        (unless
-            (swift-additions:buffer-contains-substring "BUILD FAILED")
-          (let ((default-directory (projectile-project-root)))
+        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
             (progn
+              (show-notification "Build failed" "Happy bug hunting.")
+              (first-error))
+          (progn
+            (let ((default-directory (projectile-project-root)))
+              (show-notification "Build successful" "Starting simulator")
               (swift-additions:message "Installing on simulator. Will launch it when done.")
               (call-process-shell-command (swift-additions:install-and-run-simulator-command))
-              (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))
-              )
-            )
-          )
-        (first-error)))
+              (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
+            )))
     (shell-command-sentinel process signal)))
 
 (defun install-and-launch-app-on-local-device-when-done (process signal)

@@ -1003,10 +1003,6 @@
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode))
 
-;; Quickly query whole source tree
-(use-package ctrlf
-  :hook (after-init . ctrlf-mode))
-
 (use-package bm
   :demand t
   :init
