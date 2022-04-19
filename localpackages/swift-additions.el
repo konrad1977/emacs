@@ -92,7 +92,8 @@ ARGS are rest arguments, appended to the argument list."
 (defun start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
   (message "Starting simulator with id %s" id)
-  (call-process-shell-command (format "open -a simulator --args -CurrentDeviceUDID %s" id)))
+  (call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
+
 
 (defun boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
@@ -107,7 +108,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun get-simulator-name (id)
   "Get simulator name (as ID)."
   (clean-up-newlines
-   (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk '{print $1 $2 $3}'" id))))
+   (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))))
 
 (defun setup-simulator-dwim (id)
   "Setup simulator dwim (as ID)."
@@ -270,7 +271,15 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
-  (replace-regexp-in-string "\n$" "" text))
+  (trim-leading-whitespace
+   (replace-regexp-in-string "\n$" "" text)
+  ))
+
+(defun trim-leading-whitespace (s)
+  "Remove whitespace at the beginning of S."
+  (if (string-match "\\`[ \t\n\r]+" s)
+      (replace-match "" t t s)
+    s))
 
 (defun get-connected-device-id ()
   "Get the id of the connected device."
