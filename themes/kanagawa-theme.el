@@ -115,8 +115,8 @@
   (font-lock-function-name-face                  (:foreground crystalBlue))
   (font-lock-variable-name-face                  (:foreground waveRed))
   (font-lock-negation-char-face                  (:foreground peachRed))
-  (font-lock-comment-face                        (:foreground fujiGray))
-  (font-lock-comment-delimiter-face              (:foreground fujiGray))
+  (font-lock-comment-face                        (:foreground fujiGray :italic t))
+  (font-lock-comment-delimiter-face              (:foreground fujiGray :italic t))
   (font-lock-doc-face                            (:foreground comet))
   (font-lock-doc-markup-face                     (:foreground comet))
   (font-lock-preprocessor-face	                 (:foreground boatYellow2))
@@ -149,7 +149,7 @@
 
   (doom-modeline-project-dir                     (:bold t :foreground waveAqua2))
   (doom-modeline-buffer-path                     (:inherit 'bold :foreground waveAqua2))
-  (doom-modeline-buffer-file                     (:inherit 'bold :foreground springGreen))
+  (doom-modeline-buffer-file                     (:inherit 'bold :foreground oniViolet))
   (doom-modeline-buffer-modified                 (:inherit 'bold :foreground carpYellow))
   (doom-modeline-error                           (:background peachRed))
   (doom-modeline-buffer-major-mode               (:foreground waveAqua2 :bold t))
@@ -318,11 +318,6 @@
   (treemacs-git-renamed-face		   	 (:foreground fujiWhite))
   (treemacs-git-modified-face		   	 (:foreground springGreen))
 
-  ;; tree-sitter
-  (tree-sitter-hl-face:constant                  (:background peachRed))
-  (tree-sitter-hl-face:constant.builtin          (:background peachRed))
-  (tree-sitter-hl-face:function.call             (:background springViolet2))
-
   ;; lets support solaire mode
   (solaire-default-face                          (:background sumiInk-1))
    
@@ -445,7 +440,47 @@
   (ansi-color-yellow                             (:foreground autumnYellow))
   (ansi-color-bright-white                       (:foreground old-white))
   (ansi-color-bright-white                       (:foreground old-white))
-      
+
+  (tree-sitter-hl-face:escape                    (:foreground peachRed))
+  (tree-sitter-hl-face:construcor                (:foreground peachRed))
+  
+  (tree-sitter-hl-face:constant                  (:foreground boatYellow2))
+  (tree-sitter-hl-face:constant.builtin          (:foreground surimiOrange :bold t))
+  
+  (tree-sitter-hl-face:function                  (:foreground crystalBlue))
+  (tree-sitter-hl-face:function.builtin          (:foreground peachRed))
+  (tree-sitter-hl-face:function.call             (:foreground springBlue))
+  (tree-sitter-hl-face:function.macro            (:foreground samuraiRed))
+  (tree-sitter-hl-face:function.special          (:foreground sakuraPink))
+  (tree-sitter-hl-face:function.label            (:foreground carpYellow))
+ 
+  (tree-sitter-hl-face:method                    (:foreground lightBlue))
+  (tree-sitter-hl-face:method.call               (:foreground lightBlue))
+
+  (tree-sitter-hl-face:property                  (:foreground dragonBlue))
+  (tree-sitter-hl-face:property.definition       (:foreground fujiWhite))
+  
+  (tree-sitter-hl-face:type                      (:foreground waveAqua2))
+  (tree-sitter-hl-face:type.argument             (:foreground lightBlue))
+  (tree-sitter-hl-face:type.builtin              (:foreground waveRed))
+  (tree-sitter-hl-face:type.parameter            (:foreground samuraiRed))
+  (tree-sitter-hl-face:type.super                (:foreground fujiWhite))
+
+  (tree-sitter-hl-face:variable                  (:foreground old-white))
+  (tree-sitter-hl-face:variable.builtin          (:foreground surimiOrange))
+  (tree-sitter-hl-face:variable.parameter        (:foreground autumnYellow))
+  (tree-sitter-hl-face:variable.special          (:foreground peachRed))
+  (tree-sitter-hl-face:variable.synthesized      (:foreground waveRed))
+
+  (tree-sitter-hl-face:number                    (:foreground sakuraPink))
+  (tree-sitter-hl-face:operator                  (:foreground peachRed))
+  
+  (tree-sitter-hl-face:punctuation               (:foreground springViolet2))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground oniViolet))
+  (tree-sitter-hl-face:punctuation.delimiter     (:foreground springViolet2 :bold t))
+  (tree-sitter-hl-face:punctuation.special       (:foreground waveRed))
+
+  
  ))
 
 ;;;###autoload

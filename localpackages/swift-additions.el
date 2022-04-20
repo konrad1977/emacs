@@ -95,7 +95,6 @@ ARGS are rest arguments, appended to the argument list."
   (message "Starting simulator with id %s" id)
   (call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
 
-
 (defun boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
   (message "Booting simulator...")
