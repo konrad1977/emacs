@@ -441,34 +441,39 @@
   (ansi-color-bright-white                       (:foreground old-white))
   (ansi-color-bright-white                       (:foreground old-white))
 
-  (tree-sitter-hl-face:escape                    (:foreground peachRed))
-  (tree-sitter-hl-face:construcor                (:foreground peachRed))
+  (tree-sitter-hl-face:attribute                 (:foreground peachRed))
+  (tree-sitter-hl-face:escape                    (:foreground waveRed))
+  (tree-sitter-hl-face:constructor               (:foreground peachRed))
   
   (tree-sitter-hl-face:constant                  (:foreground boatYellow2))
   (tree-sitter-hl-face:constant.builtin          (:foreground surimiOrange :bold t))
+
+  (tree-sitter-hl-face:embedded                  (:foreground surimiOrange))
   
   (tree-sitter-hl-face:function                  (:foreground crystalBlue))
   (tree-sitter-hl-face:function.builtin          (:foreground peachRed))
   (tree-sitter-hl-face:function.call             (:foreground springBlue))
   (tree-sitter-hl-face:function.macro            (:foreground samuraiRed))
   (tree-sitter-hl-face:function.special          (:foreground sakuraPink))
-  (tree-sitter-hl-face:function.label            (:foreground carpYellow))
+  (tree-sitter-hl-face:function.label            (:foreground peachRed))
  
   (tree-sitter-hl-face:method                    (:foreground lightBlue))
   (tree-sitter-hl-face:method.call               (:foreground lightBlue))
 
-  (tree-sitter-hl-face:property                  (:foreground dragonBlue))
-  (tree-sitter-hl-face:property.definition       (:foreground fujiWhite))
+  (tree-sitter-hl-face:property                  (:foreground lightBlue))
+  (tree-sitter-hl-face:property.definition       (:foreground waveRed))
   
+  (tree-sitter-hl-face:tag                       (:foreground peachRed))
+
   (tree-sitter-hl-face:type                      (:foreground waveAqua2))
-  (tree-sitter-hl-face:type.argument             (:foreground lightBlue))
+  (tree-sitter-hl-face:type.argument             (:foreground peachRed))
   (tree-sitter-hl-face:type.builtin              (:foreground waveRed))
   (tree-sitter-hl-face:type.parameter            (:foreground samuraiRed))
   (tree-sitter-hl-face:type.super                (:foreground fujiWhite))
 
-  (tree-sitter-hl-face:variable                  (:foreground old-white))
+  (tree-sitter-hl-face:variable                  (:foreground fujiWhite))
   (tree-sitter-hl-face:variable.builtin          (:foreground surimiOrange))
-  (tree-sitter-hl-face:variable.parameter        (:foreground autumnYellow))
+  (tree-sitter-hl-face:variable.parameter        (:foreground peachRed))
   (tree-sitter-hl-face:variable.special          (:foreground peachRed))
   (tree-sitter-hl-face:variable.synthesized      (:foreground waveRed))
 
@@ -476,10 +481,9 @@
   (tree-sitter-hl-face:operator                  (:foreground peachRed))
   
   (tree-sitter-hl-face:punctuation               (:foreground springViolet2))
-  (tree-sitter-hl-face:punctuation.bracket       (:foreground oniViolet))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground oniViolet :bold t))
   (tree-sitter-hl-face:punctuation.delimiter     (:foreground springViolet2 :bold t))
   (tree-sitter-hl-face:punctuation.special       (:foreground waveRed))
-
   
  ))
 
