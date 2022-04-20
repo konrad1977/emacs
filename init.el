@@ -340,7 +340,7 @@
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (emacs-lisp-mode . rainbow-delimiters-mode))
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
@@ -393,6 +393,9 @@
   :config
   (setq counsel-rg-base-command
       "rg -i -M 120 --no-heading --line-number %s ."))
+
+(use-package tree-sitter
+  :defer t)
 
 ;; Remember autocompletions
 (use-package amx
@@ -559,6 +562,8 @@
 (add-hook 'swift-mode-hook
           (lambda ()
             (setup-swift-programming)
+            (tree-sitter-mode)
+            (tree-sitter-hl-mode)
             (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
             (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
             (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
