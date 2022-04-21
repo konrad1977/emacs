@@ -537,6 +537,9 @@
   (treemacs-follow-mode t)
   (treemacs-project-follow-mode t))
 
+(use-package restclient
+  :defer t)
+
 (use-package treemacs-projectile
   :hook (treemacs-mode-hook))
 
