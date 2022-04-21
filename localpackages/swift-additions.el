@@ -36,6 +36,7 @@
   :group 'swift-additions
   :safe 'stringp)
 
+(defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-info-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list -j")
@@ -124,6 +125,10 @@ ARGS are rest arguments, appended to the argument list."
           (setq current-simulator-name (format "%s (simulator)" simulator-name))
         (setq current-simulator-name "Simulator (unknown)"))))
     current-simulator-name)
+
+(defun fetch-targets ()
+  "Select the target."
+  (build-menu "Choose target:" (swift-additions:get-target-list)))
 
 (defun fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -227,6 +232,36 @@ ARGS are rest arguments, appended to the argument list."
    (concat
     (format "xcrun simctl terminate %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
 
+(defun handle-periphery-result-buffer (process signal)
+  "Handling output when done from periphery (as PROCESS SIGNAL)."
+  (when (memq (process-status process) '(exit signal))
+    (with-current-buffer (get-buffer-create xcodebuild-buffer)
+      (progn
+        (buffer-read-only)
+        (compilation-mode)))
+    (shell-command-sentinel process signal)))
+
+(defun swift-additions:analyze-using-periphery ()
+  "Analyze code base using periphery."
+  (interactive)
+  (with-current-buffer (get-buffer-create xcodebuild-buffer)
+    (setup-default-buffer-state)
+    (let* ((default-directory (projectile-project-root))
+           (command
+            (concat
+            (format "%s \\" periphery-command)
+            (format "-%s" (get-workspace-or-project))
+            (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
+            (format "--targets %s" (fetch-targets))))
+           (proc
+            (progn
+              (async-shell-command command xcodebuild-buffer)
+              (compilation-minor-mode))))
+      (if (process-live-p proc)
+          (set-process-sentinel proc #'handle-periphery-result-buffer))))
+    (swift-additions:message "Analysing using periphery."))
+    
+
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
     (concat "xcrun simctl spawn booted log stream "
@@ -235,12 +270,6 @@ ARGS are rest arguments, appended to the argument list."
             "--color always "
             "| grep -Ei "
             "\'[Cc]onstraint|%s\'" current-xcode-scheme))
-              
-(defun swift-additions:show-ios-simulator-logs ()
-  "Show simulator logs in a buffer."
-  (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (async-shell-command (swift-additions:simulator-log-command) xcodebuild-buffer)
-    (ansi-color-apply-on-region (point-min) (point-max))))
 
 (defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
