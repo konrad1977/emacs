@@ -241,18 +241,28 @@ ARGS are rest arguments, appended to the argument list."
         (compilation-mode)))
     (shell-command-sentinel process signal)))
 
+(defun get-index-store-path ()
+  "Get the index store path."
+  (let ((index-store-path (concat (projectile-project-root) "build/Index/DataStore")))
+        (if (file-directory-p index-store-path)
+            index-store-path
+          nil)))
+
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
   (interactive)
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
     (let* ((default-directory (projectile-project-root))
+           (index-store-path (get-index-store-path))
            (command
             (concat
-            (format "%s \\" periphery-command)
-            (format "-%s" (get-workspace-or-project))
-            (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
-            (format "--targets %s" (fetch-targets))))
+             (format "%s \\" periphery-command)
+             (format "-%s" (get-workspace-or-project))
+             (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
+             (format "--targets %s \\" (fetch-targets))
+             (if index-store-path
+                 (format "--index-store-path %s --skip-build" (get-index-store-path)))))
            (proc
             (progn
               (async-shell-command command xcodebuild-buffer)
@@ -260,7 +270,6 @@ ARGS are rest arguments, appended to the argument list."
       (if (process-live-p proc)
           (set-process-sentinel proc #'handle-periphery-result-buffer))))
     (swift-additions:message "Analysing using periphery."))
-    
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -388,8 +397,10 @@ ARGS are rest arguments, appended to the argument list."
   (interactive)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
+  (setq current-project-root nil)
+  (setq current-build-configuration nil)
   (setq current-simulator-id nil)
-  (setq current-build-configuration nil))
+  (setq current-simulator-name nil))
 
 (defun setup-default-buffer-state ()
   "Setup buffer default state."
