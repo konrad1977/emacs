@@ -58,6 +58,25 @@
   "Split the CMD unless it is a list.  This function respects quotes."
   (if (listp cmd) cmd (split-string-and-unquote cmd)))
 
+(defun async-shell-command-to-string (process-name command callback)
+  "Execute shell command COMMAND asynchronously in the background.
+PROCESS-NAME is the name of the process."
+  
+  (let ((output-buffer (generate-new-buffer process-name))
+        (callback-fun callback))
+    (set-process-sentinel
+     (start-process process-name output-buffer shell-file-name shell-command-switch command)
+     (lambda (process signal)
+       (when (memq (process-status process) '(exit signal))
+         (with-current-buffer output-buffer
+           (let ((output-string
+                  (buffer-substring-no-properties
+                   (point-min)
+                   (point-max))))
+             (funcall callback-fun output-string)))
+         (kill-buffer output-buffer))))
+    output-buffer))
+
 (defun do-call-process (executable infile destination display args)
   "Wrapper for `call-process'.
 
@@ -235,13 +254,6 @@ ARGS are rest arguments, appended to the argument list."
    (concat
     (format "xcrun simctl terminate %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
 
-(defun handle-periphery-result-buffer (process signal)
-  "Handling output when done from periphery (as PROCESS SIGNAL)."
-  (when (memq (process-status process) '(exit signal))
-    (with-current-buffer (get-buffer-create xcodebuild-buffer)
-      (periphery-run-parser (buffer-string))
-    (shell-command-sentinel process signal))))
-
 (defun get-index-store-path ()
   "Get the index store path."
   (let ((index-store-path (concat (projectile-project-root) "build/Index/DataStore")))
@@ -249,29 +261,26 @@ ARGS are rest arguments, appended to the argument list."
             index-store-path
           nil)))
 
-(defun swift-additions:analyze-using-periphery ()
+(defun run-parser (text)
+  "Run periphery parser on TEXT."
+  (periphery-run-parser text)
+  (swift-additions:message "Done."))
+
+(defun swift-additions:analyze-using-periphery-sync ()
   "Analyze code base using periphery."
   (interactive)
-  (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setup-default-buffer-state)
-    (let* ((default-directory (projectile-project-root))
-           (index-store-path (get-index-store-path))
-           (command
-            (concat
-             (format "%s \\" periphery-command)
-             (format "-%s" (get-workspace-or-project))
-             (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
-             (format "--targets %s \\" (fetch-targets))
-             (if index-store-path
-                 (format "--index-store-path %s --skip-build" (get-index-store-path)))))
-           (proc
-            (progn
-              (async-shell-command command xcodebuild-buffer)
-              (get-buffer-process xcodebuild-buffer)
-              )))
-      (if (process-live-p proc)
-          (set-process-sentinel proc #'handle-periphery-result-buffer))))
-    (swift-additions:message "Analysing using periphery."))
+  (let* ((default-directory (projectile-project-root))
+         (index-store-path (get-index-store-path))
+         (command
+          (concat
+           (format "%s \\" periphery-command)
+           (format "-%s" (get-workspace-or-project))
+           (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
+           (format "--targets %s \\" (fetch-targets))
+           (if index-store-path
+               (format "--index-store-path %s --skip-build" (get-index-store-path))))))
+           (async-shell-command-to-string "periphery" command #'run-parser))
+    (swift-additions:message "Analysing using periphery. Stand by..."))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
