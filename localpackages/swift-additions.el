@@ -14,6 +14,9 @@
 (require 'swift-mode)
 (require 'evil-states)
 
+(load "periphery")
+(require 'periphery)
+
 (defconst xcodebuild-buffer "*xcodebuild*"
   "Xcodebuild buffer.")
 
@@ -236,10 +239,8 @@ ARGS are rest arguments, appended to the argument list."
   "Handling output when done from periphery (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
-      (progn
-        (buffer-read-only)
-        (compilation-mode)))
-    (shell-command-sentinel process signal)))
+      (periphery-run-parser (buffer-string))
+    (shell-command-sentinel process signal))))
 
 (defun get-index-store-path ()
   "Get the index store path."
@@ -266,7 +267,8 @@ ARGS are rest arguments, appended to the argument list."
            (proc
             (progn
               (async-shell-command command xcodebuild-buffer)
-              (compilation-minor-mode))))
+              (get-buffer-process xcodebuild-buffer)
+              )))
       (if (process-live-p proc)
           (set-process-sentinel proc #'handle-periphery-result-buffer))))
     (swift-additions:message "Analysing using periphery."))
@@ -337,8 +339,10 @@ ARGS are rest arguments, appended to the argument list."
       (progn
         (if (swift-additions:buffer-contains-substring "BUILD FAILED")
             (progn
+              (periphery-run-parser (buffer-string))
               (show-notification "Build failed" "Happy bug hunting.")
-              (first-error))
+              (first-error)
+              )
           (progn
             (let ((default-directory (projectile-project-root)))
               (show-notification "Build successful" "Starting app in simulator")
@@ -380,6 +384,7 @@ ARGS are rest arguments, appended to the argument list."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (if (swift-additions:buffer-contains-substring "BUILD FAILED")
+            (periphery-run-parser (buffer-string))
             (first-error)
         )))
     (shell-command-sentinel process signal))

@@ -156,6 +156,7 @@
   (xwidget-webkit-mode . centaur-tabs-local-mode)
   :config
   (add-to-list 'centaur-tabs-excluded-prefixes "*xcodebuild")
+  (add-to-list 'centaur-tabs-excluded-prefixes "*Periphery*")
   (centaur-tabs-mode)
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
@@ -669,7 +670,7 @@
       (window-height . 0.4)
       (side . bottom)
       (slot . 1))
-     ("\\*xcodebuild\\*"
+     ("\\*xcodebuild\\*\\|\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.25)
