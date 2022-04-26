@@ -41,6 +41,8 @@
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+")
 
 (defconst periphery-buffer-name "*Periphery*")
+(defvar periphery-errorList '())
+
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
   (setq tabulated-list-format [
@@ -62,7 +64,6 @@
            (file (match-string 1 data))
            (linenumber (string-to-number (match-string 2 data)))
            (column (string-to-number (match-string 3 data))))
-        (message (format "%s %d %d" file linenumber column))
         (with-current-buffer (find-file file)
           (when (> linenumber 0)
             (goto-char (point-min))
@@ -87,37 +88,67 @@
                 (type (match-string 4 line))
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
-           (unless (< (length type) 0)
-               (setq type "error"))
              (list fileWithLine (vector
                                  (file-name-sans-extension (file-name-nondirectory file))
-                                 (propertize linenumber 'face 'periphery--blue-face)
+                                 (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (propertize-severity type (string-trim-left message))))))))
+                                 (propertize-message (string-trim-left message))
+                                 ))))))
 
+
+(defun propertize-message (text)
+  "Colorize TEXT based on type."
+  (cond
+   ((string-match-p (regexp-quote "Function") text)
+    (propertize text 'face 'font-lock-function-name-face))
+   ((string-match-p (regexp-quote "Class") text)
+    (propertize text 'face 'font-lock-keyword-face))
+   ((string-match-p (regexp-quote "Enum") text)
+    (propertize text 'face 'font-lock-keyword-face))
+   ((string-match-p (regexp-quote "Struct") text)
+    (propertize text 'face 'font-lock-keyword-face))
+   ((string-match-p (regexp-quote "Parameter") text)
+    (propertize text 'face 'font-lock-type-face))
+   ((string-match-p (regexp-quote "Property") text)
+    (propertize text 'face 'font-lock-variable-name-face))
+   ((string-match-p (regexp-quote "Initializer") text)
+    (propertize text 'face 'font-lock-constant-face))
+  (t (propertize text 'face 'periphery--gray-face))))
+  
 
 (defun propertize-severity (severity text)
   "Colorize TEXT using SEVERITY."
   (let ((type (string-trim-left severity)))
     (cond
      ((string= type "info")
-      (propertize text 'face 'periphery--gray-face))
+      (propertize text 'face 'compilation-info))
      ((string= type "warning")
-      (propertize text 'face 'periphery--yellow-face))
+      (propertize text 'face 'compilation-warning))
      ((string= type "error")
-      (propertize text 'face 'periphery--red-face))
-     (t (propertize text 'face 'periphery--gray-face)))))
+      (propertize text 'face 'compilation-error))
+     (t (propertize text 'face 'compilation-info)))))
 
 ;; (mapc #'periphery-process-line (split-string (input) "\n"))
 
 (defun periphery-run-parser (input)
   "Run parser (as INPUT)."
-  (setq errorList '())
+  (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
     (let ((entry (parse-periphery-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line)))))
       (if entry
-          (push entry errorList))))
-  (periphery-listing-command errorList))
+          (push entry periphery-errorList))))
+  (if periphery-errorList
+      (periphery-listing-command periphery-errorList)))
+
+(defun periphery-show-errors ()
+  "Show current errors."
+  (periphery-listing-command periphery-errorList))
+
+(defun periphery-kill-buffer ()
+  "Kill the periphery buffer."
+  (when (get-buffer periphery-buffer-name)
+    (kill-buffer periphery-buffer-name)))
+
 
 (provide 'periphery)
 ;;; periphery.el ends here

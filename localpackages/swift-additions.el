@@ -263,10 +263,17 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun run-parser (text)
   "Run periphery parser on TEXT."
-  (periphery-run-parser text)
-  (swift-additions:message "Done."))
+  (if (string-match-p (regexp-quote "BUILD FAILED") text)
+      (progn
+        (periphery-run-parser text)
+        (swift-additions:message "Failed."))
+    (progn
+      (if local-device-id
+          (install-app-on-device)
+        (install-app-in-simulator))
+      (swift-additions:message "Done."))))
 
-(defun swift-additions:analyze-using-periphery-sync ()
+(defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
   (interactive)
   (let* ((default-directory (projectile-project-root))
@@ -279,7 +286,7 @@ ARGS are rest arguments, appended to the argument list."
            (format "--targets %s \\" (fetch-targets))
            (if index-store-path
                (format "--index-store-path %s --skip-build" (get-index-store-path))))))
-           (async-shell-command-to-string "periphery" command #'run-parser))
+           (async-shell-command-to-string "periphery" command #'periphery-run-parser))
     (swift-additions:message "Analysing using periphery. Stand by..."))
 
 (defun swift-additions:simulator-log-command ()
@@ -313,18 +320,12 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
-  (trim-leading-whitespace
+  (string-trim-left
    (replace-regexp-in-string "\n$" "" text)))
 
 (defun show-notification (title message)
   "Show notification (as TITLE as MESSAGE)."
   (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
-
-(defun trim-leading-whitespace (s)
-  "Remove whitespace at the beginning of S."
-  (if (string-match "\\`[ \t\n\r]+" s)
-      (replace-match "" t t s)
-    s))
 
 (defun get-connected-device-id ()
   "Get the id of the connected device."
@@ -347,19 +348,10 @@ ARGS are rest arguments, appended to the argument list."
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
         (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (progn
-              (periphery-run-parser (buffer-string))
-              (show-notification "Build failed" "Happy bug hunting.")
-              (first-error)
-              )
-          (progn
-            (let ((default-directory (projectile-project-root)))
-              (show-notification "Build successful" "Starting app in simulator")
-              (swift-additions:message "Installing on simulator. Will launch it when done.")
-              (call-process-shell-command (swift-additions:install-and-run-simulator-command))
-              (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
-            )))
-    (shell-command-sentinel process signal)))
+            (show-notification "Build failed" "Happy bug hunting")
+          (install-app-in-simulator))
+        (periphery-run-parser (buffer-string)))
+    (shell-command-sentinel process signal))))
 
 (defun install-and-launch-app-on-local-device-when-done (process signal)
   "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
@@ -367,20 +359,26 @@ ARGS are rest arguments, appended to the argument list."
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
       (progn
         (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (progn
-              (first-error)
-              (show-notification "Build failed" "Happy bug hunting.")
-              )
-          (progn
-            (let ((default-directory (concat (projectile-project-root) (build-folder))))
-              (show-notification "Build successful" "Starting app on device.")
-              (swift-additions:message "Installing on physical device. Will launch it when done.")
-              (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme))))
-            )
-          )
-        )
-      )
-    (shell-command-sentinel process signal)))
+            (show-notification "Build failed" "Happy bug hunting.")
+          (install-app-on-device))
+        (periphery-run-parser (buffer-string)))
+    (shell-command-sentinel process signal))))
+
+(defun install-app-on-device ()
+  "Install an app on device."
+  (let ((default-directory (concat (projectile-project-root) (build-folder))))
+    (show-notification "Build successful" "Starting app on device.")
+    (swift-additions:message "Installing on physical device. Will launch it when done.")
+    (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
+
+(defun install-app-in-simulator ()
+  "Install the app in the simulator."
+  (let ((default-directory (projectile-project-root)))
+    ;(swift-additions:terminate-app-in-simulator)
+    (show-notification "Build successful" "Starting app in simulator")
+    (swift-additions:message "Installing on simulator. Will launch it when done.")
+    (call-process-shell-command (swift-additions:install-and-run-simulator-command))
+    (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
 (defun swift-additions:message (text)
   "Show (as TEXT) and then hide from echo area."
@@ -459,6 +457,17 @@ ARGS are rest arguments, appended to the argument list."
                 (set-process-sentinel proc #'install-and-launch-app-on-local-device-when-done)
             (set-process-sentinel proc #'start-simulator-when-done)))))
     (swift-additions:message (format "Building and installing %s on %s" current-xcode-scheme (current-device-type)))))
+
+(defun swift-additions:compile-and-run-silent ()
+  "Build project using xcodebuild."
+  (interactive)
+  (save-some-buffers t)
+  (periphery-kill-buffer)
+  (swift-additions:kill-xcode-buffer)
+  (setup-current-project (projectile-project-root))
+  (let ((default-directory current-project-root))
+    (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
+  (swift-additions:message (format "Building %s. Please wait. Patience is a virtue!" current-xcode-scheme)))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -606,6 +615,11 @@ ARGS are rest arguments, appended to the argument list."
           (1 (car list))
           (0 nil)
           (_ (widget-choose title choices)))))))
+
+(defun swift-additions:kill-xcode-buffer ()
+  "Kill the xcode buffer."
+  (when (get-buffer xcodebuild-buffer)
+    (kill-buffer xcodebuild-buffer)))
 
 (provide 'swift-additions)
 

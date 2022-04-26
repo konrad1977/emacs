@@ -573,6 +573,8 @@
             (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
             (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
             (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
+            (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
+            (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
             (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
             (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
             (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
@@ -1052,11 +1054,29 @@
 
 (defun setup-swift-programming ()
   "Setup swift development environment."
+  (setq tree-sitter-hl-use-font-lock-keywords nil)
+  (defface tree-sitter-hl-face:case-pattern
+    '((t :inherit tree-sitter-hl-face:property
+         :foreground "#666bb2"))
+    "Face for enum case names in a pattern match"
+    :group 'tree-sitter-hl-faces)
+  
+  (defface tree-sitter-hl-face:variable.synthesized
+    '((t :inherit tree-sitter-hl-face:variable))
+    "Face for compiler-synthesized identifiers (prefixed with '$')"
+    :group 'tree-sitter-hl-faces)
+  
+  (defface tree-sitter-hl-face:keyword.compiler
+    '((t :inherit tree-sitter-hl-face:keyword
+         :weight semi-bold))
+    "Face for compile-time keywords"
+    :group 'tree-sitter-hl-faces)
+
 
   (load "swift-additions")
   (load "swift-querying")
-;  (load "xcode-build")
-
+                                        ;  (load "xcode-build")
+    
   (use-package flycheck-swift3
 	:after flycheck
     :custom (flycheck-swift3-setup))

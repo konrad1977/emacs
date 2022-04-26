@@ -452,7 +452,7 @@
   (tree-sitter-hl-face:embedded                  (:foreground surimiOrange))
   
   (tree-sitter-hl-face:function                  (:foreground crystalBlue))
-  (tree-sitter-hl-face:function.builtin          (:foreground crystalBlue))
+  (tree-sitter-hl-face:function.builtin          (:foreground peachRed))
   (tree-sitter-hl-face:function.call             (:foreground springBlue))
   (tree-sitter-hl-face:function.macro            (:foreground samuraiRed))
   (tree-sitter-hl-face:function.special          (:foreground sakuraPink))
@@ -485,6 +485,10 @@
   (tree-sitter-hl-face:punctuation.bracket       (:foreground oniViolet :bold t))
   (tree-sitter-hl-face:punctuation.delimiter     (:foreground springViolet2 :bold t))
   (tree-sitter-hl-face:punctuation.special       (:foreground waveRed))
+
+  (tree-sitter-hl-face:case-pattern (:foreground waveRed))
+  (tree-sitter-hl-face:variable.synthesized (:foreground waveRed))
+  (tree-sitter-hl-face:keyword.compiler (:foreground waveRed))
   
  ))
 
