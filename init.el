@@ -154,9 +154,9 @@
   (org-agenda-mode . centaur-tabs-local-mode)
   (helpful-mode . centaur-tabs-local-mode)
   (xwidget-webkit-mode . centaur-tabs-local-mode)
+  (periphery-mode . centaur-tabs-local-mode)
   :config
   (add-to-list 'centaur-tabs-excluded-prefixes "*xcodebuild")
-  (add-to-list 'centaur-tabs-excluded-prefixes "*Periphery*")
   (centaur-tabs-mode)
   (centaur-tabs-headline-match)
   (centaur-tabs-group-by-projectile-project)
@@ -207,7 +207,7 @@
   :config
   (which-key-setup-side-window-bottom)
   (setq which-key-sort-order 'which-key-key-order-alpha
-        which-key-idle-delay 0.3
+        which-key-idle-delay 1
 		which-key-min-display-lines 4
 		which-key-max-display-columns 5))
 
@@ -410,6 +410,7 @@
 ;; Search files, and do it with speed and style
 (use-package swiper
   :after ivy
+  :bind ("C-s" . swiper-thing-at-point)
   :config
   (setq swiper-goto-start-of-match t))
 
@@ -514,9 +515,10 @@
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
-  :commands (treemacs-select-window)
+  :defer t
   :config
   (setq treemacs-follow-after-init t
+        treemacs-expand-after-init t
 		treemacs-project-follow-mode t
 		treemacs-follow-mode t
 		treemacs-filewatch-mode t
@@ -531,7 +533,7 @@
         treemacs-show-hidden-files nil
         treemacs-never-persist nil
         treemacs-is-never-other-window nil
-		treemacs-displacurrent-project-exclusively t
+		treemacs-display-current-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
 		treemacs-text-scale	0)
   (treemacs-fringe-indicator-mode 'always)
@@ -612,23 +614,23 @@
   :hook (prog-mode . projectile-mode)
   :diminish projectile-mode
   :config (projectile-mode)
+  (setq projectile-completion-system 'ivy
+		projectile-enable-caching t
+		projectile-sort-order 'recentf
+		projectile-indexing-method 'alien
+        projectile-switch-project-action #'projectile-find-file-dwim
+        projectile-globally-ignored-directories '("*pods" "*xcodeproj" "*pbxproj")
+        projectile-ignored-files '(".m" ".h" ".orig" ".yml" ".gitignore"))
   :custom
     (projectile-project-root-files-functions
      '(projectile-root-local
        projectile-root-top-down
        projectile-root-bottom-up
        projectile-root-top-down-recurring))
-	(setq projectile-completion-system 'ivy
-		  projectile-enable-caching t
-		  projectile-sort-order 'recentf
-		  projectile-indexing-method 'alien)
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
-    (setq projectile-project-search-path '("~/Documents/git")))
-  (setq projectile-switch-project-action #'projectile-find-file-dwim)
-  (setq projectile-globally-ignored-directories '("*pods" "*xcodeproj" "*pbxproj"))
-  (setq projectile-ignored-files '(".m" ".h" ".orig" ".yml" ".gitignore")))
+    (setq projectile-project-search-path '("~/Documents/git"))))
 
 ;; counsel-projectile
 (use-package counsel-projectile

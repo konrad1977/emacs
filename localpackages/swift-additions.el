@@ -240,7 +240,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:install-and-run-simulator-command ()
   "Install and launch app."
-  (swift-additions:message "Installing on simulator...")
+  (message-with-color "[Installing]" "onto Simulator. Will launch app when done." '(:inherit 'success))
   (concat
    "env /usr/bin/arch -x86_64 \\"
    (format "xcrun simctl install %s %s%s.app\n" (fetch-or-load-simulator-id) (build-folder) (fetch-or-load-xcode-scheme))
@@ -249,7 +249,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
   (interactive)
-  (swift-additions:message (format "Terminating %s" current-xcode-scheme))
+  (message-with-color "[Terminating]" current-xcode-scheme '(:inherit 'error))
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
@@ -263,15 +263,16 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun run-parser (text)
   "Run periphery parser on TEXT."
+  (setq local-device-id (get-connected-device-id))
   (if (string-match-p (regexp-quote "BUILD FAILED") text)
       (progn
         (periphery-run-parser text)
-        (swift-additions:message "Failed."))
+        (message-with-color "[Error]" "Build failed." '(:inherit 'error)))
     (progn
       (if local-device-id
           (install-app-on-device)
         (install-app-in-simulator))
-      (swift-additions:message "Done."))))
+      (message-with-color "[Done]" "Life's good." '(:inherit 'success)))))
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
@@ -368,7 +369,7 @@ ARGS are rest arguments, appended to the argument list."
   "Install an app on device."
   (let ((default-directory (concat (projectile-project-root) (build-folder))))
     (show-notification "Build successful" "Starting app on device.")
-    (swift-additions:message "Installing on physical device. Will launch it when done.")
+    (message-with-color "[Installing]" "onto physical device. Will launch app when done." '(:inherit 'success))
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
 
 (defun install-app-in-simulator ()
@@ -376,7 +377,6 @@ ARGS are rest arguments, appended to the argument list."
   (let ((default-directory (projectile-project-root)))
     ;(swift-additions:terminate-app-in-simulator)
     (show-notification "Build successful" "Starting app in simulator")
-    (swift-additions:message "Installing on simulator. Will launch it when done.")
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
@@ -467,7 +467,7 @@ ARGS are rest arguments, appended to the argument list."
   (setup-current-project (projectile-project-root))
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
-  (swift-additions:message (format "Building %s. Please wait. Patience is a virtue!" current-xcode-scheme)))
+  (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit 'warning)))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -620,6 +620,13 @@ ARGS are rest arguments, appended to the argument list."
   "Kill the xcode buffer."
   (when (get-buffer xcodebuild-buffer)
     (kill-buffer xcodebuild-buffer)))
+
+(defun message-with-color (tag text attributes)
+  "Print a TAG and TEXT with ATTRIBUTES."
+  (interactive)
+  (setq-local inhibit-message nil)
+  (message "%s %s" (propertize tag 'face attributes) text)
+  (setq-local inhibit-message t))
 
 (provide 'swift-additions)
 
