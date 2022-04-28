@@ -5,6 +5,9 @@
 
 ;;; Code:
 (require 'dash)
+(require 'transient)
+(require 'evil)
+
 (defface periphery--red-face
   '((((class color) (background light)) :foreground "#FF5D62" :weight semi-bold)
     (((class color) (background dark)) :foreground "#FF5D62" :weight semi-bold))
@@ -53,6 +56,8 @@
                                ])
   (setq tabulated-list-padding 1)
   (setq tabulated-list-sort-key (cons "File" nil))
+  (turn-off-evil-mode)
+  (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
 
 (defun open-current-line-id ()
@@ -140,15 +145,86 @@
   (if periphery-errorList
       (periphery-listing-command periphery-errorList)))
 
-(defun periphery-show-errors ()
-  "Show current errors."
-  (periphery-listing-command periphery-errorList))
+(defun periphery-mode-all ()
+  "Show all."
+  (interactive)
+  (progn
+    (setq tabulated-list-entries (-non-nil periphery-errorList))
+    (tabulated-list-print t)))
+
+(defun periphery-mode-build-filter (filter)
+  "Show only FILTER."
+  (interactive "P")
+  (progn
+    (setq tabulated-list-entries
+          (--filter  
+           (string-match-p (regexp-quote filter)
+                           (aref (car( cdr it)) 3)) (-non-nil periphery-errorList)))
+    (tabulated-list-print t)))
+
+
+(defun periphery-mode-list-functions ()
+  "Filter on fucntions."
+  (interactive)
+  (periphery-mode-build-filter "Function"))
+
+(defun periphery-mode-list-unused ()
+  "Filter on fucntions."
+  (interactive)
+  (periphery-mode-build-filter "unused"))
+
+(defun periphery-mode-list-initializer ()
+  "Filter on fucntions."
+  (interactive)
+  (periphery-mode-build-filter "Initializer"))
+
+(defun periphery-mode-list-parameter ()
+  "Filter on fucntions."
+  (interactive)
+  (periphery-mode-build-filter "Parameter"))
+
+(defun periphery-mode-list-property ()
+  "Filter on fucntions."
+  (interactive)
+  (periphery-mode-build-filter "Property"))
+
+(defvar periphery-mode-map nil
+  "Keymap for periphery.")
+
+(setq periphery-mode-map (make-sparse-keymap))
+(define-key periphery-mode-map (kbd "?") 'periphery-mode-help)
+(define-key periphery-mode-map (kbd "a") 'periphery-mode-all)
+(define-key periphery-mode-map (kbd "f") 'periphery-mode-list-functions)
+(define-key periphery-mode-map (kbd "u") 'periphery-mode-list-unused)
+(define-key periphery-mode-map (kbd "i") 'periphery-mode-list-initializer)
+(define-key periphery-mode-map (kbd "P") 'periphery-mode-list-parameter)
+(define-key periphery-mode-map (kbd "p") 'periphery-mode-list-property)
+(define-key periphery-mode-map (kbd "<return>") 'open-current-line-id)
+(define-key periphery-mode-map (kbd "o") 'open-current-line-id)
+
+(transient-define-prefix periphery-mode-help ()
+"Help for periphery mode."
+["Periphery mode help"
+    ("a" "All" periphery-mode-all)
+    ("f" "Functions" periphery-mode-list-functions)
+    ("u" "Unused" periphery-mode-list-unused)
+    ("i" "Initializer" periphery-mode-list-initializer)
+    ("P" "Parameter" periphery-mode-list-parameter)
+    ("p" "Property" periphery-mode-list-property)
+    ("o" "Open" open-current-line-id)
+ ])
 
 (defun periphery-kill-buffer ()
   "Kill the periphery buffer."
+  (interactive)
   (when (get-buffer periphery-buffer-name)
     (kill-buffer periphery-buffer-name)))
 
+(defun periphery-show-buffer ()
+  "Show current periphery buffer."
+  (interactive)
+  (periphery-listing-command periphery-errorList)
+  )
 
 (provide 'periphery)
 ;;; periphery.el ends here
