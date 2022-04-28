@@ -115,12 +115,12 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
-  (message "Starting simulator with id %s" id)
+  (message-with-color "[Start]" (format "simulator with id %s" id) '(:inherit 'success))
   (call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
 
 (defun boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
-  (message "Booting simulator...")
+  (message-with-color "[Starting]" (fetch-simulator-name) '(:inherit 'success))
   (call-process-shell-command (format "xcrun simctl boot %s" id)))
 
 (defun is-simulator-app-running ()
@@ -150,18 +150,18 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun fetch-targets ()
   "Select the target."
-  (build-menu "Choose target:" (swift-additions:get-target-list)))
+  (build-menu "Choose target" (swift-additions:get-target-list)))
 
 (defun fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
   (unless current-xcode-scheme
-    (setq current-xcode-scheme (build-menu "Choose a scheme:" (swift-additions:get-scheme-list))))
+    (setq current-xcode-scheme (build-menu "Choose a scheme" (swift-additions:get-scheme-list))))
   current-xcode-scheme)
 
 (defun fetch-or-load-build-configuration ()
   "Get the build configuration or promp user."
   (unless current-build-configuration
-    (setq current-build-configuration (build-menu "Choose a configuration:" (swift-additions:get-configuration-list))))
+    (setq current-build-configuration (build-menu "Choose a configuration" (swift-additions:get-configuration-list))))
   current-build-configuration)
     
 (defun fetch-or-load-app-identifier ()
@@ -240,7 +240,6 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:install-and-run-simulator-command ()
   "Install and launch app."
-  (message-with-color "[Installing]" "onto Simulator. Will launch app when done." '(:inherit 'success))
   (concat
    "env /usr/bin/arch -x86_64 \\"
    (format "xcrun simctl install %s %s%s.app\n" (fetch-or-load-simulator-id) (build-folder) (fetch-or-load-xcode-scheme))
@@ -271,8 +270,7 @@ ARGS are rest arguments, appended to the argument list."
     (progn
       (if local-device-id
           (install-app-on-device)
-        (install-app-in-simulator))
-      (message-with-color "[Done]" "Life's good." '(:inherit 'success)))))
+        (install-app-in-simulator)))))
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
@@ -287,8 +285,8 @@ ARGS are rest arguments, appended to the argument list."
            (format "--targets %s \\" (fetch-targets))
            (if index-store-path
                (format "--index-store-path %s --skip-build" (get-index-store-path))))))
-           (async-shell-command-to-string "periphery" command #'periphery-run-parser))
-    (swift-additions:message "Analysing using periphery. Stand by..."))
+    (async-shell-command-to-string "periphery" command #'periphery-run-parser))
+  (message-with-color "[Analysing]" "Code base using \'periphery\'." '(:inherit 'warning)))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -377,6 +375,7 @@ ARGS are rest arguments, appended to the argument list."
   (let ((default-directory (projectile-project-root)))
     ;(swift-additions:terminate-app-in-simulator)
     (show-notification "Build successful" "Starting app in simulator")
+    (message-with-color "[Installing]" (format "onto %s. Will launch app when done." current-simulator-name) '(:inherit 'success))
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
@@ -480,7 +479,7 @@ ARGS are rest arguments, appended to the argument list."
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
-    (swift-additions:message (format "Building %s" current-xcode-scheme))
+    (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit 'warning))
     (let* ((default-directory current-project-root)
            (proc (progn
                    (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
@@ -494,15 +493,14 @@ ARGS are rest arguments, appended to the argument list."
   "Clean app build folder."
   (interactive)
   (setup-current-project (projectile-project-root))
-  
-  (swift-additions:message (format "Cleaning build folder for %s. Standby..." current-xcode-scheme))
+  (message-with-color "[Cleaning]" (format "Build folder for %s Standby..." current-xcode-scheme) '(:inherit 'warning))
   (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
         (progn
-          (swift-additions:message (format "Removing build folder %s" default-directory))
+          (message-with-color "[Removing]" (format "Folder for %s" default-directory) '(:inherit 'warning))
           (delete-directory default-directory t nil))
-      (swift-additions:message (format "Build folder %s doesnt exist" default-directory))))
-  (swift-additions:message "Done."))
+          (message-with-color "[Failed]" (format "Build folder %s doesn't exist" default-directory) '(:inherit 'warning))))
+    (message-with-color "[Done]" "Ready to rumble." '(:inherit 'success)))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."
@@ -560,7 +558,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
-  (swift-additions:message "Fetching targets...")
+  (message-with-color "[Fetching]" "app targets.." '(:inherit 'warning))
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -569,7 +567,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
-  (swift-additions:message "Fetching build schemes...")
+  (message-with-color "[Fetching]" "build schemes.." '(:inherit 'warning))
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -578,7 +576,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
-  (swift-additions:message "Fetching configurations...")
+  (message-with-color "[Fetching]" "build configurations.." '(:inherit 'warning))
   (let* ((default-directory (projectile-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
@@ -587,7 +585,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:list-simulators ()
   "List available simulators."
-  (swift-additions:message "Fetching available simulators...")
+  (message-with-color "[Fetching]" "available simulators..." '(:inherit 'warning))
   (let* ((json (call-process-to-json list-simulators-command))
          (devices (cdr (assoc 'devices json)))
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))

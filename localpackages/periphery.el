@@ -127,6 +127,8 @@
     (cond
      ((string= type "info")
       (propertize text 'face 'compilation-info))
+     ((string= type "note")
+      (propertize text 'face 'compilation-info))
      ((string= type "warning")
       (propertize text 'face 'compilation-warning))
      ((string= type "error")
