@@ -379,12 +379,6 @@ ARGS are rest arguments, appended to the argument list."
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
-(defun swift-additions:message (text)
-  "Show (as TEXT) and then hide from echo area."
-  (setq-local inhibit-message nil)
-  (message text)
-  (setq-local inhibit-message t))
-
 (defun check-for-errors (process signal)
   "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
@@ -455,7 +449,7 @@ ARGS are rest arguments, appended to the argument list."
             (if local-device-id
                 (set-process-sentinel proc #'install-and-launch-app-on-local-device-when-done)
             (set-process-sentinel proc #'start-simulator-when-done)))))
-    (swift-additions:message (format "Building and installing %s on %s" current-xcode-scheme (current-device-type)))))
+   (message-with-color "[Build/Install]" (format "%s on %s" current-xcode-scheme (current-device-type)))))
 
 (defun swift-additions:compile-and-run-silent ()
   "Build project using xcodebuild."
