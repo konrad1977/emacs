@@ -159,11 +159,10 @@
   (interactive "P")
   (progn
     (setq tabulated-list-entries
-          (--filter  
+          (--filter
            (string-match-p (regexp-quote filter)
                            (aref (car( cdr it)) 3)) (-non-nil periphery-errorList)))
     (tabulated-list-print t)))
-
 
 (defun periphery-mode-list-functions ()
   "Filter on fucntions."

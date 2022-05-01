@@ -17,13 +17,16 @@
 (load "periphery")
 (require 'periphery)
 
-(defconst xcodebuild-buffer "*xcodebuild*"
-  "Xcodebuild buffer.")
-
 (defgroup swift-additions:xcodebuild nil
   "REPL."
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
+
+(defconst xcodebuild-buffer "*xcodebuild*")
+(defconst periphery-command "periphery scan")
+(defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
+(defconst build-info-command "xcrun xcodebuild -list -json")
+(defconst list-simulators-command "xcrun simctl list -j")
 
 (defvar current-xcode-scheme nil)
 (defvar current-app-identifier nil)
@@ -39,10 +42,6 @@
   :group 'swift-additions
   :safe 'stringp)
 
-(defconst periphery-command "periphery scan")
-(defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
-(defconst build-info-command "xcrun xcodebuild -list -json")
-(defconst list-simulators-command "xcrun simctl list -j")
 (defun get-booted-simulator-command ()
   "Get booted simulator id if any."
   "xcrun simctl list devices | grep \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\"")
@@ -115,12 +114,12 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
-  (message-with-color "[Start]" (format "simulator with id %s" id) '(:inherit 'success))
+  ;(message-with-color "[Start]" (format "simulator with id %s" id) '(:inherit 'success))
   (call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
 
 (defun boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
-  (message-with-color "[Starting]" (fetch-simulator-name) '(:inherit 'success))
+  ;(message-with-color "[Starting]" (fetch-simulator-name) '(:inherit 'success))
   (call-process-shell-command (format "xcrun simctl boot %s" id)))
 
 (defun is-simulator-app-running ()
@@ -144,7 +143,7 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-simulator-name
     (let ((simulator-name (get-simulator-name current-simulator-id)))
       (if simulator-name
-          (setq current-simulator-name (format "%s (simulator)" simulator-name))
+          (setq current-simulator-name (format "%s(simulator)" simulator-name))
         (setq current-simulator-name "Simulator (unknown)"))))
     current-simulator-name)
 
@@ -172,16 +171,16 @@ ARGS are rest arguments, appended to the argument list."
   
 (defun fetch-or-load-simulator-id ()
   "Get the booted simulator id or fetch a suiting one."
-   (if current-simulator-id
-       (setup-simulator-dwim current-simulator-id)
-     (progn
-       (let ((device-id
-              (or (get-booted-simulator)
-                  (widget-choose "Choose a simulator:" (swift-additions:list-available-simulators)))))
-         (progn
-           (setup-simulator-dwim current-simulator-id)
-           (setq current-simulator-id device-id)))))
-     current-simulator-id)
+  (if current-simulator-id
+      (setup-simulator-dwim current-simulator-id)
+    (progn
+      (let ((device-id
+             (or (get-booted-simulator)
+                 (widget-choose "Choose a simulator:" (swift-additions:list-available-simulators)))))
+        (progn
+          (setup-simulator-dwim current-simulator-id)
+          (setq current-simulator-id device-id)))))
+  current-simulator-id)
 
 (defun setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
@@ -260,17 +259,25 @@ ARGS are rest arguments, appended to the argument list."
             index-store-path
           nil)))
 
+(defun parse-errors-from (text)
+  "Parse errors from TEXT."
+  (message-with-color "[Error]" "Build failed." '(:inherit 'error))
+  (periphery-run-parser text))
+
+(defun run-app ()
+  "Run app.  Either in simulator or on physical device."
+  (setq local-device-id (get-connected-device-id))
+  (if local-device-id
+      (install-app-on-device)
+    (install-app-in-simulator)))
+ 
 (defun run-parser (text)
   "Run periphery parser on TEXT."
-  (setq local-device-id (get-connected-device-id))
   (if (string-match-p (regexp-quote "BUILD FAILED") text)
-      (progn
-        (periphery-run-parser text)
-        (message-with-color "[Error]" "Build failed." '(:inherit 'error)))
+      (parse-errors-from text)
     (progn
-      (if local-device-id
-          (install-app-on-device)
-        (install-app-in-simulator)))))
+      (periphery-run-parser text) ;; check for warnings / info
+      (run-app))))
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
@@ -283,6 +290,7 @@ ARGS are rest arguments, appended to the argument list."
            (format "-%s" (get-workspace-or-project))
            (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
            (format "--targets %s \\" (fetch-targets))
+           " --quiet \\"
            (if index-store-path
                (format "--index-store-path %s --skip-build" (get-index-store-path))))))
     (async-shell-command-to-string "periphery" command #'periphery-run-parser))
@@ -341,41 +349,17 @@ ARGS are rest arguments, appended to the argument list."
       "iphoneos"
     "iphonesimulator"))
 
-(defun start-simulator-when-done (process signal)
-  "Launching simular when done building (as PROCESS SIGNAL)."
-  (when (memq (process-status process) '(exit signal))
-    (with-current-buffer (get-buffer-create xcodebuild-buffer)
-      (progn
-        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (show-notification "Build failed" "Happy bug hunting")
-          (install-app-in-simulator))
-        (periphery-run-parser (buffer-string)))
-    (shell-command-sentinel process signal))))
-
-(defun install-and-launch-app-on-local-device-when-done (process signal)
-  "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
-  (when (memq (process-status process) '(exit signal))
-    (with-current-buffer (get-buffer-create xcodebuild-buffer)
-      (progn
-        (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (show-notification "Build failed" "Happy bug hunting.")
-          (install-app-on-device))
-        (periphery-run-parser (buffer-string)))
-    (shell-command-sentinel process signal))))
-
 (defun install-app-on-device ()
   "Install an app on device."
   (let ((default-directory (concat (projectile-project-root) (build-folder))))
-    (show-notification "Build successful" "Starting app on device.")
     (message-with-color "[Installing]" "onto physical device. Will launch app when done." '(:inherit 'success))
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
 
 (defun install-app-in-simulator ()
   "Install the app in the simulator."
   (let ((default-directory (projectile-project-root)))
-    ;(swift-additions:terminate-app-in-simulator)
-    (show-notification "Build successful" "Starting app in simulator")
-    (message-with-color "[Installing]" (format "onto %s. Will launch app when done." current-simulator-name) '(:inherit 'success))
+    (swift-additions:terminate-app-in-simulator)
+    (message-with-color "[Installing]" (format "onto %s. Will launch app when done." (fetch-simulator-name)) '(:inherit 'success))
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
@@ -383,10 +367,7 @@ ARGS are rest arguments, appended to the argument list."
   "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
   (when (memq (process-status process) '(exit signal))
     (with-current-buffer (get-buffer-create xcodebuild-buffer)
-      (if (swift-additions:buffer-contains-substring "BUILD FAILED")
-            (periphery-run-parser (buffer-string))
-            (first-error)
-        )))
+      (run-parser (buffer-string))))
     (shell-command-sentinel process signal))
 
 (defun build-using-compilation-mode ()
@@ -445,10 +426,7 @@ ARGS are rest arguments, appended to the argument list."
                      (reset-default-buffer-state)
                      (get-buffer-process xcodebuild-buffer)))))
       (if (process-live-p proc)
-          (progn
-            (if local-device-id
-                (set-process-sentinel proc #'install-and-launch-app-on-local-device-when-done)
-            (set-process-sentinel proc #'start-simulator-when-done)))))
+          (set-process-sentinel proc #'check-for-errors)))
    (message-with-color "[Build/Install]" (format "%s on %s" current-xcode-scheme (current-device-type)))))
 
 (defun swift-additions:compile-and-run-silent ()
