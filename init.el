@@ -123,6 +123,24 @@
 
 (use-package no-littering)	;; Clean up all those temporary files
 
+; On macos use our custom settings ---------------------
+(when (eq system-type 'darwin)
+ 
+  (use-package ns-auto-titlebar
+	:config (ns-auto-titlebar-mode))
+
+  (setq mac-option-key-is-meta nil
+		mac-command-key-is-meta t
+		mac-command-modifier 'meta
+		mac-option-modifier 'none
+		dired-use-ls-dired nil
+		frame-title-format ""
+        ns-pop-up-frames nil
+        browse-url-browser-function #'mk/browser-split-window)
+
+  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
+
 ;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -560,71 +578,31 @@
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
+  :hook (swift-mode . setup-swift-programming)
   :custom
-  (setup-swift-programming)
   (setq swift-mode:parenthesized-expression-offset 4
 		swift-mode:multiline-statement-offset 4))
 
-(add-hook 'swift-mode-hook
-          (lambda ()
-            (setup-swift-programming)
-            (tree-sitter-mode)
-            (tree-sitter-hl-mode)
-            (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
-            (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
-            (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
-            (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
-            (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
-            (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
-            (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
-            (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
-            (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
-            (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
-            (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
-            (local-set-key (kbd "C-c C-r") #'xcode-build:run)))
-
-; On macos use our custom settings ---------------------
-(when (eq system-type 'darwin)
-   (if window-system
-       (setq browse-url-browser-function 'mk/browser-split-window))
- 
-  ;; Use existing frame when opening files.
-  (setq ns-pop-up-frames nil)
-  
-    (defun macos-hardware-overview ()
-      "View macOS hardware overview."
-      (interactive)
-      (shell-command "system_profiler SPHardwareDataType"))
-  
-  (use-package ns-auto-titlebar
-	:config (ns-auto-titlebar-mode))
-
-  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-
-  ;; (setq org-agenda-files '("~/Library/Mobile Documents/com~apple~CloudDocs/orgfiles/"))
-  (setq mac-option-key-is-meta nil
-		mac-command-key-is-meta t
-		mac-command-modifier 'meta
-		mac-option-modifier 'none
-		dired-use-ls-dired nil
-		frame-title-format ""))
+(defun mk/macos-hardware-overview ()
+  "View macOS hardware overview."
+  (interactive)
+  (shell-command "system_profiler SPHardwareDataType"))
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
   :diminish projectile-mode
-  :config (projectile-mode)
+  :custom
   (add-to-list 'projectile-globally-ignored-directories '"^\\.build$")
   (add-to-list 'projectile-globally-ignored-directories '"^\\.swiftpm$")
   (add-to-list 'projectile-globally-ignored-directories '"^\\elpa$")
+  (add-to-list 'projectile-globally-ignored-directories '"^\\xcodeproj$")
+  (add-to-list 'projectile-globally-ignored-directories '"^\\pods$")
   (setq projectile-completion-system 'ivy
 		projectile-enable-caching t
 		projectile-sort-order 'recentf
 		projectile-indexing-method 'alien
         projectile-switch-project-action #'projectile-find-file-dwim
-        projectile-globally-ignored-directories '("*pods" "*xcodeproj" "*pbxproj")
-        projectile-ignored-files '(".m" ".h" ".orig" ".yml" ".gitignore"))
-  :custom
+        projectile-ignored-files '(".orig" ".yml" ".gitignore"))
     (projectile-project-root-files-functions
      '(projectile-root-local
        projectile-root-top-down
@@ -680,9 +658,9 @@
      ("\\*xcodebuild\\*\\|\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.25)
+      (window-height . 0.3)
       (side . bottom)
-      (slot . 1))
+      (slot . 0))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
@@ -930,8 +908,8 @@
 	org-log-done 'time))
 
 (with-eval-after-load 'org
-  (require 'ob-swiftui)
-  (ob-swiftui-setup)
+  ;; (require 'ob-swiftui)
+  ;; (ob-swiftui-setup)
   ;; (org-babel-do-load-languages 'org-babel-load-languages
   ;;   		                   '((emacs-lisp t)
   ;;                               (swift t)))
@@ -1065,6 +1043,7 @@
 
 (defun setup-swift-programming ()
   "Setup swift development environment."
+  
   (setq tree-sitter-hl-use-font-lock-keywords nil)
   (defface tree-sitter-hl-face:case-pattern
     '((t :inherit tree-sitter-hl-face:property
@@ -1083,20 +1062,31 @@
     "Face for compile-time keywords"
     :group 'tree-sitter-hl-faces)
 
-
   (load "swift-additions")
   (load "swift-querying")
-                                        ;  (load "xcode-build")
+
+  (tree-sitter-hl-mode)
+  
+  (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
+  (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
+  (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
+  (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
+  (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
+  (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
+  (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
+  (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
+  (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
+  (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
+  (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
+  (local-set-key (kbd "C-c C-r") #'xcode-build:run)
     
   (use-package flycheck-swift3
-	:after flycheck
+    :after flycheck
     :custom (flycheck-swift3-setup))
    
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
-
-  (require 'flycheck)
   
   (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
