@@ -84,7 +84,7 @@
   (tabulated-list-print t))
 
 (defun parse-periphery-output-line (line)
-  "Run regex over cuurent LINE."
+  "Run regex over curent LINE."
   (save-match-data
     (and (string-match periphery-regex-parser line)
          (let* ((file (match-string 1 line))
@@ -146,6 +146,7 @@
           (push entry periphery-errorList))))
   (if periphery-errorList
       (periphery-listing-command periphery-errorList)))
+
 
 (defun periphery-mode-all ()
   "Show all."
@@ -224,8 +225,35 @@
 (defun periphery-show-buffer ()
   "Show current periphery buffer."
   (interactive)
-  (periphery-listing-command periphery-errorList)
-  )
+  (periphery-listing-command periphery-errorList))
+
+;;; - Bartycrouch parsing
+(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^:]+\\):\s+\\(\[[0-9]+\]\\)")
+(defun parse-bartycrouch-output-line (line)
+  "Run regex over curent LINE."
+  (save-match-data
+    (and (string-match bartycrouch-regex-parser line)
+         (let* ((file (match-string 1 line))
+                (linenumber (match-string 2 line))
+                (message (match-string 3 line))
+                (otherLine (match-string 4 line))
+                (fileWithLine (format "%s:%s" file linenumber)))
+             (list fileWithLine (vector
+                                 (file-name-sans-extension (file-name-nondirectory file))
+                                 (propertize linenumber 'face 'periphery--gray-face)
+                                 (propertize "info" 'face 'periphery--blue-face)
+                                 (propertize (string-trim-left (format "%s:%s" message otherLine)) 'face 'periphery--yellow-face)
+                                 ))))))
+
+(defun bartycrouch-run-parser (input)
+  "Run bartycrouchparsing as INPUT."
+  (setq periphery-errorList nil)
+  (dolist (line (split-string input "\n"))
+    (let ((entry (parse-bartycrouch-output-line (string-trim-left line))))
+      (if entry
+          (push entry periphery-errorList))))
+  (if periphery-errorList
+      (periphery-listing-command periphery-errorList)))
 
 (provide 'periphery)
 ;;; periphery.el ends here

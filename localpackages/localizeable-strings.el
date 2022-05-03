@@ -1,5 +1,9 @@
 ;;; localizeable-strings-mode.el --- Highlight strings.
 
+(require 'projectile)
+(require 'swift-additions)
+(require 'periphery)
+
 ;;; Code:
 (defface localizeable-variable-face
   '((t (:inherit font-lock-variable-name-face)))
@@ -21,6 +25,8 @@
   "Comments."
   :group 'string-mode)
 
+(defconst bartycrouch-lint-command "bartycrouch lint")
+
 ;;;###autoload
 (define-derived-mode localizeable-strings-mode fundamental-mode
   (setq indicate-empty-lines t            ;; Show empty lines
@@ -40,6 +46,13 @@
                  ("\\(;\\)" 0 'localizeable-delimiter-face t)))
 
 (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-strings-mode))
+
+(defun localizeable-mode-analyze ()
+  "Analyse all localizeable.strings."
+  (interactive)
+  (let ((default-directory (projectile-project-root)))
+    (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'bartycrouch-run-parser))
+  (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit 'warning)))
 
 (provide 'localizeable-strings)
 
