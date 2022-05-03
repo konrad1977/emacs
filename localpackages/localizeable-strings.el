@@ -6,23 +6,28 @@
 
 ;;; Code:
 (defface localizeable-variable-face
-  '((t (:inherit font-lock-variable-name-face)))
+  '((t (:inherit font-lock-variable-name-face :italic t)))
   "The key in strings file."
   :group 'string-mode)
 
 (defface localizeable-value-face
-  '((t (:inherit font-lock-type-face)))
+  '((t (:inherit font-lock-builtin-face :bold t)))
   "The value in strings file."
   :group 'string-mode)
 
 (defface localizeable-delimiter-face
-  '((t (:inherit font-lock-constant-face)))
+  '((t (:inherit font-lock-constant-face :italic t)))
   "The simicolon at the end."
   :group 'string-mode)
 
 (defface localizeable-comment-face
   '((t (:inherit font-lock-comment-face)))
   "Comments."
+  :group 'string-mode)
+
+(defface localizeable-equals-face
+  '((t (:inherit font-lock-warning-face :bold t)))
+  "Equals."
   :group 'string-mode)
 
 (defconst bartycrouch-lint-command "bartycrouch lint")
@@ -39,11 +44,14 @@
 
 (font-lock-add-keywords
  'localizeable-strings-mode '(
-                 ("^\\(\"[^\"]+\"\\)\s=\s\\(\"[^\"]+\"\\)"
-                  (0 'localizeable-variable-face t)
-                  (1 'localizeable-value-face t))
+                 ("^\\(\"[^\"]+\"\\)\s+=\s+\\(\"[^\"]+\"\\)\\(;\\)"
+                  (1 'localizeable-value-face t)
+                  (2 'localizeable-variable-face t)
+                  (3 'localizeable-delimiter-face t)
+                  )
                  ("\/\\*[^*]*\\*+\\(?:[^/*][^*]*\\*+\\)*/" 0 'localizeable-comment-face t)
-                 ("\\(;\\)" 0 'localizeable-delimiter-face t)))
+                 ("\\(=\\)" 0 'localizeable-equals-face t)
+                 ))
 
 (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-strings-mode))
 
