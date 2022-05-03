@@ -20,6 +20,7 @@
   "Comments."
   :group 'string-mode)
 
+;;;###autoload
 (define-derived-mode strings-mode fundamental-mode
   (setq font-lock-defaults '(()))
   (setq mode-name "Strings"))
@@ -29,9 +30,13 @@
                  ("^\\(\"[^\"]+\"\\)\s=\s\\(\"[^\"]+\"\\)"
                   (0 'strings-variable-face t)
                   (1 'strings-value-face t))
-                 ("\\/\\*[^*]*\\*/" 0 'strings-comment-face t)
+                 ("\/\\*[^*]*\\*+\\(?:[^/*][^*]*\\*+\\)*/" 0 'strings-comment-face t)
                  ("\\(;\\)" 0 'strings-delimiter-face t)))
+
+;(add-to-list 'auto-mode-alist '("\\.strings\\'" . strings-mode))
 
 ;;; Code:
 (provide 'strings-mode)
+
+;;; strings-mode.el ends here
 
