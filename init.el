@@ -614,6 +614,9 @@
   :hook (prog-mode . projectile-mode)
   :diminish projectile-mode
   :config (projectile-mode)
+  (add-to-list 'projectile-globally-ignored-directories '"^\\.build$")
+  (add-to-list 'projectile-globally-ignored-directories '"^\\.swiftpm$")
+  (add-to-list 'projectile-globally-ignored-directories '"^\\elpa$")
   (setq projectile-completion-system 'ivy
 		projectile-enable-caching t
 		projectile-sort-order 'recentf
@@ -927,8 +930,11 @@
 	org-log-done 'time))
 
 (with-eval-after-load 'org
-  (org-babel-do-load-languages 'org-babel-load-languages
-			       '((emacs-lisp t)))
+  (require 'ob-swiftui)
+  (ob-swiftui-setup)
+  ;; (org-babel-do-load-languages 'org-babel-load-languages
+  ;;   		                   '((emacs-lisp t)
+  ;;                               (swift t)))
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -944,7 +950,10 @@
   (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
   (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
   (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
-
+  
+  (add-hook 'org-babel-after-execute-hook (lambda ()
+                                            (when org-inline-image-overlays
+                                              (org-redisplay-inline-images))))
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
@@ -1185,7 +1194,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
-  (define-key evil-motion-state-map (kbd "M-.")     #'(dumb-jump-go))
+  (define-key evil-motion-state-map (kbd "M-.")     #'dumb-jump-go)
   (define-key evil-motion-state-map (kbd "M-f")     #'(lambda () (interactive) (counsel-imenu)))
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
