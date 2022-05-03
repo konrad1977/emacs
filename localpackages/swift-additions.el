@@ -598,6 +598,56 @@ ARGS are rest arguments, appended to the argument list."
   (message "%s %s" (propertize tag 'face attributes) text)
   (setq-local inhibit-message t))
 
+; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
+(defun swift-additions:split-func-list ()
+  "While on either the header of a function-like declaration or a
+call to a function, split each parameter/argument to its own
+line."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (condition-case nil
+        (atomic-change-group
+          (search-forward "(")
+          (let ((end))
+            (while (not end)
+              (newline-and-indent)
+              (let ((parens 0)
+                    (angles 0)
+                    (squares 0)
+                    (curlies 0)
+                    (comma))
+                (while (not (or comma end))
+                  (re-search-forward
+                   (rx (or ?\( ?\) ?< ?> ?\[ ?\] ?{ ?} ?\" ?,))
+                   (line-end-position))
+                  (pcase (match-string 0)
+                    ("(" (cl-incf parens))
+                    (")" (if (> parens 0)
+                             (cl-decf parens)
+                           (backward-char)
+                           (newline-and-indent)
+                           (setq end t)))
+                    ;; Note; these could be operators in an expression;
+                    ;; there's no obvious way to fully handle that.
+                    ("<" (cl-incf angles))
+                    ;; At a minimum we can skip greater-than and func arrows
+                    (">" (unless (zerop angles)
+                           (cl-decf angles)))
+                    ("[" (cl-incf squares))
+                    ("]" (cl-decf squares))
+                    ("{" (cl-incf curlies))
+                    ("}" (cl-decf curlies))
+                    ("\"" (let ((string-end))
+                            (while (not string-end)
+                              (re-search-forward (rx (or ?\" (seq ?\\ ?\")))
+                                                 (line-end-position))
+                              (setq string-end (equal (match-string 0) "\"")))))
+                    ("," (when (and (zerop parens) (zerop angles)
+                                    (zerop squares) (zerop curlies))
+                           (setq comma t)))))))))
+      (error (user-error "Cannot parse function decl or call here")))))
+
 (provide 'swift-additions)
 
 ;;; swift-additions.el ends here

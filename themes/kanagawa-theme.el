@@ -71,7 +71,7 @@
   (button                                        (:foreground waveAqua2))
   (child-frame                                   (:background sumiInk-0 :foreground sumiInk-0))
   (child-frame-border                            (:background sumiInk-0 :foreground sumiInk-0))
-  (cursor                                        (:background lightBlue :foreground sumiInk-0))
+  (cursor                                        (:background lightBlue :foreground sumiInk-0 :bold t))
   (default                                       (:background sumiInk-1b :foreground fujiWhite))
   (error                                         (:foreground samuraiRed))
   (fringe                                        (:foreground sumiInk-3))

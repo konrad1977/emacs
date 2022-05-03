@@ -254,10 +254,10 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   :config
-  (setq evil-emacs-state-cursor '("#A3D4D5" box))
-  (setq evil-normal-state-cursor '("#A3D4D5" box))
+  (setq evil-emacs-state-cursor '("#FF5D62" box))
+  (setq evil-normal-state-cursor '("#FF5D62" box))
   (setq evil-visual-state-cursor '("#98BB6C" box))
-  (setq evil-insert-state-cursor '("#FF5D62" bar))
+  (setq evil-insert-state-cursor '("#E82424" bar))
   (setq evil-replace-state-cursor '("#FF9E3B" hbar))
   (setq evil-operator-state-cursor '("#7E9CD8" hollow))
   
@@ -319,7 +319,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook (swift-mode . svg-tag-mode)
+  :hook (org-mode . svg-tag-mode)
   :config
   (setq svg-tag-tags
         '(
@@ -481,13 +481,13 @@
   (setq company-dot-icons-format            " ●")
   (setq company-backends                    '(
                                               company-tabnine
-                                              company-sourcekit
-                                              company-capf
-                                              company-yasnippet
+                                              ;company-sourcekit
+                                              ;company-capf
+                                              ;company-yasnippet
+                                              company-keywords
                                               company-dabbrev-code
                                               company-semantic
                                               company-files
-                                              company-keywords
                                               )
         company-frontends                   '(company-pseudo-tooltip-frontend)
         company-tooltip-margin              3
@@ -505,13 +505,8 @@
         company-async-timeout               2))
 
 (use-package company-sourcekit
-  :hook swift-mode
   :config
-  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend")
-  :custom
-  (setq company-sourcekit-verbose nil
-		sourcekit-verbose nil
-        company-sourcekit-use-yasnippet t))
+  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"))
 
 (use-package company-tabnine
   :after company
@@ -1078,8 +1073,12 @@
   (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
   (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
   (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
+  (local-set-key (kbd "C-c C-s") #'swift-additions:split-func-list)
   (local-set-key (kbd "C-c C-r") #'xcode-build:run)
-    
+
+  (load "strings-mode")
+  (add-to-list 'auto-mode-alist '("\\.strings\\'" . strings-mode))
+
   (use-package flycheck-swift3
     :after flycheck
     :custom (flycheck-swift3-setup))
