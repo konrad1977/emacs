@@ -1059,6 +1059,7 @@
 
   (load "swift-additions")
   (load "swift-querying")
+  (load "localizeable-mode")
 
   (tree-sitter-hl-mode)
   
@@ -1076,8 +1077,6 @@
   (local-set-key (kbd "C-c C-s") #'swift-additions:split-func-list)
   (local-set-key (kbd "C-c C-r") #'xcode-build:run)
 
-  (load "localizeable-strings")
-  ;; (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-strings-mode))
 
   (use-package flycheck-swift3
     :after flycheck
