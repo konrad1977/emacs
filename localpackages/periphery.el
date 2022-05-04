@@ -8,6 +8,16 @@
 (require 'transient)
 (require 'evil)
 
+(defface periphery-warning-face
+  '((t (:inherit warning)))
+  "Warning."
+  :group 'periphery)
+
+(defface periphery-identifier-face
+  '((t (:inherit font-lock-builtin-face :italic t :weight semi-bold)))
+  "Warning."
+  :group 'periphery)
+
 (defface periphery--red-face
   '((((class color) (background light)) :foreground "#FF5D62" :weight semi-bold)
     (((class color) (background dark)) :foreground "#FF5D62" :weight semi-bold))
@@ -45,6 +55,7 @@
 
 (defconst periphery-buffer-name "*Periphery*")
 (defvar periphery-errorList '())
+(defvar directoryRoot nil "DirectoryRoot for localizeable.")
 
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
@@ -228,7 +239,9 @@
   (periphery-listing-command periphery-errorList))
 
 ;;; - Bartycrouch parsing
-(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^:]+\\):\s+\\(\[[0-9]+\]\\)")
+;(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^:]+\\):\s+\\(\[[0-9]+\]\\)")
+(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
+
 (defun parse-bartycrouch-output-line (line)
   "Run regex over curent LINE."
   (save-match-data
@@ -236,17 +249,26 @@
          (let* ((file (match-string 1 line))
                 (linenumber (match-string 2 line))
                 (message (match-string 3 line))
-                (otherLine (match-string 4 line))
-                (fileWithLine (format "%s:%s" file linenumber)))
+                (failingAttribute (match-string 4 line))
+                (messageRest (match-string 5 line))
+                (otherEntries (match-string 6 line))
+                (fileWithLine (format "%s:%s:%s" (concat (file-name-as-directory directoryRoot) file)  linenumber "0")))
+           
              (list fileWithLine (vector
-                                 (file-name-sans-extension (file-name-nondirectory file))
+                                 (file-name-sans-versions file)
                                  (propertize linenumber 'face 'periphery--gray-face)
-                                 (propertize "info" 'face 'periphery--blue-face)
-                                 (propertize (string-trim-left (format "%s:%s" message otherLine)) 'face 'periphery--yellow-face)
+                                 (propertize "info" 'face 'periphery-warning-face)
+                                 (format "%s%s%s %s"
+                                         (propertize message 'face 'periphery--gray-face)
+                                         (propertize failingAttribute 'face 'periphery-identifier-face)
+                                         (propertize messageRest 'face 'periphery--gray-face)
+                                         (propertize otherEntries 'face 'periphery--blue-face)
+                                         )
                                  ))))))
 
-(defun bartycrouch-run-parser (input)
-  "Run bartycrouchparsing as INPUT."
+(defun bartycrouch-run-parser (input directoryRoot)
+  "Run bartycrouchparsing as INPUT DIRECTORYROOT."
+  (setq directoryRoot directoryRoot)
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
     (let ((entry (parse-bartycrouch-output-line (string-trim-left line))))

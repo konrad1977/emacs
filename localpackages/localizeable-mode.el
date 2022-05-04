@@ -59,11 +59,15 @@
                  ("\\(=\\)" 0 'localizeable-equals-face t)))
 
 
+(defun parse-localizeable (text)
+  "Parse output from TEXT."
+  (bartycrouch-run-parser text (projectile-project-root)))
+
 (defun localizeable-mode-analyze ()
   "Analyse all localizeable.strings."
   (interactive)
   (let ((default-directory (projectile-project-root)))
-    (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'bartycrouch-run-parser))
+    (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
   (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit 'warning)))
 
 (provide 'localizeable-mode)
