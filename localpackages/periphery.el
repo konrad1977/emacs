@@ -9,7 +9,7 @@
 (require 'evil)
 
 (defface periphery-warning-face
-  '((t (:inherit warning)))
+  '((t (:inherit font-lock-warning-face)))
   "Warning."
   :group 'periphery)
 
@@ -49,7 +49,7 @@
 (define-key periphery-mode-map (kbd "<return>") #'open-current-line-id)
 (define-key periphery-mode-map (kbd "o") #'open-current-line-id)
 
-(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.+\\)")
+(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.*\\)")
 (defconst periphery-parse-line-regex "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$")
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+")
 
@@ -94,7 +94,22 @@
   (setq tabulated-list-entries (-non-nil errorList))
   (tabulated-list-print t))
 
+(defun mark-message-symbols (text)
+  "Highlight marked out errors as TEXT."
+  (save-match-data
+    (if (string-match "\\([^']+\\)\\('[^']+'\\)\\(.*\\)" (replace-regexp-in-string "’" "'" text))
+        (let* (
+               (beginning (match-string 1 text))
+               (highlight (match-string 2 text))
+               (end (match-string 3 text)))
+          (format "%s%s%s"
+                  (propertize beginning 'face 'periphery--gray-face)
+                  (propertize highlight 'face 'periphery-identifier-face)
+                  (propertize end 'face 'periphery--gray-face)))
+      (propertize text 'face 'periphery--gray-face))))
+
 (defun parse-periphery-output-line (line)
+  
   "Run regex over curent LINE."
   (save-match-data
     (and (string-match periphery-regex-parser line)
@@ -108,8 +123,7 @@
                                  (file-name-sans-extension (file-name-nondirectory file))
                                  (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (propertize-message (string-trim-left message))
-                                 ))))))
+                                 (mark-message-symbols (string-trim-left message))))))))
 
 
 (defun propertize-message (text)
