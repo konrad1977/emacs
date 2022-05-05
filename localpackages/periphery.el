@@ -13,8 +13,13 @@
   "Warning."
   :group 'periphery)
 
+(defface periphery-filename-face
+  '((t (:inherit font-lock-constant-face)))
+  "Warning."
+  :group 'periphery)
+
 (defface periphery-identifier-face
-  '((t (:inherit font-lock-builtin-face :italic t :weight semi-bold)))
+  '((t (:inherit font-lock-builtin-face :italic t)))
   "Warning."
   :group 'periphery)
 
@@ -120,7 +125,7 @@
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
              (list fileWithLine (vector
-                                 (file-name-sans-extension (file-name-nondirectory file))
+                                 (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize-severity type (string-trim-left type))
                                  (mark-message-symbols (string-trim-left message))))))))
@@ -269,7 +274,7 @@
                 (fileWithLine (format "%s:%s:%s" (concat (file-name-as-directory directoryRoot) file)  linenumber "0")))
            
              (list fileWithLine (vector
-                                 (file-name-sans-versions file)
+                                 (propertize (file-name-sans-versions file) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize "info" 'face 'periphery-warning-face)
                                  (format "%s%s%s %s"
