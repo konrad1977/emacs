@@ -56,7 +56,10 @@
 
 (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.*\\)")
 (defconst periphery-parse-line-regex "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$")
-(defconst periphery-remove-unicode-regex "[^\x00-\x7F]+")
+(defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
+  "Remove unicode-characters.")
+(defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.+\\)$"
+  "When we fail because of other errors than compilation errors.")
 
 (defconst periphery-buffer-name "*Periphery*")
 (defvar periphery-errorList '())
@@ -99,6 +102,20 @@
   (setq tabulated-list-entries (-non-nil errorList))
   (tabulated-list-print t))
 
+(defun mark-help-symbols (text)
+"Mark help in message as (TEXT)."
+  (save-match-data
+    (if (string-match "\\([^:]+\\)\s+\\([^(]+\\)\\(.*\\)$" (replace-regexp-in-string "’" "'" text))
+        (let* (
+               (beginning (match-string 1 text))
+               (highlight (match-string 2 text))
+               (end (match-string 3 text)))
+          (format "%s %s %s"
+                  (propertize beginning 'face 'periphery--yellow-face)
+                  (propertize highlight 'face 'periphery-identifier-face)
+                  (propertize end 'face 'periphery--gray-face)))
+      (propertize text 'face 'periphery--gray-face))))
+
 (defun mark-message-symbols (text)
   "Highlight marked out errors as TEXT."
   (save-match-data
@@ -111,10 +128,10 @@
                   (propertize beginning 'face 'periphery--gray-face)
                   (propertize highlight 'face 'periphery-identifier-face)
                   (propertize end 'face 'periphery--gray-face)))
-      (propertize text 'face 'periphery--gray-face))))
+       text)))
 
 (defun parse-periphery-output-line (line)
-  
+   
   "Run regex over curent LINE."
   (save-match-data
     (and (string-match periphery-regex-parser line)
@@ -128,7 +145,8 @@
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (mark-message-symbols (string-trim-left message))))))))
+                                 (mark-message-symbols (mark-help-symbols (string-trim-left message)))
+                                 ))))))
 
 
 (defun propertize-message (text)
@@ -171,12 +189,16 @@
   "Run parser (as INPUT)."
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
-    (let ((entry (parse-periphery-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line)))))
+    (let (
+          (entry (parse-periphery-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
+          (secondEntry (parse-xcodebuild-notes-and-errors (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
       (if entry
-          (push entry periphery-errorList))))
+          (push entry periphery-errorList))
+      (unless entry (and secondEntry
+          (push secondEntry periphery-errorList))
+      )))
   (if periphery-errorList
       (periphery-listing-command periphery-errorList)))
-
 
 (defun periphery-mode-all ()
   "Show all."
@@ -258,7 +280,6 @@
   (periphery-listing-command periphery-errorList))
 
 ;;; - Bartycrouch parsing
-;(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^:]+\\):\s+\\(\[[0-9]+\]\\)")
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
 
 (defun parse-bartycrouch-output-line (line)
@@ -295,6 +316,18 @@
           (push entry periphery-errorList))))
   (if periphery-errorList
       (periphery-listing-command periphery-errorList)))
+  
+(defun parse-xcodebuild-notes-and-errors (line)
+  "Parse error and notes (TEXT)."
+  (save-match-data
+    (and (string-match periphery-note-and-errors-regex line)
+         (let* ((note (match-string 1 line))
+                (message (match-string 2 line)))
+             (list "" (vector
+                                 (propertize "Buildinfo" 'face 'periphery-filename-face)
+                                 (propertize "" 'face 'periphery--gray-face)
+                                 (propertize (if note note "error") 'face 'periphery-warning-face)
+                                 (propertize message 'face 'periphery--gray-face)))))))
 
 (provide 'periphery)
 ;;; periphery.el ends here

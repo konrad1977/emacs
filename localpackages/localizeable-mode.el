@@ -3,6 +3,7 @@
 (require 'projectile)
 (require 'swift-additions)
 (require 'periphery)
+(load "swift-additions")
 
 ;;; Code:
 (defface localizeable-variable-face
@@ -66,9 +67,13 @@
 (defun localizeable-mode-analyze ()
   "Analyse all localizeable.strings."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
-    (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
-  (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit 'warning)))
+  (if (executable-find "bartycrouch")
+      (progn
+        (let ((default-directory (projectile-project-root)))
+          (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
+        (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit 'warning)))
+    (message-with-color "[Error] bartycrouch not instealled. run 'brew install bartycrouch'"))
+  )
 
 (provide 'localizeable-mode)
 
