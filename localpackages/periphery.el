@@ -74,7 +74,7 @@
                                ("Message" 80 nil)
                                ])
   (setq tabulated-list-padding 1)
-  (setq tabulated-list-sort-key (cons "File" nil))
+  (setq tabulated-list-sort-key (cons "Line" nil))
   (turn-off-evil-mode)
   (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
