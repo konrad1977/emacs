@@ -72,8 +72,7 @@
         (let ((default-directory (projectile-project-root)))
           (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
         (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit 'warning)))
-    (message-with-color "[Error] bartycrouch not instealled. run 'brew install bartycrouch'"))
-  )
+       (message-with-color "[Error]" "bartycrouch not installed. run 'brew install bartycrouch'" '(:inherit 'warning))))
 
 (provide 'localizeable-mode)
 

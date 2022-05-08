@@ -282,19 +282,22 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
   (interactive)
-  (let* ((default-directory (projectile-project-root))
-         (index-store-path (get-index-store-path))
-         (command
-          (concat
-           (format "%s \\" periphery-command)
-           (format "-%s" (get-workspace-or-project))
-           (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
-           (format "--targets %s \\" (fetch-targets))
-           " --quiet \\"
-           (if index-store-path
-               (format "--index-store-path %s --skip-build" (get-index-store-path))))))
-    (async-shell-command-to-string "periphery" command #'periphery-run-parser))
-  (message-with-color "[Analysing]" "Code base using \'periphery\'." '(:inherit 'warning)))
+  (if (executable-find "periphery")
+      (progn
+        (let* ((default-directory (projectile-project-root))
+               (index-store-path (get-index-store-path))
+               (command
+                (concat
+                 (format "%s \\" periphery-command)
+                 (format "-%s" (get-workspace-or-project))
+                 (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
+                 (format "--targets %s \\" (fetch-targets))
+                 " --quiet \\"
+                 (if index-store-path
+                     (format "--index-store-path %s --skip-build" (get-index-store-path))))))
+          (async-shell-command-to-string "periphery" command #'periphery-run-parser))
+        (message-with-color "[Analysing]" "Code base using \'periphery\'." '(:inherit 'warning)))
+    (message-with-color "[Missing binary]" "Periphery is not install. Run 'brew install periphery'")))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."

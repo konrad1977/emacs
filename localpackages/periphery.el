@@ -19,7 +19,7 @@
   :group 'periphery)
 
 (defface periphery-identifier-face
-  '((t (:inherit font-lock-builtin-face :italic t)))
+  '((t (:inherit error :italic t :weight semi-bold)))
   "Warning."
   :group 'periphery)
 
@@ -102,30 +102,15 @@
   (setq tabulated-list-entries (-non-nil errorList))
   (tabulated-list-print t))
 
-(defun mark-help-symbols (text)
-"Mark help in message as (TEXT)."
-  (save-match-data
-    (if (string-match "\\([^:]+\\)\s+\\([^(]+\\)\\(.*\\)$" (replace-regexp-in-string "’" "'" text))
-        (let* (
-               (beginning (match-string 1 text))
-               (highlight (match-string 2 text))
-               (end (match-string 3 text)))
-          (format "%s %s %s"
-                  (propertize beginning 'face 'periphery--yellow-face)
-                  (propertize highlight 'face 'periphery-identifier-face)
-                  (propertize end 'face 'periphery--gray-face)))
-      (propertize text 'face 'periphery--gray-face))))
-
 (defun mark-message-symbols (text)
   "Highlight marked out errors as TEXT."
   (save-match-data
-    (if (string-match "\\([^']+\\)\\('[^']+'\\)\\(.*\\)" (replace-regexp-in-string "’" "'" text))
-        (let* (
-               (beginning (match-string 1 text))
+    (if (string-match "\\(?:\\([^']+\\)\\)\\('[^']+'\\)\\(.*\\)" (replace-regexp-in-string "’" "'" text))
+        (let* ((beginning (match-string 1 text))
                (highlight (match-string 2 text))
                (end (match-string 3 text)))
           (format "%s%s%s"
-                  (propertize beginning 'face 'periphery--gray-face)
+                  (propertize-message beginning)
                   (propertize highlight 'face 'periphery-identifier-face)
                   (propertize end 'face 'periphery--gray-face)))
        text)))
@@ -145,7 +130,7 @@
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (mark-message-symbols (mark-help-symbols (string-trim-left message)))
+                                 (mark-message-symbols (string-trim-left message)) ;(mark-help-symbols (string-trim-left message)))
                                  ))))))
 
 
@@ -166,6 +151,8 @@
     (propertize text 'face 'font-lock-variable-name-face))
    ((string-match-p (regexp-quote "Initializer") text)
     (propertize text 'face 'font-lock-constant-face))
+   ((string-match-p (regexp-quote "Protocol") text)
+    (propertize text 'face 'font-lock-builtin-face))
   (t (propertize text 'face 'periphery--gray-face))))
   
 
@@ -232,13 +219,18 @@
   (interactive)
   (periphery-mode-build-filter "Initializer"))
 
+(defun periphery-mode-list-protocol ()
+  "Filter on protocol."
+  (interactive)
+  (periphery-mode-build-filter "Protocol"))
+
 (defun periphery-mode-list-parameter ()
-  "Filter on fucntions."
+  "Filter on parameter."
   (interactive)
   (periphery-mode-build-filter "Parameter"))
 
 (defun periphery-mode-list-property ()
-  "Filter on fucntions."
+  "Filter on property."
   (interactive)
   (periphery-mode-build-filter "Property"))
 
@@ -251,6 +243,7 @@
 (define-key periphery-mode-map (kbd "f") 'periphery-mode-list-functions)
 (define-key periphery-mode-map (kbd "u") 'periphery-mode-list-unused)
 (define-key periphery-mode-map (kbd "i") 'periphery-mode-list-initializer)
+(define-key periphery-mode-map (kbd "I") 'periphery-mode-list-protocol)
 (define-key periphery-mode-map (kbd "P") 'periphery-mode-list-parameter)
 (define-key periphery-mode-map (kbd "p") 'periphery-mode-list-property)
 (define-key periphery-mode-map (kbd "<return>") 'open-current-line-id)
@@ -263,6 +256,7 @@
     ("f" "Functions" periphery-mode-list-functions)
     ("u" "Unused" periphery-mode-list-unused)
     ("i" "Initializer" periphery-mode-list-initializer)
+    ("I" "Protocol" periphery-mode-list-protocol)
     ("P" "Parameter" periphery-mode-list-parameter)
     ("p" "Property" periphery-mode-list-property)
     ("o" "Open" open-current-line-id)
