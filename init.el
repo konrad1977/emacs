@@ -650,12 +650,18 @@
       (window-height . 0.4)
       (side . bottom)
       (slot . 1))
-     ("\\*xcodebuild\\*\\|\\*Periphery\\*"
+     ("\\*xcodebuild\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.3)
       (side . bottom)
       (slot . 0))
+     ("\\*Periphery\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-height . 0.3)
+      (side . bottom)
+      (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
@@ -672,7 +678,7 @@
       (display-buffer-in-side-window)
       (window-height . 0.18)
       (side . bottom)
-      (slot . 0)))))
+      (slot . 2)))))
 
 ;; Winum - select windows easy ---------------------------
 (use-package winum

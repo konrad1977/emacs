@@ -316,7 +316,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
-  (let ((name (directory-files (projectile-project-root) t extension)))
+  (let ((name (directory-files current-project-root t extension)))
     (if name
         (file-name-sans-extension (file-name-nondirectory (car name)))
       nil)))
@@ -371,13 +371,13 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun install-app-on-device ()
   "Install an app on device."
-  (let ((default-directory (concat (projectile-project-root) (build-folder))))
+  (let ((default-directory (concat current-project-root (build-folder))))
     (message-with-color "[Installing]" "onto physical device. Will launch app when done." '(:inherit 'success))
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
 
 (defun install-app-in-simulator ()
   "Install the app in the simulator."
-  (let ((default-directory (projectile-project-root)))
+  (let ((default-directory current-project-root))
     (swift-additions:terminate-app-in-simulator)
     (message-with-color "[Installing]" (format "onto %s. Will launch app when done." (fetch-simulator-name)) '(:inherit 'success))
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
@@ -394,7 +394,7 @@ ARGS are rest arguments, appended to the argument list."
   "Build using builtin compile and 'compilation-mode'."
   (interactive)
   
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (current-project-root))
          (compile-command (build-app-command (fetch-or-load-simulator-id))))
     (compile compile-command)))
 
