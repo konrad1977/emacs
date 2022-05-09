@@ -298,7 +298,7 @@ ARGS are rest arguments, appended to the argument list."
                  (if index-store-path
                      (format "--index-store-path %s --skip-build" (get-index-store-path))))))
           (async-shell-command-to-string "periphery" command #'periphery-run-parser))
-        (message-with-color "[Analysing]" "Code base using \'periphery\'." '(:inherit 'warning)))
+        (message-with-color "[Analysing]" "Code base using \'periphery\'." '(:inherit warning)))
     (message-with-color "[Missing binary]" "Periphery is not install. Run 'brew install periphery'")))
 
 (defun swift-additions:simulator-log-command ()
@@ -375,14 +375,14 @@ ARGS are rest arguments, appended to the argument list."
 (defun install-app-on-device ()
   "Install an app on device."
   (let ((default-directory (concat current-project-root (build-folder))))
-    (message-with-color "[Installing]" "onto physical device. Will launch app when done." '(:inherit 'success))
+    (message-with-color "[Installing]" "onto physical device. Will launch app when done." '(:inherit success))
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
 
 (defun install-app-in-simulator ()
   "Install the app in the simulator."
   (let ((default-directory current-project-root))
     (swift-additions:terminate-app-in-simulator)
-    (message-with-color "[Installing]" (format "onto %s. Will launch app when done." (fetch-simulator-name)) '(:inherit 'success))
+    (message-with-color "[Installing]" (format "onto %s. Will launch app when done." (fetch-simulator-name)) '(:inherit success))
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
@@ -461,7 +461,7 @@ ARGS are rest arguments, appended to the argument list."
   (setup-current-project (get-ios-project-root))
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
-  (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit 'warning)))
+  (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit warning)))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -474,7 +474,7 @@ ARGS are rest arguments, appended to the argument list."
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
-    (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit 'warning))
+    (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit warning))
     (let* ((default-directory current-project-root)
            (proc (progn
                    (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
@@ -488,14 +488,14 @@ ARGS are rest arguments, appended to the argument list."
   "Clean app build folder."
   (interactive)
   (setup-current-project (get-ios-project-root))
-  (message-with-color "[Cleaning]" (format "Build folder for %s Standby..." current-xcode-scheme) '(:inherit 'warning))
+  (message-with-color "[Cleaning]" (format "Build folder for %s Standby..." current-xcode-scheme) '(:inherit warning))
   (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
         (progn
-          (message-with-color "[Removing]" (format "Folder for %s" default-directory) '(:inherit 'warning))
+          (message-with-color "[Removing]" (format "Folder for %s" default-directory) '(:inherit warning))
           (delete-directory default-directory t nil))
-          (message-with-color "[Failed]" (format "Build folder %s doesn't exist" default-directory) '(:inherit 'warning))))
-    (message-with-color "[Done]" "Ready to rumble." '(:inherit 'success)))
+          (message-with-color "[Failed]" (format "Build folder %s doesn't exist" default-directory) '(:inherit warning))))
+    (message-with-color "[Done]" "Ready to rumble." '(:inherit success)))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."
@@ -559,7 +559,7 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
 
-  (message-with-color "[Fetching]" "app targets.." '(:inherit 'warning))
+  (message-with-color "[Fetching]" "app targets.." '(:inherit warning))
   
   (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
@@ -572,7 +572,7 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
   
-  (message-with-color "[Fetching]" "build schemes.." '(:inherit 'warning))
+  (message-with-color "[Fetching]" "build schemes.." '(:inherit warning))
   
   (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
@@ -582,7 +582,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
-  (message-with-color "[Fetching]" "build configurations.." '(:inherit 'warning))
+  (message-with-color "[Fetching]" "build configurations.." '(:inherit warning))
 
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
@@ -594,7 +594,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:list-simulators ()
   "List available simulators."
-  (message-with-color "[Fetching]" "available simulators..." '(:inherit 'warning))
+  (message-with-color "[Fetching]" "available simulators..." '(:inherit warning))
   (let* ((json (call-process-to-json list-simulators-command))
          (devices (cdr (assoc 'devices json)))
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
