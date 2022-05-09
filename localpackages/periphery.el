@@ -185,7 +185,8 @@
           (push secondEntry periphery-errorList))
       )))
   (if periphery-errorList
-      (periphery-listing-command periphery-errorList)))
+      (periphery-listing-command periphery-errorList)
+    (message-with-color "[Complete]" "No errors or warnings found" '(:inherit success))))
 
 (defun periphery-mode-all ()
   "Show all."
@@ -322,6 +323,14 @@
                                  (propertize "" 'face 'periphery--gray-face)
                                  (propertize (if note note "error") 'face 'periphery-warning-face)
                                  (propertize message 'face 'periphery--gray-face)))))))
+
+
+(defun message-with-color (tag text attributes)
+  "Print a TAG and TEXT with ATTRIBUTES."
+  (interactive)
+  (setq-local inhibit-message nil)
+  (message "%s %s" (propertize tag 'face attributes) text)
+  (setq-local inhibit-message t))
 
 (provide 'periphery)
 ;;; periphery.el ends here

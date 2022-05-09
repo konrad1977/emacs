@@ -184,14 +184,13 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
-  (print project)
   (unless current-project-root
     (setq current-project-root project))
   (if (not
        (string= current-project-root project))
        (progn
-         (setq current-project-root project)
-         (swift-additions:reset-settings))))
+         (swift-additions:reset-settings)
+         (setq current-project-root project))))
 
 (defun xcodebuild-command ()
   "Use x86 environement."
@@ -255,7 +254,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun get-index-store-path ()
   "Get the index store path."
-  (let ((index-store-path (concat (projectile-project-root) "build/Index/DataStore")))
+  (let ((index-store-path (concat current-project-root "build/Index/DataStore")))
         (if (file-directory-p index-store-path)
             index-store-path
           nil)))
@@ -282,10 +281,12 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
+  
   (interactive)
+  (setup-current-project (get-ios-project-root))
   (if (executable-find "periphery")
       (progn
-        (let* ((default-directory (projectile-project-root))
+        (let* ((default-directory current-project-root)
                (index-store-path (get-index-store-path))
                (command
                 (concat
@@ -336,19 +337,21 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun find-project-root-folder (extension)
   "Find project folder where it has its project files EXTENSION."
-  (let ((root (directory-files-recursively (projectile-project-root) (format "\\%s$" extension) 't)))
-    (if root
-        (file-name-directory (car root))
-          nil
-      )))
+  (let* (
+         (root (directory-files (projectile-project-root) nil (format "\\%s$" extension)))
+         (subroot (directory-files-recursively (projectile-project-root) (format "\\%s$" extension) 't))
+         (workroot (or root subroot))
+         (path (file-name-directory (car-safe workroot)))
+         )
+    (if (and path (string-match-p (regexp-quote ".xcodeproj") path))
+        (file-name-directory (directory-file-name path))
+      path)))
 
 (defun get-ios-project-root ()
   "Get the current root of the project."
-  (let* (
-         (xcodeproj (find-project-root-folder ".xcodeproj"))
-         (workspace (find-project-root-folder ".xcworkspace"))
-         (root (or xcodeproj workspace)))
-    (or xcodeproj workspace (projectile-project-root))))
+  (let* ((workspace (find-project-root-folder ".xcworkspace"))
+         (xcodeproj (find-project-root-folder ".xcodeproj")))
+        (or workspace xcodeproj (projectile-project-root))))
 
 (defun show-notification (title message)
   "Show notification (as TITLE as MESSAGE)."
@@ -543,15 +546,22 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
-  (let* ((default-directory (get-ios-project-root))
+  (unless current-project-root
+    (setq current-project-root (get-ios-project-root)))
+  
+  (let* ((default-directory current-project-root)
          (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
+  (unless current-project-root
+    (setq current-project-root (get-ios-project-root)))
+
   (message-with-color "[Fetching]" "app targets.." '(:inherit 'warning))
-  (let* ((default-directory (get-ios-project-root))
+  
+  (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
@@ -559,8 +569,12 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
+  (unless current-project-root
+    (setq current-project-root (get-ios-project-root)))
+  
   (message-with-color "[Fetching]" "build schemes.." '(:inherit 'warning))
-  (let* ((default-directory (get-ios-project-root))
+  
+  (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'schemes project))))
@@ -569,7 +583,10 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
   (message-with-color "[Fetching]" "build configurations.." '(:inherit 'warning))
-  (let* ((default-directory (get-ios-project-root))
+
+  (unless current-project-root
+    (setq current-project-root (get-ios-project-root)))
+  (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
