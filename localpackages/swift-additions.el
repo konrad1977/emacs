@@ -108,7 +108,7 @@ ARGS are rest arguments, appended to the argument list."
                                          (list t nil)
                                          nil
                                          args))
-      (error "%s: %s" "Cannot invoke executable" (buffer-string)))
+      (error "%s: %s %s" "Cannot invoke executable" executable (buffer-string) default-directory))
     (goto-char (point-min))
     (json-read)))
 
@@ -184,6 +184,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
+  (print project)
   (unless current-project-root
     (setq current-project-root project))
   (if (not
@@ -333,6 +334,22 @@ ARGS are rest arguments, appended to the argument list."
   (string-trim-left
    (replace-regexp-in-string "\n$" "" text)))
 
+(defun find-project-root-folder (extension)
+  "Find project folder where it has its project files EXTENSION."
+  (let ((root (directory-files-recursively (projectile-project-root) (format "\\%s$" extension) 't)))
+    (if root
+        (file-name-directory (car root))
+          nil
+      )))
+
+(defun get-ios-project-root ()
+  "Get the current root of the project."
+  (let* (
+         (xcodeproj (find-project-root-folder ".xcodeproj"))
+         (workspace (find-project-root-folder ".xcworkspace"))
+         (root (or xcodeproj workspace)))
+    (or xcodeproj workspace (projectile-project-root))))
+
 (defun show-notification (title message)
   "Show notification (as TITLE as MESSAGE)."
   (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
@@ -410,7 +427,7 @@ ARGS are rest arguments, appended to the argument list."
   "Build project using xcodebuild and then run iOS simulator."
   (interactive)
   (save-some-buffers t)
-  (setup-current-project (projectile-project-root))
+  (setup-current-project (get-ios-project-root))
   (setq local-device-id (get-connected-device-id))
   (swift-additions:terminate-app-in-simulator)
 
@@ -438,7 +455,7 @@ ARGS are rest arguments, appended to the argument list."
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
-  (setup-current-project (projectile-project-root))
+  (setup-current-project (get-ios-project-root))
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
   (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit 'warning)))
@@ -447,7 +464,7 @@ ARGS are rest arguments, appended to the argument list."
   "Build project using xcodebuild."
   (interactive)
   (save-some-buffers t)
-  (setup-current-project (projectile-project-root))
+  (setup-current-project (get-ios-project-root))
   (swift-additions:terminate-app-in-simulator)
   (if (get-buffer-process xcodebuild-buffer)
       (delete-process xcodebuild-buffer))
@@ -467,7 +484,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (setup-current-project (projectile-project-root))
+  (setup-current-project (get-ios-project-root))
   (message-with-color "[Cleaning]" (format "Build folder for %s Standby..." current-xcode-scheme) '(:inherit 'warning))
   (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
@@ -526,7 +543,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (get-ios-project-root))
          (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
@@ -534,7 +551,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
   (message-with-color "[Fetching]" "app targets.." '(:inherit 'warning))
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (get-ios-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
@@ -543,7 +560,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
   (message-with-color "[Fetching]" "build schemes.." '(:inherit 'warning))
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (get-ios-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'schemes project))))
@@ -552,7 +569,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
   (message-with-color "[Fetching]" "build configurations.." '(:inherit 'warning))
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (get-ios-project-root))
          (json (call-process-to-json build-info-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
