@@ -9,7 +9,6 @@
 (require 'ansi-color)
 (require 'dash)
 (require 'cl-lib)
-(require 'projectile)
 (require 'flycheck)
 (require 'swift-mode)
 (require 'evil-states)
@@ -338,8 +337,9 @@ ARGS are rest arguments, appended to the argument list."
 (defun find-project-root-folder (extension)
   "Find project folder where it has its project files EXTENSION."
   (let* (
-         (root (directory-files (projectile-project-root) nil (format "\\%s$" extension)))
-         (subroot (directory-files-recursively (projectile-project-root) (format "\\%s$" extension) 't))
+         (project-root (expand-file-name (vc-root-dir)))
+         (root (directory-files project-root nil (format "\\%s$" extension)))
+         (subroot (directory-files-recursively project-root (format "\\%s$" extension) 't))
          (workroot (or root subroot))
          (path (file-name-directory (car-safe workroot)))
          )
@@ -351,7 +351,7 @@ ARGS are rest arguments, appended to the argument list."
   "Get the current root of the project."
   (let* ((workspace (find-project-root-folder ".xcworkspace"))
          (xcodeproj (find-project-root-folder ".xcodeproj")))
-        (or workspace xcodeproj (projectile-project-root))))
+        (or workspace xcodeproj (expand-file-name (vc-root-dir)))))
 
 (defun show-notification (title message)
   "Show notification (as TITLE as MESSAGE)."
