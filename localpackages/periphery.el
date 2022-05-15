@@ -276,7 +276,7 @@
   (periphery-listing-command periphery-errorList))
 
 ;;; - Bartycrouch parsing
-(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
+(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
 
 (defun parse-bartycrouch-output-line (line)
   "Run regex over curent LINE."
