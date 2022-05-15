@@ -272,11 +272,11 @@ ARGS are rest arguments, appended to the argument list."
  
 (defun run-parser (text)
   "Run periphery parser on TEXT."
-  (if (string-match-p (regexp-quote "BUILD FAILED") text)
+  (if (or
+       (string-match-p (regexp-quote "BUILD FAILED") text)
+       (string-match-p (regexp-quote "error:") text))
       (parse-errors-from text)
-    (progn
-      (periphery-run-parser text) ;; check for warnings / info
-      (run-app))))
+      (run-app)))
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."

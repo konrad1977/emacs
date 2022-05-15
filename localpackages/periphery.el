@@ -126,6 +126,7 @@
                 (type (match-string 4 line))
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
+
              (list fileWithLine (vector
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery--gray-face)
@@ -279,6 +280,7 @@
 
 (defun parse-bartycrouch-output-line (line)
   "Run regex over curent LINE."
+  (message line)
   (save-match-data
     (and (string-match bartycrouch-regex-parser line)
          (let* ((file (match-string 1 line))
@@ -287,10 +289,14 @@
                 (failingAttribute (match-string 4 line))
                 (messageRest (match-string 5 line))
                 (otherEntries (match-string 6 line))
-                (fileWithLine (format "%s:%s:%s" (concat (file-name-as-directory directoryRoot) file)  linenumber "0")))
+                (fileWithLine (format "%s:%s:%s" file linenumber "0")))
            
              (list fileWithLine (vector
-                                 (propertize (file-name-sans-versions file) 'face 'periphery-filename-face)
+                                 (propertize
+                                  (format "%s/%s"
+                                          (file-name-sans-extension (file-name-nondirectory (directory-file-name (file-name-directory file))))
+                                          (file-name-nondirectory file)
+                                          ) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery--gray-face)
                                  (propertize "info" 'face 'periphery-warning-face)
                                  (format "%s%s%s %s"
@@ -301,8 +307,9 @@
                                          )
                                  ))))))
 
-(defun bartycrouch-run-parser (input directoryRoot)
+(defun periphery-run-bartycrouch-parser (input directoryRoot)
   "Run bartycrouchparsing as INPUT DIRECTORYROOT."
+  (print directoryRoot)
   (setq directoryRoot directoryRoot)
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))

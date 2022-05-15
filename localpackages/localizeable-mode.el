@@ -1,6 +1,5 @@
 ;;; localizeable-mode.el --- Highlight strings.
 
-(require 'projectile)
 (require 'swift-additions)
 (require 'periphery)
 (load "swift-additions")
@@ -31,7 +30,7 @@
   "Equals."
   :group 'localizeable-font)
 
-(defconst bartycrouch-lint-command "bartycrouch lint")
+(defconst bartycrouch-lint-command "bartycrouch lint -x")
 
 (defvar localizeable-mode-map nil "Keymap for localizeable.")
 (setq localizeable-mode-map (make-sparse-keymap))
@@ -59,10 +58,11 @@
                  ("\/\\*[^*]*\\*+\\(?:[^/*][^*]*\\*+\\)*/" 0 'localizeable-comment-face t)
                  ("\\(=\\)" 0 'localizeable-equals-face t)))
 
-
 (defun parse-localizeable (text)
   "Parse output from TEXT."
-  (bartycrouch-run-parser text (projectile-project-root)))
+  ;(print (projectile-project-root))
+  (periphery-run-bartycrouch-parser text (projectile-project-root)
+                                    ))
 
 (defun localizeable-mode-analyze ()
   "Analyse all localizeable.strings."
@@ -71,8 +71,8 @@
       (progn
         (let ((default-directory (projectile-project-root)))
           (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
-        (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit 'warning)))
-       (message-with-color "[Error]" "bartycrouch not installed. run 'brew install bartycrouch'" '(:inherit 'warning))))
+        (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit warning)))
+    (message-with-color "[Error]" "bartycrouch not installed. run 'brew install bartycrouch'" '(:inherit warning))))
 
 (provide 'localizeable-mode)
 

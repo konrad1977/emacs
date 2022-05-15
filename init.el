@@ -212,8 +212,8 @@
 		dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-time
 		dashboard-week-agenda t
 		dashboard-items '(
-						  (projects . 3)
-						  (recents . 5)
+						  (projects . 5)
+						  (recents . 7)
                           )))
 
 ;; Which key
@@ -267,7 +267,7 @@
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
-  (define-key evil-motion-state-map (kbd "C-f") #'deadgrep)
+  (define-key evil-motion-state-map (kbd "C-f") #'ag-project-files)
   (define-key evil-motion-state-map "/" 'swiper))
 
 (use-package evil-tutor
@@ -1005,7 +1005,7 @@
   :hook (prog-mode . dumb-jump-mode))
 
 (use-package bm
-  :demand t
+  :defer t
   :init
   (setq bm-restore-repository-on-load t) ;; restore on load (even before you require bm)
   :config
