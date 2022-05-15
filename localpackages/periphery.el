@@ -8,43 +8,45 @@
 (require 'transient)
 (require 'evil)
 
+(defface periphery-info-face
+  '((t (:inherit compilation-info :bold t)))
+  "Warning."
+  :group 'periphery)
+
 (defface periphery-warning-face
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit compilation-warning :bold t)))
+  "Warning."
+  :group 'periphery)
+
+(defface periphery-error-face
+  '((t (:inherit compilation-error :bold t)))
   "Warning."
   :group 'periphery)
 
 (defface periphery-filename-face
+  '((t (:inherit font-lock-builtin-face)))
+  "Warning."
+  :group 'periphery)
+
+(defface periphery-linenumber-face
   '((t (:inherit font-lock-constant-face)))
   "Warning."
   :group 'periphery)
 
 (defface periphery-identifier-face
-  '((t (:inherit error :italic t :weight semi-bold)))
+  '((t (:inherit font-lock-type-face :italic t :weight semi-bold)))
   "Warning."
   :group 'periphery)
 
-(defface periphery--red-face
-  '((((class color) (background light)) :foreground "#FF5D62" :weight semi-bold)
-    (((class color) (background dark)) :foreground "#FF5D62" :weight semi-bold))
-  "Face of red."
-  :group 'periphery)
-
-(defface periphery--gray-face
-  '((((class color) (background light)) :foreground "#717C7C")
-    (((class color) (background dark)) :foreground "#717C7C"))
-  "Face of gray."
+(defface periphery-message-face
+  '((t (:inherit font-lock-comment-face)))
+  "Warning."
   :group 'periphery)
 
 (defface periphery--blue-face
   '((((class color) (background light)) :foreground "#7E9CD8")
     (((class color) (background dark)) :foreground  "#7E9CD8"))
   "Face of blue."
-  :group 'periphery)
-
-(defface periphery--yellow-face
-  '((((class color) (background light)) :foreground "#DCA561")
-    (((class color) (background dark)) :foreground  "#DCA561"))
-  "Face of yellow."
   :group 'periphery)
 
 (defvar periphery-mode-map nil "Keymap for periphery.")
@@ -112,7 +114,7 @@
           (format "%s%s%s"
                   (propertize-message beginning)
                   (propertize highlight 'face 'periphery-identifier-face)
-                  (propertize end 'face 'periphery--gray-face)))
+                  (propertize end 'face 'periphery-message-face)))
        text)))
 
 (defun parse-periphery-output-line (line)
@@ -129,7 +131,7 @@
 
              (list fileWithLine (vector
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
-                                 (propertize linenumber 'face 'periphery--gray-face)
+                                 (propertize linenumber 'face 'periphery-linenumber-face)
                                  (propertize-severity type (string-trim-left type))
                                  (mark-message-symbols (string-trim-left message)) ;(mark-help-symbols (string-trim-left message)))
                                  ))))))
@@ -154,7 +156,7 @@
     (propertize text 'face 'font-lock-constant-face))
    ((string-match-p (regexp-quote "Protocol") text)
     (propertize text 'face 'font-lock-builtin-face))
-  (t (propertize text 'face 'periphery--gray-face))))
+  (t (propertize text 'face 'periphery-message-face))))
   
 
 (defun propertize-severity (severity text)
@@ -162,16 +164,14 @@
   (let ((type (string-trim-left severity)))
     (cond
      ((string= type "info")
-      (propertize text 'face 'compilation-info))
+      (propertize text 'face 'compilation-info-face))
      ((string= type "note")
-      (propertize text 'face 'compilation-info))
+      (propertize text 'face 'periphery-warning-face))
      ((string= type "warning")
-      (propertize text 'face 'compilation-warning))
+      (propertize text 'face 'periphery-warning-face))
      ((string= type "error")
-      (propertize text 'face 'compilation-error))
-     (t (propertize text 'face 'compilation-info)))))
-
-;; (mapc #'periphery-process-line (split-string (input) "\n"))
+      (propertize text 'face 'periphery-error-face))
+     (t (propertize text 'face 'periphery-info-face)))))
 
 (defun periphery-run-parser (input)
   "Run parser (as INPUT)."
@@ -297,13 +297,13 @@
                                           (file-name-sans-extension (file-name-nondirectory (directory-file-name (file-name-directory file))))
                                           (file-name-nondirectory file)
                                           ) 'face 'periphery-filename-face)
-                                 (propertize linenumber 'face 'periphery--gray-face)
-                                 (propertize "info" 'face 'periphery-warning-face)
+                                 (propertize linenumber 'face 'periphery-linenumber-face)
+                                 (propertize "warning" 'face 'periphery-warning-face)
                                  (format "%s%s%s %s"
-                                         (propertize message 'face 'periphery--gray-face)
+                                         (propertize message 'face 'periphery-message-face)
                                          (propertize failingAttribute 'face 'periphery-identifier-face)
-                                         (propertize messageRest 'face 'periphery--gray-face)
-                                         (propertize otherEntries 'face 'periphery--blue-face)
+                                         (propertize messageRest 'face 'periphery-message-face)
+                                         (propertize otherEntries 'face 'periphery-linenumber-face)
                                          )
                                  ))))))
 
@@ -327,9 +327,9 @@
                 (message (match-string 2 line)))
              (list "" (vector
                                  (propertize "Buildinfo" 'face 'periphery-filename-face)
-                                 (propertize "" 'face 'periphery--gray-face)
+                                 (propertize "" 'face 'periphery-message-face)
                                  (propertize (if note note "error") 'face 'periphery-warning-face)
-                                 (propertize message 'face 'periphery--gray-face)))))))
+                                 (propertize message 'face 'periphery-message-face)))))))
 
 
 (defun message-with-color (tag text attributes)
