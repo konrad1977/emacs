@@ -60,15 +60,20 @@
 
 (defun parse-localizeable (text)
   "Parse output from TEXT."
-  ;(print (projectile-project-root))
-  (periphery-run-bartycrouch-parser text (projectile-project-root)
-                                    ))
+  (if (or (string-match-p (regexp-quote "BUILD FAILED") text)
+          (string-match-p (regexp-quote "error") text)
+          (string-match-p (regexp-quote "warning") text))
+      (progn
+        (periphery-run-bartycrouch-parser text (projectile-project-root))
+        (message-with-color "[Warning]" "Found errors in localization files." '(:inherit error)))
+    (message-with-color "[Success]" "No errors found." '(:inherit success))))
 
 (defun localizeable-mode-analyze ()
   "Analyse all localizeable.strings."
   (interactive)
   (if (executable-find "bartycrouch")
       (progn
+        (save-some-buffers t)
         (let ((default-directory (projectile-project-root)))
           (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
         (message-with-color "[Analysing]" "Localizeble.strings" '(:inherit warning)))
