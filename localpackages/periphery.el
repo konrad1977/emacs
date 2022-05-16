@@ -115,7 +115,7 @@
         (let* ((ref (match-string 1 normalizedInput))
                (startPosition (string-match periphery-regex-mark-quotes normalizedInput position)))
           (setq position (match-end 1))
-          (put-text-property startPosition position 'face 'periphery-identifier-face normalizedInput)))
+          (put-text-property startPosition position 'face 'periphery-error-face normalizedInput)))
   normalizedInput)))
 
 (defun parse-periphery-output-line (line)
@@ -133,8 +133,9 @@
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery-linenumber-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (mark-all-quoted-symbols (string-trim-left message))
-                                                        ;(mark-help-symbols (string-trim-left message)))
+                                 (mark-all-quoted-symbols
+                                    (propertize (string-trim-left message) 'face 'periphery-message-face))
+                                 ;; (mark-all-quoted-symbols (string-trim-left message))
                                  ))))))
 
 
