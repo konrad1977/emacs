@@ -246,7 +246,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
   (interactive)
-  (message-with-color "[Terminating]" current-xcode-scheme '(:inherit 'error))
+  (message-with-color "[Terminating]" current-xcode-scheme '(:inherit error))
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
@@ -260,7 +260,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun parse-errors-from (text)
   "Parse errors from TEXT."
-  (message-with-color "[Error]" "Build failed." '(:inherit 'error))
+  (message-with-color "[Error]" "Build failed." '(:inherit error))
   (periphery-run-parser text))
 
 (defun run-app ()

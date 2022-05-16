@@ -62,8 +62,9 @@
   "Remove unicode-characters.")
 (defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.+\\)$"
   "When we fail because of other errors than compilation errors.")
-
 (defconst periphery-buffer-name "*Periphery*")
+(defconst periphery-regex-mark-quotes "\\('[^']+'\\)")
+
 (defvar periphery-errorList '())
 (defvar directoryRoot nil "DirectoryRoot for localizeable.")
 
@@ -104,21 +105,20 @@
   (setq tabulated-list-entries (-non-nil errorList))
   (tabulated-list-print t))
 
-(defun mark-message-symbols (text)
-  "Highlight marked out errors as TEXT."
+
+(defun mark-all-quoted-symbols (input)
+  "Highlight all quoted symbols (as INPUT)."
   (save-match-data
-    (if (string-match "\\(?:\\([^']+\\)\\)\\('[^']+'\\)\\(.*\\)" (replace-regexp-in-string "’" "'" text))
-        (let* ((beginning (match-string 1 text))
-               (highlight (match-string 2 text))
-               (end (match-string 3 text)))
-          (format "%s%s%s"
-                  (propertize-message beginning)
-                  (propertize highlight 'face 'periphery-identifier-face)
-                  (propertize end 'face 'periphery-message-face)))
-       text)))
+    (let* ((position 0)
+           (normalizedInput (replace-regexp-in-string "’" "'"  input)))
+      (while (string-match periphery-regex-mark-quotes normalizedInput position)
+        (let* ((ref (match-string 1 normalizedInput))
+               (startPosition (string-match periphery-regex-mark-quotes normalizedInput position)))
+          (setq position (match-end 1))
+          (put-text-property startPosition position 'face 'periphery-identifier-face normalizedInput)))
+  normalizedInput)))
 
 (defun parse-periphery-output-line (line)
-   
   "Run regex over curent LINE."
   (save-match-data
     (and (string-match periphery-regex-parser line)
@@ -133,7 +133,8 @@
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery-linenumber-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (mark-message-symbols (string-trim-left message)) ;(mark-help-symbols (string-trim-left message)))
+                                 (mark-all-quoted-symbols (string-trim-left message))
+                                                        ;(mark-help-symbols (string-trim-left message)))
                                  ))))))
 
 
