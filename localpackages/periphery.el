@@ -43,12 +43,6 @@
   "Warning."
   :group 'periphery)
 
-(defface periphery--blue-face
-  '((((class color) (background light)) :foreground "#7E9CD8")
-    (((class color) (background dark)) :foreground  "#7E9CD8"))
-  "Face of blue."
-  :group 'periphery)
-
 (defvar periphery-mode-map nil "Keymap for periphery.")
 (setq periphery-mode-map (make-sparse-keymap))
 
@@ -66,7 +60,7 @@
 (defconst periphery-regex-mark-quotes "\\('[^']+'\\)")
 
 (defvar periphery-errorList '())
-(defvar directoryRoot nil "DirectoryRoot for localizeable.")
+(defvar periphery-directory-root nil "DirectoryRoot for localizeable.")
 
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
@@ -309,20 +303,18 @@
                                          )
                                  ))))))
 
-(defun periphery-run-bartycrouch-parser (input directoryRoot)
-  "Run bartycrouchparsing as INPUT DIRECTORYROOT."
-  (print directoryRoot)
-  (setq directoryRoot directoryRoot)
+(defun periphery-run-bartycrouch-parser (input directory)
+  "Run bartycrouchparsing as INPUT DIRECTORY."
+  (setq periphery-directory-root directory)
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
-    (let ((entry (parse-bartycrouch-output-line (string-trim-left line))))
-      (if entry
-          (push entry periphery-errorList))))
-  (if periphery-errorList
+    (when-let ((entry (parse-bartycrouch-output-line (string-trim-left line))))
+      (push entry periphery-errorList)))
+  (when periphery-errorList
       (periphery-listing-command periphery-errorList)))
   
 (defun parse-xcodebuild-notes-and-errors (line)
-  "Parse error and notes (TEXT)."
+  "Parse error and notes (as LINE)."
   (save-match-data
     (and (string-match periphery-note-and-errors-regex line)
          (let* ((note (match-string 1 line))

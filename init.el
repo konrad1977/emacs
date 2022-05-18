@@ -341,13 +341,20 @@
           ("FIXME\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
           )))
 
-;; // TODO: Hello world
-
 ;; nyan cat
 (use-package nyan-mode
   :hook (doom-modeline-mode . nyan-mode)
   :config
   (setq nyan-animate-nyancat t))
+
+(use-package dimmer
+  :hook (prog-mode . dimmer-mode)
+  :config
+  (dimmer-configure-org)
+  (dimmer-configure-magit)
+  (dimmer-configure-hydra)
+  (dimmer-configure-which-key)
+  (setq dimmer-fraction 0.35))
 
 (use-package beacon
   :hook (after-init . beacon-mode)
