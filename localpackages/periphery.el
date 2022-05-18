@@ -29,17 +29,17 @@
   :group 'periphery)
 
 (defface periphery-linenumber-face
-  '((t (:inherit font-lock-constant-face)))
+  '((t (:inherit line-number)))
   "Warning."
   :group 'periphery)
 
 (defface periphery-identifier-face
-  '((t (:inherit font-lock-type-face :italic t :weight semi-bold)))
+  '((t (:inherit font-lock-constant-face :italic t :weight semi-bold)))
   "Warning."
   :group 'periphery)
 
 (defface periphery-message-face
-  '((t (:inherit font-lock-comment-face)))
+  '((t (:inherit font-lock-comment-face :italic nil)))
   "Warning."
   :group 'periphery)
 
@@ -109,7 +109,7 @@
         (let* ((ref (match-string 1 normalizedInput))
                (startPosition (string-match periphery-regex-mark-quotes normalizedInput position)))
           (setq position (match-end 1))
-          (put-text-property startPosition position 'face 'periphery-error-face normalizedInput)))
+          (put-text-property startPosition position 'face 'periphery-identifier-face normalizedInput)))
   normalizedInput)))
 
 (defun parse-periphery-output-line (line)
@@ -162,7 +162,7 @@
      ((string= type "info")
       (propertize text 'face 'compilation-info-face))
      ((string= type "note")
-      (propertize text 'face 'periphery-warning-face))
+      (propertize text 'face 'periphery-info-face))
      ((string= type "warning")
       (propertize text 'face 'periphery-warning-face))
      ((string= type "error")
@@ -322,7 +322,7 @@
              (list "" (vector
                                  (propertize "Buildinfo" 'face 'periphery-filename-face)
                                  (propertize "" 'face 'periphery-message-face)
-                                 (propertize (if note note "error") 'face 'periphery-warning-face)
+                                 (propertize-severity (if note note "error") (string-trim-left note))
                                  (propertize message 'face 'periphery-message-face)))))))
 
 
