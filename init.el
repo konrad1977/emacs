@@ -275,6 +275,8 @@
 
 (use-package evil-collection
   :after evil
+  :custom 
+  (setq evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
 
