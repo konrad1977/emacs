@@ -75,7 +75,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground green :bold t))
   (numbers                              (:background green :foreground black))
-  (region                               (:background rosewater :foreground black-2))
+  (region                               (:background green :foreground black))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))
@@ -85,7 +85,7 @@
   (window-divider-first-pixel           (:foreground black-2))
   (window-divider-last-pixel            (:background black-2))
 
-  ;; Font lock
+  ;; ;; Font lock
   (font-lock-type-face                  (:foreground lavender))
   (font-lock-regexp-grouping-backslash  (:foreground yellow))
   (font-lock-keyword-face               (:bold t :foreground maroon))
@@ -291,10 +291,6 @@
   (treemacs-git-renamed-face		   			(:foreground rosewater))
   (treemacs-git-modified-face		   			(:foreground maroon))
 
-  (tree-sitter-hl-face:constant					(:background red))
-  (tree-sitter-hl-face:constant.builtin			(:background red))
-  (tree-sitter-hl-face:function.call			(:background mauve))
-
   ;; lets support solaire mode
   (solaire-default-face (:background black-1))
   ;; lsp
@@ -388,6 +384,59 @@
   (centaur-tabs-close-mouse-face			(:background nil :foreground red))
   (centaur-tabs-default						(:background black-1))
   (centaur-tabs-name-mouse-face				(:foreground blue :bold t))
+
+  (git-gutter:added                              (:foreground green))
+  (git-gutter:deleted                            (:foreground red))
+  (git-gutter:modified                           (:foreground blue))
+  
+  (tree-sitter-hl-face:attribute                 (:foreground blue))
+  (tree-sitter-hl-face:escape                    (:foreground blue))
+  (tree-sitter-hl-face:constructor               (:foreground red :weight 'semi-bold))
+  
+  (tree-sitter-hl-face:constant                  (:foreground yellow))
+  (tree-sitter-hl-face:constant.builtin          (:foreground yellow :weight 'semi-bold))
+
+  (tree-sitter-hl-face:embedded                  (:foreground lavender))
+  
+  (tree-sitter-hl-face:function                  (:foreground peach))
+  (tree-sitter-hl-face:function.builtin          (:foreground peach))
+  (tree-sitter-hl-face:function.call             (:foreground mauve))
+  (tree-sitter-hl-face:function.macro            (:foreground blue))
+  (tree-sitter-hl-face:function.special          (:foreground peach))
+  (tree-sitter-hl-face:function.label            (:foreground peach))
+ 
+  (tree-sitter-hl-face:method                    (:foreground lavender))
+  (tree-sitter-hl-face:method.call               (:foreground lavender))
+
+  (tree-sitter-hl-face:property                  (:foreground flamingo))
+  (tree-sitter-hl-face:property.definition       (:foreground flamingo :italic t))
+  
+  (tree-sitter-hl-face:tag                       (:foreground yellow))
+
+  (tree-sitter-hl-face:type                      (:foreground mauve :bold t))
+  (tree-sitter-hl-face:type.argument             (:foreground mauve :bold t))
+  (tree-sitter-hl-face:type.builtin              (:foreground mauve))
+  (tree-sitter-hl-face:type.parameter            (:foreground mauve))
+  (tree-sitter-hl-face:type.super                (:foreground mauve :bold t))
+
+  (tree-sitter-hl-face:variable                  (:foreground rosewater :italic t))
+  (tree-sitter-hl-face:variable.builtin          (:foreground rosewater))
+  (tree-sitter-hl-face:variable.parameter        (:foreground rosewater :italic t))
+  (tree-sitter-hl-face:variable.special          (:foreground rosewater))
+  (tree-sitter-hl-face:variable.synthesized      (:foreground rosewater))
+
+  (tree-sitter-hl-face:number                    (:foreground pink))
+  (tree-sitter-hl-face:operator                  (:foreground pink :bold t))
+  
+  (tree-sitter-hl-face:punctuation               (:foreground red))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground red :bold t))
+  (tree-sitter-hl-face:punctuation.delimiter     (:foreground red :bold t))
+  (tree-sitter-hl-face:punctuation.special       (:foreground red))
+
+  (tree-sitter-hl-face:case-pattern              (:foreground red))
+  (tree-sitter-hl-face:variable.synthesized      (:foreground red))
+  (tree-sitter-hl-face:keyword.compiler          (:foreground red :bold t :italic t))
+  
  ))
 
 ;;;###autoload
