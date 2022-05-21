@@ -23,8 +23,8 @@
 (blink-cursor-mode)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 156)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 156)
+(set-face-attribute 'default nil :font "Iosevka" :height 158)
+(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'regular)
 
 (setq ad-redefinition-action            'accept
@@ -66,7 +66,7 @@
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
 			  tab-width                     4            ;: Use four tabs
-			  line-spacing                  0.05         ;; Increase linespacing a bit
+			  line-spacing                  0.02         ;; Increase linespacing a bit
 			  ;truncate-lines                1			 ;; Truncate lines
 			  indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
 			  completion-ignore-case        t            ;; Ignore case when completing
@@ -156,7 +156,7 @@
 (use-package autothemer
   :custom (setq custom-safe-themes t))
 
-(load-theme 'kanagawa t)
+(load-theme 'catppuccin t)
 
 ;;  theming
 (add-hook 'minibuffer-setup-hook
@@ -275,6 +275,8 @@
 
 (use-package evil-collection
   :after evil
+  :custom 
+  (setq evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
 
@@ -595,6 +597,7 @@
   :diminish projectile-mode
   :custom
   (add-to-list 'projectile-globally-ignored-directories '"^\\.build$")
+  (add-to-list 'projectile-globally-ignored-directories '"^\\build$")
   (add-to-list 'projectile-globally-ignored-directories '"^\\.swiftpm$")
   (add-to-list 'projectile-globally-ignored-directories '"^\\elpa$")
   (add-to-list 'projectile-globally-ignored-directories '"^\\xcodeproj$")
@@ -838,7 +841,7 @@
     "h" '(:ignore t :which-key "Help")
     "hc" '(helpful-command :which-key "Describe command")
     "hk" '(helpful-key :which-key "Describe key")
-    "hf" '(helpful-function :which-key "Describe function")
+
     "hv" '(helpful-variable :which-key "Describe variable")
     "ht" '(evil-tutor-start :which-key "Evil tutorial")
     "h." '(helpful-at-point :which-key "Describe at-point")
