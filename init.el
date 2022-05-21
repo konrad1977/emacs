@@ -354,7 +354,7 @@
   (dimmer-configure-magit)
   (dimmer-configure-hydra)
   (dimmer-configure-which-key)
-  (setq dimmer-fraction 0.35))
+  (setq dimmer-fraction 0.15))
 
 (use-package beacon
   :hook (after-init . beacon-mode)

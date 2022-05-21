@@ -93,7 +93,7 @@
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground waveAqua2 :bold t))
   (numbers                                       (:background sakuraPink))
-  (region                                        (:background waveBlue-1))
+  (region                                        (:background waveBlue-2))
   (separator-line                                (:background sumiInk-0))
   (shadow                                        (:background sumiInk-0))
   (success                                       (:foreground waveAqua2))
@@ -385,7 +385,8 @@
 
   (anzu-mode-line                                (:foreground sumiInk-0 :background springViolet2))
   (anzu-mode-no-match	                         (:foreground fujiWhite :background peachRed))
-  (anzu-replace-to                               (:foreground carpYellow :background winterRed))
+  (anzu-replace-to                               (:foreground springBlue :background winterBlue))
+  (anzu-replace-highlight                        (:foreground peachRed :background winterRed :strike-through t))
 
   ;; ace
   (ace-jump-face-background                      (:foreground waveBlue-2))
@@ -442,9 +443,9 @@
 
   (tree-sitter-hl-face:attribute                 (:foreground surimiOrange))
   (tree-sitter-hl-face:escape                    (:foreground waveRed))
-  (tree-sitter-hl-face:constructor               (:foreground springBlue :weight 'semi-bold))
+  (tree-sitter-hl-face:constructor               (:foreground waveRed :weight 'semi-bold))
   
-  (tree-sitter-hl-face:constant                  (:foreground boatYellow2))
+  (tree-sitter-hl-face:constant                  (:foreground surimiOrange))
   (tree-sitter-hl-face:constant.builtin          (:foreground carpYellow :weight 'semi-bold))
 
   (tree-sitter-hl-face:embedded                  (:foreground boatYellow2))
@@ -454,17 +455,17 @@
   (tree-sitter-hl-face:function.call             (:foreground springViolet2))
   (tree-sitter-hl-face:function.macro            (:foreground samuraiRed))
   (tree-sitter-hl-face:function.special          (:foreground sakuraPink))
-  (tree-sitter-hl-face:function.label            (:foreground springViolet1))
+  (tree-sitter-hl-face:function.label            (:foreground surimiOrange))
  
   (tree-sitter-hl-face:method                    (:foreground lightBlue))
   (tree-sitter-hl-face:method.call               (:foreground lightBlue))
 
-  (tree-sitter-hl-face:property                  (:foreground waveRed))
-  (tree-sitter-hl-face:property.definition       (:foreground sakuraPink :italic t))
+  (tree-sitter-hl-face:property                  (:foreground carpYellow))
+  (tree-sitter-hl-face:property.definition       (:foreground old-white :italic t))
   
   (tree-sitter-hl-face:tag                       (:foreground peachRed))
 
-  (tree-sitter-hl-face:type                      (:foreground waveAqua1 :bold t))
+  (tree-sitter-hl-face:type                      (:foreground waveAqua2 :weight 'semi-bold))
   (tree-sitter-hl-face:type.argument             (:foreground surimiOrange))
   (tree-sitter-hl-face:type.builtin              (:foreground autumnRed))
   (tree-sitter-hl-face:type.parameter            (:foreground surimiOrange))
