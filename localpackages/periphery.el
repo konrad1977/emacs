@@ -43,6 +43,8 @@
   "Warning."
   :group 'periphery)
 
+(defconst periphery-buffer-name "*Periphery*")
+
 (defvar periphery-mode-map nil "Keymap for periphery.")
 (setq periphery-mode-map (make-sparse-keymap))
 
@@ -54,9 +56,10 @@
 (defconst periphery-parse-line-regex "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$")
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
+
 (defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.+\\)$"
   "When we fail because of other errors than compilation errors.")
-(defconst periphery-buffer-name "*Periphery*")
+
 (defconst periphery-regex-mark-quotes "\\('[^']+'\\)")
 
 (defvar periphery-errorList '())
@@ -67,7 +70,7 @@
   (setq tabulated-list-format [
                                ("File" 30 t)
                                ("Line" 5 nil)
-                               ("Severity" 8 nil)
+                               ("Type" 8 nil)
                                ("Message" 80 nil)
                                ])
   (setq tabulated-list-padding 1)
@@ -348,11 +351,10 @@
              (list fileWithLine (vector
                                  (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
                                  (propertize line 'face 'periphery-linenumber-face)
-                                 (propertize "match" 'face 'periphery-warning-face)
+                                 (propertize "match" 'face 'periphery-info-face)
                                  (mark-all-symbols
                                     (propertize (string-trim-left message) 'face 'periphery-message-face)
-                                  (format "\\(%s\\)" query))
-                                 ))))))
+                                  (format "\\(%s\\)" query))))))))
 
 (defun periphery-parse-search-result (text query)
   "Parse search result (as TEXT) and QUERY."

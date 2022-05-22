@@ -1093,8 +1093,7 @@
   (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
   (local-set-key (kbd "C-c C-s") #'swift-additions:split-func-list)
   (local-set-key (kbd "C-c C-r") #'xcode-build:run)
-  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point)
-
+  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
 
   (use-package flycheck-swift3
     :after flycheck
