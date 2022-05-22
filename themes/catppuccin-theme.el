@@ -43,6 +43,8 @@
   (gray-1     "#988BA2" "#8a8a8a")
   (gray-2     "#C3BAC6" "#9e9e9e")
   (white      "#DFDEF1" "#eeeeee")
+  (blue-bg    "#0C121A" "#875f5f")
+  (red-bg     "#18090E" "#875f5f")
   (yellow-bg  "#383227" "#875f5f")
 
   )
@@ -255,6 +257,9 @@
   (flycheck-error-list-warning          (:foreground yellow :bold t))
   (flycheck-error-list-error            (:foreground red :bold t))
   (flycheck-error-list-info             (:foreground blue :bold t))
+  (flycheck-inline-error                (:foreground red :background red-bg :weight 'semi-bold :height 138))
+  (flycheck-inline-info                 (:foreground blue :background blue-bg :weight 'semi-bold :height 138))
+  (flycheck-inline-warning              (:foreground yellow :background yellow-bg :weight 'semi-bold :height 138))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground black-3))

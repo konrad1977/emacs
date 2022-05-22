@@ -100,14 +100,14 @@
   (tabulated-list-print t))
 
 
-(defun mark-all-quoted-symbols (input)
-  "Highlight all quoted symbols (as INPUT)."
+(defun mark-all-symbols (input regex)
+  "Highlight all quoted symbols (as INPUT) and REGEX."
   (save-match-data
     (let* ((position 0)
            (normalizedInput (replace-regexp-in-string "’" "'"  input)))
-      (while (string-match periphery-regex-mark-quotes normalizedInput position)
+      (while (string-match regex normalizedInput position)
         (let* ((ref (match-string 1 normalizedInput))
-               (startPosition (string-match periphery-regex-mark-quotes normalizedInput position)))
+               (startPosition (string-match regex normalizedInput position)))
           (setq position (match-end 1))
           (put-text-property startPosition position 'face 'periphery-identifier-face normalizedInput)))
   normalizedInput)))
@@ -127,9 +127,9 @@
                                  (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
                                  (propertize linenumber 'face 'periphery-linenumber-face)
                                  (propertize-severity type (string-trim-left type))
-                                 (mark-all-quoted-symbols
-                                    (propertize (string-trim-left message) 'face 'periphery-message-face))
-                                 ;; (mark-all-quoted-symbols (string-trim-left message))
+                                 (mark-all-symbols
+                                  (propertize (string-trim-left message) 'face 'periphery-message-face)
+                                  periphery-regex-mark-quotes)
                                  ))))))
 
 
@@ -332,6 +332,36 @@
   (setq-local inhibit-message nil)
   (message "%s %s" (propertize tag 'face attributes) text)
   (setq-local inhibit-message t))
+
+(defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\s+\\(.*\\)")
+
+(defun parse--search-query (text query)
+  "Parse error and notes (as TEXT) and QUERY."
+  (save-match-data
+    (and (string-match periphery-parse-search text)
+         (let* ((file (match-string 1 text))
+                (line (match-string 2 text))
+                (column (match-string 3 text))
+                (message (match-string 4 text))
+                (fileWithLine (format "%s:%s:%s" file line column)))
+           
+             (list fileWithLine (vector
+                                 (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
+                                 (propertize line 'face 'periphery-linenumber-face)
+                                 (propertize "match" 'face 'periphery-warning-face)
+                                 (mark-all-symbols
+                                    (propertize (string-trim-left message) 'face 'periphery-message-face)
+                                  (format "\\(%s\\)" query))
+                                 ))))))
+
+(defun periphery-parse-search-result (text query)
+  "Parse search result (as TEXT) and QUERY."
+  (setq periphery-errorList '())
+  (dolist (line (split-string text "\n"))
+    (when-let ((entry (parse--search-query (string-trim-left line) query)))
+      (push entry periphery-errorList)))
+  (when periphery-errorList
+      (periphery-listing-command periphery-errorList)))
 
 (provide 'periphery)
 ;;; periphery.el ends here

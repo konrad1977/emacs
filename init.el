@@ -23,7 +23,7 @@
 (blink-cursor-mode)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "Iosevka" :height 158)
+(set-face-attribute 'default nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'regular)
 
@@ -1074,6 +1074,7 @@
     :group 'tree-sitter-hl-faces)
 
   (load "swift-additions")
+  (load "periphery-search")
   (load "swift-querying")
   (load "localizeable-mode")
 
@@ -1082,7 +1083,7 @@
   (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
   (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
   (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
-  (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
+  ;; (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
@@ -1092,6 +1093,7 @@
   (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
   (local-set-key (kbd "C-c C-s") #'swift-additions:split-func-list)
   (local-set-key (kbd "C-c C-r") #'xcode-build:run)
+  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point)
 
 
   (use-package flycheck-swift3
