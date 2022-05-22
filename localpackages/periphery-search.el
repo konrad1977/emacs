@@ -49,7 +49,7 @@ PROCESS-NAME is the name of the process."
                (default-directory (vc-root-dir)))
           (setq current-query word)
           (async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher word) #'send-search-result-to-periphery)))
-  (message (format "Install %s to use this command." searcher))))
+    (message (format "Install %s to use this command." searcher))))
 
 (provide 'perihery-search)
 ;;; periphery-search.el ends here.

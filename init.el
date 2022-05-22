@@ -24,8 +24,8 @@
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" :height 158)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'regular)
+(set-face-attribute 'fixed-pitch nil :font "Iosevka" )
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile")
 
 (setq ad-redefinition-action            'accept
 	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5

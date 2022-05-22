@@ -363,7 +363,9 @@
     (when-let ((entry (parse--search-query (string-trim-left line) query)))
       (push entry periphery-errorList)))
   (when periphery-errorList
-      (periphery-listing-command periphery-errorList)))
+    (progn
+      (message-with-color "[Search result]:" (format "%d occurrences found for '%s'" (length periphery-errorList) query) 'periphery-info-face)
+      (periphery-listing-command periphery-errorList))))
 
 (provide 'periphery)
 ;;; periphery.el ends here
