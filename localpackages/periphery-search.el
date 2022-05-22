@@ -1,9 +1,10 @@
-;;; Periphery-search --- Package for showing search as result in a tabulated list
+;;; Periphery-search --- Search using Ag/Rg and show the result as flycheck list.
+
+;;; Commentary: Package for showing search as result in a tabulated list
 
 ;;; Code:
 (require 'periphery)
 
-(defconst ag-searcher "ag")
 (defvar current-query "")
 
 (defun async-shell-command-to-string (process-name command callback)
@@ -40,15 +41,16 @@ PROCESS-NAME is the name of the process."
   (periphery--search-thing-at-point "rg")) 
 
 (defun periphery--search-thing-at-point (searcher)
-  "Search thing at point using (SEARCHER)"
+  "Search thing at point using (SEARCHER)."
   (setq current-query nil)
   (if (executable-find ag-searcher)
       (progn
         (let* ((word (thing-at-point 'word))
-               (default-directory (projectile-project-root)))
+               (default-directory (vc-root-dir)))
           (setq current-query word)
           (async-shell-command-to-string searcher (format "%s --vimgrep %s" searcher word) #'send-search-result-to-periphery)))
   (message (format "Install %s to use this command." searcher))))
 
 (provide 'perihery-search)
+;;; periphery-search.el ends here.
 
