@@ -33,22 +33,22 @@ PROCESS-NAME is the name of the process."
 (defun periphery-search-thing-at-point-ag ()
   "Search using ag (Silver searcher)."
   (interactive)
-  (periphery--search-thing-at-point "ag")) 
+  (periphery--search-thing-at-point "ag"))
 
 (defun periphery-search-thing-at-point-rg ()
   "Search using rg (ripgrep)."
   (interactive)
-  (periphery--search-thing-at-point "rg")) 
+  (periphery--search-thing-at-point "rg"))
 
 (defun periphery--search-thing-at-point (searcher)
   "Search thing at point using (SEARCHER)."
   (setq current-query nil)
-  (if (executable-find ag-searcher)
+  (if (executable-find searcher)
       (progn
         (let* ((word (thing-at-point 'word))
                (default-directory (vc-root-dir)))
           (setq current-query word)
-          (async-shell-command-to-string searcher (format "%s --vimgrep %s" searcher word) #'send-search-result-to-periphery)))
+          (async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher word) #'send-search-result-to-periphery)))
   (message (format "Install %s to use this command." searcher))))
 
 (provide 'perihery-search)
