@@ -381,8 +381,9 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun install-app-on-device ()
   "Install an app on device."
-  (let ((default-directory (concat current-project-root (build-folder))))
-    (message-with-color "[Installing]" "onto physical device. Will launch app when done." '(:inherit success))
+  (let* ((folder (build-folder))
+        (default-directory (concat current-project-root folder)))
+    (message-with-color "[Installing]" (format "%s onto physical device. Will launch app when done." (swift-additions:get-app-name folder)) '(:inherit success))
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
 
 (defun install-app-in-simulator ()
@@ -403,7 +404,6 @@ ARGS are rest arguments, appended to the argument list."
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
   (interactive)
-  
   (let* ((default-directory (current-project-root))
          (compile-command (build-app-command (fetch-or-load-simulator-id))))
     (compile compile-command)))

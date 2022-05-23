@@ -1087,6 +1087,7 @@
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
+  (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
   (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
   (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
   (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
