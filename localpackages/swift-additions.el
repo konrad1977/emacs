@@ -199,9 +199,10 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun build-folder ()
   "Fetch build folder."
-  (if local-device-id
-      "build/Build/Products/Debug-iphoneos/"
-    "build/Build/Products/Debug-iphonesimulator/"))
+  (let ((config (fetch-or-load-build-configuration)))
+    (if local-device-id
+      (format "build/Build/Products/%s-iphoneos/" config)
+      (format "build/Build/Products/%s-iphonesimulator/" config))))
 
 (defun number-of-available-cores ()
   "Fetch number of available cores."
@@ -224,7 +225,7 @@ ARGS are rest arguments, appended to the argument list."
   "Xcodebuild with (as SIMULATOR-ID)."
   (concat
    (xcodebuild-command)
-   (format "-scheme %s \\" (fetch-or-load-xcode-scheme)) 
+   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (get-workspace-or-project)
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (number-of-available-cores))
@@ -247,8 +248,7 @@ ARGS are rest arguments, appended to the argument list."
     (concat
      "env /usr/bin/arch -x86_64 \\"
      (format "xcrun simctl install %s %s%s.app\n" (fetch-or-load-simulator-id) folder (swift-additions:get-app-name folder))
-     (format "xcrun simctl launch %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier))))
-    )
+     (format "xcrun simctl launch %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
 
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
@@ -389,7 +389,7 @@ ARGS are rest arguments, appended to the argument list."
   "Install the app in the simulator."
   (let ((default-directory current-project-root))
     (swift-additions:terminate-app-in-simulator)
-    (message-with-color "[Installing]" (format "onto %s. Will launch app when done." (fetch-simulator-name)) '(:inherit success))
+    (message-with-color "[Installing]"  (format "%s onto %s. Will launch app when done." (swift-additions:get-app-name (build-folder)) (fetch-simulator-name)) '(:inherit success))
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
