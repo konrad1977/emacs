@@ -336,7 +336,7 @@
   (message "%s %s" (propertize tag 'face attributes) text)
   (setq-local inhibit-message t))
 
-(defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\s+\\(.*\\)")
+(defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
 (defun parse--search-query (text query)
   "Parse error and notes (as TEXT) and QUERY."

@@ -163,6 +163,7 @@
   ;; org-mode
   (org-done                             (:foreground gray-1))
   (org-code                             (:background black))
+  (org-meta-line                        (:background blue-bg :foreground blue))
   (org-block                            (:background black))
   (org-block-begin-line                 (:background black :foreground gray-1))
   (org-block-end-line	                (:background black :foreground gray-1))
