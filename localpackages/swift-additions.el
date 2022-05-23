@@ -224,7 +224,7 @@ ARGS are rest arguments, appended to the argument list."
   "Xcodebuild with (as SIMULATOR-ID)."
   (concat
    (xcodebuild-command)
-   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
+   (format "-scheme %s \\" (fetch-or-load-xcode-scheme)) 
    (get-workspace-or-project)
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (number-of-available-cores))
@@ -236,12 +236,19 @@ ARGS are rest arguments, appended to the argument list."
    "-derivedDataPath \\"
    "build"))
 
+(defun swift-additions:get-app-name (directory)
+  "Get compiled app name from (DIRECTORY)."
+  (when-let (binary-name (directory-files directory nil "\\.app$"))
+    (file-name-sans-extension (car binary-name))))
+
 (defun swift-additions:install-and-run-simulator-command ()
   "Install and launch app."
-  (concat
-   "env /usr/bin/arch -x86_64 \\"
-   (format "xcrun simctl install %s %s%s.app\n" (fetch-or-load-simulator-id) (build-folder) (fetch-or-load-xcode-scheme))
-   (format "xcrun simctl launch %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier))))
+  (let ((folder (build-folder)))
+    (concat
+     "env /usr/bin/arch -x86_64 \\"
+     (format "xcrun simctl install %s %s%s.app\n" (fetch-or-load-simulator-id) folder (swift-additions:get-app-name folder))
+     (format "xcrun simctl launch %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier))))
+    )
 
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
