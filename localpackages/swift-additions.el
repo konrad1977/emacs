@@ -381,10 +381,11 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun install-app-on-device ()
   "Install an app on device."
-  (let* ((folder (build-folder))
-        (default-directory (concat current-project-root folder)))
-    (message-with-color "[Installing]" (format "%s onto physical device. Will launch app when done." (swift-additions:get-app-name folder)) '(:inherit success))
-    (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" (fetch-or-load-xcode-scheme)))))
+  (let* ((app-name (swift-additions:get-app-name (build-folder)))
+         (default-directory (concat current-project-root (build-folder))))
+    (message default-directory)
+    (message-with-color "[Installing]" (format "%s onto physical device. Will launch app when done." app-name) '(:inherit success))
+    (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
 
 (defun install-app-in-simulator ()
   "Install the app in the simulator."
@@ -416,7 +417,9 @@ ARGS are rest arguments, appended to the argument list."
   (setq current-project-root nil)
   (setq current-build-configuration nil)
   (setq current-simulator-id nil)
-  (setq current-simulator-name nil))
+  (setq current-simulator-name nil)
+    (message-with-color "[Resetting]" "Build configiration" 'warning)
+  )
 
 (defun setup-default-buffer-state ()
   "Setup buffer default state."
