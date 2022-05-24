@@ -267,7 +267,7 @@
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
-  (define-key evil-motion-state-map (kbd "C-f") #'ag-project-files)
+  (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-ag)
   (define-key evil-motion-state-map "/" 'swiper))
 
 (use-package evil-tutor
