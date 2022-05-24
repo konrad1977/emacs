@@ -67,7 +67,7 @@ PROCESS-NAME is the name of the process."
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."
-  (periphery-run-query searcher (read-regexp "Type search query: ")))
+  (periphery-run-query searcher (read-regexp "Query: ")))
 
 (provide 'perihery-search)
 ;;; periphery-search.el ends here.
