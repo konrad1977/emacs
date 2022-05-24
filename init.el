@@ -592,6 +592,12 @@
   (interactive)
   (shell-command "system_profiler SPHardwareDataType"))
 
+(use-package clean-aindent-mode
+  :hook (prog-mode . clean-aindent-mode)
+  :config
+  (setq clean-aindent-is-simple-indent t)
+  (define-key global-map (kbd "RET") 'newline-and-indent))
+
 (use-package projectile
   :hook (prog-mode . projectile-mode)
   :diminish projectile-mode

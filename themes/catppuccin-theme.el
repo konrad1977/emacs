@@ -260,9 +260,9 @@
   (flycheck-error-list-warning          (:foreground yellow :bold t))
   (flycheck-error-list-error            (:foreground red :bold t))
   (flycheck-error-list-info             (:foreground blue :bold t))
-  (flycheck-inline-error                (:foreground red :background red-bg :weight 'semi-bold :height 138 :box '(:line-width -1 :color red)))
-  (flycheck-inline-info                 (:foreground blue :background blue-bg :weight 'semi-bold :height 138 :box '(:line-width -1 :color red)))
-  (flycheck-inline-warning              (:foreground yellow :background yellow-bg :weight 'semi-bold :height 138 :box '(:line-width -1 :color yellow)))
+  (flycheck-inline-error                (:foreground red-bg :background red :weight 'semi-bold :height 128 :box '(:line-width 1 :color red-bg)))
+  (flycheck-inline-info                 (:foreground blue-bg :background blue :weight 'semi-bold :height 128 :box '(:line-width 1 :color blue-bg)))
+  (flycheck-inline-warning              (:foreground yellow-bg :background yellow :weight 'semi-bold :height 128 :box '(:line-width 1 :color yellow-bg)))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground black-3))
