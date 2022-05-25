@@ -164,32 +164,32 @@
             (make-local-variable 'face-remapping-alist)
             (add-to-list 'face-remapping-alist '(default (:background "#16161D")))))
 
-(use-package centaur-tabs
-  :hook
-  (dashboard-mode . centaur-tabs-local-mode)
-  (vterm-mode . centaur-tabs-local-mode)
-  (calendar-mode . centaur-tabs-local-mode)
-  (org-agenda-mode . centaur-tabs-local-mode)
-  (helpful-mode . centaur-tabs-local-mode)
-  (xwidget-webkit-mode . centaur-tabs-local-mode)
-  (periphery-mode . centaur-tabs-local-mode)
-  :config
-  (add-to-list 'centaur-tabs-excluded-prefixes "*xcodebuild")
-  (centaur-tabs-mode)
-  (centaur-tabs-headline-match)
-  (centaur-tabs-group-by-projectile-project)
-  (setq centaur-tabs-style "box"
-		centaur-tabs-height 27
-        centaur-tabs-gray-out-icons 'buffer
-		centaur-tabs-set-modified-marker t
-		centaur-tabs-show-navigation-buttons nil
-		centaur-tabs-plain-icons t
-		centaur-tabs-set-icons t
-		uniquify-buffer-name-style 'forward)
-  :bind
-  (:map evil-normal-state-map
-	     ("g t" . centaur-tabs-forward)
-	     ("g T" . centaur-tabs-backward)))
+;; (use-package centaur-tabs
+;;   :hook
+;;   (dashboard-mode . centaur-tabs-local-mode)
+;;   (vterm-mode . centaur-tabs-local-mode)
+;;   (calendar-mode . centaur-tabs-local-mode)
+;;   (org-agenda-mode . centaur-tabs-local-mode)
+;;   (helpful-mode . centaur-tabs-local-mode)
+;;   (xwidget-webkit-mode . centaur-tabs-local-mode)
+;;   (periphery-mode . centaur-tabs-local-mode)
+;;   :config
+;;   (add-to-list 'centaur-tabs-excluded-prefixes "*xcodebuild")
+;;   ;(centaur-tabs-mode)
+;;   (centaur-tabs-headline-match)
+;;   (centaur-tabs-group-by-projectile-project)
+;;   (setq centaur-tabs-style "box"
+;; 		centaur-tabs-height 27
+;;         centaur-tabs-gray-out-icons 'buffer
+;; 		centaur-tabs-set-modified-marker t
+;; 		centaur-tabs-show-navigation-buttons nil
+;; 		centaur-tabs-plain-icons t
+;; 		centaur-tabs-set-icons t
+;; 		uniquify-buffer-name-style 'forward)
+;;   :bind
+;;   (:map evil-normal-state-map
+;; 	     ("g t" . centaur-tabs-forward)
+;; 	     ("g T" . centaur-tabs-backward)))
 
 (use-package compile
   :defer t

@@ -287,7 +287,6 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
-  
   (interactive)
   (setup-current-project (get-ios-project-root))
   (if (executable-find "periphery")
@@ -341,12 +340,22 @@ ARGS are rest arguments, appended to the argument list."
   (string-trim-left
    (replace-regexp-in-string "\n$" "" text)))
 
+(defun get-files-by-extension-and-filter (directory extension filter)
+  "Get files from DIRECTORY by EXTENSION and FILTER."
+  (setq result '())
+  (mapcar (lambda (x)
+            (cond
+             ((not (string-match-p filter (expand-file-name x directory)))
+              (push x result))))
+            (directory-files-recursively directory (format "\\%s$" extension) 't))
+    result)
+
 (defun find-project-root-folder (extension)
   "Find project folder where it has its project files EXTENSION."
   (let* (
          (project-root (expand-file-name (vc-root-dir)))
          (root (directory-files project-root nil (format "\\%s$" extension)))
-         (subroot (directory-files-recursively project-root (format "\\%s$" extension) 't))
+         (subroot (get-files-by-extension-and-filter project-root extension "build"))
          (workroot (or root subroot))
          (path (file-name-directory (car-safe workroot)))
          )
@@ -581,7 +590,8 @@ ARGS are rest arguments, appended to the argument list."
   "Get list of project schemes."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
-  
+
+  (message current-project-root)
   (message-with-color "[Fetching]" "build schemes.." '(:inherit warning))
   
   (let* ((default-directory current-project-root)
