@@ -493,9 +493,9 @@
   (setq company-format-margin-function      'company-dot-icons-margin)
   (setq company-dot-icons-format            " ●")
   (setq company-backends                    '(
+                                              company-capf
                                               company-tabnine
                                               ;company-sourcekit
-                                              ;company-capf
                                               ;company-yasnippet
                                               company-keywords
                                               company-dabbrev-code
@@ -1085,6 +1085,7 @@
 
   (load "swift-additions")
   (load "periphery-search")
+  (load "periphery-swiftlint")
   (load "swift-querying")
   (load "localizeable-mode")
 
@@ -1096,6 +1097,7 @@
   ;; (local-set-key (kbd "C-c C-f") #'swift-additions:functions-and-pragmas)
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
+  (local-set-key (kbd "C-c C-l") #'periphery-run-swiftlint)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
   (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
   (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
@@ -1185,7 +1187,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   ;; Drag stuff
   (global-set-key (kbd "M-<down>") #'drag-stuff-down)
   (global-set-key (kbd "M-<up>") #'drag-stuff-up)
-  ;; (global-set-key (kbd "M-<left>") #'drag-stuff-left)
+  ;; (global-set-keyy (kbd "M-<left>") #'drag-stuff-left)
   ;; (global-set-key (kbd "M-<right>") #'drag-stuff-right)
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (global-set-key (kbd "C-x C-d") #'darkroom-mode)

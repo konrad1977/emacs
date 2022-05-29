@@ -79,7 +79,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground green :bold t))
   (numbers                              (:background green :foreground black))
-  (region                               (:background green :foreground black))
+  (region                               (:background black-4))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))
@@ -109,8 +109,12 @@
   (font-lock-preprocessor-face	   		(:foreground gray))
   (elisp-shorthand-font-lock-face       (:foreground peach))
 
-  (info-xref                            (:foreground yellow))
+  (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
+  (highlight-numbers-face               (:foreground pink))
+  (highlight-symbol-face                (:background red-bg :foreground red :weight 'semi-bold))
+  (info-xref                            (:foreground yellow))
+  
   (minibuffer-prompt-end                (:background dark :foreground peach))
   (minibuffer-prompt                    (:foreground peach :background black))
   (epa-mark                             (:foreground pink))
