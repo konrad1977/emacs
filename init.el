@@ -450,13 +450,17 @@
   :defer t)
 
 ;; ------------------ EDITING -------------------
-;; - anzu search and replace
+;; - anzu search and replace/
 (use-package anzu
   :hook (after-init . anzu-mode))
 
-;; Multiple cursors evil mode
-(use-package evil-multiedit
-  :config (evil-multiedit-default-keybinds))
+(use-package multiple-cursors
+  :defer t
+  :bind 
+  ("C-M-s" . #'mc/edit-lines)
+  ("C-M-a" . #'mc/mark-all-like-this)
+  ("C-M-n" . #'mc/mark-next-like-this)
+  ("C-M-p" . #'mc/mark-previous-like-this))
 
 ;; Navigate through blocks
 (use-package block-nav
