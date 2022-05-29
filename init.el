@@ -1218,6 +1218,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key evil-motion-state-map (kbd "C-M-r")   #'anzu-query-replace-at-cursor)
   (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)
 
+
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides

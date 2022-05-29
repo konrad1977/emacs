@@ -26,6 +26,9 @@
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-info-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list -j")
+(defconst get-booted-simulator-command
+  "xcrun simctl list devices | grep \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
+  "Get booted simulator id if any.")
 
 (defvar current-xcode-scheme nil)
 (defvar current-app-identifier nil)
@@ -34,20 +37,11 @@
 (defvar current-environment-x86 t)
 (defvar current-simulator-id nil)
 (defvar current-simulator-name nil)
-
-(defcustom local-device-id nil
-  "Local device-id ID of choice."
-  :type 'string
-  :group 'swift-additions
-  :safe 'stringp)
-
-(defun get-booted-simulator-command ()
-  "Get booted simulator id if any."
-  "xcrun simctl list devices | grep \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\"")
+(defvar local-device-id nil)
 
 (defun get-booted-simulator ()
   "Get booted simulator if any."
-  (let ((device-id (shell-command-to-string (get-booted-simulator-command))))
+  (let ((device-id (shell-command-to-string get-booted-simulator-command)))
     (if (not (string= "" device-id))
         (clean-up-newlines device-id)
       nil)))
@@ -113,12 +107,10 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
-  ;(message-with-color "[Start]" (format "simulator with id %s" id) '(:inherit 'success))
   (call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
 
 (defun boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
-  ;(message-with-color "[Starting]" (fetch-simulator-name) '(:inherit 'success))
   (call-process-shell-command (format "xcrun simctl boot %s" id)))
 
 (defun is-simulator-app-running ()
@@ -206,12 +198,11 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun number-of-available-cores ()
   "Fetch number of available cores."
-  (let ((cores
+  (if-let ((cores
          (replace-regexp-in-string "\n$" ""
           (shell-command-to-string "sysctl -n hw.ncpu"))))
-    (if (= (length cores) 0)
-        1
-      cores)))
+        cores)
+      1)
 
 (defun get-workspace-or-project ()
   "Check if there is workspace or project."
@@ -253,7 +244,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:terminate-app-in-simulator ()
   "Terminate app that is running in simulator."
   (interactive)
-  (message-with-color "[Terminating]" current-xcode-scheme '(:inherit error))
+  (message-with-color :tag "[Terminating]" :text current-xcode-scheme :attributes '(:inherit error))
   (shell-command
    (concat
     (format "xcrun simctl terminate %s %s" (fetch-or-load-simulator-id) (fetch-or-load-app-identifier)))))
@@ -265,9 +256,9 @@ ARGS are rest arguments, appended to the argument list."
             index-store-path
           nil)))
 
-(defun parse-errors-from (text)
+(cl-defun parse-errors-from (&key text)
   "Parse errors from TEXT."
-  (message-with-color "[Error]" "Build failed." '(:inherit error))
+  (message-with-color :tag "[Error]" :text "Build failed." :attributes '(:inherit error))
   (periphery-run-parser text))
 
 (defun run-app ()
@@ -282,7 +273,7 @@ ARGS are rest arguments, appended to the argument list."
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text))
-      (parse-errors-from text)
+      (parse-errors-from :text text)
       (run-app)))
 
 (defun swift-additions:analyze-using-periphery ()
@@ -303,8 +294,8 @@ ARGS are rest arguments, appended to the argument list."
                  (if index-store-path
                      (format "--index-store-path %s --skip-build" (get-index-store-path))))))
           (async-shell-command-to-string "periphery" command #'periphery-run-parser))
-        (message-with-color "[Analysing]" "Code base using \'periphery\'." '(:inherit warning)))
-    (message-with-color "[Missing binary]" "Periphery is not install. Run 'brew install periphery'")))
+        (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes '(:inherit warning)))
+    (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes '(:inherit warning))))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -340,36 +331,34 @@ ARGS are rest arguments, appended to the argument list."
   (string-trim-left
    (replace-regexp-in-string "\n$" "" text)))
 
-(defun get-files-by-extension-and-filter (directory extension filter)
-  "Get files from DIRECTORY by EXTENSION and FILTER."
-  (setq result '())
-  (mapcar (lambda (x)
-            (cond
-             ((not (string-match-p filter (expand-file-name x directory)))
-              (push x result))))
+(cl-defun get-files-from (&key directory &key extension &key exclude)
+  "Get files from DIRECTORY by EXTENSION and EXCLUDE."
+  (let ((result '()))
+    (mapcar (lambda (x)
+              (cond
+               ((not (string-match-p exclude (expand-file-name x directory)))
+                (push x result))))
             (directory-files-recursively directory (format "\\%s$" extension) 't))
-    result)
+    result))
 
-(defun find-project-root-folder (extension)
+(cl-defun find-project-root-folder-with (&key extension)
   "Find project folder where it has its project files EXTENSION."
-  (let* (
-         (project-root (expand-file-name (vc-root-dir)))
+  (let* ((project-root (expand-file-name (vc-root-dir)))
          (root (directory-files project-root nil (format "\\%s$" extension)))
-         (subroot (get-files-by-extension-and-filter project-root extension "build"))
+         (subroot (get-files-from :directory project-root :extension extension :exclude "build"))
          (workroot (or root subroot))
-         (path (file-name-directory (car-safe workroot)))
-         )
+         (path (file-name-directory (car-safe workroot))))
     (if (and path (string-match-p (regexp-quote ".xcodeproj") path))
         (file-name-directory (directory-file-name path))
       path)))
 
 (defun get-ios-project-root ()
   "Get the current root of the project."
-  (let* ((workspace (find-project-root-folder ".xcworkspace"))
-         (xcodeproj (find-project-root-folder ".xcodeproj")))
-        (or workspace xcodeproj (expand-file-name (vc-root-dir)))))
+  (let* ((workspace (find-project-root-folder-with :extension ".xcworkspace"))
+         (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
+    (or workspace xcodeproj (expand-file-name (vc-root-dir)))))
 
-(defun show-notification (title message)
+(cl-defun show-notification (&key title &key message)
   "Show notification (as TITLE as MESSAGE)."
   (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
 
@@ -393,14 +382,14 @@ ARGS are rest arguments, appended to the argument list."
   (let* ((app-name (swift-additions:get-app-name (build-folder)))
          (default-directory (concat current-project-root (build-folder))))
     (message default-directory)
-    (message-with-color "[Installing]" (format "%s onto physical device. Will launch app when done." app-name) '(:inherit success))
+    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes '(:inherit success))
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
 
 (defun install-app-in-simulator ()
   "Install the app in the simulator."
   (let ((default-directory current-project-root))
     (swift-additions:terminate-app-in-simulator)
-    (message-with-color "[Installing]"  (format "%s onto %s. Will launch app when done." (swift-additions:get-app-name (build-folder)) (fetch-simulator-name)) '(:inherit success))
+    (message-with-color :tag "[Installing]" :text (format "%s onto %s. Will launch app when done." (swift-additions:get-app-name (build-folder)) (fetch-simulator-name)) :attributes '(:inherit success))
     (call-process-shell-command (swift-additions:install-and-run-simulator-command))
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
 
@@ -427,8 +416,7 @@ ARGS are rest arguments, appended to the argument list."
   (setq current-build-configuration nil)
   (setq current-simulator-id nil)
   (setq current-simulator-name nil)
-    (message-with-color "[Resetting]" "Build configiration" 'warning)
-  )
+    (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
 (defun setup-default-buffer-state ()
   "Setup buffer default state."
@@ -469,7 +457,7 @@ ARGS are rest arguments, appended to the argument list."
                      (get-buffer-process xcodebuild-buffer)))))
       (if (process-live-p proc)
           (set-process-sentinel proc #'check-for-errors)))
-   (message-with-color "[Build/Install]" (format "%s on %s" current-xcode-scheme (current-device-type)))))
+   (message-with-color :tag "[Build/Install]" :text (format "%s on %s" current-xcode-scheme (current-device-type)) :attributes 'warning)))
 
 (defun swift-additions:compile-and-run-silent ()
   "Build project using xcodebuild."
@@ -480,7 +468,7 @@ ARGS are rest arguments, appended to the argument list."
   (setup-current-project (get-ios-project-root))
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
-  (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit warning)))
+  (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes '(:inherit warning)))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -493,7 +481,7 @@ ARGS are rest arguments, appended to the argument list."
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
-    (message-with-color "[Building]" (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) '(:inherit warning))
+    (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes '(:inherit warning))
     (let* ((default-directory current-project-root)
            (proc (progn
                    (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
@@ -507,14 +495,14 @@ ARGS are rest arguments, appended to the argument list."
   "Clean app build folder."
   (interactive)
   (setup-current-project (get-ios-project-root))
-  (message-with-color "[Cleaning]" (format "Build folder for %s Standby..." current-xcode-scheme) '(:inherit warning))
+  (message-with-color :tag "[Cleaning]" :text (format "Build folder for %s Standby..." current-xcode-scheme) :attributes '(:inherit warning))
   (let ((default-directory (concat current-project-root "build")))
     (if (file-directory-p default-directory)
         (progn
-          (message-with-color "[Removing]" (format "Folder for %s" default-directory) '(:inherit warning))
+          (message-with-color :tag "[Removing]" :text (format "Folder for %s" default-directory) :attributes '(:inherit warning))
           (delete-directory default-directory t nil))
-          (message-with-color "[Failed]" (format "Build folder %s doesn't exist" default-directory) '(:inherit warning))))
-    (message-with-color "[Done]" "Ready to rumble." '(:inherit success)))
+          (message-with-color :tag "[Failed]" :text (format "Build folder %s doesn't exist" default-directory) :attributes '(:inherit warning))))
+    (message-with-color :tag "[Done]" :text "Ready to rumble." :attributes '(:inherit success)))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."
@@ -578,7 +566,7 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
 
-  (message-with-color "[Fetching]" "app targets.." '(:inherit warning))
+  (message-with-color :tag "[Fetching]" :text "app targets.." :attributes '(:inherit warning))
   
   (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
@@ -592,7 +580,7 @@ ARGS are rest arguments, appended to the argument list."
     (setq current-project-root (get-ios-project-root)))
 
   (message current-project-root)
-  (message-with-color "[Fetching]" "build schemes.." '(:inherit warning))
+  (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning))
   
   (let* ((default-directory current-project-root)
          (json (call-process-to-json build-info-command))
@@ -602,7 +590,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
-  (message-with-color "[Fetching]" "build configurations.." '(:inherit warning))
+  (message-with-color :tag "[Fetching]" :text "build configurations.." :attributes '(:inherit warning))
 
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
@@ -614,7 +602,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:list-simulators ()
   "List available simulators."
-  (message-with-color "[Fetching]" "available simulators..." '(:inherit warning))
+  (message-with-color :tag "[Fetching]" :text "available simulators..." :attributes '(:inherit warning))
   (let* ((json (call-process-to-json list-simulators-command))
          (devices (cdr (assoc 'devices json)))
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
@@ -648,7 +636,7 @@ ARGS are rest arguments, appended to the argument list."
   (when (get-buffer xcodebuild-buffer)
     (kill-buffer xcodebuild-buffer)))
 
-(defun message-with-color (tag text attributes)
+(cl-defun message-with-color (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES."
   (interactive)
   (setq-local inhibit-message nil)

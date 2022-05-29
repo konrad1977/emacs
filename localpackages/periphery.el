@@ -186,7 +186,7 @@
       )))
   (if periphery-errorList
       (periphery-listing-command periphery-errorList)
-    (message-with-color "[Complete]" "No errors or warnings found" '(:inherit success))))
+    (periphery-message :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
 
 (defun periphery-mode-all ()
   "Show all."
@@ -207,32 +207,26 @@
 
 (defun periphery-mode-list-functions ()
   "Filter on fucntions."
-  (interactive)
   (periphery-mode-build-filter "Function"))
 
 (defun periphery-mode-list-unused ()
   "Filter on fucntions."
-  (interactive)
   (periphery-mode-build-filter "unused"))
 
 (defun periphery-mode-list-initializer ()
   "Filter on fucntions."
-  (interactive)
   (periphery-mode-build-filter "Initializer"))
 
 (defun periphery-mode-list-protocol ()
   "Filter on protocol."
-  (interactive)
   (periphery-mode-build-filter "Protocol"))
 
 (defun periphery-mode-list-parameter ()
   "Filter on parameter."
-  (interactive)
   (periphery-mode-build-filter "Parameter"))
 
 (defun periphery-mode-list-property ()
   "Filter on property."
-  (interactive)
   (periphery-mode-build-filter "Property"))
 
 (defvar periphery-mode-map nil
@@ -329,7 +323,7 @@
                                  (propertize message 'face 'periphery-message-face)))))))
 
 
-(defun message-with-color (tag text attributes)
+(cl-defun periphery-message (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES."
   (interactive)
   (setq-local inhibit-message nil)
@@ -364,7 +358,7 @@
       (push entry periphery-errorList)))
   (when periphery-errorList
     (progn
-      (message-with-color "[Search result]:" (format "%d occurrences found for '%s'" (length periphery-errorList) query) 'periphery-info-face)
+      (periphery-message :tag "[Search result]:" :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
       (periphery-listing-command periphery-errorList))))
 
 (provide 'periphery)

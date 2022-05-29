@@ -56,14 +56,13 @@ PROCESS-NAME is the name of the process."
 
 (defun periphery-run-query (searcher text)
   "Search using (SEARCHER) with (TEXT)."
-  (message text)
   (setq current-query nil)
   (if (executable-find searcher)
       (progn
         (let ((default-directory (vc-root-dir)))
           (setq current-query text)
           (async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher text) #'send-search-result-to-periphery)))
-    (message (format "Install %s to use this command." searcher))))
+    (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."
