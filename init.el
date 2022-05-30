@@ -454,6 +454,9 @@
 (use-package anzu
   :hook (after-init . anzu-mode))
 
+(use-package evil-mc
+  :defer t)
+
 (use-package multiple-cursors
   :defer t
   :bind 
