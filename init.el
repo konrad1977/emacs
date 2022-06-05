@@ -434,9 +434,11 @@
 
 (use-package fzf
  :commands (fzf-git-files fzf-projectile fzf-recentf)
- :bind ("C-<tab>" . #'fzf-git-files)
- :custom
- (setq fzf/args "-x --color --print-query --margin=1,0 --no-hscroll"))
+ :bind
+ ("C-<tab>" . #'fzf-git-files)
+ :config
+ (setq fzf/args "-x --color --print-query  --margin=1,0 --no-hscroll"
+  fzf/window-height 12))
 
 ;; ------------------ EDITING -------------------
 ;; - anzu search and replace/
