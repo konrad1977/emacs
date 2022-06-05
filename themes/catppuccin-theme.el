@@ -152,6 +152,10 @@
   (doom-modeline-bar                    (:bold t :background lavender))
   (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground black-2))
 
+  (term (:background black-2 :foreground white))
+  (term-color-black (:background black-2))
+  (ansi-color-black (:background black-2))
+
   ;;elfeed
   (elfeed-search-feed-face              (:foreground lavender))
   (elfeed-search-tag-face               (:foreground green))

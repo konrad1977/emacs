@@ -267,7 +267,7 @@
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
-  (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-ag)
+  (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-motion-state-map "/" 'swiper))
 
 (use-package evil-tutor
@@ -442,37 +442,43 @@
   (setq swiper-goto-start-of-match t))
 
 ;; ------------------ SEARCHING -------------------
-(use-package deadgrep
-  :commands deadgrep)
-
 ;; the silver searcher
 (use-package ag
   :defer t)
 
+(use-package fzf
+ :defer t
+ :bind ("C-<tab>" . #'fzf-git-files)
+ :custom
+ (setq fzf/args "-x --color --print-query --margin=1,0 --no-hscroll"))
+
 ;; ------------------ EDITING -------------------
 ;; - anzu search and replace/
 (use-package anzu
-  :hook (after-init . anzu-mode))
-
-(use-package evil-mc
-  :defer t)
-
+  :hook (after-init . anzu-mode)
+  :bind 
+  ("C-M-e" . #'anzu-replace-at-cursor-thing)
+  ("C-M-r" . #'anzu-query-replace))
 (use-package multiple-cursors
   :defer t
   :bind 
   ("C-M-s" . #'mc/edit-lines)
   ("C-M-a" . #'mc/mark-all-like-this)
-  ("C-M-n" . #'mc/mark-next-like-this)
-  ("C-M-p" . #'mc/mark-previous-like-this))
+  ("C-M-n" . #'mc/mark-next-symbol-like-this)
+  ("C-M-p" . #'mc/mark-previous-symbol-like-this))
 
 ;; Navigate through blocks
 (use-package block-nav
-  :commands (block-nav-next-block block-nav-previous-block block-nav-next-indentation-level block-nav-previous-indentation-level)
+  :commands (block-nav-next-block 
+             block-nav-previous-block 
+             block-nav-next-indentation-level
+             block-nav-previous-indentation-level)
   :bind
   ("C-c C-j" . block-nav-next-block)
   ("C-c C-k" . block-nav-previous-block)
   ("C-c C-l" . block-nav-next-indentation-level)
   ("C-c C-h" . block-nav-previous-indentation-level))
+
 
 ;; ------------------ autocompletions -------------
 ;; workaround for company-transformers
@@ -490,18 +496,19 @@
 
 (advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
 (advice-add #'company-tabnine :around #'my-company-tabnine)
+
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  (setq company-format-margin-function      'company-dot-icons-margin)
+  (setq company-format-margin-function      'company-detect-icons-margin)
   (setq company-dot-icons-format            " ●")
   (setq company-backends                    '(
-                                              company-capf
                                               company-tabnine
-                                              ;company-sourcekit
+                                              company-sourcekit
+                                              company-capf
                                               ;company-yasnippet
-                                              company-keywords
-                                              company-dabbrev-code
+                                              ;company-keywords
+                                              ;company-dabbrev-code
                                               company-semantic
                                               company-files
                                               )
@@ -528,6 +535,11 @@
   :after company
   :config
   (setq company-tabnine-max-num-results 9
+        company-tabnine-show-annotation t
+        company-tabnine-insert-arguments t
+        company-tabnine-auto-fallback t
+        company-tabnine-auto-balance t
+        company-tabnine-use-native-json t
         company-tabnine-wait 0.1))
 
 (use-package company-statistics
@@ -565,15 +577,17 @@
 		treemacs-display-current-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
 		treemacs-text-scale	0)
-  (treemacs-fringe-indicator-mode 'always)
-  (treemacs-follow-mode t)
   (treemacs-project-follow-mode t))
+
+(use-package treemacs-evil
+  :after (treemacs evil)
+  :ensure t)
+
+(use-package treemacs-projectile
+  :after (treemacs projectile))
 
 (use-package restclient
   :defer t)
-
-(use-package treemacs-projectile
-  :hook (treemacs-mode-hook))
 
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
@@ -620,7 +634,7 @@
 		projectile-sort-order 'recentf
 		projectile-indexing-method 'alien
         projectile-switch-project-action #'projectile-find-file-dwim
-        projectile-ignored-files '(".orig" ".yml" ".gitignore"))
+        projectile-ignored-files '(".orig" ".yml"))
     (projectile-project-root-files-functions
      '(projectile-root-local
        projectile-root-top-down
@@ -723,7 +737,7 @@
   :hook (magit-mode . magit-todos-mode)
   :config
   (setq magit-todos-recursive t
-        magit-todos-depth 10
+        magit-todos-depth 4
         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME"))))
@@ -747,13 +761,13 @@
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
   :config
-  (setq git-gutter:update-interval 0.1))
+  (setq git-gutter:update-interval 0.2))
 
 (use-package git-gutter-fringe
   :config
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 (use-package forge
   :commands forge-pull
@@ -1103,7 +1117,7 @@
   (local-set-key (kbd "C-c C-l") #'periphery-run-swiftlint)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
   (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
-  (local-set-key (kbd "M-s") #'swift-additions:terminate-app-in-simulator)
+  (local-set-key (kbd "M-s") #'swift-additions:terminate-all-running-apps)
   (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
   (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
   (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
@@ -1200,10 +1214,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (local-set-key (kbd "M-t") #'ivy-magit-todos)
   (local-set-key (kbd "C-M-K") #'kill-other-buffers)
-  (local-set-key (kbd "C-c C-c") #'hs-toggle-hiding)
-  (local-set-key (kbd "C-c C-l") #'hs-hide-level)
-  (local-set-key (kbd "C-c C-x") #'hs-hide-all)
-  (local-set-key (kbd "C-c C-v") #'hs-show-all)
 
   ;; Line movement
   (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
@@ -1215,16 +1225,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
-  (define-key evil-motion-state-map (kbd "M-.")     #'dumb-jump-go)
   (define-key evil-motion-state-map (kbd "M-f")     #'(lambda () (interactive) (counsel-imenu)))
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
-  (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file)
-  (define-key evil-motion-state-map (kbd "C-M-O")   #'projectile-find-file-other-window)
-  (define-key evil-motion-state-map (kbd "C-M-f")   #'counsel-semantic-or-imenu)
-  (define-key evil-motion-state-map (kbd "M-F")     #'counsel-projectile-ag)
-  (define-key evil-motion-state-map (kbd "C-M-e")   #'anzu-replace-at-cursor-thing)
-  (define-key evil-motion-state-map (kbd "C-M-r")   #'anzu-query-replace-at-cursor)
+  (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file-dwim)
+  (define-key evil-motion-state-map (kbd "C-M-O")   #'projectile-find-file-dwim-other-window)
+  (define-key evil-motion-state-map (kbd "M-F")     #'counsel-projectile-rg)
   (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)
 
 
@@ -1234,8 +1240,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 		indicate-empty-lines t            ;; Show empty lines
 		indicate-unused-lines t           ;; Show unused lines
 		show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
-		word-wrap nil                     ;; Dont word wrap in code mode
-		truncate-lines t                  ;; Truncate lines
+		word-wrap t                       ;; Dont word wrap in code mode
+		truncate-lines nil                ;; Truncate lines
 		column-number-mode nil            ;; Show current line number highlighted
 		display-line-numbers t))          ;; Show line numbers
 
