@@ -355,12 +355,12 @@
   (evil-search-highlight-persist-highlight-face  (:background carpYellow))
 
   ;; term
-  (term                                          (:background sumiInk-0 :foreground sumiInk-0))
-  (term-color-blue                               (:background crystalBlue :foreround crystalBlue))
+  (term                                          (:background sumiInk-0 :foreground fujiWhite))
+  (term-color-blue                               (:background crystalBlue :foreground crystalBlue))
   (term-color-bright-blue                        (:inherit 'term-color-blue))
-  (term-color-green                              (:background waveAqua2 :foreround waveAqua2))
+  (term-color-green                              (:background waveAqua2 :foreground waveAqua2))
   (term-color-bright-green                       (:inherit 'term-color-green))
-  (term-color-black                              (:background sumiInk-0 :foreground sumiInk-0))
+  (term-color-black                              (:background sumiInk-0 :foreground fujiWhite))
   (term-color-bright-black                       (:background sumiInk-1b :foreground sumiInk-1b))
   (term-color-white                              (:background fujiWhite :foreground fujiWhite))
   (term-color-bright-white                       (:background old-white :foreground old-white))
@@ -432,6 +432,7 @@
   (bm-fringe-persistent-face                     (:background peachRed :foreground sumiInk-3))
 
   (ansi-color-green                              (:foreground springGreen))
+  (ansi-color-black                              (:background sumiInk-0))
   (ansi-color-cyan                               (:foreground waveAqua2))
   (ansi-color-magenta                            (:foreground sakuraPink))
   (ansi-color-blue                               (:foreground crystalBlue))
