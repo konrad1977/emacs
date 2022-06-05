@@ -44,7 +44,6 @@
       display-time-24hr-format          t
       display-time-default-load-average nil
       echo-keystrokes                   0.1
-      ediff-split-window-function       'split-window-horizontally
       kill-buffer-query-functions       nil ; - Dont ask for closing spawned processes
       line-number-mode                  nil
       use-dialog-box                    nil
@@ -53,15 +52,10 @@
 (setq gc-cons-threshold (eval-when-compile (* 36 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
-;; Helpout better with debugging
-(if init-file-debug
-    (setq use-package-verbose t
-          use-package-expand-minimally nil
-          use-package-compute-statistics t
-          debug-on-error t)
-  (setq use-package-verbose nil
-        use-package-computer-statistics nil
-        use-package-expand-minimally t))
+(setq use-package-verbose nil
+      use-package-expand-minimally nil
+      use-package-compute-statistics nil
+      debug-on-error t)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -71,7 +65,7 @@
 			  indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
 			  completion-ignore-case        t            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
-              history-length                50)
+              history-length                100)
 
 (let* ((path (expand-file-name "localpackages" user-emacs-directory))
        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
@@ -191,13 +185,6 @@
 ;; 	     ("g t" . centaur-tabs-forward)
 ;; 	     ("g T" . centaur-tabs-backward)))
 
-(use-package compile
-  :defer t
-  :config
-  (setq compilation-skip-threshold 2
-        compilation-scroll-output t
-        compilation-auto-jump-to-first-error t))
-
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
@@ -275,7 +262,7 @@
 
 (use-package evil-collection
   :after evil
-  :custom 
+  :custom
   (setq evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
@@ -295,7 +282,6 @@
 (global-set-key (kbd "C-c C-b") #'bm-toggle)
 (global-set-key (kbd "C-c C-p") #'bm-previous)
 (global-set-key (kbd "C-c C-n") #'bm-next)
-(global-set-key (kbd "C-c C-g") #'counsel-git)
 
 ;; Theming
 (use-package doom-themes
@@ -377,7 +363,7 @@
 (use-package paren
   :hook (prog-mode . show-paren-mode)
   :config
-  (setq show-paren-delay 0.1
+  (setq show-paren-delay 0.2
         show-paren-highlight-openparen t
         show-paren-when-point-inside-paren t
         show-paren-ring-bell-on-mismatch t
@@ -423,7 +409,7 @@
       "rg -i -M 120 --no-heading --line-number %s ."))
 
 (use-package tree-sitter
-  :defer t)
+  :hook (swift-mode . tree-sitter-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -436,7 +422,7 @@
 
 ;; Search files, and do it with speed and style
 (use-package swiper
-  :after ivy
+  :commands (swiper-thing-at-point swiper)
   :bind ("C-s" . swiper-thing-at-point)
   :config
   (setq swiper-goto-start-of-match t))
@@ -447,7 +433,7 @@
   :defer t)
 
 (use-package fzf
- :defer t
+ :commands (fzf-git-files fzf-projectile fzf-recentf)
  :bind ("C-<tab>" . #'fzf-git-files)
  :custom
  (setq fzf/args "-x --color --print-query --margin=1,0 --no-hscroll"))
@@ -455,13 +441,14 @@
 ;; ------------------ EDITING -------------------
 ;; - anzu search and replace/
 (use-package anzu
-  :hook (after-init . anzu-mode)
-  :bind 
+  :commands (anzu-replace-at-cursor-thing anzu-query-replace)
+  :bind
   ("C-M-e" . #'anzu-replace-at-cursor-thing)
   ("C-M-r" . #'anzu-query-replace))
+
 (use-package multiple-cursors
   :defer t
-  :bind 
+  :bind
   ("C-M-s" . #'mc/edit-lines)
   ("C-M-a" . #'mc/mark-all-like-this)
   ("C-M-n" . #'mc/mark-next-symbol-like-this)
@@ -528,6 +515,7 @@
         company-async-timeout               2))
 
 (use-package company-sourcekit
+  :after company
   :config
   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"))
 
@@ -556,7 +544,7 @@
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
-  :defer t
+  :commands (treemacs treemacs-select-window)
   :config
   (setq treemacs-follow-after-init t
         treemacs-expand-after-init t
@@ -1232,7 +1220,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key evil-motion-state-map (kbd "C-M-O")   #'projectile-find-file-dwim-other-window)
   (define-key evil-motion-state-map (kbd "M-F")     #'counsel-projectile-rg)
   (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)
-
 
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
