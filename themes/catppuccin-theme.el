@@ -386,6 +386,10 @@
   (hydra-face-red			(:foreground red))
   (hydra-face-teal			(:foreground teal))
 
+  ;; Bookmarks
+  (bm-fringe-face                           (:background red :foreground black))
+  (bm-fringe-persistent-face                (:background red :foreground black))
+
   (centaur-tabs-active-bar-face				(:background black-2 :foreground rosewater))
   (centaur-tabs-selected					(:background black-2 :foreground rosewater :bold t))
   (centaur-tabs-selected-modified			(:background black-2 :foreground rosewater))
