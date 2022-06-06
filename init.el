@@ -55,7 +55,7 @@
 (setq use-package-verbose nil
       use-package-expand-minimally nil
       use-package-compute-statistics nil
-      debug-on-error t)
+      debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -377,8 +377,11 @@
 ;; Use ivy
 (use-package ivy
   :hook (after-init . ivy-mode)
+  :diminish ivy-mode
   :config
   (setq ivy-height 10
+        ivy-extra-directories nil
+        ivy-initial-inputs-alist nil
 		ivy-use-virtual-buffers t
 		ivy-count-format "(%d/%d) "
 		ivy-use-selectable-prompt t
@@ -496,8 +499,8 @@
   :init
   (setq company-format-margin-function  'company-dot-icons-margin)
   (setq company-dot-icons-format        " ● ")
-  (setq company-backends '(company-capf
-                           company-tabnine
+  (setq company-backends '(company-tabnine
+                           company-capf
                            company-keywords
                            company-dabbrev-code
                            company-sourcekit
@@ -505,7 +508,7 @@
                            company-files)
         company-frontends '(company-pseudo-tooltip-frontend
                             company-echo-metadata-frontend)
-        company-tooltip-margin              2
+        company-tooltip-margin              1
         company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
@@ -517,7 +520,7 @@
         company-async-wait                  0.4
         company-idle-delay                  0.3
         company-show-quick-access           'left
-        company-async-timeout               2)
+        company-async-timeout               3)
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
@@ -535,7 +538,7 @@
         company-tabnine-auto-fallback t
         company-tabnine-auto-balance t
         company-tabnine-use-native-json t
-        company-tabnine-wait 0.1))
+        company-tabnine-wait 0.2))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
