@@ -4,6 +4,7 @@
 
 (require 'periphery)
 (require 'swift-additions)
+(load "swift-additions")
 
 (defface localizeable-variable-face
   '((t (:inherit font-lock-variable-name-face :italic t)))
@@ -76,7 +77,7 @@
         (save-some-buffers t)
         (let ((default-directory (projectile-project-root)))
           (async-shell-command-to-string "Periphery" bartycrouch-lint-command #'parse-localizeable))
-        (message-with-color :tag "[Analysing]" :text "Localizeble.strings" :attribues '(:inherit warning)))
+        (message-with-color :tag "[Analysing]" :text "Localizeble.strings" :attributes '(:inherit warning)))
     (message-with-color :tag "[Error]" :text "bartycrouch not installed. run 'brew install bartycrouch'" :attributes '(:inherit warning))))
 
 (provide 'localizeable-mode)

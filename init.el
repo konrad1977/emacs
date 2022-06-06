@@ -53,8 +53,8 @@
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
-      use-package-expand-minimally nil
-      use-package-compute-statistics nil
+      use-package-expand-minimally t
+      use-package-compute-statistics t
       debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines

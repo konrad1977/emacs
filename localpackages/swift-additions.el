@@ -13,8 +13,8 @@
 (require 'swift-mode)
 (require 'evil-states)
 
-(load "periphery")
 (require 'periphery)
+(load "periphery")
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
