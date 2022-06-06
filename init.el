@@ -494,32 +494,32 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  (setq company-format-margin-function      'company-detect-icons-margin)
-  (setq company-dot-icons-format            " ●")
-  (setq company-backends                    '(
-                                              company-tabnine
-                                              company-sourcekit
-                                              company-capf
-                                              ;company-yasnippet
-                                              ;company-keywords
-                                              ;company-dabbrev-code
-                                              company-semantic
-                                              company-files
-                                              )
-        company-frontends                   '(company-pseudo-tooltip-frontend)
-        company-tooltip-margin              3
+  (setq company-format-margin-function  'company-dot-icons-margin)
+  (setq company-dot-icons-format        " ● ")
+  (setq company-backends '(company-capf
+                           company-tabnine
+                           company-keywords
+                           company-dabbrev-code
+                           company-sourcekit
+                           company-semantic
+                           company-files)
+        company-frontends '(company-pseudo-tooltip-frontend
+                            company-echo-metadata-frontend)
+        company-tooltip-margin              2
         company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
-        company-require-match               nil
-        company-tooltip-limit               10
+        company-require-match               'never
+        company-tooltip-limit               9
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
         company-tooltip-idle-delay          0.3
         company-async-wait                  0.4
-        company-idle-delay                  0.2
+        company-idle-delay                  0.3
         company-show-quick-access           'left
-        company-async-timeout               2))
+        company-async-timeout               2)
+  :custom-face
+  (company-tooltip ((t (:font "Menlo" :height 155)))))
 
 (use-package company-sourcekit
   :after company
@@ -752,11 +752,11 @@
   (blamer-face ((t :foreground "#E46876"
                     :height 140
                     :italic t))))
-
+                   
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
   :config
-  (setq git-gutter:update-interval 0.1))
+  (setq git-gutter:update-interval 0.5))
 
 (use-package git-gutter-fringe
   :config

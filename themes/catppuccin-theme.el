@@ -237,23 +237,23 @@
   (show-paren-match-expression					(:background peach :foreground dark :bold t))
   (show-paren-mismatch							(:background red :foreground white))
 
-  (tooltip (:background black))
+  (company-tooltip                          (:background black-3 :foreground white))
+  (company-box                              (:background black-3 :foreground white))
+  (company-tooltip-common                   (:foreground yellow))
+  (company-tooltip-search                   (:background red :foreground black :distant-foreground rosewater))
+  (company-tooltip-selection                (:background black-4 :foreground red :bold t))
+  (company-tooltip-mouse                    (:background red :foreground black :distant-foreground rosewater))
+  (company-tooltip-annotation               (:foreground green))
+  (company-tooltip-scrollbar-track          (:background black-4))
+  (company-tooltip-scrollbar-thumb          (:background flamingo))
+  (company-scrollbar-bg                     (:inherit 'tooltip))
+  (company-scrollbar-fg                     (:background red))
+  (company-preview                          (:foreground yellow))
+  (company-preview-common                   (:background red :foreground black))
+  (company-preview-search                   (:inherit 'company-tooltip-search))
+  (company-template-field                   (:inherit 'match))
 
-  ;; company-box  (company-tooltip            :inherit 'tooltip)
-  (company-tooltip			  (:background black))
-  (company-box				  (:background black))
-  (company-tooltip-common     (:foreground yellow))
-  (company-tooltip-search     (:background red :foreground black :distant-foreground rosewater))
-  (company-tooltip-selection  (:background black-4 :foreground red :bold t))
-  (company-tooltip-mouse      (:background red :foreground black :distant-foreground rosewater))
-  (company-tooltip-annotation (:foreground green))
-  (company-scrollbar-bg       (:inherit 'tooltip))
-  (company-scrollbar-fg       (:background red))
-  (company-preview            (:foreground yellow))
-  (company-preview-common     (:background red :foreground black))
-  (company-preview-search     (:inherit 'company-tooltip-search))
-  (company-template-field     (:inherit 'match))
-
+  ;; Flycheck
   (flycheck-posframe-background-face	(:background black))
   (flycheck-posframe-face				(:background black))
   (flycheck-posframe-info-face  		(:background black :foreground teal))
@@ -353,6 +353,7 @@
 
   (term-color-green (:background green :foreground green))
   (term-color-bright-green (:inherit 'term-color-green))
+
   (term-color-bright-black (:background black-1 :foreground red))
   (term-color-white (:background rosewater :foreground rosewater))
   (term-color-bright-white (:background white :foreground white))
@@ -456,7 +457,8 @@
   (tree-sitter-hl-face:case-pattern              (:foreground red))
   (tree-sitter-hl-face:variable.synthesized      (:foreground red))
   (tree-sitter-hl-face:keyword.compiler          (:foreground red :bold t :italic t))
-  
+
+  (doom-themes-visual-bell                       (:background red))
  ))
 
 ;;;###autoload
