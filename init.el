@@ -231,15 +231,20 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
+(use-package undo-fu
+  :defer t)
+
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
   :init
-  (setq evil-undo-system 'undo-redo)
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
+  ;; (setq evil-undo-system 'undo-redo)
+  (setq evil-want-integration t
+        evil-want-fine-undo t
+        evil-want-keybinding nil
+        evil-want-C-u-scroll t
+        evil-undo-system 'undo-fu
+        evil-want-C-i-jump nil)
   :config
   (setq evil-emacs-state-cursor '("#FF5D62" box))
   (setq evil-normal-state-cursor '("#FF5D62" box))
