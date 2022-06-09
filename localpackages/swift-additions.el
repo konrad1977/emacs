@@ -232,7 +232,7 @@ ARGS are rest arguments, appended to the argument list."
    (format "-jobs %s \\" (number-of-available-cores))
    (format "-sdk %s \\" (current-sdk))
    "-parallelizeTargets \\"
-   ;; "-showBuildTimingSummary \\"
+   "-quiet \\"
    (if (not local-device-id)
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
    "-derivedDataPath \\"

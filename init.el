@@ -28,23 +28,26 @@
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile")
 
 (setq ad-redefinition-action            'accept
-	  blink-cursor-interval             0.6		;; Little slower cursor blinking . default is 0.5
+	  blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
 	  create-lockfiles                  nil
 	  fast-but-imprecise-scrolling      1
       inhibit-compacting-font-caches    t
-	  idle-update-delay                 1.0     ;; Speed things up by not updating so often
+	  idle-update-delay                 1.0    ;; Speed things up by not updating so often
 	  initial-scratch-message           ""
 	  read-process-output-max           (* 8 1024 1024)
+      frame-resize-pixelwise            t
       auto-mode-case-fold               nil
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
-      desktop-save-mode                 nil ;; Done save desktop (open buffers)
+      desktop-save-mode                 nil    ;; Done save desktop (open buffers)
       display-time-24hr-format          t
-      display-time-default-load-average nil
+      display-time-default-load-average t
+	  word-wrap                         nil    ;; Dont word wrap in code mode
+	  truncate-lines                    nil    ;; Truncate lines
       echo-keystrokes                   0.1
-      kill-buffer-query-functions       nil ; - Dont ask for closing spawned processes
+      kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
       use-dialog-box                    nil
       visible-bell                      nil)
@@ -146,6 +149,9 @@
        	doom-modeline-height 37)
   (set-face-attribute 'mode-line nil :height 160 :box '(:line-width -1 :color "#0C0A10"))
   (set-face-attribute 'mode-line-inactive nil :height 150 :box '(:line-width -1 :color "#332E41")))
+
+(use-package centered-cursor-mode
+  :hook (prog-mode . centered-cursor-mode))
 
 (use-package autothemer
   :custom (setq custom-safe-themes t))
@@ -499,12 +505,13 @@
   :init
   (setq company-format-margin-function  'company-dot-icons-margin)
   (setq company-dot-icons-format        " ● ")
-  (setq company-backends '(company-tabnine
+  (setq company-backends '(
+                           company-tabnine
                            company-capf
-                           company-keywords
-                           company-dabbrev-code
-                           company-sourcekit
-                           company-semantic
+                           ;company-keywords
+                           ;company-dabbrev-code
+                           ;company-sourcekit
+                           ;company-semantic
                            company-files)
         company-frontends '(company-pseudo-tooltip-frontend
                             company-echo-metadata-frontend)
@@ -1144,7 +1151,7 @@
 (defun mk/org-mode-setup()
   (org-indent-mode 1)
   (variable-pitch-mode 1)
-  (visual-line-mode 1))
+  (visual-line-mode nil))
 
 (defun un-indent-by-removing-4-spaces ()
   "Remove 4 spaces from beginning of of line."
@@ -1237,8 +1244,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 		indicate-empty-lines t            ;; Show empty lines
 		indicate-unused-lines t           ;; Show unused lines
 		show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
-		word-wrap t                       ;; Dont word wrap in code mode
-		truncate-lines nil                ;; Truncate lines
 		column-number-mode nil            ;; Show current line number highlighted
 		display-line-numbers t))          ;; Show line numbers
 
@@ -1258,7 +1263,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (list-flycheck-errors)))
 
 (defun mk/setupOrgMode ()
-  (setq word-wrap t)
+  "My org config."
   (setq highlight-indent-guides-mode nil))
 
 (defun mk/split-window-below ()
@@ -1272,13 +1277,13 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (other-window 1))
 
 (defun mk/tabnine-off ()
-  "turn off TabNine for this buffer."
+  "Turn off TabNine for this buffer."
   (interactive)
   (setq-local company-backends (delete 'company-tabnine company-backends))
   (message "Turning off TabNine auto completion for current buffer"))
 
 (defun mk/tabnine-on ()
-  "turn on TabNine for this buffer."
+  "Turn on TabNine for this buffer."
   (interactive)
   (setq-local company-backends (add-to-list 'company-backends 'company-tabnine))
   (message "Turning on TabNine auto completion for current buffer"))

@@ -1,7 +1,7 @@
 ;;; Periphery --- A simple package to parse output from compile commands
+;; -*- lexical-binding: t -*-
 
 ;;; Commentary: --- A simple package
-
 
 ;;; Code:
 (require 'dash)
@@ -48,9 +48,9 @@
 (defvar periphery-mode-map nil "Keymap for periphery.")
 (setq periphery-mode-map (make-sparse-keymap))
 
-(define-key periphery-mode-map (kbd "RET") #'open-current-line-id)
-(define-key periphery-mode-map (kbd "<return>") #'open-current-line-id)
-(define-key periphery-mode-map (kbd "o") #'open-current-line-id)
+(define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
+(define-key periphery-mode-map (kbd "<return>") #'periphery--open-current-line)
+(define-key periphery-mode-map (kbd "o") #'periphery--open-current-line)
 
 (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.*\\)")
 (defconst periphery-parse-line-regex "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$")
@@ -74,26 +74,39 @@
                                ("Message" 80 nil)
                                ])
   (setq tabulated-list-padding 1)
-  (setq tabulated-list-sort-key (cons "Line" nil))
   (turn-off-evil-mode)
+  (setq tabulated-list-sort-key (cons "Line" nil))
   (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
 
-(defun open-current-line-id ()
-  "Open current row."
+(defun periphery--get-all-errors (list)
+  "Get all error entries from LIST."
+  (--filter (string-match-p (regexp-quote "error") (aref (car (cdr it)) 2)) list))
+
+(defun periphery--go-to-first-error (list)
+    "Go to first error in LIST."
+    (defvar errors-with-reference (--filter (> (length (aref (car(cdr it)) 1)) 0) (periphery--get-all-errors list)))
+    (periphery--open-current-line-with (car (car errors-with-reference))))
+
+(defun periphery--open-current-line-with (data)
+  "Open current line with DATA."
   (interactive)
   (save-match-data
-    (let* ((data (tabulated-list-get-id))
-           (matched (string-match periphery-parse-line-regex data))
+    (let* ((matched (string-match periphery-parse-line-regex data))
            (file (match-string 1 data))
            (linenumber (string-to-number (match-string 2 data)))
            (column (string-to-number (match-string 3 data))))
-        (with-current-buffer (find-file file)
-          (when (> linenumber 0)
-            (goto-char (point-min))
-            (forward-line (1- linenumber))
-            (when (> column 0)
-              (forward-char (1- column))))))))
+      (switch-to-buffer (find-file file)
+        (when (> linenumber 0)
+          (goto-char (point-min))
+          (forward-line (1- linenumber))
+          (when (> column 0)
+            (forward-char (1- column))))))))
+
+(defun periphery--open-current-line ()
+  "Open current current line."
+  (interactive)
+  (periphery--open-current-line-with (tabulated-list-get-id)))
 
 (defun periphery-listing-command (errorList)
  "Create a ERRORLIST for current mode."
@@ -185,7 +198,9 @@
           (push secondEntry periphery-errorList))
       )))
   (if periphery-errorList
-      (periphery-listing-command periphery-errorList)
+      (progn
+        (periphery-listing-command periphery-errorList)
+        (periphery--go-to-first-error periphery-errorList))
     (periphery-message :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
 
 (defun periphery-mode-all ()
@@ -195,39 +210,55 @@
     (setq tabulated-list-entries (-non-nil periphery-errorList))
     (tabulated-list-print t)))
 
-(defun periphery-mode-build-filter (filter)
-  "Show only FILTER."
+(defun periphery-mode-build-filter (filter index)
+  "Show only FILTER and INDEX."
   (interactive "P")
   (progn
     (setq tabulated-list-entries
           (--filter
            (string-match-p (regexp-quote filter)
-                           (aref (car( cdr it)) 3)) (-non-nil periphery-errorList)))
+                           (aref (car( cdr it)) index)) (-non-nil periphery-errorList)))
     (tabulated-list-print t)))
+
+(defun periphery-mode-list-errors ()
+  "Filter on errors."
+  (interactive)
+  (periphery-mode-build-filter "error" 2))
+
+(defun periphery-mode-list-warnings ()
+  "Filter on warnings."
+  (interactive)
+  (periphery-mode-build-filter "warning" 2))
 
 (defun periphery-mode-list-functions ()
   "Filter on fucntions."
-  (periphery-mode-build-filter "Function"))
+  (interactive)
+  (periphery-mode-build-filter "Function" 3))
 
 (defun periphery-mode-list-unused ()
   "Filter on fucntions."
-  (periphery-mode-build-filter "unused"))
+  (interactive)
+  (periphery-mode-build-filter "unused" 3))
 
 (defun periphery-mode-list-initializer ()
   "Filter on fucntions."
-  (periphery-mode-build-filter "Initializer"))
+  (interactive)
+  (periphery-mode-build-filter "Initializer" 3))
 
 (defun periphery-mode-list-protocol ()
   "Filter on protocol."
-  (periphery-mode-build-filter "Protocol"))
+  (interactive)
+  (periphery-mode-build-filter "Protocol" 3))
 
 (defun periphery-mode-list-parameter ()
   "Filter on parameter."
-  (periphery-mode-build-filter "Parameter"))
+  (interactive)
+  (periphery-mode-build-filter "Parameter" 3))
 
 (defun periphery-mode-list-property ()
   "Filter on property."
-  (periphery-mode-build-filter "Property"))
+  (interactive)
+  (periphery-mode-build-filter "Property" 3))
 
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
@@ -235,26 +266,30 @@
 (setq periphery-mode-map (make-sparse-keymap))
 (define-key periphery-mode-map (kbd "?") 'periphery-mode-help)
 (define-key periphery-mode-map (kbd "a") 'periphery-mode-all)
+(define-key periphery-mode-map (kbd "e") 'periphery-mode-list-errors)
+(define-key periphery-mode-map (kbd "w") 'periphery-mode-list-warnings)
 (define-key periphery-mode-map (kbd "f") 'periphery-mode-list-functions)
 (define-key periphery-mode-map (kbd "u") 'periphery-mode-list-unused)
 (define-key periphery-mode-map (kbd "i") 'periphery-mode-list-initializer)
 (define-key periphery-mode-map (kbd "I") 'periphery-mode-list-protocol)
 (define-key periphery-mode-map (kbd "P") 'periphery-mode-list-parameter)
 (define-key periphery-mode-map (kbd "p") 'periphery-mode-list-property)
-(define-key periphery-mode-map (kbd "<return>") 'open-current-line-id)
-(define-key periphery-mode-map (kbd "o") 'open-current-line-id)
+(define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
+(define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
 
 (transient-define-prefix periphery-mode-help ()
 "Help for periphery mode."
 ["Periphery mode help"
     ("a" "All" periphery-mode-all)
+    ("e" "Errors" periphery-mode-list-errors)
+    ("w" "Warnings" periphery-mode-list-warnings)
     ("f" "Functions" periphery-mode-list-functions)
     ("u" "Unused" periphery-mode-list-unused)
     ("i" "Initializer" periphery-mode-list-initializer)
     ("I" "Protocol" periphery-mode-list-protocol)
     ("P" "Parameter" periphery-mode-list-parameter)
     ("p" "Property" periphery-mode-list-property)
-    ("o" "Open" open-current-line-id)
+    ("o" "Open" periphery--open-current-line)
  ])
 
 (defun periphery-kill-buffer ()
@@ -273,7 +308,6 @@
 
 (defun parse-bartycrouch-output-line (line)
   "Run regex over curent LINE."
-  (message line)
   (save-match-data
     (and (string-match bartycrouch-regex-parser line)
          (let* ((file (match-string 1 line))
@@ -316,11 +350,11 @@
     (and (string-match periphery-note-and-errors-regex line)
          (let* ((note (match-string 1 line))
                 (message (match-string 2 line)))
-             (list "" (vector
-                                 (propertize "Buildinfo" 'face 'periphery-filename-face)
-                                 (propertize "" 'face 'periphery-message-face)
-                                 (propertize-severity (if note note "error") (string-trim-left note))
-                                 (propertize message 'face 'periphery-message-face)))))))
+           (list "" (vector
+                     (propertize "Buildinfo" 'face 'periphery-filename-face)
+                     (propertize "" 'face 'periphery-message-face)
+                     (propertize-severity (if note note "error") (string-trim-left note))
+                     (propertize message 'face 'periphery-message-face)))))))
 
 
 (cl-defun periphery-message (&key tag &key text &key attributes)
