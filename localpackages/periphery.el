@@ -14,12 +14,12 @@
   :group 'periphery)
 
 (defface periphery-warning-face
-  '((t (:inherit compilation-warning :bold t)))
+  '((t (:inherit warning :bold t)))
   "Warning."
   :group 'periphery)
 
 (defface periphery-error-face
-  '((t (:inherit compilation-error :bold t)))
+  '((t (:inherit error :bold t)))
   "Warning."
   :group 'periphery)
 
@@ -96,7 +96,7 @@
            (file (match-string 1 data))
            (linenumber (string-to-number (match-string 2 data)))
            (column (string-to-number (match-string 3 data))))
-      (switch-to-buffer (find-file file)
+      (with-current-buffer (find-file file)
         (when (> linenumber 0)
           (goto-char (point-min))
           (forward-line (1- linenumber))

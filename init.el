@@ -44,15 +44,14 @@
       desktop-save-mode                 nil    ;; Done save desktop (open buffers)
       display-time-24hr-format          t
       display-time-default-load-average t
-	  word-wrap                         nil    ;; Dont word wrap in code mode
-	  truncate-lines                    nil    ;; Truncate lines
       echo-keystrokes                   0.1
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
       use-dialog-box                    nil
+      word-wrap                         nil
       visible-bell                      nil)
 
-(setq gc-cons-threshold (eval-when-compile (* 36 1024 1024)))
+(setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
@@ -63,10 +62,10 @@
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
 			  c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
 			  tab-width                     4            ;: Use four tabs
-			  line-spacing                  0.02         ;; Increase linespacing a bit
-			  ;truncate-lines                1			 ;; Truncate lines
+			  line-spacing                  0.1          ;; Increase linespacing a bit
+			  truncate-lines                1			 ;; Truncate lines
 			  indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-			  completion-ignore-case        t            ;; Ignore case when completing
+			  completion-ignore-case        nil            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
@@ -452,7 +451,7 @@
  ("C-<tab>" . #'fzf-git-files)
  :config
  (setq fzf/args "-x --color --print-query  --margin=1,0 --no-hscroll"
-  fzf/window-height 12))
+  fzf/window-height 10))
 
 ;; ------------------ EDITING -------------------
 ;; - anzu search and replace/
@@ -463,7 +462,7 @@
   ("C-M-r" . #'anzu-query-replace))
 
 (use-package multiple-cursors
-  :defer t
+  :hook (prog-mode . multiple-cursors-mode)
   :bind
   ("C-M-s" . #'mc/edit-lines)
   ("C-M-a" . #'mc/mark-all-like-this)
@@ -1233,7 +1232,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key evil-motion-state-map (kbd "M-f")     #'(lambda () (interactive) (counsel-imenu)))
 
   (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
-  (define-key evil-motion-state-map (kbd "M-O")     #'projectile-find-file-dwim)
+  (define-key evil-motion-state-map (kbd "M-O")     #'fzf-projectile)
   (define-key evil-motion-state-map (kbd "C-M-O")   #'projectile-find-file-dwim-other-window)
   (define-key evil-motion-state-map (kbd "M-F")     #'counsel-projectile-rg)
   (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)

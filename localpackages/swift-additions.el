@@ -262,7 +262,7 @@ ARGS are rest arguments, appended to the argument list."
   "Terminate app that is running in simulator with SIMULATOR-ID."
   (if simulator-id
    (progn
-     (message-with-color :tag "[Terminating]" :text current-xcode-scheme :attributes '(:inherit error))
+     (message-with-color :tag "[Terminating]" :text current-xcode-scheme :attributes 'warning)
      (shell-command
       (concat
        (format "xcrun simctl terminate %s %s" simulator-id (fetch-or-load-app-identifier)))))))
@@ -276,7 +276,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (cl-defun parse-errors-from (&key text)
   "Parse errors from TEXT."
-  (message-with-color :tag "[Error]" :text "Build failed." :attributes '(:inherit error))
+  (message-with-color :tag "[Error]" :text "Build failed." :attributes 'error)
   (periphery-run-parser text))
 
 (defun run-app ()
@@ -317,8 +317,8 @@ ARGS are rest arguments, appended to the argument list."
                  (if index-store-path
                      (format "--index-store-path %s --skip-build" (get-index-store-path))))))
           (async-shell-command-to-string "periphery" command #'periphery-run-parser))
-        (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes '(:inherit warning)))
-    (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes '(:inherit warning))))
+        (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes 'info)
+    (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes 'error))))
 
 (defun swift-additions:simulator-log-command ()
     "Command to filter and log the simulator."
@@ -405,7 +405,7 @@ ARGS are rest arguments, appended to the argument list."
   (let* ((app-name (swift-additions:get-app-name (build-folder)))
          (default-directory (concat current-project-root (build-folder))))
     (message default-directory)
-    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes '(:inherit success))
+    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'info)
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
 
 (defun install-app-in-simulator ()
@@ -500,7 +500,7 @@ ARGS are rest arguments, appended to the argument list."
   
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
-  (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes '(:inherit warning)))
+  (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'info))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -513,7 +513,7 @@ ARGS are rest arguments, appended to the argument list."
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
-    (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes '(:inherit warning))
+    (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'info)
     (let* ((default-directory current-project-root)
            (proc (progn
                    (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
@@ -533,7 +533,7 @@ ARGS are rest arguments, appended to the argument list."
         (progn
           (message-with-color :tag "[Removing]" :text (format "Folder for %s" default-directory) :attributes '(:inherit warning))
           (delete-directory default-directory t nil))
-          (message-with-color :tag "[Failed]" :text (format "Build folder %s doesn't exist" default-directory) :attributes '(:inherit warning))))
+          (message-with-color :tag "[Failed]" :text (format "Build folder %s doesn't exist" default-directory) :attributes '(:inherit error))))
     (message-with-color :tag "[Done]" :text "Ready to rumble." :attributes '(:inherit success)))
 
 (defun swift-additions:buffer-contains-substring (string)
