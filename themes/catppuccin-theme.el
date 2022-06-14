@@ -33,21 +33,21 @@
   (lavender   "#C9CBFF" "#d7d7ff")
 
   ;; Dark - monochrome:ish
-  (dark        "#0C0A10" "#000000")
   (black       "#15121C" "#080808")
   (black-1     "#1B1923" "#080808")
   (black-2     "#1E1E28" "#121212")
   (black-3     "#332E41" "#303030")
   (black-4     "#575268" "#4e4e4e")
+  (blue-bg     "#0C121A" "#875f5f")
+  (blue-bg-2   "#243341" "#875f5f")
+  (dark        "#0C0A10" "#000000")
   (gray        "#6E6C7E" "#585858")
   (gray-1      "#988BA2" "#8a8a8a")
   (gray-2      "#C3BAC6" "#9e9e9e")
-  (white       "#DFDEF1" "#eeeeee")
-  (blue-bg     "#0C121A" "#875f5f")
   (red-bg      "#18090E" "#875f5f")
-  (yellow-bg   "#383227" "#875f5f")
-  (blue-bg-2   "#243341" "#875f5f")
   (red-bg-2    "#18090E" "#875f5f")
+  (white       "#DFDEF1" "#eeeeee")
+  (yellow-bg   "#383227" "#875f5f")
   (yellow-bg-2 "#383227" "#875f5f")
   )
 
@@ -65,7 +65,7 @@
   (glyphless-char                       (:foreground gray))
   (header-line							(:background black))
   (highlight                            (:background black-4 :foreground lavender))
-  (hl-line                              (:background black-1))
+  (hl-line                              (:background black-3))
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background black-2 :foreground black-2))
   (line-number                          (:foreground black-4 :background nil))
@@ -74,7 +74,7 @@
   (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
   (mode-line                            (:background black))
-  (mode-line-inactive                   (:background nil :foreground gray-1 :bold nil))
+  (mode-line-inactive                   (:background black-1 :foreground black-4 :bold nil))
   (mode-line-active		                (:background black :foreground rosewater :bold nil))
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground green :bold t))
@@ -129,7 +129,7 @@
   (doom-modeline-battery-warning        (:inherit 'warning))
   (doom-modeline-battery-charging       (:foreground gray-2))
   (doom-modeline-battery-error          (:inherit 'eror))
-  (doom-modeline-battery-normal         (:inherit 'info))
+  (doom-modeline-battery-normal         (:foreground gray))
   (doom-modeline-battery-full           (:foreground green))
 
   ;; Doom visual state
@@ -141,17 +141,17 @@
   (doom-modeline-evil-replace-state     (:foreground red))
   (doom-modeline-evil-operator-state    (:foreground blue))
 
-  (doom-modeline-project-dir            (:bold t :foreground green))
-  (doom-modeline-buffer-path            (:inherit 'bold :foreground green))
-  (doom-modeline-buffer-file            (:inherit 'bold :foreground maroon))
-  (doom-modeline-buffer-modified        (:inherit 'bold :foreground yellow))
+  (doom-modeline-project-dir            (:foreground gray))
+  (doom-modeline-buffer-path            (:foreground gray))
+  (doom-modeline-buffer-file            (:foreground gray-1 :bold t))
+  (doom-modeline-buffer-major-mode      (:foreground gray :bold t))
+  (doom-modeline-buffer-modified        (:foreground gray-2 :italic t :bold t))
   (doom-modeline-error                  (:background red))
-  (doom-modeline-buffer-major-mode      (:foreground green :bold t))
-  (doom-modeline-info                   (:bold t :foreground teal))
-  (doom-modeline-project-dir            (:bold t :foreground peach))
-  (doom-modeline-bar                    (:bold t :background lavender))
+  (doom-modeline-info                   (:foreground gray))
+  (doom-modeline-project-dir            (:foreground peach))
+  (doom-modeline-bar                    (:background lavender))
   (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground black-2))
-
+  (doom-modeline                        (:foreground gray))
 
   ;;elfeed
   (elfeed-search-feed-face              (:foreground lavender))
@@ -293,6 +293,13 @@
   (ivy-posframe                                 (:background black))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
+  (vertico-multiline                            (:background red))
+  (vertico-group-title                          (:background black-4 :foreground maroon :bold t))
+  (vertico-group-separator                      (:background black-4 :foreground maroon :strike-through t))
+  (vertico-current                              (:foreground mauve :bold t :background black-3))
+
+  (completions-annotations (:background nil :foreground gray-1 :italic t))
+
   (treemacs-directory-collapsed-face			(:foreground rosewater))
   (treemacs-directory-face						(:foreground rosewater))
   (treemacs-file-face							(:foreground rosewater))
@@ -367,7 +374,6 @@
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
 
-
   (anzu-match-1 (:foreground green :background black-2))
   (anzu-match-2 (:foreground yellow :background black-2))
   (anzu-match-3 (:foreground teal :background black-2))
@@ -379,7 +385,6 @@
   (ace-jump-face-background (:foreground gray))
   (ace-jump-face-foreground (:foreground red :background black :bold t))
 
-  (vertico-current (:background black-3 :foreground mauve :bold t))
 
   (hydra-face-amaranth		(:foreground mauve))
   (hydra-face-blue			(:foreground blue))
