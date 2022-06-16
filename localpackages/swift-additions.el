@@ -24,7 +24,7 @@
 (defconst xcodebuild-buffer "*xcodebuild*")
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
-(defconst build-info-command "xcrun xcodebuild -list -json")
+(defconst build-warning-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list devices -j")
 (defconst get-booted-simulator-command
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
@@ -208,11 +208,10 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun number-of-available-cores ()
   "Fetch number of available cores."
-  (if-let ((cores
-         (replace-regexp-in-string "\n$" ""
-          (shell-command-to-string "sysctl -n hw.ncpu"))))
-        cores)
-      1)
+  (interactive)
+  (if-let ((cores (replace-regexp-in-string "\n$" "" (shell-command-to-string "sysctl -n hw.ncpu"))))
+      cores
+    2))
 
 (defun get-workspace-or-project ()
   "Check if there is workspace or project."
@@ -231,8 +230,11 @@ ARGS are rest arguments, appended to the argument list."
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (number-of-available-cores))
    (format "-sdk %s \\" (current-sdk))
-   "-parallelizeTargets \\"
+   "-hideShellScriptEnvironment \\"
    "-quiet \\"
+   "-parallelizeTargets \\"
+   "-resolvePackageDependencies \\"
+   "-clonedSourcePackagesDirPath SourcePackages \\"
    (if (not local-device-id)
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
    "-derivedDataPath \\"
@@ -245,7 +247,6 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:install-and-run-simulator-command (simulator-id)
   "Install and launch app (SIMULATOR-ID)."
-  (message "launching %s" simulator-id)
   (let ((folder (build-folder)))
     (concat
      "env /usr/bin/arch -x86_64 \\"
@@ -317,7 +318,7 @@ ARGS are rest arguments, appended to the argument list."
                  (if index-store-path
                      (format "--index-store-path %s --skip-build" (get-index-store-path))))))
           (async-shell-command-to-string "periphery" command #'periphery-run-parser))
-        (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes 'info)
+        (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes 'warning)
     (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes 'error))))
 
 (defun swift-additions:simulator-log-command ()
@@ -405,7 +406,7 @@ ARGS are rest arguments, appended to the argument list."
   (let* ((app-name (swift-additions:get-app-name (build-folder)))
          (default-directory (concat current-project-root (build-folder))))
     (message default-directory)
-    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'info)
+    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
 
 (defun install-app-in-simulator ()
@@ -497,10 +498,12 @@ ARGS are rest arguments, appended to the argument list."
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
   (setup-current-project (get-ios-project-root))
-  
+
+  (message (build-app-command (fetch-or-load-simulator-id)))
+
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
-  (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'info))
+  (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -513,7 +516,7 @@ ARGS are rest arguments, appended to the argument list."
   
   (with-current-buffer (get-buffer-create xcodebuild-buffer)
     (setup-default-buffer-state)
-    (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'info)
+    (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning)
     (let* ((default-directory current-project-root)
            (proc (progn
                    (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
@@ -601,7 +604,7 @@ ARGS are rest arguments, appended to the argument list."
   (message-with-color :tag "[Fetching]" :text "app targets.." :attributes '(:inherit warning))
   
   (let* ((default-directory current-project-root)
-         (json (call-process-to-json build-info-command))
+         (json (call-process-to-json build-warning-command))
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
     targets))
@@ -615,7 +618,7 @@ ARGS are rest arguments, appended to the argument list."
   (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning))
   
   (let* ((default-directory current-project-root)
-         (json (call-process-to-json build-info-command))
+         (json (call-process-to-json build-warning-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'schemes project))))
     result))
@@ -627,7 +630,7 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
   (let* ((default-directory current-project-root)
-         (json (call-process-to-json build-info-command))
+         (json (call-process-to-json build-warning-command))
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
     result))
