@@ -466,8 +466,8 @@
 
 (use-package fzf
  :commands (fzf-git-files fzf-projectile fzf-recentf)
- :bind
- ("C-<tab>" . #'fzf-git-files)
+ ;; :bind
+ ;; ("C-<tab>" . #'fzf-git-files)
  :config
  (setq fzf/args "-x --color --print-query  --margin=1,0 --no-hscroll"
   fzf/window-height 10))
@@ -549,9 +549,21 @@
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
+(use-package consult-project-extra
+  :bind
+  ("C-<tab>" . #'consult-project-extra-find)
+  :after consult)
+
+(use-package consult-ls-git
+  :after consult)
+
+(use-package consult-company
+  :config
+  (define-key company-mode-map [remap completion-at-point] #'consult-company))
+
 (use-package company-sourcekit
   :after company
-  :config
+  :config                               ;
   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"))
 
 (use-package company-tabnine
@@ -624,10 +636,7 @@
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
-  :hook (swift-mode . setup-swift-programming)
-  :custom
-  (setq swift-mode:parenthesized-expression-offset 4
-        swift-mode:multiline-statement-offset 4))
+  :hook (swift-mode . setup-swift-programming))
 
 (use-package clean-aindent-mode
   :hook (prog-mode . clean-aindent-mode)
@@ -784,10 +793,6 @@
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
-
-(use-package forge
-  :commands forge-pull
-  :config (setq auth-sources '("~/.authinfo")))
 
 (use-package vterm
   :commands vterm)
@@ -992,7 +997,10 @@
 
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
-  :hook (prog-mode . dumb-jump-mode))
+  :hook (prog-mode . dumb-jump-mode)
+  (prog-mode . (lambda () (add-to-list 'xref-backend-functions 'dumb-jump-xref-activate)))
+  :config
+  (setq dumb-jump-selector 'vertico))
 
 (use-package bm
   :defer t
