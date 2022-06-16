@@ -294,8 +294,8 @@
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
   (vertico-multiline                            (:background red))
-  (vertico-group-title                          (:background black-4 :foreground maroon :bold t))
-  (vertico-group-separator                      (:background black-4 :foreground maroon :strike-through t))
+  (vertico-group-title                          (:background red-bg :foreground red :bold t))
+  (vertico-group-separator                      (:background red-bg :foreground red :strike-through t))
   (vertico-current                              (:foreground mauve :bold t :background black-3))
 
   (completions-annotations (:background nil :foreground gray-1 :italic t))
