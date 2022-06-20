@@ -196,8 +196,8 @@ ARGS are rest arguments, appended to the argument list."
 (defun xcodebuild-command ()
   "Use x86 environement."
   (if current-environment-x86
-   "env /usr/bin/arch -x86_64 xcrun xcodebuild \\"
-    "xcrun xcodebuild \\"))
+   "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
+    "xcrun xcodebuild build \\"))
 
 (defun build-folder ()
   "Fetch build folder."
@@ -225,20 +225,19 @@ ARGS are rest arguments, appended to the argument list."
   "Xcodebuild with (as SIMULATOR-ID)."
   (concat
    (xcodebuild-command)
-   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (get-workspace-or-project)
+   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (number-of-available-cores))
    (format "-sdk %s \\" (current-sdk))
-   "-hideShellScriptEnvironment \\"
-   "-quiet \\"
    "-parallelizeTargets \\"
    "-resolvePackageDependencies \\"
-   "-clonedSourcePackagesDirPath SourcePackages \\"
+   (format "-clonedSourcePackagesDirPath %s \\" (concat current-project-root "build/SourcePackages"))
    (if (not local-device-id)
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
-   "-derivedDataPath \\"
-   "build"))
+   (format "-derivedDataPath %s \\" (concat current-project-root "build/DerivedDataPath"))
+   (format "MODULE_CACHE_DIR=$(PWD)/build)")
+   ))
 
 (defun swift-additions:get-app-name (directory)
   "Get compiled app name from (DIRECTORY)."
@@ -289,6 +288,7 @@ ARGS are rest arguments, appended to the argument list."
  
 (defun run-parser (text)
   "Run periphery parser on TEXT."
+  (message text)
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text)
@@ -298,7 +298,6 @@ ARGS are rest arguments, appended to the argument list."
         (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
           (run-app)))
     (run-app)))
-       
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
