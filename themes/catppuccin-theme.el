@@ -54,6 +54,7 @@
  ;; Customize faces
   (
   (border                               (:background black-2 :foreground black))
+  (bookmark-face                        (:foreground red :background black-2))
   (button                               (:foreground green))
   (child-frame		                    (:background black :foreground black-1))
   (child-frame-border                   (:background black-2 :foreground black-1))

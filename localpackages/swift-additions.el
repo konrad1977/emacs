@@ -196,8 +196,8 @@ ARGS are rest arguments, appended to the argument list."
 (defun xcodebuild-command ()
   "Use x86 environement."
   (if current-environment-x86
-   "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
-    "xcrun xcodebuild build \\"))
+   "env /usr/bin/arch -x86_64 xcrun xcodebuild \\"
+    "xcrun xcodebuild \\"))
 
 (defun build-folder ()
   "Fetch build folder."
@@ -231,12 +231,14 @@ ARGS are rest arguments, appended to the argument list."
    (format "-jobs %s \\" (number-of-available-cores))
    (format "-sdk %s \\" (current-sdk))
    "-parallelizeTargets \\"
-   "-resolvePackageDependencies \\"
-   (format "-clonedSourcePackagesDirPath %s \\" (concat current-project-root "build/SourcePackages"))
-   (if (not local-device-id)
+   "-quiet \\"
+   (when (not local-device-id)
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
-   (format "-derivedDataPath %s \\" (concat current-project-root "build/DerivedDataPath"))
-   (format "MODULE_CACHE_DIR=$(PWD)/build)")
+    ;; "-derivedDataPath \\"
+    ;; (format "-derivedDataPath %s \\" (concat current-project-root "build/DerivedData"))
+    "-scmProvider xcode \\"
+    "-resolvePackageDependencies \\"
+    "build"
    ))
 
 (defun swift-additions:get-app-name (directory)
