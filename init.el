@@ -343,9 +343,9 @@
   (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
-  (define-key evil-motion-state-map "/" 'consult-line))
-  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces)
+  (define-key evil-motion-state-map "/" 'consult-line)
+  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop))
+  ;; (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces)
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -434,6 +434,7 @@
   (dimmer-configure-posframe)
   (dimmer-configure-hydra)
   (dimmer-configure-which-key)
+  (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
   (setq dimmer-fraction 0.18))
 
 (use-package beacon
@@ -478,8 +479,6 @@
 (use-package rg
   :defer t)
 
-(use-package smart-jump
-  :defer t)
 ;; ------------------ EDITING -------------------
 ;; - anzu search and replace/
 (use-package anzu
@@ -488,11 +487,22 @@
   ("C-M-e" . #'anzu-replace-at-cursor-thing)
   ("C-M-r" . #'anzu-query-replace))
 
+ ;; (use-package evil-mc
+ ;;   :after evil-mode
+ ;;   :init (global-evil-mc-mode 1)
+ ;;   :config
+ ;;   (setq evil-mc-one-cursor-show-mode-line-text t))
+
+(use-package evil-multiedit
+  :after evil
+  :config 
+  (evil-multiedit-default-keybinds))
+
 (use-package multiple-cursors
   :hook (prog-mode . multiple-cursors-mode)
   :bind
   ("C-M-s" . #'mc/edit-lines)
-  ("C-M-a" . #'mc/mark-all-like-this)
+  ("C-M-a" . #'mc/mark-all-like-this-dwim)
   ("C-M-n" . #'mc/mark-next-symbol-like-this)
   ("C-M-p" . #'mc/mark-previous-symbol-like-this))
 
@@ -852,7 +862,7 @@
     "f" '(:ignore t :which-key "Files")
     "fs" '(save-buffer :which-key "Save file")
     "fo" '(dired :which-key "Open file")
-    "ff" '(consult-file-externally :which-key "Find file")
+    "ff" '(find-file :which-key "Find file")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
     "fR" '(dired-rename-file :which-key "Rename file")
@@ -1000,11 +1010,12 @@
   ("M-S-<drag>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-;; Quickly jump to definition or usage
+  ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
   (prog-mode . (lambda () (add-to-list 'xref-backend-functions 'dumb-jump-xref-activate)))
   :config
+  (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-selector 'vertico))
 
 (defun setup-swift-programming ()
@@ -1040,7 +1051,7 @@
   (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
-  (local-set-key (kbd "C-c C-l") #'periphery-run-swiftlint)
+  (local-set-key (kbd "C-x C-l") #'periphery-run-swiftlint)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
   (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
   (local-set-key (kbd "M-s") #'swift-additions:terminate-all-running-apps)
