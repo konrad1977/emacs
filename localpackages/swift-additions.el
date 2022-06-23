@@ -25,7 +25,7 @@
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-warning-command "xcrun xcodebuild -list -json")
-(defconst list-simulators-command "xcrun simctl list devices -j")
+(defconst list-simulators-command "xcrun simctl list devices iPhone -j")
 (defconst get-booted-simulator-command
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
   "Get booted simulator id if any.")
@@ -321,7 +321,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:simulator-log-command (app-identifier)
   "Command to filter and log the simulator (as APP-IDENTIFIER)."
-  (format "xcrun simctl launch --console-pty booted %s -MyDefaultKey YES" app-identifier))
+  (format "xcrun simctl launch --console-pty booted %s" app-identifier))
 
 (defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
