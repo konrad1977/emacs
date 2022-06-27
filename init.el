@@ -9,9 +9,9 @@
 
 (display-battery-mode t)		;; Show battery.
 (display-time-mode t)			;; Show time.
-(scroll-bar-mode -1)			;; Dont use scrollbars.
+(scroll-bar-mode -1)			;; Dont use scroll bars.
 (set-fringe-mode 1)             ;; Give us some space.
-(tooltip-mode 1)                ;; Disable tooltip.
+(tooltip-mode 1)                ;; Disable tool-tip.
 (delete-selection-mode 1)		;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
 (global-font-lock-mode 1)		;; always highlight code
@@ -106,6 +106,9 @@
 ;; Clean up all those temporary files
 (use-package no-littering)
 
+(use-package flyspell
+:config (setq ispell-program-name "aspell"))
+
 (use-package autothemer)
 (load-theme 'catppuccin t)
 
@@ -144,10 +147,11 @@
   (marginalia-mode))
 
 (use-package consult
-    :hook (completion-list-mode . consult-preview-at-point-mode)
-    :bind
-    ("C-s" . consult-line-symbol-at-point)
-    ("M-l" . consult-goto-line))
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :bind
+  ("C-s" . consult-line-symbol-at-point)
+  ("M-l" . consult-goto-line)
+  ("M-f" . consult-imenu))
 
 (defun consult-line-symbol-at-point ()
   "Search consult - thing at point."
@@ -281,6 +285,7 @@
         dashboard-week-agenda t
         dashboard-items '(
                           (projects . 5)
+                          (bookmarks . 5)
                           (recents . 7)
                           )))
 
@@ -328,12 +333,19 @@
 
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
+  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
+  (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
+  (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
+  (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
+  (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
-  (define-key evil-motion-state-map "/" 'consult-line))
+  (define-key evil-motion-state-map "/" 'consult-line)
+  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop))
+  ;; (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces)
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -349,7 +361,6 @@
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-set-key (kbd "<backtab>") 'un-indent-by-removing-4-spaces)
 (global-set-key (kbd "M-1") 'winum-select-window-1)
 (global-set-key (kbd "M-2") 'winum-select-window-2)
 (global-set-key (kbd "M-3") 'winum-select-window-3)
@@ -357,9 +368,7 @@
 (global-set-key (kbd "M-5") 'winum-select-window-5)
 (global-set-key (kbd "M-6") 'winum-select-window-6)
 
-(global-set-key (kbd "C-c C-b") #'bm-toggle)
-(global-set-key (kbd "C-c C-p") #'bm-previous)
-(global-set-key (kbd "C-c C-n") #'bm-next)
+(global-set-key (kbd "C-c C-b") #'consult-bookmark)
 (global-set-key (kbd "M-/") #'comment-dwim)
 
 ;; Theming
@@ -421,9 +430,12 @@
   :config
   (dimmer-configure-org)
   (dimmer-configure-magit)
+  (dimmer-configure-company-box)
+  (dimmer-configure-posframe)
   (dimmer-configure-hydra)
   (dimmer-configure-which-key)
-  (setq dimmer-fraction 0.15))
+  (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
+  (setq dimmer-fraction 0.18))
 
 (use-package beacon
   :hook (after-init . beacon-mode)
@@ -439,7 +451,7 @@
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
-  :commands rainbow-mode)
+  :hook (emacs-lisp-mode . rainbow-mode))
 
 (use-package paren
   :hook (prog-mode . show-paren-mode)
@@ -464,13 +476,8 @@
 (use-package ag
   :defer t)
 
-(use-package fzf
- :commands (fzf-git-files fzf-projectile fzf-recentf)
- ;; :bind
- ;; ("C-<tab>" . #'fzf-git-files)
- :config
- (setq fzf/args "-x --color --print-query  --margin=1,0 --no-hscroll"
-  fzf/window-height 10))
+(use-package rg
+  :defer t)
 
 ;; ------------------ EDITING -------------------
 ;; - anzu search and replace/
@@ -480,11 +487,22 @@
   ("C-M-e" . #'anzu-replace-at-cursor-thing)
   ("C-M-r" . #'anzu-query-replace))
 
+ ;; (use-package evil-mc
+ ;;   :after evil-mode
+ ;;   :init (global-evil-mc-mode 1)
+ ;;   :config
+ ;;   (setq evil-mc-one-cursor-show-mode-line-text t))
+
+(use-package evil-multiedit
+  :after evil
+  :config 
+  (evil-multiedit-default-keybinds))
+
 (use-package multiple-cursors
   :hook (prog-mode . multiple-cursors-mode)
   :bind
   ("C-M-s" . #'mc/edit-lines)
-  ("C-M-a" . #'mc/mark-all-like-this)
+  ("C-M-a" . #'mc/mark-all-like-this-dwim)
   ("C-M-n" . #'mc/mark-next-symbol-like-this)
   ("C-M-p" . #'mc/mark-previous-symbol-like-this))
 
@@ -537,11 +555,11 @@
         company-show-quick-access           'left
         company-async-timeout               3
         company-backends '(
-                           company-tabnine
+                           company-sourcekit
+                           ;; company-tabnine
                            company-capf
                            ;company-keywords
                            ;company-dabbrev-code
-                           ;company-sourcekit
                            ;company-semantic
                            company-files)
         company-frontends '(company-pseudo-tooltip-frontend
@@ -552,6 +570,7 @@
 (use-package consult-project-extra
   :bind
   ("C-<tab>" . #'consult-project-extra-find)
+  ("M-O" . #'consult-project-extra-find-other-window)
   :after consult)
 
 (use-package consult-ls-git
@@ -685,11 +704,6 @@
         '(lambda (mode)
            (s-concat (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
 
-(use-package major-mode-hydra
-  :defer t
-  :config
-  (setq major-mode-hydra-invisible-quit-key "q"))
-
 ; Window / buffer configuration -----------------------------
 (use-package window
   :ensure nil
@@ -700,7 +714,7 @@
    '(("*xwidget*"
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       (body-function . select-window)
-      (window-width . 0.5)
+      (window-width . 0.4)
       (side . right))
      ("\\*occur\\*"
       (display-buffer-in-side-window)
@@ -765,7 +779,7 @@
         magit-todos-depth 4
         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
   (custom-set-variables
-   '(magit-todos-keywords (list "TODO" "FIXME"))))
+   '(magit-todos-keywords (list "TODO" "FIXME" "HACK"))))
 
 (use-package blamer
   :commands (blamer-mode)
@@ -789,6 +803,7 @@
   (setq git-gutter:update-interval 0.5))
 
 (use-package git-gutter-fringe
+  :after git-gutter
   :config
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
@@ -847,7 +862,7 @@
     "f" '(:ignore t :which-key "Files")
     "fs" '(save-buffer :which-key "Save file")
     "fo" '(dired :which-key "Open file")
-    "ff" '(consult-file-externally :which-key "Find file")
+    "ff" '(find-file :which-key "Find file")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
     "fR" '(dired-rename-file :which-key "Rename file")
@@ -990,55 +1005,18 @@
 (use-package drag-stuff
   :hook (prog-mode . drag-stuff-mode)
   :bind
-  ("M-<down>" . drag-stuff-down)
-  ("M-<up>" . drag-stuff-up)
-  ("M-S-<left>" . drag-stuff-left)
+  ("S-M-<down>" . drag-stuff-down)
+  ("M-S-<up>" . drag-stuff-up)
+  ("M-S-<drag>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-;; Quickly jump to definition or usage
+  ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
   (prog-mode . (lambda () (add-to-list 'xref-backend-functions 'dumb-jump-xref-activate)))
   :config
+  (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-selector 'vertico))
-
-(use-package bm
-  :defer t
-  :init
-  (setq bm-restore-repository-on-load t) ;; restore on load (even before you require bm)
-  :config
-  (setq bm-highlight-style 'bm-highlight-only-fringe)
-  (setq bm-cycle-all-buffers t)
-  (setq bm-repository-file "~/.emacs.d/bm-repository")  ;; where to store persistant files
-  (setq-default bm-buffer-persistence t)                ;; save bookmarks
-  (add-hook 'after-init-hook 'bm-repository-load)       ;; Loading the repository from file when on start up.
-  (add-hook 'kill-buffer-hook #'bm-buffer-save)         ;; Saving bookmarks
-
-  ;; Saving the repository to file when on exit.
-  ;; kill-buffer-hook is not called when Emacs is killed, so we
-  ;; must save all bookmarks first.
-  (add-hook 'kill-emacs-hook #'(lambda nil
-                                 (bm-buffer-save-all)
-                                 (bm-repository-save)))
-
-  ;; The `after-save-hook' is not necessary to use to achieve persistence,
-  ;; but it makes the bookmark data in repository more in sync with the file
-  ;; state.
-  (add-hook 'after-save-hook #'bm-buffer-save)
-
-  ;; Restoring bookmarks
-  (add-hook 'find-file-hooks   #'bm-buffer-restore)
-  (add-hook 'after-revert-hook #'bm-buffer-restore)
-
-  ;; The `after-revert-hook' is not necessary to use to achieve persistence,
-  ;; but it makes the bookmark data in repository more in sync with the file
-  ;; state. This hook might cause trouble when using packages
-  ;; that automatically reverts the buffer (like vc after a check-in).
-  ;; This can easily be avoided if the package provides a hook that is
-  ;; called before the buffer is reverted (like `vc-before-checkin-hook').
-  ;; Then new bookmarks can be saved before the buffer is reverted.
-  ;; Make sure bookmarks is saved before check-in (and revert-buffer)
-  (add-hook 'vc-before-checkin-hook #'bm-buffer-save))
 
 (defun setup-swift-programming ()
   "Setup swift development environment."
@@ -1073,7 +1051,7 @@
   (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
-  (local-set-key (kbd "C-c C-l") #'periphery-run-swiftlint)
+  (local-set-key (kbd "C-x C-l") #'periphery-run-swiftlint)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
   (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
   (local-set-key (kbd "M-s") #'swift-additions:terminate-all-running-apps)
@@ -1151,16 +1129,6 @@
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
 
-  (defun minibuffer-keyboard-quit ()
-  "Abort recursive edit.
-In Delete Selection mode, if the mark is active, just deactivate it;
-then it takes a second \\[keyboard-quit] to abort the minibuffer."
-  (interactive)
-  (if (and delete-selection-mode transient-mark-mode mark-active)
-      (setq deactivate-mark  t)
-    (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
-    (abort-recursive-edit)))
-
   ;; Drag stuff
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
 
@@ -1169,23 +1137,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (local-set-key (kbd "C-M-K") #'kill-other-buffers)
 
-  ;; Line movement
-  (define-key evil-motion-state-map (kbd "C-j") #'(lambda () (interactive) (next-line 10)))
-  (define-key evil-motion-state-map (kbd "C-k") #'(lambda () (interactive) (next-line -10)))
-  (define-key evil-motion-state-map (kbd "C-h") #'(lambda () (interactive) (evil-first-non-blank)))
-  (define-key evil-motion-state-map (kbd "C-l") #'(lambda () (interactive) (evil-last-non-blank)))
-
   ; When jumping got forward and back
-  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
-  (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
-
-  (define-key evil-motion-state-map (kbd "M-f")     #'(lambda () (interactive) (consult-imenu)))
-
-  (define-key evil-insert-state-map (kbd "TAB")     #'tab-to-tab-stop)
-  (define-key evil-motion-state-map (kbd "M-O")     #'fzf-projectile)
-  (define-key evil-motion-state-map (kbd "C-M-O")   #'projectile-find-file-dwim-other-window)
-  (define-key evil-motion-state-map (kbd "M-F")     #'consult-git-grep)
-  (define-key evil-motion-state-map (kbd "M-R")     #'projectile-recentf)
   
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 

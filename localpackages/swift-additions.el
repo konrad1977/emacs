@@ -25,7 +25,7 @@
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-warning-command "xcrun xcodebuild -list -json")
-(defconst list-simulators-command "xcrun simctl list devices -j")
+(defconst list-simulators-command "xcrun simctl list devices iPhone -j")
 (defconst get-booted-simulator-command
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
   "Get booted simulator id if any.")
@@ -225,20 +225,18 @@ ARGS are rest arguments, appended to the argument list."
   "Xcodebuild with (as SIMULATOR-ID)."
   (concat
    (xcodebuild-command)
-   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (get-workspace-or-project)
+   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (number-of-available-cores))
    (format "-sdk %s \\" (current-sdk))
-   "-hideShellScriptEnvironment \\"
-   "-quiet \\"
    "-parallelizeTargets \\"
-   "-resolvePackageDependencies \\"
-   "-clonedSourcePackagesDirPath SourcePackages \\"
+   "-quiet \\"
    (if (not local-device-id)
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
-   "-derivedDataPath \\"
-   "build"))
+    "-derivedDataPath \\"
+    "build"
+   ))
 
 (defun swift-additions:get-app-name (directory)
   "Get compiled app name from (DIRECTORY)."
@@ -250,8 +248,8 @@ ARGS are rest arguments, appended to the argument list."
   (let ((folder (build-folder)))
     (concat
      "env /usr/bin/arch -x86_64 \\"
-     (format "xcrun simctl install %s %s%s.app\n" simulator-id folder (swift-additions:get-app-name folder))
-     (format "xcrun simctl launch %s %s" simulator-id (fetch-or-load-app-identifier)))))
+     (format "xcrun simctl install %s %s%s.app\n" simulator-id folder (swift-additions:get-app-name folder)))))
+     ;; (format "xcrun simctl launch --console-pty %s %s -MyDefaultKey YES" simulator-id (fetch-or-load-app-identifier)))))
 
 (defun swift-additions:terminate-all-running-apps ()
     "Terminate runnings apps."
@@ -289,6 +287,7 @@ ARGS are rest arguments, appended to the argument list."
  
 (defun run-parser (text)
   "Run periphery parser on TEXT."
+  (message text)
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text)
@@ -298,7 +297,6 @@ ARGS are rest arguments, appended to the argument list."
         (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
           (run-app)))
     (run-app)))
-       
 
 (defun swift-additions:analyze-using-periphery ()
   "Analyze code base using periphery."
@@ -321,14 +319,9 @@ ARGS are rest arguments, appended to the argument list."
         (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes 'warning)
     (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes 'error))))
 
-(defun swift-additions:simulator-log-command ()
-    "Command to filter and log the simulator."
-    (concat "xcrun simctl spawn booted log stream "
-            "--level error "
-            "--style compact "
-            "--color always "
-            "| grep -Ei "
-            "\'[Cc]onstraint|%s\'" current-xcode-scheme))
+(defun swift-additions:simulator-log-command (app-identifier)
+  "Command to filter and log the simulator (as APP-IDENTIFIER)."
+  (format "xcrun simctl launch --console-pty booted %s" app-identifier))
 
 (defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
@@ -416,13 +409,18 @@ ARGS are rest arguments, appended to the argument list."
     
     (swift-additions:terminate-app-in-simulator simulator-id)
     
-    (message-with-color :tag "[Installing]" :text (format "%s onto %s. Will launch app when done." (swift-additions:get-app-name (build-folder)) (fetch-simulator-name)) :attributes '(:inherit success))
+    (message-with-color
+     :tag "[Installing]"
+     :text (format "%s onto %s. Will launch app when done." (swift-additions:get-app-name (build-folder)) (fetch-simulator-name))
+     :attributes '(:inherit success))
+
     (call-process-shell-command (swift-additions:install-and-run-simulator-command simulator-id))
-    
-    (let ((secondary-id secondary-simulator-id))
+
+    (when-let ((secondary-id secondary-simulator-id))
       (setup-simulator-dwim secondary-simulator-id)
       (call-process-shell-command (swift-additions:install-and-run-simulator-command secondary-id)))
-    (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command))))
+
+    (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:simulator-log-command current-app-identifier))))
 
 (defun check-for-errors (process signal)
   "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
@@ -731,5 +729,4 @@ line."
 (provide 'swift-additions)
 
 ;;; swift-additions.el ends here
-
 
