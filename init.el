@@ -54,8 +54,8 @@
 (setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
-(setq use-package-verbose t
-      use-package-expand-minimally nil
+(setq use-package-verbose nil
+      use-package-expand-minimally t
       use-package-compute-statistics nil
       debug-on-error nil)
 
