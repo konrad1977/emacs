@@ -32,7 +32,7 @@
       create-lockfiles                  nil
       fast-but-imprecise-scrolling      1
       inhibit-compacting-font-caches    t
-      idle-update-delay                 1.0    ;; Speed things up by not updating so often
+      idle-update-delay                 1.2    ;; Speed things up by not updating so often
       initial-scratch-message           ""
       read-process-output-max           (* 8 1024 1024)
       frame-resize-pixelwise            t
@@ -44,7 +44,7 @@
       desktop-save-mode                 nil    ;; Done save desktop (open buffers)
       display-time-24hr-format          t
       display-time-default-load-average t
-      echo-keystrokes                   0.1
+      echo-keystrokes                   0.2
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
       use-dialog-box                    nil
@@ -114,6 +114,19 @@
 
 (use-package vertico
   :hook (after-init . vertico-mode))
+
+(use-package vertico-posframe
+  :after vertico
+  :config (vertico-posframe-mode 1)
+  (setq vertico-posframe-width 200
+        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+        vertico-posframe-height nil
+        vertico-posframe-border-width 0
+        vertico-posframe-parameters
+        '(
+          (left-fringe . 0)
+	      (right-fringe . 0))))
+
 
 ;; Configure directory extension.
 (use-package vertico-directory
