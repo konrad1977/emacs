@@ -116,8 +116,8 @@
   (highlight-symbol-face                (:background red-bg :foreground red :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
   
-  (minibuffer-prompt-end                (:background dark :foreground peach))
-  (minibuffer-prompt                    (:foreground peach :background black))
+  (minibuffer-prompt-end                (:foreground red))
+  (minibuffer-prompt                    (:foreground mauve))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
@@ -298,6 +298,11 @@
   (vertico-group-title                          (:background red-bg :foreground red :bold t))
   (vertico-group-separator                      (:background red-bg :foreground red :strike-through t))
   (vertico-current                              (:foreground mauve :bold t :background black-3))
+
+  (vertico-posframe-border                      (:background black))
+  (vertico-posframe                             (:background black-1))
+  
+  (comint-highlight-prompt                      (:background mauve :foreground black))
 
   (completions-annotations (:background nil :foreground gray-1 :italic t))
 

@@ -113,19 +113,25 @@
 (load-theme 'catppuccin t)
 
 (use-package vertico
-  :hook (after-init . vertico-mode))
+  :hook (after-init . vertico-mode)
+  :config
+  (setq vertico-resize t
+   vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
   :config (vertico-posframe-mode 1)
-  (setq vertico-posframe-width 200
-        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-        vertico-posframe-height nil
-        vertico-posframe-border-width 0
-        vertico-posframe-parameters
-        '(
-          (left-fringe . 0)
-	      (right-fringe . 0))))
+  (setq
+        ;; vertico-posframe-width 200
+   vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+   vertico-posframe-height nil
+   vertico-posframe-border-width 2
+   vertico-posframe-parameters
+   '(
+     (left-fringe . 0)
+	 (right-fringe . 0))))
 
 
 ;; Configure directory extension.
@@ -250,12 +256,6 @@
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
-
-;;  theming
-(add-hook 'minibuffer-setup-hook
-          (lambda ()
-            (make-local-variable 'face-remapping-alist)
-            (add-to-list 'face-remapping-alist '(default (:background "#0C0A10")))))
 
 ;; (use-package centaur-tabs
 ;;   :hook
@@ -568,13 +568,16 @@
         company-show-quick-access           'left
         company-async-timeout               3
         company-backends '(
-                           company-sourcekit
+                           company-dabbrev-code
+                           company-keywords
+                           company-etags
+                           company-clang
+                           ;; company-sourcekit
                            ;; company-tabnine
                            company-capf
-                           ;company-keywords
-                           ;company-dabbrev-code
                            ;company-semantic
-                           company-files)
+                           ;; company-files
+                           )
         company-frontends '(company-pseudo-tooltip-frontend
                             company-echo-metadata-frontend))
   :custom-face
