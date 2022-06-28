@@ -122,7 +122,7 @@
   :after vertico
   :config (vertico-posframe-mode 1)
   (setq
-        ;; vertico-posframe-width 200
+   vertico-posframe-width 185
    vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
@@ -478,6 +478,8 @@
 (use-package tree-sitter
   :hook (swift-mode . tree-sitter-hl-mode))
 
+(global-tree-sitter-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 ;; Remember autocompletions
 (use-package amx
   :after vertico
@@ -530,7 +532,6 @@
   ("C-c C-k" . block-nav-previous-block)
   ("C-c C-l" . block-nav-next-indentation-level)
   ("C-c C-h" . block-nav-previous-indentation-level))
-
 
 ;; ------------------ autocompletions -------------
 ;; workaround for company-transformers
@@ -1059,8 +1060,6 @@
   (load "periphery-swiftlint")
   (load "swift-querying")
   (load "localizeable-mode")
-
-  (tree-sitter-hl-mode)
 
   (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
   (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
