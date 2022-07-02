@@ -74,6 +74,7 @@
   (lv-separator                         (:foreground gray :background black-2))
   (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
+  (fill-column-indicator                (:foreground black-3))
   (mode-line                            (:background black))
   (mode-line-inactive                   (:background black-1 :foreground black-4 :bold nil))
   (mode-line-active		                (:background black :foreground rosewater :bold nil))
@@ -116,8 +117,8 @@
   (highlight-symbol-face                (:background red-bg :foreground red :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
   
-  (minibuffer-prompt-end                (:background dark :foreground peach))
-  (minibuffer-prompt                    (:foreground peach :background black))
+  (minibuffer-prompt-end                (:foreground red))
+  (minibuffer-prompt                    (:foreground mauve))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
@@ -298,6 +299,11 @@
   (vertico-group-title                          (:background red-bg :foreground red :bold t))
   (vertico-group-separator                      (:background red-bg :foreground red :strike-through t))
   (vertico-current                              (:foreground mauve :bold t :background black-3))
+
+  (vertico-posframe-border                      (:background black))
+  (vertico-posframe                             (:background black-1))
+  
+  (comint-highlight-prompt                      (:background mauve :foreground black))
 
   (completions-annotations (:background nil :foreground gray-1 :italic t))
 
