@@ -110,7 +110,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-(load-theme 'catppuccin t)
+;; (load-theme 'catppuccin t)
+(load-theme 'doom-old-hope t)
 
 (use-package vertico
   :hook (after-init . vertico-mode))
@@ -344,8 +345,8 @@
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-motion-state-map "/" 'consult-line)
-  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop))
-  ;; (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces)
+  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -648,7 +649,7 @@
   :custom
   (flycheck-indication-mode 'left-fringe)
   (flycheck-display-errors-delay 0.1)
-  (flycheck-check-syntax-automatically '(save idle-change mode-enabled))
+  (flycheck-check-syntax-automatically '(save idle-change newline))
   (flycheck-idle-change-delay 1))
 
 (use-package flycheck-inline
@@ -1085,18 +1086,6 @@
   (variable-pitch-mode 1)
   (visual-line-mode nil))
 
-(defun un-indent-by-removing-4-spaces ()
-  "Remove 4 spaces from beginning of of line."
-  (interactive)
-  (save-excursion
-    (save-match-data
-      (beginning-of-line)
-      ;; get rid of tabs at beginning of line
-      (when (looking-at "^\\s-+")
-        (untabify (match-beginning 0) (match-end 0)))
-      (when (looking-at "^    ")
-        (replace-match "")))))
-
 ;; Kill all other buffers
 (defun kill-other-buffers ()
   "Kill all other buffer than current."
@@ -1190,6 +1179,18 @@
   (interactive)
   (setq-local company-backends (add-to-list 'company-backends 'company-tabnine))
   (message "Turning on TabNine auto completion for current buffer"))
+
+(defun un-indent-by-removing-4-spaces ()
+  "remove 4 spaces from beginning of of line"
+  (interactive)
+  (save-excursion
+    (save-match-data
+      (beginning-of-line)
+      ;; get rid of tabs at beginning of line
+      (when (looking-at "^\\s-+")
+        (untabify (match-beginning 0) (match-end 0)))
+      (when (looking-at "^    ")
+        (replace-match "")))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
