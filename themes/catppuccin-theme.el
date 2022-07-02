@@ -74,6 +74,7 @@
   (lv-separator                         (:foreground gray :background black-2))
   (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
+  (fill-column-indicator                (:foreground black-3))
   (mode-line                            (:background black))
   (mode-line-inactive                   (:background black-1 :foreground black-4 :bold nil))
   (mode-line-active		                (:background black :foreground rosewater :bold nil))

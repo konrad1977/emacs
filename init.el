@@ -2,7 +2,6 @@
 ;;; Code:
 
 ;; Window
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (eval-when-compile (defvar display-time-24hr-format))
 (eval-when-compile (defvar display-time-default-load-average nil))
@@ -25,7 +24,8 @@
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" )
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile")
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :weight 'light)
+(variable-pitch-mode t)
 
 (setq ad-redefinition-action            'accept
       blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
@@ -103,6 +103,11 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(add-hook 'minibuffer-setup-hook
+      (lambda ()
+        (make-local-variable 'face-remapping-alist)
+        (add-to-list 'face-remapping-alist '(default (:background "#0C0a10")))))
+
 ;; Clean up all those temporary files
 (use-package no-littering)
 
@@ -118,20 +123,20 @@
   (setq vertico-resize t
    vertico-cycle t))
 
-(use-package vertico-posframe
-  :after vertico
-  :config (vertico-posframe-mode 1)
-  (setq
-   vertico-posframe-width 185
-   vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-   vertico-posframe-height nil
-   vertico-posframe-border-width 2
-   vertico-posframe-parameters
-   '(
-     (left-fringe . 0)
-	 (right-fringe . 0))))
+;; (use-package vertico-posframe
+;;   :after vertico
+;;   :config (vertico-posframe-mode 1)
+;;   (setq
+;;    vertico-posframe-width 150
+;;    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+;;    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+;;    vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+;;    vertico-posframe-height nil
+;;    vertico-posframe-border-width 2
+;;    vertico-posframe-parameters
+;;    '(
+;;      (left-fringe . 0)
+;; 	 (right-fringe . 0))))
 
 
 ;; Configure directory extension.
@@ -569,12 +574,12 @@
         company-show-quick-access           'left
         company-async-timeout               3
         company-backends '(
+                           company-sourcekit
+                           company-tabnine
                            company-dabbrev-code
                            company-keywords
                            company-etags
                            company-clang
-                           ;; company-sourcekit
-                           ;; company-tabnine
                            company-capf
                            ;company-semantic
                            ;; company-files
@@ -647,8 +652,13 @@
         treemacs-is-never-other-window nil
         treemacs-display-current-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
-        treemacs-text-scale	0)
-  (treemacs-project-follow-mode t))
+        treemacs-text-scale	0
+        treemacs-project-follow-mode t))
+
+(use-package treemacs-all-the-icons
+  :after (treemacs all-the-icons)
+  :config
+  (treemacs-load-theme "all-the-icons"))
 
 (use-package treemacs-evil
   :after (treemacs evil))
@@ -993,12 +1003,16 @@
                ("https://news.ycombinator.com/rss")
                ("https://www.reddit.com/r/emacs.rss")
                ("https://www.reddit.com/r/swift.rss")
-               ("https://www.osnews.com/feed/")
-               ("https://swiftbysundell.com/rss")
-               ("https://www.reddit.com/r/haikuos.rss"))
+               ("https://swiftbysundell.com/rss"))
         elfeed-search-filter "@1-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
+
+(use-package elfeed-dashboard
+  :after elfeed
+  :config
+  (setq elfeed-dashboard-file "~/elfeed-dashboard.org")
+  (advice-add 'elfeed-search-quit-window :after #'elfeed-dashboard-update-links))
 
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
@@ -1098,7 +1112,7 @@
 (defun mk/org-mode-setup()
   (org-indent-mode 1)
   (variable-pitch-mode 1)
-  (visual-line-mode nil))
+  (visual-line-mode t))
 
 (defun un-indent-by-removing-4-spaces ()
   "Remove 4 spaces from beginning of of line."
@@ -1146,14 +1160,12 @@
 
   ;; Drag stuff
   (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
-
-  (hs-minor-mode)
   (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (local-set-key (kbd "C-M-K") #'kill-other-buffers)
 
   ; When jumping got forward and back
-  
+  (hs-minor-mode)  
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
@@ -1161,6 +1173,7 @@
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
+        fill-column 100
         display-line-numbers t))          ;; Show line numbers
 
 (defun mk/setup-flycheck ()

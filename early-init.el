@@ -5,6 +5,13 @@
 ;;; Code:
 (setq idle-update-delay 1.0)
 
+(set-frame-parameter (selected-frame) 'alpha '(95 . 85))
+(add-to-list 'default-frame-alist '(alpha . (95 . 85)))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 (setq highlight-nonselected-windows nil)
 (setq fast-but-imprecise-scrolling t)
 (setq redisplay-skip-fontification-on-input t)
