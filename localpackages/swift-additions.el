@@ -38,6 +38,7 @@
 (defvar current-simulator-id nil)
 (defvar secondary-simulator-id nil)
 (defvar current-simulator-name nil)
+(defvar current-buildconfiguration-json-data nil)
 (defvar asked-to-use-secondary-simulator nil)
 (defvar local-device-id nil)
 
@@ -164,7 +165,6 @@ ARGS are rest arguments, appended to the argument list."
   
 (defun fetch-or-load-simulator-id ()
   "Get the booted simulator id or fetch a suiting one."
-
   (if (not asked-to-use-secondary-simulator)
       (if (yes-or-no-p "Launch an additional simulator?")
           (let ((another-simulator-id (widget-choose "Choose secondrary simulator" (swift-additions:list-available-simulators))))
@@ -196,8 +196,8 @@ ARGS are rest arguments, appended to the argument list."
 (defun xcodebuild-command ()
   "Use x86 environement."
   (if current-environment-x86
-   "env /usr/bin/arch -x86_64 xcrun xcodebuild \\"
-    "xcrun xcodebuild \\"))
+   "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
+    "xcrun xcodebuild build\\"))
 
 (defun build-folder ()
   "Fetch build folder."
@@ -208,7 +208,6 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun number-of-available-cores ()
   "Fetch number of available cores."
-  (interactive)
   (if-let ((cores (replace-regexp-in-string "\n$" "" (shell-command-to-string "sysctl -n hw.ncpu"))))
       cores
     2))
@@ -230,13 +229,15 @@ ARGS are rest arguments, appended to the argument list."
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (number-of-available-cores))
    (format "-sdk %s \\" (current-sdk))
-   "-parallelizeTargets \\"
+   "-skipUnavailableActions \\"
+   "-scmProvider xcode \\"
+   ;; "-parallelizeTargets \\"
    "-quiet \\"
-   (if (not local-device-id)
+   "-resolvePackageDependencies \\"
+   "-clonedSourcePackagesDirPath build/SourcePackages \\"
+   (when (not local-device-id)
        (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
-    "-derivedDataPath \\"
-    "build"
-   ))
+   "-derivedDataPath \\"))
 
 (defun swift-additions:get-app-name (directory)
   "Get compiled app name from (DIRECTORY)."
@@ -287,7 +288,6 @@ ARGS are rest arguments, appended to the argument list."
  
 (defun run-parser (text)
   "Run periphery parser on TEXT."
-  (message text)
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text)
@@ -398,7 +398,6 @@ ARGS are rest arguments, appended to the argument list."
   "Install an app on device."
   (let* ((app-name (swift-additions:get-app-name (build-folder)))
          (default-directory (concat current-project-root (build-folder))))
-    (message default-directory)
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
     (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
 
@@ -445,6 +444,7 @@ ARGS are rest arguments, appended to the argument list."
   (setq current-build-configuration nil)
   (setq current-simulator-id nil)
   (setq current-simulator-name nil)
+  (setq current-buildconfiguration-json-data nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
 (defun setup-default-buffer-state ()
@@ -496,8 +496,6 @@ ARGS are rest arguments, appended to the argument list."
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
   (setup-current-project (get-ios-project-root))
-
-  (message (build-app-command (fetch-or-load-simulator-id)))
 
   (let ((default-directory current-project-root))
     (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'run-parser))
@@ -588,11 +586,16 @@ ARGS are rest arguments, appended to the argument list."
   "Get bundle identifier (as CONFIG)."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
-  
   (let* ((default-directory current-project-root)
          (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
+
+(defun swift-additions:get-buildconfiguration-json ()
+  "Return a cached version or load the build configuration."
+  (unless current-buildconfiguration-json-data
+    (setq current-buildconfiguration-json-data (call-process-to-json build-warning-command)))
+  current-buildconfiguration-json-data)
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
@@ -600,9 +603,9 @@ ARGS are rest arguments, appended to the argument list."
     (setq current-project-root (get-ios-project-root)))
 
   (message-with-color :tag "[Fetching]" :text "app targets.." :attributes '(:inherit warning))
-  
+
   (let* ((default-directory current-project-root)
-         (json (call-process-to-json build-warning-command))
+         (json (swift-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
     targets))
@@ -612,11 +615,10 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
 
-  (message current-project-root)
   (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning))
   
   (let* ((default-directory current-project-root)
-         (json (call-process-to-json build-warning-command))
+         (json (swift-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
          (result (cdr (assoc 'schemes project))))
     result))
@@ -628,7 +630,7 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
   (let* ((default-directory current-project-root)
-         (json (call-process-to-json build-warning-command))
+         (json (swift-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
     result))

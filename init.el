@@ -115,8 +115,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-;; (load-theme 'catppuccin t)
-(load-theme 'doom-old-hope t)
+(load-theme 'catppuccin t)
+;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
   :hook (after-init . vertico-mode)
@@ -565,23 +565,20 @@
         company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
-        company-require-match               'never
+        company-require-match               'require-match
         company-tooltip-limit               9
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
-        company-tooltip-idle-delay          0.3
-        company-async-wait                  0.4
         company-idle-delay                  0.3
         company-show-quick-access           'left
-        company-async-timeout               3
+        company-async-wait                  0.4
+        company-async-timeout               5
         company-backends '(
                            company-sourcekit
-                           company-tabnine
                            company-dabbrev-code
-                           company-keywords
-                           company-etags
-                           company-clang
                            company-capf
+                           company-tabnine
+                           company-keywords
                            ;company-semantic
                            ;; company-files
                            )
@@ -877,7 +874,9 @@
   (mk/leader-keys
     "b" '(:ignore t :which-key "Buffer")
     "bb" '(consult-buffer :which-key "Switch buffer")
-    "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer"))
+    "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer")
+    "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer")
+    )
   
   (mk/leader-keys
     "e" '(:ignore t :which-key "Eval")
@@ -1002,8 +1001,9 @@
   :config
   (setq elfeed-feeds '(
                ("https://news.ycombinator.com/rss")
+               ("https://ag91.github.io/rss")
                ("https://www.reddit.com/r/emacs.rss")
-               ("https://www.reddit.com/r/swift.rss")
+               ("https://xenodium.com/rss")
                ("https://swiftbysundell.com/rss"))
         elfeed-search-filter "@1-days-ago +unread"
         elfeed-search-title-max-width 100

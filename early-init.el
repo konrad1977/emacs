@@ -5,8 +5,8 @@
 ;;; Code:
 (setq idle-update-delay 1.0)
 
-(set-frame-parameter (selected-frame) 'alpha '(95 . 85))
-(add-to-list 'default-frame-alist '(alpha . (95 . 85)))
+(set-frame-parameter (selected-frame) 'alpha '(97 . 92))
+(add-to-list 'default-frame-alist '(alpha . (97 . 92)))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
