@@ -91,17 +91,18 @@
 (defun periphery--open-current-line-with (data)
   "Open current line with DATA."
   (interactive)
-  (save-match-data
-    (let* ((matched (string-match periphery-parse-line-regex data))
-           (file (match-string 1 data))
-           (linenumber (string-to-number (match-string 2 data)))
-           (column (string-to-number (match-string 3 data))))
-      (with-current-buffer (find-file file)
-        (when (> linenumber 0)
-          (goto-char (point-min))
-          (forward-line (1- linenumber))
-          (when (> column 0)
-            (forward-char (1- column))))))))
+  (if data
+      (save-match-data
+        (let* ((matched (string-match periphery-parse-line-regex data))
+               (file (match-string 1 data))
+               (linenumber (string-to-number (match-string 2 data)))
+               (column (string-to-number (match-string 3 data))))
+          (with-current-buffer (find-file file)
+            (when (> linenumber 0)
+              (goto-char (point-min))
+              (forward-line (1- linenumber))
+              (when (> column 0)
+                (forward-char (1- column)))))))))
 
 (defun periphery--open-current-line ()
   "Open current current line."
@@ -189,8 +190,7 @@
   "Run parser (as INPUT)."
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
-    (let (
-          (entry (parse-periphery-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
+    (let* ((entry (parse-periphery-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
           (secondEntry (parse-xcodebuild-notes-and-errors (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
       (if entry
           (push entry periphery-errorList))
