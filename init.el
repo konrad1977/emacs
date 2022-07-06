@@ -256,9 +256,9 @@
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-color-icon nil
-        doom-modeline-height 37)
+        doom-modeline-height 24)
   (set-face-attribute 'mode-line nil :height 160 :box '(:line-width -1 :color "#0C0A10"))
-  (set-face-attribute 'mode-line-inactive nil :height 150 :box '(:line-width -1 :color "#332E41")))
+  (set-face-attribute 'mode-line-inactive nil :height 155 :box '(:line-width -1 :color "#332E41")))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -559,14 +559,14 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  (setq company-format-margin-function  'company-dot-icons-margin
+  (setq company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
         company-tooltip-margin              1
         company-minimum-prefix-length       2
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               'require-match
-        company-tooltip-limit               9
+        company-tooltip-limit               10
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
         company-idle-delay                  0.3
@@ -574,18 +574,20 @@
         company-async-wait                  0.4
         company-async-timeout               5
         company-backends '(
-                           company-sourcekit
-                           company-dabbrev-code
                            company-capf
-                           company-tabnine
+                           company-dabbrev-code
                            company-keywords
-                           ;company-semantic
-                           ;; company-files
+                           company-semantic
+                           company-files
                            )
         company-frontends '(company-pseudo-tooltip-frontend
                             company-echo-metadata-frontend))
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
+
+(defun setup-swift-mode-company ()
+  (setq-local company-backends
+              '((company-sourcekit company-tabnine :separate))))
 
 (use-package consult-project-extra
   :bind
@@ -1051,6 +1053,7 @@
   (setq dumb-jump-selector 'vertico))
 
 (defun setup-swift-programming ()
+  (setup-swift-mode-company)
   "Setup swift development environment."
   (setq tree-sitter-hl-use-font-lock-keywords nil)
   (defface tree-sitter-hl-face:case-pattern
