@@ -3,10 +3,10 @@
 ;;; Commentary: My early init file
 
 ;;; Code:
-(setq idle-update-delay 1.0)
+(setq idle-update-delay 0.2)
 
-(set-frame-parameter (selected-frame) 'alpha '(97 . 92))
-(add-to-list 'default-frame-alist '(alpha . (97 . 92)))
+(set-frame-parameter (selected-frame) 'alpha '(98 . 95))
+(add-to-list 'default-frame-alist '(alpha . (98 . 95)))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
@@ -21,7 +21,6 @@
       frame-resize-pixelwise t)
 
 (when (boundp 'read-process-output-max)
-  ;; 1MB in bytes, default 4096 bytes
   (setq read-process-output-max (* 10 1024 1024)))
 
 ;; Defer garbage collection further back in the startup process
@@ -33,17 +32,11 @@
 (setq inhibit-compacting-font-caches t)
 
 (setq tool-bar-mode nil
-      menu-bar-mode nil)
+      menu-bar-mode nil
+      scroll-bar-mode nil)
+
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))
-
-(setq bidi-inhibit-bpa t)
-(setq-default bidi-display-reordering 'left-to-right
-			  bidi-paragraph-direction 'left-to-right
-			  cursor-in-non-selected-windows nil
-			  fringes-outside-margins nil
-			  indicate-buffer-boundaries nil
-			  indicate-empty-lines nil)
 
 (provide 'early-init)
 ;;; early-init.el ends here

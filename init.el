@@ -8,7 +8,6 @@
 
 (display-battery-mode t)		;; Show battery.
 (display-time-mode t)			;; Show time.
-(scroll-bar-mode -1)			;; Dont use scroll bars.
 (set-fringe-mode 1)             ;; Give us some space.
 (tooltip-mode 1)                ;; Disable tool-tip.
 (delete-selection-mode 1)		;; Use a more sane delete mode than evil.
@@ -30,12 +29,9 @@
 (setq ad-redefinition-action            'accept
       blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
       create-lockfiles                  nil
-      fast-but-imprecise-scrolling      1
-      inhibit-compacting-font-caches    t
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
       initial-scratch-message           ""
       read-process-output-max           (* 8 1024 1024)
-      frame-resize-pixelwise            t
       auto-mode-case-fold               nil
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
@@ -51,11 +47,11 @@
       word-wrap                         nil
       visible-bell                      nil)
 
-(setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
+;; (setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
-      use-package-expand-minimally t
+      use-package-expand-minimally nil
       use-package-compute-statistics nil
       debug-on-error nil)
 
