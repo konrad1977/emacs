@@ -1,13 +1,14 @@
-;;; Periphery-search --- Search using Ag/Rg and show the result as flycheck list.
+;;; Periphery-search --- Search using Ag/Rg and show the result as flycheck list.  -*- lexical-binding: t; -*-
 
 ;;; Commentary: Package for showing search as result in a tabulated list
 
 ;;; Code:
 (require 'periphery)
+(require 'thingatpt)
 
 (defvar current-query "")
 
-(defun async-shell-command-to-string (process-name command callback)
+(defun periphery-search--async-shell-command-to-string (process-name command callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
 
@@ -42,7 +43,7 @@ PROCESS-NAME is the name of the process."
 
 (defun periphery--search-thing-at-point (searcher)
   "Search thing at point using (SEARCHER)."
-  (periphery-run-query searcher (thing-at-point 'word)))
+  (periphery-run-query searcher (thing-at-point 'symbol)))
 
 (defun periphery-search-rg ()
   "Search using RG (Ripgrep)."
@@ -61,7 +62,7 @@ PROCESS-NAME is the name of the process."
       (progn
         (let ((default-directory (vc-root-dir)))
           (setq current-query text)
-          (async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher text) #'send-search-result-to-periphery)))
+          (periphery-search--async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher text) #'send-search-result-to-periphery)))
     (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)

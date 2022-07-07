@@ -1070,7 +1070,6 @@
     :group 'tree-sitter-hl-faces)
 
   (load "swift-additions")
-  (load "periphery-search")
   (load "periphery-swiftlint")
   (load "swift-querying")
   (load "localizeable-mode")
@@ -1080,7 +1079,6 @@
   (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
-  (local-set-key (kbd "C-x C-l") #'periphery-run-swiftlint)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
   (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
   (local-set-key (kbd "M-s") #'swift-additions:terminate-all-running-apps)
@@ -1089,7 +1087,7 @@
   (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
   (local-set-key (kbd "C-c C-s") #'swift-additions:split-func-list)
   (local-set-key (kbd "C-c C-r") #'xcode-build:run)
-  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
+  (local-set-key (kbd "C-x C-l") #'periphery-run-swiftlint)
 
   (use-package flycheck-swift3
     :after flycheck
@@ -1135,8 +1133,8 @@
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
   (interactive)
-   (let* ((ignore-window-parameters t)
-          (dedicated-p (window-dedicated-p)))
+  (let* ((ignore-window-parameters t)
+         (dedicated-p (window-dedicated-p)))
     (delete-other-windows)
     (split-window-horizontally)
     (other-window 1)
@@ -1146,8 +1144,11 @@
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
 
+  (load "periphery-search")
+  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
+
   ;; Drag stuff
-  (global-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
+  (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (local-set-key (kbd "C-M-K") #'kill-other-buffers)
