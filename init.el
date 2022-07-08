@@ -111,7 +111,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-(load-theme 'catppuccin t)
+;; (load-theme 'catppuccin t)
+(load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
@@ -251,40 +252,15 @@
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
+        doom-modeline-major-mode-icon nil
         doom-modeline-major-mode-color-icon nil
-        doom-modeline-height 24)
+        doom-modeline-buffer-state-icon nil
+        doom-modeline-height 25)
   (set-face-attribute 'mode-line nil :height 160 :box '(:line-width -1 :color "#0C0A10"))
   (set-face-attribute 'mode-line-inactive nil :height 155 :box '(:line-width -1 :color "#332E41")))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
-
-;; (use-package centaur-tabs
-;;   :hook
-;;   (dashboard-mode . centaur-tabs-local-mode)
-;;   (vterm-mode . centaur-tabs-local-mode)
-;;   (calendar-mode . centaur-tabs-local-mode)
-;;   (org-agenda-mode . centaur-tabs-local-mode)
-;;   (helpful-mode . centaur-tabs-local-mode)
-;;   (xwidget-webkit-mode . centaur-tabs-local-mode)
-;;   (periphery-mode . centaur-tabs-local-mode)
-;;   :config
-;;   (add-to-list 'centaur-tabs-excluded-prefixes "*xcodebuild")
-;;   ;(centaur-tabs-mode)
-;;   (centaur-tabs-headline-match)
-;;   (centaur-tabs-group-by-projectile-project)
-;;   (setq centaur-tabs-style "box"
-;;          centaur-tabs-height 27
-;;         centaur-tabs-gray-out-icons 'buffer
-;;          centaur-tabs-set-modified-marker t
-;;          centaur-tabs-show-navigation-buttons nil
-;;          centaur-tabs-plain-icons t
-;;          centaur-tabs-set-icons t
-;;          uniquify-buffer-name-style 'forward)
-;;   :bind
-;;   (:map evil-normal-state-map
-;;           ("g t" . centaur-tabs-forward)
-;;           ("g T" . centaur-tabs-backward)))
 
 (use-package dashboard
   :config
