@@ -393,7 +393,16 @@
   (ace-jump-face-foreground                      (:foreground peachRed :background sumiInk-0 :bold t))
   
   ;; vertico
-  (vertico-current                               (:background sumiInk-3 :foreground springViolet2 :bold t))
+  (vertico-multiline                             (:background samuraiRed))
+  (vertico-group-title                           (:background winterBlue :foreground lightBlue :bold t))
+  (vertico-group-separator                       (:background winterBlue :foreground lightBlue :strike-through t))
+  (vertico-current                               (:foreground springViolet2 :bold t :background sumiInk-3))
+
+  (vertico-posframe-border                       (:background sumiInk-1))
+  (vertico-posframe                              (:background sumiInk-1))
+  
+  (comint-highlight-prompt                       (:background springViolet2 :foreground sumiInk-1))
+  (completions-annotations                       (:background nil :foreground dragonBlue :italic t))
   
   ;; hydra
   (hydra-face-amaranth                           (:foreground autumnRed))
