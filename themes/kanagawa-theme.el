@@ -246,7 +246,6 @@
   (tooltip                                       (:foreground sumiInk-0 :background carpYellow :bold t))
   
   ;; company-box
-  ;; (company-box                                   (:background aut ))
   (company-tooltip                               (:background sumiInk-2))
   (company-tooltip-common                        (:foreground autumnYellow))
   (company-tooltip-quick-access                  (:foreground springViolet2))
