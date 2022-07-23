@@ -306,7 +306,7 @@
 ;;; - Bartycrouch parsing
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
 
-(defun parse-bartycrouch-output-line (line)
+(defun periphery--parse-bartycrouch-line (line)
   "Run regex over curent LINE."
   (save-match-data
     (and (string-match bartycrouch-regex-parser line)

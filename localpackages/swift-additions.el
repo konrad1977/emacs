@@ -41,6 +41,7 @@
 (defvar current-buildconfiguration-json-data nil)
 (defvar asked-to-use-secondary-simulator nil)
 (defvar local-device-id nil)
+(defvar DEBUG nil)
 
 (defun get-booted-simulator ()
   "Get booted simulator if any."
@@ -53,7 +54,7 @@
   "Split the CMD unless it is a list.  This function respects quotes."
   (if (listp cmd) cmd (split-string-and-unquote cmd)))
 
-(defun async-shell-command-to-string (process-name command callback)
+(cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
   
@@ -143,18 +144,18 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun fetch-targets ()
   "Select the target."
-  (build-menu "Choose target" (swift-additions:get-target-list)))
+  (build-menu :title "Choose target" :list (swift-additions:get-target-list)))
 
 (defun fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
   (unless current-xcode-scheme
-    (setq current-xcode-scheme (build-menu "Choose a scheme" (swift-additions:get-scheme-list))))
+    (setq current-xcode-scheme (build-menu :title "Choose a scheme" :list (swift-additions:get-scheme-list))))
   current-xcode-scheme)
 
 (defun fetch-or-load-build-configuration ()
   "Get the build configuration or promp user."
   (unless current-build-configuration
-    (setq current-build-configuration (build-menu "Choose a configuration" (swift-additions:get-configuration-list))))
+    (setq current-build-configuration (build-menu :title "Choose a configuration" :list (swift-additions:get-configuration-list))))
   current-build-configuration)
     
 (defun fetch-or-load-app-identifier ()
@@ -275,7 +276,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (cl-defun swift-additions:parse-errors (&key text)
   "Parse errors from TEXT."
-  (message-with-color :tag "[Error]" :text "Build failed." :attributes 'error)
+  (message-with-color :tag "[Errors/Warnings]" :text "Warning not a clean build." :attributes 'error)
   (periphery-run-parser text))
 
 (defun swift-additions:run-app()
@@ -287,6 +288,8 @@ ARGS are rest arguments, appended to the argument list."
  
 (defun swift-additions:check-for-errors (text)
   "Run periphery parser on TEXT."
+  (when DEBUG
+    (message text))
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text)
@@ -314,7 +317,7 @@ ARGS are rest arguments, appended to the argument list."
                  " --quiet \\"
                  (if index-store-path
                      (format "--index-store-path %s --skip-build" (get-index-store-path))))))
-          (async-shell-command-to-string "periphery" command #'periphery-run-parser))
+          (async-shell-command-to-string :process-name "periphery" :command command :callback #'periphery-run-parser))
         (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes 'warning)
     (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes 'error))))
 
@@ -495,11 +498,14 @@ ARGS are rest arguments, appended to the argument list."
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
-  (setup-current-project (get-ios-project-root))
 
-  (let ((default-directory current-project-root))
-    (async-shell-command-to-string "periphery" (build-app-command (fetch-or-load-simulator-id)) #'swift-additions:check-for-errors))
-  (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))
+  (if (swift-additions:is-spm-project)
+    (swift-additions:build-swift-package)
+    (progn
+      (setup-current-project (get-ios-project-root))
+      (let ((default-directory current-project-root))
+        (async-shell-command-to-string :process-name "periphery" :command (build-app-command (fetch-or-load-simulator-id)) :callback #'swift-additions:check-for-errors))
+      (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))))
 
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
@@ -655,7 +661,7 @@ ARGS are rest arguments, appended to the argument list."
                          (cdr (assoc 'udid device)))) devices)))
     items))
 
-(defun build-menu (title list)
+(cl-defun build-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
   (if (<= (length list) 1)
       (elt list 0)
@@ -677,6 +683,32 @@ ARGS are rest arguments, appended to the argument list."
   (setq-local inhibit-message nil)
   (message "%s %s" (propertize tag 'face attributes) text)
   (setq-local inhibit-message t))
+
+(defun swift-additions:is-spm-project ()
+  "Check if project is a swift package based."
+  (interactive)
+  (let ((default-directory (vc-root-dir)))
+    (file-exists-p "Package.swift")))
+
+(defun swift-additions:check-for-spm-build-errors (text)
+    "Check for Swift package build erros in TEXT."
+  (when DEBUG
+    (message text))
+  (if (or
+       (string-match-p (regexp-quote "BUILD FAILED") text)
+       (string-match-p (regexp-quote "error:") text)
+       (string-match-p (regexp-quote "warning:") text))
+      (progn
+        (swift-additions:parse-errors :text text)
+        (when (not (string-match-p (regexp-quote "error:") text))
+         (shell-command "swift run" xcodebuild-buffer)))
+    (shell-command "swift run" xcodebuild-buffer)))
+
+(defun swift-additions:build-swift-package ()
+  "Build swift package module."
+  (let ((default-directory (vc-root-dir)))
+    (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
+    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
 
 ; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
 (defun swift-additions:split-func-list ()
@@ -727,6 +759,16 @@ line."
                                     (zerop squares) (zerop curlies))
                            (setq comma t)))))))))
       (error (user-error "Cannot parse function decl or call here")))))
+
+(require 'ansi-color)
+;;; Taken from https://stackoverflow.com/questions/5819719/emacs-shell-command-output-not-showing-ansi-colors-but-the-code
+(defadvice display-message-or-buffer (before ansi-color activate)
+  "Process ANSI color codes in shell output."
+  (let ((buf (ad-get-arg 0)))
+    (and (bufferp buf)
+         (string= (buffer-name buf) xcodebuild-buffer)
+         (with-current-buffer buf
+           (ansi-color-apply-on-region (point-min) (point-max))))))
 
 (provide 'swift-additions)
 
