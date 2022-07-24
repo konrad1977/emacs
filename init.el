@@ -65,11 +65,15 @@
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
-(let* ((path (expand-file-name "localpackages" user-emacs-directory))
-       (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
-  (if (file-accessible-directory-p path)
-      (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
-    (make-directory path :parents)))
+(let ((default-directory  "~/.emacs.d/localpackages/"))
+  (normal-top-level-add-to-load-path '("."))
+  (normal-top-level-add-subdirs-to-load-path))
+
+;; (let* ((path (expand-file-name "localpackages" user-emacs-directory))
+;;        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
+;;   (if (file-accessible-directory-p path)
+;;       (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
+;;     (make-directory path :parents)))
 
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'savehist-additional-variables 'kill-ring)
@@ -125,16 +129,16 @@
   :after vertico
   :config (vertico-posframe-mode 1)
   (setq
-   vertico-posframe-width 150
+   vertico-posframe-width 185
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
    vertico-posframe-height nil
-   vertico-posframe-border-width 2
+   vertico-posframe-border-width 1
    vertico-posframe-parameters
    '(
-     (left-fringe . 0)
-	 (right-fringe . 0))))
+     (left-fringe . 2)
+	 (right-fringe . 2))))
 
 
 ;; Configure directory extension.

@@ -397,7 +397,7 @@
   (vertico-group-separator                       (:background winterBlue :foreground lightBlue :strike-through t))
   (vertico-current                               (:foreground springViolet2 :bold t :background sumiInk-3))
 
-  (vertico-posframe-border                       (:background sumiInk-1))
+  (vertico-posframe-border                       (:background sumiInk-3))
   (vertico-posframe                              (:background sumiInk-1))
   
   (comint-highlight-prompt                       (:background springViolet2 :foreground sumiInk-1))
