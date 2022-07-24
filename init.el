@@ -53,7 +53,7 @@
 (setq use-package-verbose nil
       use-package-expand-minimally nil
       use-package-compute-statistics nil
-      debug-on-error nil)
+      debug-on-error t)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -309,6 +309,7 @@
   :init
   ;; (setq evil-undo-system 'undo-redo)
   (setq evil-want-integration t
+        evil-want-minibuffer nil
         evil-want-fine-undo t
         evil-want-keybinding nil
         evil-want-C-u-scroll t
@@ -340,13 +341,6 @@
 
 (use-package evil-tutor
   :commands evil-tutor)
-
-(use-package evil-collection
-  :after evil
-  :custom
-  (setq evil-collection-setup-minibuffer t)
-  :config
-  (evil-collection-init))
 
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
