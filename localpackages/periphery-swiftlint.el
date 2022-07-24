@@ -1,14 +1,14 @@
-
-;;; Periphery-swiftlint 
+;;; Periphery-swiftlint  -*- lexical-binding: t; -*-
 
 ;;; Commentary: Package for showing all swiftlint results abulated list
 
 ;;; Code:
 (require 'periphery)
+(require 'cl-lib)
 
 (defconst swiftlint "swiftlint")
 
-(defun async-shell-command-to-string (process-name command callback)
+(cl-defun periphery--swiftlint:async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
 
@@ -29,13 +29,11 @@ PROCESS-NAME is the name of the process."
 
 (defun get-swiftlint-file-root ()
     "Get the path of the swiftlint file."
-    (interactive)
-    (let* (
-        (directory (directory-files-recursively (vc-root-dir) "\\.swiftlint\\.yml$" nil))
+    (let* ((directory (directory-files-recursively (vc-root-dir) "\\.swiftlint\\.yml$" nil))
         (lint-directory (file-name-directory (car-safe (last directory)))))
       lint-directory))
 
-(defun periphery-swiftlint-analyze-result (result)
+(defun periphery--swiftlint:analyze-result (result)
   "Analyze RESULT."
   (periphery-run-parser result)
   (periphery-message :tag "[Done]" :text "Linting done" :attributes 'success))
@@ -46,9 +44,13 @@ PROCESS-NAME is the name of the process."
   (if (executable-find swiftlint)
       (progn
         (let ((default-directory (get-swiftlint-file-root)))
-          (async-shell-command-to-string swiftlint swiftlint #'periphery-swiftlint-analyze-result))
+          (periphery--swiftlint:async-shell-command-to-string
+           :process-name swiftlint
+           :command swiftlint
+           :callback #'periphery--swiftlint:analyze-result))
         (periphery-message :tag "[Linting]" :text "Linting project" :attributes 'success))
     (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." swiftlint) :attributes 'warning)))
 
 (provide 'perihery-swiftlint)
+
 ;;; periphery-swiftlint.el ends here.
