@@ -52,9 +52,7 @@
 (define-key periphery-mode-map (kbd "<return>") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") #'periphery--open-current-line)
 
-(defconst periphery-regex-parser "\\(^\/[^:]+\\)?:\\([0-9]+\\)?:?\\([0-9]+\\):\w?\\([^:]+\\):\\(.*\\)")
-
-;;(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.*\\)")
+(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)")
 (defconst periphery-parse-line-regex "^\\(^\/[^:]+\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?")
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
@@ -92,19 +90,20 @@
 
 (defun periphery--open-current-line-with (data)
   "Open current line with DATA."
-  (interactive)
   (if data
       (save-match-data
         (let* ((matched (string-match periphery-parse-line-regex data))
                (file (match-string 1 data))
                (linenumber (string-to-number (match-string 2 data)))
-               (column (string-to-number (match-string 3 data))))
+               (column (match-string 3 data)))
           (with-current-buffer (find-file file)
             (when (> linenumber 0)
               (goto-char (point-min))
               (forward-line (1- linenumber))
-              (when (> column 0)
-                (forward-char (1- column)))))))))
+              (when-let ((columnnumber (string-to-number column)))
+                (when (> columnnumber 0)
+                    (forward-char (1- columnnumber))))))))))
+
 
 (defun periphery--open-current-line ()
   "Open current current line."
@@ -141,15 +140,15 @@
                 (type (match-string 4 line))
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
-
-             (list fileWithLine (vector
-                                 (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
-                                 (propertize linenumber 'face 'periphery-linenumber-face)
-                                 (propertize-severity type (string-trim-left type))
-                                 (mark-all-symbols
-                                  (propertize (string-trim-left message) 'face 'periphery-message-face)
-                                  periphery-regex-mark-quotes)
-                                 ))))))
+               (list fileWithLine (vector
+                                   (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
+                                   (propertize linenumber 'face 'periphery-linenumber-face)
+                                   (propertize-severity type (string-trim-left type))
+                                   (mark-all-symbols
+                                    (propertize (string-trim-left message) 'face 'periphery-message-face)
+                                    periphery-regex-mark-quotes)
+                                   ))
+                                 ))))
 
 
 (defun propertize-message (text)

@@ -28,7 +28,10 @@ PROCESS-NAME is the name of the process."
 
 (defun send-loco-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
+<<<<<<< HEAD
+=======
   (message text)
+>>>>>>> 9306994928a18f0e5db14220680da9f4688076a1
   (periphery-run-parser text))
 
 (defun periphery-loco:run-linter ()
@@ -40,10 +43,14 @@ PROCESS-NAME is the name of the process."
           (periphery-message :tag "[Loco]" :text "Linting, stand by..." :attributes 'info)
           (periphery-loco:async-shell-command-to-string "loco" loco-command #'send-loco-result-to-periphery))
         )
+<<<<<<< HEAD
+    (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." loco-command) :attributes 'warning)))
+=======
     (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." loco-command) :attributes 'warning))
   )
 
 
+>>>>>>> 9306994928a18f0e5db14220680da9f4688076a1
 
 
 (provide 'perihery-loco)

@@ -53,7 +53,7 @@
 (setq use-package-verbose nil
       use-package-expand-minimally nil
       use-package-compute-statistics nil
-      debug-on-error t)
+      debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -129,7 +129,7 @@
   :after vertico
   :config (vertico-posframe-mode 1)
   (setq
-   vertico-posframe-width 185
+   vertico-posframe-width 120
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
@@ -137,8 +137,8 @@
    vertico-posframe-border-width 1
    vertico-posframe-parameters
    '(
-     (left-fringe . 2)
-	 (right-fringe . 2))))
+     (left-fringe . 1)
+	 (right-fringe . 1))))
 
 
 ;; Configure directory extension.
