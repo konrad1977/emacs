@@ -177,7 +177,7 @@
   :bind
   ("C-s" . consult-line-symbol-at-point)
   ("M-l" . consult-goto-line)
-  ("M-f" . consult-imenu))
+  ("M-f" . consult-imenu-multi))
 
 (defun consult-line-symbol-at-point ()
   "Search consult - thing at point."
@@ -218,8 +218,6 @@
 (use-package recentf
   :hook (after-init . recentf-mode))
 
-;; (use-package exec-path-from-shell
-;;   :init (exec-path-from-shell-initialize))
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
@@ -232,6 +230,9 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
+
+  (use-package exec-path-from-shell
+    :init (exec-path-from-shell-initialize))
 
   (use-package ns-auto-titlebar
     :config (ns-auto-titlebar-mode))
@@ -331,7 +332,7 @@
 
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
-  (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
+  (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
@@ -1045,7 +1046,7 @@
 
   (load "swift-additions")
   (load "periphery-swiftlint")
-  (load "swift-querying")
+  ;; (load "swift-querying")
   (load "localizeable-mode")
 
   (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
