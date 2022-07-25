@@ -270,7 +270,7 @@
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-startup-banner (concat user-emacs-directory "themes/catppuccin.png")
+  (setq dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
         dashboard-path-style 'truncate-beginning
         dashboard-banner-logo-title "Mikaels dashboard!"
         dashboard-set-file-icons t
@@ -453,6 +453,7 @@
         show-paren-when-point-in-periphery t))
 
 (use-package tree-sitter
+  :defer t
   :hook (swift-mode . tree-sitter-hl-mode))
 
 (global-tree-sitter-mode)
@@ -562,7 +563,7 @@
 
 (use-package consult-project-extra
   :bind
-  ("C-<tab>" . #'consult-project-extra-find)
+  ("C-<tab>" . #'consult-projectile)
   ("M-O" . #'consult-project-extra-find-other-window)
   :after consult)
 
@@ -607,7 +608,6 @@
   :config
   (setq treemacs-follow-after-init t
         treemacs-expand-after-init t
-        treemacs-project-follow-mode t
         treemacs-follow-mode t
         treemacs-filewatch-mode t
         treemacs-width 40
@@ -618,7 +618,7 @@
         treemacs-silent-refresh	t
         treemacs-change-root-without-asking t
         treemacs-sorting 'alphabetic-case-insensitive-desc
-        treemacs-show-hidden-files nil
+        treemacs-show-hidden-files t
         treemacs-never-persist nil
         treemacs-is-never-other-window nil
         treemacs-display-current-project-exclusively t
@@ -1046,6 +1046,7 @@
 
   (load "swift-additions")
   (load "periphery-swiftlint")
+  (load "periphery-loco")
   ;; (load "swift-querying")
   (load "localizeable-mode")
 

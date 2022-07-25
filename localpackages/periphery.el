@@ -52,8 +52,10 @@
 (define-key periphery-mode-map (kbd "<return>") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") #'periphery--open-current-line)
 
-(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.*\\)")
-(defconst periphery-parse-line-regex "^\\(.*?\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?$")
+(defconst periphery-regex-parser "\\(^\/[^:]+\\)?:\\([0-9]+\\)?:?\\([0-9]+\\):\w?\\([^:]+\\):\\(.*\\)")
+
+;;(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\):\w?\\([^:]+\\).\\(.*\\)")
+(defconst periphery-parse-line-regex "^\\(^\/[^:]+\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?")
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
 
