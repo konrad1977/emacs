@@ -115,8 +115,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-;; (load-theme 'catppuccin t)
-(load-theme 'kanagawa t)
+(load-theme 'catppuccin t)
+;; (load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico

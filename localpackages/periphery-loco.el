@@ -37,7 +37,7 @@ PROCESS-NAME is the name of the process."
       (progn
         (let ((default-directory (vc-root-dir)))
           (periphery-message :tag "[Loco]" :text "Linting, stand by..." :attributes 'info)
-          (periphery-loco:async-shell-command-to-string "loco" loco-command #'send-loco-result-to-periphery))
+          (periphery-loco:async-shell-command-to-string "loco" (concat loco-command " --no-color") #'send-loco-result-to-periphery))
         )
     (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." loco-command) :attributes 'warning)))
 
