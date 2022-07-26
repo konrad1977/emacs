@@ -531,9 +531,15 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (setup-current-project (get-ios-project-root))
-  (message-with-color :tag "[Cleaning]" :text (format "Build folder for %s Standby..." current-xcode-scheme) :attributes '(:inherit warning))
-  (let ((default-directory (concat current-project-root "build")))
+  (if (swift-additions:is-spm-project)
+        (swift-additions:clean-build-folder-with (vc-root-dir) ".build" "swift package")
+        (swift-additions:clean-build-folder-with (get-ios-project-root) "build" current-xcode-scheme)
+    ))
+
+(defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
+  "Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
+  (message-with-color :tag "[Cleaning]" :text (format "Build folder for %s Standby..." projectName) :attributes '(:inherit warning))
+  (let ((default-directory (concat projectRoot buildFolder)))
     (if (file-directory-p default-directory)
         (progn
           (message-with-color :tag "[Removing]" :text (format "Folder for %s" default-directory) :attributes '(:inherit warning))
