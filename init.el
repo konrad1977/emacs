@@ -344,6 +344,16 @@
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
+(use-package evil-multiedit
+  :after evil
+  :config 
+  (evil-multiedit-default-keybinds))
+
+(use-package evil-collection
+  :after evil
+  :config 
+  (evil-collection-init))
+
 (use-package evil-tutor
   :commands evil-tutor)
 
@@ -485,11 +495,6 @@
  ;;   :init (global-evil-mc-mode 1)
  ;;   :config
  ;;   (setq evil-mc-one-cursor-show-mode-line-text t))
-
-(use-package evil-multiedit
-  :after evil
-  :config 
-  (evil-multiedit-default-keybinds))
 
 (use-package multiple-cursors
   :hook (prog-mode . multiple-cursors-mode)
