@@ -158,6 +158,7 @@
   (doom-modeline-project-dir                     (:bold t :foreground surimiOrange))
   (doom-modeline-bar                             (:bold t :background springViolet1))
   (doom-modeline-panel                           (:inherit 'bold :background boatYellow2 :foreground sumiInk-2))
+  (doom-themes-visual-bell                       (:background autumnRed))
 
   ;; elfeed
   (elfeed-search-feed-face                       (:foreground springViolet1))

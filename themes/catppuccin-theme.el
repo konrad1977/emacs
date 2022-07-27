@@ -154,6 +154,7 @@
   (doom-modeline-bar                    (:background lavender))
   (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground black-2))
   (doom-modeline                        (:foreground gray))
+  (doom-themes-visual-bell              (:background red))
 
   ;;elfeed
   (elfeed-search-feed-face              (:foreground lavender))
@@ -470,7 +471,6 @@
   (tree-sitter-hl-face:variable.synthesized      (:foreground red))
   (tree-sitter-hl-face:keyword.compiler          (:foreground red :bold t :italic t))
 
-  (doom-themes-visual-bell                       (:background red))
  ))
 
 ;;;###autoload

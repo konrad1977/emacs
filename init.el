@@ -103,10 +103,10 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(add-hook 'minibuffer-setup-hook
-      (lambda ()
-        (make-local-variable 'face-remapping-alist)
-        (add-to-list 'face-remapping-alist '(default (:background "#0C0a10")))))
+;; (add-hook 'minibuffer-setup-hook
+;;       (lambda ()
+;;         (make-local-variable 'face-remapping-alist)
+;;         (add-to-list 'face-remapping-alist '(default (:background "#0C0a10")))))
 
 ;; Clean up all those temporary files
 (use-package no-littering)
@@ -115,8 +115,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-(load-theme 'catppuccin t)
-;; (load-theme 'kanagawa t)
+;; (load-theme 'catppuccin t)
+(load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
@@ -618,7 +618,6 @@
         treemacs-silent-refresh	t
         treemacs-change-root-without-asking t
         treemacs-sorting 'alphabetic-case-insensitive-desc
-        treemacs-show-hidden-files t
         treemacs-never-persist nil
         treemacs-is-never-other-window nil
         treemacs-display-current-project-exclusively t
@@ -630,9 +629,6 @@
   :after (treemacs all-the-icons)
   :config
   (treemacs-load-theme "all-the-icons"))
-
-(use-package treemacs-evil
-  :after (treemacs evil))
 
 (use-package treemacs-projectile
   :after (treemacs projectile))
