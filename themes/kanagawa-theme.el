@@ -124,8 +124,8 @@
   (elisp-shorthand-font-lock-face                (:foreground fujiWhite))
 
   (info-xref                                     (:foreground carpYellow))
-  (minibuffer-prompt-end                         (:foreground fujiWhite :background sumiInk-0))
-  (minibuffer-prompt                             (:foreground fujiWhite :background sumiInk-0))
+  (minibuffer-prompt-end                         (:foreground autumnRed :background winterRed))
+  (minibuffer-prompt                             (:foreground carpYellow :background winterYellow))
   (epa-mark                                      (:foreground waveRed))
   (dired-mark                                    (:foreground waveRed))
   (trailing-whitespace                           (:background comet))
@@ -398,7 +398,7 @@
   (vertico-group-separator                       (:background winterBlue :foreground lightBlue :strike-through t))
   (vertico-current                               (:foreground springViolet2 :bold t :background sumiInk-3))
 
-  (vertico-posframe-border                       (:background sumiInk-3))
+  (vertico-posframe-border                       (:background winterYellow))
   (vertico-posframe                              (:background sumiInk-1))
   
   (comint-highlight-prompt                       (:background springViolet2 :foreground sumiInk-1))

@@ -103,11 +103,6 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-;; (add-hook 'minibuffer-setup-hook
-;;       (lambda ()
-;;         (make-local-variable 'face-remapping-alist)
-;;         (add-to-list 'face-remapping-alist '(default (:background "#0C0a10")))))
-
 ;; Clean up all those temporary files
 (use-package no-littering)
 
