@@ -100,8 +100,7 @@
   (vertical-border                               (:foreground sumiInk-4))
   (warning                                       (:foreground roninYellow))
   (window-border                                 (:background sumiInk-1b))
-  (window-divider-first-pixel                    (:background sumiInk-1b))
-  (window-divider-last-pixel                     (:background sumiInk-1b))
+  (window-divider                                (:foreground sumiInk-2))
   (hi-yellow                                     (:background carpYellow :foreground sumiInk-1b))
 
   ;; Font lock
