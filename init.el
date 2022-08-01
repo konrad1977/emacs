@@ -30,7 +30,6 @@
       blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
       create-lockfiles                  nil
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
-      initial-scratch-message           ""
       read-process-output-max           (* 8 1024 1024)
       auto-mode-case-fold               nil
       backup-by-copying                 t
@@ -53,7 +52,7 @@
 (setq use-package-verbose nil
       use-package-expand-minimally nil
       use-package-compute-statistics nil
-      debug-on-error nil)
+      debug-on-error t)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -256,8 +255,8 @@
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
         doom-modeline-height 25)
-  (set-face-attribute 'mode-line nil :height 160 :box '(:line-width -1 :color "#0C0A10"))
-  (set-face-attribute 'mode-line-inactive nil :height 155 :box '(:line-width -1 :color "#332E41")))
+  (set-face-attribute 'mode-line nil :height 170 :box '(:line-width -1 :color "#0C0A10"))
+  (set-face-attribute 'mode-line-inactive nil :height 170  :box '(:line-width -1 :color "#332E41")))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -463,6 +462,7 @@
 
 (global-tree-sitter-mode)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+
 ;; Remember autocompletions
 (use-package amx
   :after vertico
@@ -1014,31 +1014,31 @@
   ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
-  (prog-mode . (lambda () (add-to-list 'xref-backend-functions 'dumb-jump-xref-activate)))
   :config
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-selector 'vertico))
 
 (defun setup-swift-programming ()
+  "Custom setting for swift programming."
+  
   (setup-swift-mode-company)
-  "Setup swift development environment."
-  (setq tree-sitter-hl-use-font-lock-keywords nil)
-  (defface tree-sitter-hl-face:case-pattern
-    '((t :inherit tree-sitter-hl-face:property
-         :foreground "#666bb2"))
-    "Face for enum case names in a pattern match"
-    :group 'tree-sitter-hl-faces)
+  ;; (setq tree-sitter-hl-use-font-lock-keywords nil) ;
+  ;; (defface tree-sitter-hl-face:case-pattern
+  ;;   '((t :inherit tree-sitter-hl-face:property
+  ;;        :foreground "#666bb2"))
+  ;;   "Face for enum case names in a pattern match"
+  ;;   :group 'tree-sitter-hl-faces)
 
-  (defface tree-sitter-hl-face:variable.synthesized
-    '((t :inherit tree-sitter-hl-face:variable))
-    "Face for compiler-synthesized identifiers (prefixed with '$')"
-    :group 'tree-sitter-hl-faces)
+  ;; (defface tree-sitter-hl-face:variable.synthesized
+  ;;   '((t :inherit tree-sitter-hl-face:variable))
+  ;;   "Face for compiler-synthesized identifiers (prefixed with '$')"
+  ;;   :group 'tree-sitter-hl-faces)
 
-  (defface tree-sitter-hl-face:keyword.compiler
-    '((t :inherit tree-sitter-hl-face:keyword
-         :weight semi-bold))
-    "Face for compile-time keywords"
-    :group 'tree-sitter-hl-faces)
+  ;; (defface tree-sitter-hl-face:keyword.compiler
+  ;;   '((t :inherit tree-sitter-hl-face:keyword
+  ;;        :weight semi-bold))
+  ;;   "Face for compile-time keywords"
+  ;;   :group 'tree-sitter-hl-faces)
 
   (load "swift-additions")
   (load "periphery-swiftlint")

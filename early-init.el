@@ -6,15 +6,7 @@
 (setq idle-update-delay 0.2)
 
 (set-frame-parameter (selected-frame) 'alpha '(98 . 95))
-(add-to-list 'default-frame-alist '(alpha . (98 . 95)))
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-(push '(tool-bar-lines . 0)   default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
-;; (push '(undecorated . t) default-frame-alist)
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
@@ -31,18 +23,18 @@
 
 (setq-default frame-inhibit-implied-resize t
               frame-resize-pixelwise t
-              frame-title-format "\n"
               inhibit-startup-screen t
               inhibit-startup-message t
               inhibit-splash-screen t
               inhibit-compacting-font-caches t
               initial-scratch-message nil
               load-prefer-newer t
-              mode-line-format nil
               package-native-compile t
               default-frame-alist
               '((background-color . "#16161D")       ; Default background color
                 (bottom-divider-width . 1)           ; Thin horizontal window divider
+                (alpha . (98 . 95))                  ; Alpha
+                (fullscreen . maximized)
                 (foreground-color . "#DCD7BA")       ; Default foreground color
                 (fullscreen . maximized)             ; Maximize the window by default
                 (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
