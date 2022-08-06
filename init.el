@@ -3,7 +3,7 @@
 
 ;; Window
 
-(eval-when-compile (defvar display-time-24hr-format))
+(eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
 (display-battery-mode t)		;; Show battery.
@@ -37,8 +37,6 @@
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
       desktop-save-mode                 nil    ;; Done save desktop (open buffers)
-      display-time-24hr-format          t
-      display-time-default-load-average t
       echo-keystrokes                   0.2
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
@@ -52,7 +50,7 @@
 (setq use-package-verbose nil
       use-package-expand-minimally nil
       use-package-compute-statistics nil
-      debug-on-error t)
+      debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -252,11 +250,13 @@
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
+        doom-modeline-icon t
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
-        doom-modeline-height 25)
+        doom-modeline-hud nil
+        doom-modeline-height 27)
   (set-face-attribute 'mode-line nil :height 170 :box '(:line-width -1 :color "#0C0A10"))
-  (set-face-attribute 'mode-line-inactive nil :height 170  :box '(:line-width -1 :color "#332E41")))
+  (set-face-attribute 'mode-line-inactive nil :height 170 :box '(:line-width -1 :color "#332E41")))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -305,6 +305,7 @@
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
+  :bind ("<escape>" . keyboard-escape-quit)
   :init
   ;; (setq evil-undo-system 'undo-redo)
   (setq evil-want-integration t
@@ -336,16 +337,16 @@
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-motion-state-map "/" 'consult-line)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
+  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spces))
 
 (use-package evil-multiedit
   :after evil
-  :config 
+  :config
   (evil-multiedit-default-keybinds))
 
 (use-package evil-collection
   :after evil
-  :config 
+  :config
   (evil-collection-init))
 
 (use-package evil-tutor
@@ -383,7 +384,9 @@
   (doom-themes-org-config))
 
 (use-package all-the-icons
-  :after doom-modeline)
+  :after doom-modeline
+  :custom
+  (setq all-the-icons-scale-factor 1.1))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -412,12 +415,12 @@
           )))
 
 ;; nyan cat
-(use-package nyan-mode
-  :hook (doom-modeline-mode . nyan-mode)
-  :config
-  (setq nyan-wavy-trail nil
-        nyan-bar-length 10
-        nyan-animate-nyancat t))
+;; (use-package nyan-mode
+;;   :hook (doom-modeline-mode . nyan-mode)
+;;   :config
+;;   (setq nyan-wavy-trail nil
+;;         nyan-bar-length 10
+;;         nyan-animate-nyancat t))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -558,6 +561,7 @@
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
 (defun setup-swift-mode-company ()
+  "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '((company-sourcekit company-tabnine :separate))))
 
