@@ -337,7 +337,7 @@
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-motion-state-map "/" 'consult-line)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spces))
+  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
 (use-package evil-multiedit
   :after evil
@@ -611,7 +611,6 @@
   :commands (treemacs treemacs-select-window)
   :config
   (setq treemacs-follow-after-init t
-        treemacs-expand-after-init t
         treemacs-follow-mode t
         treemacs-filewatch-mode t
         treemacs-width 40
@@ -620,22 +619,19 @@
         treemacs-git-mode 'extended
         treemacs-collapse-dirs 0
         treemacs-silent-refresh	t
-        treemacs-change-root-without-asking t
         treemacs-sorting 'alphabetic-case-insensitive-desc
-        treemacs-never-persist nil
         treemacs-is-never-other-window nil
         treemacs-display-current-project-exclusively t
         treemacs-goto-tag-strategy 'refetch-index
-        treemacs-text-scale	0
-        treemacs-project-follow-mode t))
+        treemacs-text-scale	0))
+
+(use-package treemacs-magit
+  :after treemacs magit)
 
 (use-package treemacs-all-the-icons
   :after (treemacs all-the-icons)
   :config
   (treemacs-load-theme "all-the-icons"))
-
-(use-package treemacs-projectile
-  :after (treemacs projectile))
 
 (use-package restclient
   :defer t)

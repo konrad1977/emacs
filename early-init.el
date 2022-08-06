@@ -1,4 +1,4 @@
-;;; early-init.el --- -*- lexical-b;;; early-init.el --- -*- lexical-binding: t -*-
+;;; early-init.el --- -*- lexical-binding: t -*-
 
 ;;; Commentary: My early init file
 
