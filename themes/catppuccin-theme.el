@@ -75,9 +75,9 @@
   (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
   (fill-column-indicator                (:foreground black-3))
-  (mode-line                            (:background black))
-  (mode-line-inactive                   (:background black-1 :foreground black-4 :bold nil))
-  (mode-line-active		                (:background black :foreground rosewater :bold nil))
+  (mode-line                            (:background black-3))
+  (mode-line-inactive                   (:background black-2 :foreground black-4 :bold nil))
+  (mode-line-active		                (:background black-3 :foreground gray-2 :bold t))
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground green :bold t))
   (numbers                              (:background green :foreground black))
@@ -87,9 +87,8 @@
   (success                              (:foreground green))
   (vertical-border                      (:foreground black-3 :background nil))
   (warning                              (:foreground yellow))
-  (window-border                        (:background black-2 :foreground black-2))
-  (window-divider-first-pixel           (:foreground black-2))
-  (window-divider-last-pixel            (:background black-2))
+  (window-border                        (:foreground peach))
+  (window-divider                       (:foreground black-3))
 
   ;; ;; Font lock
   (font-lock-type-face                  (:foreground lavender))
@@ -114,7 +113,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background red-bg :foreground red :weight 'semi-bold))
+  (highlight-symbol-face                (:background blue-bg-2 :foreground blue :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
   
   (minibuffer-prompt-end                (:foreground red))
@@ -123,8 +122,6 @@
   (dired-mark                           (:foreground pink))
 
   (trailing-whitespace                  (:background black-4))
-
-  (mode-line (:background black :foreground rosewater :bold t))
   
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:inherit 'error))
@@ -296,15 +293,15 @@
   (ivy-posframe                                 (:background black))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (vertico-multiline                            (:background red))
-  (vertico-group-title                          (:background red-bg :foreground red :bold t))
-  (vertico-group-separator                      (:background red-bg :foreground red :strike-through t))
-  (vertico-current                              (:foreground mauve :bold t :background black-3))
+  (vertico-multiline                            (:background peach))
+  (vertico-group-title                          (:foreground peach :bold t))
+  (vertico-group-separator                      (:foreground peach :strike-through t))
+  (vertico-current                              (:foreground peach :bold t :background yellow-bg-2))
 
-  (vertico-posframe-border                      (:background black))
-  (vertico-posframe                             (:background black-1))
+  (vertico-posframe-border                      (:background yellow-bg-2))
+  (vertico-posframe                             (:background black))
   
-  (comint-highlight-prompt                      (:background mauve :foreground black))
+  (comint-highlight-prompt                      (:background peach :foreground black))
 
   (completions-annotations (:background nil :foreground gray-1 :italic t))
 
