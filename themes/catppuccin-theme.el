@@ -298,7 +298,7 @@
   (vertico-group-separator                      (:foreground peach :strike-through t))
   (vertico-current                              (:foreground peach :bold t :background yellow-bg-2))
 
-  (vertico-posframe-border                      (:background yellow-bg-2))
+  (vertico-posframe-border                      (:background black-4))
   (vertico-posframe                             (:background black))
   
   (comint-highlight-prompt                      (:background peach :foreground black))

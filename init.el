@@ -48,7 +48,7 @@
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
-      use-package-expand-minimally nil
+      use-package-expand-minimally t
       use-package-compute-statistics nil
       debug-on-error nil)
 
@@ -65,12 +65,6 @@
 (let ((default-directory  "~/.emacs.d/localpackages/"))
   (normal-top-level-add-to-load-path '("."))
   (normal-top-level-add-subdirs-to-load-path))
-
-;; (let* ((path (expand-file-name "localpackages" user-emacs-directory))
-;;        (local-pkgs (mapcar 'file-name-directory (directory-files-recursively path ".*\\.el"))))
-;;   (if (file-accessible-directory-p path)
-;;       (mapc (apply-partially 'add-to-list 'load-path) local-pkgs)
-;;     (make-directory path :parents)))
 
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'savehist-additional-variables 'kill-ring)
@@ -107,8 +101,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-;; (load-theme 'catppuccin t)
-(load-theme 'kanagawa t)
+ (load-theme 'catppuccin t)
+;; (load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
@@ -254,9 +248,7 @@
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
         doom-modeline-hud nil
-        doom-modeline-height 27)
-  (set-face-attribute 'mode-line nil :height 170 :box '(:line-width -1 :color "#0C0A10"))
-  (set-face-attribute 'mode-line-inactive nil :height 170 :box '(:line-width -1 :color "#332E41")))
+        doom-modeline-height 27))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -305,7 +297,8 @@
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
-  :bind ("<escape>" . keyboard-escape-quit)
+  :bind 
+    ("<escape>" . keyboard-escape-quit)
   :init
   ;; (setq evil-undo-system 'undo-redo)
   (setq evil-want-integration t
@@ -314,6 +307,7 @@
         evil-want-keybinding nil
         evil-want-C-u-scroll t
         evil-undo-system 'undo-fu
+        evil-search-module 'evil-search
         evil-want-C-i-jump nil)
   :config
   (setq evil-emacs-state-cursor '("#FF5D62" box))
@@ -328,6 +322,7 @@
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
   (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
+  (define-key evil-motion-state-map (kbd "<escape>") #'evil-ex-search-exit)
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
@@ -337,12 +332,8 @@
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-motion-state-map "/" 'consult-line)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
-
-(use-package evil-multiedit
-  :after evil
-  :config
-  (evil-multiedit-default-keybinds))
+  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces)
+  )
 
 (use-package evil-collection
   :after evil
@@ -488,12 +479,6 @@
   ("C-M-e" . #'anzu-replace-at-cursor-thing)
   ("C-M-r" . #'anzu-query-replace))
 
- ;; (use-package evil-mc
- ;;   :after evil-mode
- ;;   :init (global-evil-mc-mode 1)
- ;;   :config
- ;;   (setq evil-mc-one-cursor-show-mode-line-text t))
-
 (use-package multiple-cursors
   :hook (prog-mode . multiple-cursors-mode)
   :bind
@@ -611,19 +596,18 @@
   :commands (treemacs treemacs-select-window)
   :config
   (setq treemacs-follow-after-init t
-        treemacs-follow-mode t
+        treemacs-collapse-dirs 1
+        treemacs-display-current-project-exclusively t
         treemacs-filewatch-mode t
-        treemacs-width 40
-        treemacs-indentation 1
+        treemacs-follow-mode t
         treemacs-git-integration t
         treemacs-git-mode 'extended
-        treemacs-collapse-dirs 0
+        treemacs-indentation 1
+        treemacs-is-never-other-window nil
         treemacs-silent-refresh	t
         treemacs-sorting 'alphabetic-case-insensitive-desc
-        treemacs-is-never-other-window nil
-        treemacs-display-current-project-exclusively t
-        treemacs-goto-tag-strategy 'refetch-index
-        treemacs-text-scale	0))
+        treemacs-width 40)
+  :init (treemacs-project-follow-mode))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -1052,6 +1036,7 @@
   (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
   (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
   (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
+  (local-set-key (kbd "C-c C-t") #'swift-additions:test-module-silent)
   (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
   (local-set-key (kbd "M-s") #'swift-additions:terminate-all-running-apps)
   (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)

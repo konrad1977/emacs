@@ -507,6 +507,15 @@ ARGS are rest arguments, appended to the argument list."
         (async-shell-command-to-string :process-name "periphery" :command (build-app-command (fetch-or-load-simulator-id)) :callback #'swift-additions:check-for-errors))
       (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))))
 
+(defun swift-additions:test-module-silent ()
+    "Test module."
+  (interactive)
+  (save-some-buffers t)
+  (periphery-kill-buffer)
+  (swift-additions:kill-xcode-buffer)
+  (swift-additions:test-swift-package)
+)
+
 (defun swift-additions:build-ios-app ()
   "Build project using xcodebuild."
   (interactive)
@@ -715,6 +724,12 @@ ARGS are rest arguments, appended to the argument list."
   (let ((default-directory (vc-root-dir)))
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
+
+(defun swift-additions:test-swift-package ()
+  "Test swift package module."
+  (let ((default-directory (vc-root-dir)))
+    (async-shell-command-to-string :process-name "periphery" :command "swift test" :callback #'swift-additions:check-for-spm-build-errors)
+    (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
 
 ; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
 (defun swift-additions:split-func-list ()
