@@ -101,8 +101,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
- (load-theme 'catppuccin t)
-;; (load-theme 'kanagawa t)
+ ;; (load-theme 'catppuccin t)
+(load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
@@ -120,12 +120,11 @@
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
    vertico-posframe-height nil
-   vertico-posframe-border-width 1
+   vertico-posframe-border-width 2
    vertico-posframe-parameters
    '(
-     (left-fringe . 1)
-	 (right-fringe . 1))))
-
+     (left-fringe . 0)
+	 (right-fringe . 0))))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -322,7 +321,6 @@
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
   (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
-  (define-key evil-motion-state-map (kbd "<escape>") #'evil-ex-search-exit)
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
@@ -332,8 +330,7 @@
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-motion-state-map "/" 'consult-line)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces)
-  )
+  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
 (use-package evil-collection
   :after evil

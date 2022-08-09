@@ -79,11 +79,11 @@
   (glyphless-char                                (:foreground sumiInk-4))
   (header-line                                   (:background sumiInk-0))
   (highlight                                     (:background comet :foreground springViolet1))
-  (hl-line                                       (:background sumiInk-3))
+  (hl-line                                       (:background sumiInk-2))
   (homoglyph                                     (:foreground lightBlue))
   (internal-border                               (:background sumiInk-1b))
   (line-number                                   (:foreground sumiInk-4))
-  (line-number-current-line                      (:foreground springViolet2 :background sumiInk-3 :bold t))
+  (line-number-current-line                      (:foreground springViolet2 :background sumiInk-2 :bold t))
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
   (match                                         (:background carpYellow :foreground sumiInk-0))
   (menu                                          (:background sumiInk-0 :foreground fujiWhite))
@@ -276,7 +276,7 @@
   (flycheck-error-list-info                      (:foreground waveAqua1 :bold t))
   (flycheck-inline-error                         (:foreground samuraiRed :background winterRed :italic t :bold t :height 138))
   (flycheck-inline-info                          (:foreground lightBlue :background winterBlue :italic t  :bold t :height 138))
-  (flycheck-inline-warning                       (:foreground roninYellow :background winterYellow :italic t :bold t :height 138))
+  (flycheck-inline-warning                       (:foreground winterYellow :background carpYellow :italic t :bold t :height 138))
 
   ;; indent dots
   (highlight-indent-guides-character-face        (:foreground sumiInk-3))
@@ -350,6 +350,8 @@
   (all-the-icons-purple                          (:foreground springViolet2))
 
   ;; evil
+  (evil-ex-lazy-highlight                        (:foreground winterGreen :background autumnGreen :bold t))
+  (evil-ex-substitute-matches                    (:foreground winterRed :background autumnRed :bold t))
   (evil-ex-substitute-replacement                (:foreground surimiOrange :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face  (:background carpYellow))
 
@@ -395,10 +397,11 @@
   (vertico-multiline                             (:background samuraiRed))
   (vertico-group-title                           (:background winterBlue :foreground lightBlue :bold t))
   (vertico-group-separator                       (:background winterBlue :foreground lightBlue :strike-through t))
-  (vertico-current                               (:foreground springViolet2 :bold t :background sumiInk-3))
+  (vertico-current                               (:foreground carpYellow :bold t :italic t :background waveBlue-1))
 
-  (vertico-posframe-border                       (:background winterYellow))
-  (vertico-posframe                              (:background sumiInk-1))
+  (vertico-posframe-border                       (:background sumiInk-3))
+  (vertico-posframe                              (:background sumiInk-2))
+  (orderless-match-face-0                        (:foreground crystalBlue :bold t))
   
   (comint-highlight-prompt                       (:background springViolet2 :foreground sumiInk-1))
   (completions-annotations                       (:background nil :foreground dragonBlue :italic t))
