@@ -101,8 +101,8 @@
 :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
- ;; (load-theme 'catppuccin t)
-(load-theme 'kanagawa t)
+ (load-theme 'catppuccin t)
+;; (load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
@@ -296,10 +296,8 @@
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
-  :bind 
-    ("<escape>" . keyboard-escape-quit)
+  :bind ("<escape>" . keyboard-escape-quit)
   :init
-  ;; (setq evil-undo-system 'undo-redo)
   (setq evil-want-integration t
         evil-want-minibuffer nil
         evil-want-fine-undo t
@@ -320,15 +318,25 @@
 
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
+
+  ;; searching
   (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
+  (define-key evil-motion-state-map "F" 'consult-line)
+  
+  ;; window resizing
+  (define-key evil-motion-state-map (kbd "C-+") #'enlarge-window-horizontally)
+  (define-key evil-motion-state-map (kbd "C--") #'shrink-window-horizontally)
+  (define-key evil-motion-state-map (kbd "C-M-+") #'enlarge-window)
+  (define-key evil-motion-state-map (kbd "C-M--") #'shrink-window)
+
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
   (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
+  (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
   (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
-  (define-key evil-motion-state-map "/" 'consult-line)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
@@ -403,12 +411,12 @@
           )))
 
 ;; nyan cat
-;; (use-package nyan-mode
-;;   :hook (doom-modeline-mode . nyan-mode)
-;;   :config
-;;   (setq nyan-wavy-trail nil
-;;         nyan-bar-length 10
-;;         nyan-animate-nyancat t))
+(use-package nyan-mode
+  :hook (doom-modeline-mode . nyan-mode)
+  :config
+  (setq nyan-wavy-trail nil
+        nyan-bar-length 20
+        nyan-animate-nyancat t))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)

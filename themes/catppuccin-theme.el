@@ -350,6 +350,7 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
+  (evil-ex-lazy-highlight         (:foreground yellow :background yellow-bg :bold t))
   (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))
   (evil-search-highlight-persist-highlight-face (:background yellow))
 
