@@ -345,6 +345,23 @@
   :config
   (evil-collection-init))
 
+(use-package evil-surround
+  :after evil
+  :config
+  (global-evil-surround-mode 1))
+
+(use-package evil-goggles
+  :after evil
+  :config
+  (evil-goggles-mode)
+  (evil-goggles-use-diff-faces))
+
+(use-package evil-numbers
+  :after evil
+  :config
+  (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
+  (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
+
 (use-package evil-tutor
   :commands evil-tutor)
 
@@ -504,6 +521,15 @@
   ("C-c C-l" . block-nav-next-indentation-level)
   ("C-c C-h" . block-nav-previous-indentation-level))
 
+(use-package consult-project-extra
+  :after consult
+  :bind
+  ("C-<tab>" . #'consult-projectile)
+  ("M-O" . #'consult-project-extra-find))
+
+(use-package consult-ls-git
+  :after consult)
+
 ;; ------------------ autocompletions -------------
 ;; workaround for company-transformers
 (setq company-tabnine--disable-next-transform nil)
@@ -523,6 +549,8 @@
 
 (use-package company
   :hook (prog-mode . company-mode)
+  :config
+  (company-tng-configure-default)
   :init
   (setq company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
@@ -550,23 +578,21 @@
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
+
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-sourcekit company-tabnine :separate))))
+              '((company-sourcekit company-ctags company-tabnine :separate))))
 
-(use-package consult-project-extra
-  :bind
-  ("C-<tab>" . #'consult-projectile)
-  ("M-O" . #'consult-project-extra-find-other-window)
-  :after consult)
-
-(use-package consult-ls-git
-  :after consult)
 
 (use-package consult-company
   :config
   (define-key company-mode-map [remap completion-at-point] #'consult-company))
+
+(use-package company-ctags
+    :after company
+    :config
+    (setq company-ctags-ignore-case t))
 
 (use-package company-sourcekit
   :after company
@@ -1125,7 +1151,7 @@
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
         fill-column 100
-        display-line-numbers t))          ;; Show line numbers
+        display-line-numbers 'relative))          ;; Show line numbers
 
 (defun mk/setup-flycheck ()
   "Setup margins for flycheck."
