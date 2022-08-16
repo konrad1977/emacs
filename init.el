@@ -549,8 +549,6 @@
 
 (use-package company
   :hook (prog-mode . company-mode)
-  :config
-  (company-tng-configure-default)
   :init
   (setq company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
