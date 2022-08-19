@@ -547,6 +547,10 @@
 (advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
 (advice-add #'company-tabnine :around #'my-company-tabnine)
 
+(use-package google-this
+  :defer t
+  :bind ("C-x C-g" . google-this))
+
 (use-package company
   :hook (prog-mode . company-mode)
   :init
@@ -603,10 +607,10 @@
   (setq company-tabnine-max-num-results 9
         company-tabnine-show-annotation t
         company-tabnine-insert-arguments t
-        company-tabnine-auto-fallback t
-        company-tabnine-auto-balance t
+        company-tabnine-auto-fallback nil
+        company-tabnine-auto-balance nil
         company-tabnine-use-native-json t
-        company-tabnine-wait 0.2))
+        company-tabnine-wait 0.3))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
