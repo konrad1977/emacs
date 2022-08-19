@@ -376,6 +376,15 @@
   (term-color-bright-magenta (:background mauve :foreground mauve))
   (term-underline (:background mauve :foreground blue))
 
+  (vterm-color-black (:background black-1 :foreground black-1))
+  (vterm-color-blue (:background blue :foreground blue))
+  (vterm-color-cyan (:background sky :foreground sky))
+  (vterm-color-green (:background green :foreground green))
+  (vterm-color-magenta (:background maroon :foreground maroon))
+  (vterm-color-yellow (:background peach :foreground yellow))
+  (vterm-color-red (:background red :foreground red))
+  (vterm-color-white (:background rosewater :foreground rosewater))
+  
   (popup-face (:inherit 'tooltip))
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
