@@ -18,7 +18,7 @@
 (semantic-mode 1)               ;; help out with semantics
 (savehist-mode 1)				;; Save history
 (save-place-mode 1)             ;; when buffer is closed, save the cursor position
-(blink-cursor-mode)
+(blink-cursor-mode 1)
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
@@ -26,9 +26,17 @@
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :weight 'light)
 (variable-pitch-mode t)
 
+(prefer-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(setq default-buffer-file-coding-system 'utf-8)
+
 (setq ad-redefinition-action            'accept
       blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
       create-lockfiles                  nil
+      cursor-in-non-selected-windows    nil     ;; Keep cursor in focused windows only
+      highlight-nonselected-windows     nil     ;; Keep highlight in focused windows only
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
       read-process-output-max           (* 8 1024 1024)
       auto-mode-case-fold               nil
@@ -36,13 +44,22 @@
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
+      fast-but-imprecise-scrolling      nil
+      jit-lock-defer-time               0.0
       desktop-save-mode                 nil    ;; Done save desktop (open buffers)
       echo-keystrokes                   0.2
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
       use-dialog-box                    nil
       word-wrap                         nil
-      visible-bell                      nil)
+      visible-bell                      nil
+      bidi-display-reordering           nil
+      x-stretch-cursor                  t   ;; stretch cursor on tabs
+      scroll-margin                     4   ;; scroll N to screen edge
+      undo-limit                        6710886400 ;; 64mb
+      undo-strong-limit                 100663296 ;; x 1.5 (96mb)
+      undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
+      )
 
 ;; (setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
@@ -58,13 +75,11 @@
               line-spacing                  0.1          ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-              completion-ignore-case        nil            ;; Ignore case when completing
+              completion-ignore-case        nil          ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
-(let ((default-directory  "~/.emacs.d/localpackages/"))
-  (normal-top-level-add-to-load-path '("."))
-  (normal-top-level-add-subdirs-to-load-path))
+(add-to-list 'load-path (concat user-emacs-directory "localpackages"))
 
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'savehist-additional-variables 'kill-ring)
@@ -576,12 +591,22 @@
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
+(use-package company-ctags
+    :after company
+    :init (company-ctags-auto-setup)
+    :config
+    (setq company-ctags-extra-tags-files '("$HOME/source/swift/TAGS")))
 
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '((company-sourcekit company-ctags company-tabnine :separate))))
 
+(use-package consult-project-extra
+  :bind
+  ("C-<tab>" . #'consult-projectile)
+  ("M-O" . #'consult-project-extra-find-other-window)
+  :after consult)
 
 (use-package consult-company
   :config
