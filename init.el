@@ -113,10 +113,10 @@
 (use-package no-littering)
 
 (use-package flyspell
-:config (setq ispell-program-name "aspell"))
+  :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
- (load-theme 'catppuccin t)
+(load-theme 'catppuccin t)
 ;; (load-theme 'kanagawa t)
 ;; (load-theme 'doom-old-hope t)
 
@@ -124,7 +124,7 @@
   :hook (after-init . vertico-mode)
   :config
   (setq vertico-resize t
-   vertico-cycle t))
+        vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
@@ -139,7 +139,7 @@
    vertico-posframe-parameters
    '(
      (left-fringe . 0)
-	 (right-fringe . 0))))
+     (right-fringe . 0))))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -184,8 +184,8 @@
   (interactive)
   (consult-line (thing-at-point 'symbol)))
 
- (use-package consult-ag
-   :after consult)
+(use-package consult-ag
+  :after consult)
 
 (use-package consult-projectile
   :after projectile)
@@ -218,7 +218,6 @@
 (use-package recentf
   :hook (after-init . recentf-mode))
 
-
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
   :defer t
@@ -226,9 +225,7 @@
   (setq auto-package-update-interval 7
         auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
-
-
-; On macos use our custom settings ---------------------
+                                        ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
   (use-package exec-path-from-shell
@@ -298,7 +295,7 @@
         which-key-min-display-lines 4
         which-key-max-display-columns 5))
 
- ; helpful
+                                        ; helpful
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :bind
@@ -308,7 +305,7 @@
 (use-package undo-fu
   :defer t)
 
-; Use evil mode
+                                        ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
   :bind ("<escape>" . keyboard-escape-quit)
@@ -357,7 +354,9 @@
 
 (use-package evil-collection
   :after evil
-  :config
+  :custom
+  (setq evil-collection-setup-minibuffer t)
+  :init
   (evil-collection-init))
 
 (use-package evil-surround
@@ -382,14 +381,6 @@
 
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-set-key (kbd "M-1") 'winum-select-window-1)
-(global-set-key (kbd "M-2") 'winum-select-window-2)
-(global-set-key (kbd "M-3") 'winum-select-window-3)
-(global-set-key (kbd "M-4") 'winum-select-window-4)
-(global-set-key (kbd "M-5") 'winum-select-window-5)
-(global-set-key (kbd "M-6") 'winum-select-window-6)
 
 (global-set-key (kbd "C-c C-b") #'consult-bookmark)
 (global-set-key (kbd "M-/") #'comment-dwim)
@@ -462,13 +453,13 @@
   (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
   (setq dimmer-fraction 0.18))
 
-(use-package beacon
-  :hook (after-init . beacon-mode)
-  :config
-  (setq beacon-color "#A3D4D5"
-        beacon-blink-when-focused t
-        beacon-size 40
-        beacon-blink-when-window-scrolls nil))
+;; (use-package beacon
+;;   :hook (after-init . beacon-mode)
+;;   :config
+;;   (setq beacon-color "#A3D4D5"
+;;         beacon-blink-when-focused t
+;;         beacon-size 40
+;;         beacon-blink-when-window-scrolls nil))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -489,10 +480,9 @@
 
 (use-package tree-sitter
   :defer t
-  :hook (swift-mode . tree-sitter-hl-mode))
-
-(global-tree-sitter-mode)
-(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  :hook (swift-mode . tree-sitter-hl-mode)
+  :init
+  (global-tree-sitter-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -569,42 +559,75 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  (setq company-format-margin-function  'company-vscode-dark-icons-margin
+  (setq company-transformers '(company-sort-by-backend-importance)
+        company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
         company-tooltip-margin              1
-        company-minimum-prefix-length       2
+        company-minimum-prefix-length       0
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               'require-match
-        company-tooltip-limit               10
+        company-tooltip-limit               20
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
-        company-idle-delay                  0.3
+        company-idle-delay                  0
         company-show-quick-access           'left
-        company-async-wait                  0.4
-        company-async-timeout               5
+        company-async-wait                  0.5
+        company-async-timeout               2
+        company-dabbrev-time-limit          0.8
+        company-dabbrev-code-time-limit     0.8
+        company-dabbrev-code-modes          '(swift-mode)
         company-backends '(
-                           company-capf
                            company-dabbrev-code
+                           company-capf
                            company-keywords
-                           company-semantic
-                           company-files
                            )
-        company-frontends '(company-pseudo-tooltip-frontend
-                            company-echo-metadata-frontend))
+        company-frontends '(company-pseudo-tooltip-frontend))
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
 (use-package company-ctags
-    :after company
-    :init (company-ctags-auto-setup)
-    :config
-    (setq company-ctags-extra-tags-files '("$HOME/source/swift/TAGS")))
+  :after company
+  :init (company-ctags-auto-setup)
+  :config
+  (setq company-ctags-extra-tags-files '("$HOME/source/swift/TAGS")))
 
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-sourcekit company-ctags company-tabnine :separate))))
+              '(
+                (company-sourcekit company-dabbrev-code company-tabnine :separate) 
+                (company-ctags)
+                (company-capf)
+              )))
+
+;; (use-package lsp-mode
+;;   :hook (prog-mode . lsp-deferred)
+;;   :config
+;;   (setq lsp-completion-provider :capf))
+
+;; (use-package lsp-ui
+;;   :hook (lsp-mode . lsp-ui-mode))
+
+;; (use-package lsp-treemacs
+;;   :after lsp)
+
+;; (use-package treemacs-projectile
+;;   :hook (treemacs-mode-hook))
+
+;; (use-package lsp-ourcekit
+;;   :after lsp-mode
+;;   :config
+;;   (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain") ; guessing this from executable path returned from xcrun --find sourcekit-lsp
+;;   (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp")))
+;;   (setq lsp-sourcekit-extra-args
+;;         (quote
+;;          ("-Xswiftc" "-sdk" "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk" "-Xswiftc" "-target" "-Xswiftc" "x86_64-apple-ios15.5-simulator")
+;;          ))
+;;   (setq lsp-clients-clangd-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clangd"))) ; TODO run xcrun --find sourcekit-lsp directly
 
 (use-package consult-project-extra
   :bind
@@ -617,25 +640,22 @@
   (define-key company-mode-map [remap completion-at-point] #'consult-company))
 
 (use-package company-ctags
-    :after company
-    :config
-    (setq company-ctags-ignore-case t))
+  :after company
+  :config
+  (setq company-ctags-ignore-case t))
 
 (use-package company-sourcekit
   :after company
-  :config                               ;
-  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"))
+  :config
+  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
+        sourcekit-verbose t))
 
 (use-package company-tabnine
   :after company
   :config
-  (setq company-tabnine-max-num-results 9
-        company-tabnine-show-annotation t
-        company-tabnine-insert-arguments t
-        company-tabnine-auto-fallback nil
-        company-tabnine-auto-balance nil
-        company-tabnine-use-native-json t
-        company-tabnine-wait 0.3))
+  (setq company-tabnine-use-native-json t
+        company-tabnine-auto-fallback t
+        company-tabnine-show-annotation t))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -715,11 +735,11 @@
         projectile-indexing-method 'alien
         projectile-switch-project-action #'consult-projectile-switch-project
         projectile-ignored-files '(".orig" ".yml"))
-    (projectile-project-root-files-functions
-     '(projectile-root-local
-       projectile-root-top-down
-       projectile-root-bottom-up
-       projectile-root-top-down-recurring))
+  (projectile-project-root-files-functions
+   '(projectile-root-local
+     projectile-root-top-down
+     projectile-root-bottom-up
+     projectile-root-top-down-recurring))
   :init
   ;; NOTE: Set this to the folder where you keep your Git repos!
   (when (file-directory-p "~/Documents/git")
@@ -740,7 +760,7 @@
         '(lambda (mode)
            (s-concat (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
 
-; Window / buffer configuration -----------------------------
+                                        ; Window / buffer configuration -----------------------------
 (use-package window
   :ensure nil
   :bind
@@ -791,13 +811,20 @@
 ;; Winum - select windows easy ---------------------------
 (use-package winum
   :after doom-modeline
+  :bind 
+  ("M-1" . winum-select-window-1)
+  ("M-2" . winum-select-window-2)
+  ("M-3" . winum-select-window-3)
+  ("M-4" . winum-select-window-4)
+  ("M-5" . winum-select-window-5)
+  ("M-6" . winum-select-window-6)
   :init
   (winum-mode 1))
 
 ;; darkroom (go to focus mode)
 (use-package darkroom
   :commands darkroom-mode
-  :bind ("C-x C-d". darkroom-tentative-mode)
+  :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
   (setq darkroom-text-scale-increase 1
         darkroom-margins 0.1))
@@ -830,8 +857,8 @@
   (blamer-min-offset 10)
   :custom-face
   (blamer-face ((t :foreground "#E46876"
-                    :height 140
-                    :italic t))))
+                   :height 140
+                   :italic t))))
 
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
@@ -848,7 +875,7 @@
 (use-package vterm
   :commands vterm)
 
- ;; general
+;; general
 (use-package general
   :defer t
   :config
@@ -925,35 +952,35 @@
     "tw" '(mark-word :which-key "Select word")
     "tp" '(mark-page :which-key "Select page"))
 
-   (mk/leader-keys
-     "w" '(:ignore t :which-key "Windows")
-     "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
-     "wp" '(previous-window-any-frame :which-key "Previous window")
-     "wx" '(delete-window :which-key "Delete window")
-     "wk" '(delete-window-internal :which-key "Delete window")
-     "wr" '(evil-window-rotate-upwards :which-key "Rotate clockwise")
-     "wR" '(evil-window-rotate-downwards :which-key "Rotate counter clockwise")
-     "w-" '(mk/split-window-below :which-key "Split window horizontally")
-     "w/" '(mk/split-window-right :which-key "Split window vertically")
-     "wn" '(next-window-any-frame :which-key "Next window"))
+  (mk/leader-keys
+    "w" '(:ignore t :which-key "Windows")
+    "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
+    "wp" '(previous-window-any-frame :which-key "Previous window")
+    "wx" '(delete-window :which-key "Delete window")
+    "wk" '(delete-window-internal :which-key "Delete window")
+    "wr" '(evil-window-rotate-upwards :which-key "Rotate clockwise")
+    "wR" '(evil-window-rotate-downwards :which-key "Rotate counter clockwise")
+    "w-" '(mk/split-window-below :which-key "Split window horizontally")
+    "w/" '(mk/split-window-right :which-key "Split window vertically")
+    "wn" '(next-window-any-frame :which-key "Next window"))
 
-   (mk/leader-keys
-     "p" '(:ignore t :which-key "Project")
-     "pp" '(:ignore t :which-key "Project management")
-     "ppa" '(treemacs-add-project-to-workspace :which-key "Add project")
-     "ppr" '(treemacs-remove-project-from-workspace :which-key "Remove project")
-     "pf" '(projectile-find-file-dwim :which-key "Find file")
-     "pF" '(projectile-project-files :which-key "Project files")
-     "pk" '(projectile-kill-buffers :which-key "Kill buffers")
-     "ps" '(projectile-switch-project :which-key "Switch project")
-     "pS" '(projectile-switch-open-project :which-key "Switch open project"))
+  (mk/leader-keys
+    "p" '(:ignore t :which-key "Project")
+    "pp" '(:ignore t :which-key "Project management")
+    "ppa" '(treemacs-add-project-to-workspace :which-key "Add project")
+    "ppr" '(treemacs-remove-project-from-workspace :which-key "Remove project")
+    "pf" '(projectile-find-file-dwim :which-key "Find file")
+    "pF" '(projectile-project-files :which-key "Project files")
+    "pk" '(projectile-kill-buffers :which-key "Kill buffers")
+    "ps" '(projectile-switch-project :which-key "Switch project")
+    "pS" '(projectile-switch-open-project :which-key "Switch open project"))
 
-   (mk/leader-keys
-     "v" '(:ignore t :which-key "Version control")
-     "vs" '(magit-status :which-key "Status")
-     "vb" '(blamer-show-commit-info :which-key "Show git blame")
-     "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
-     "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
+  (mk/leader-keys
+    "v" '(:ignore t :which-key "Version control")
+    "vs" '(magit-status :which-key "Status")
+    "vb" '(blamer-show-commit-info :which-key "Show git blame")
+    "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
+    "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
 
   (mk/leader-keys
     "q" '(:ignore t :which-key "Quit")
@@ -965,10 +992,10 @@
   :config
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-ellipsis " ▾"
-    org-hide-emphasis-markers t
-    org-hide-leading-stars t
-    org-log-into-drawer t
-    org-log-done 'time))
+        org-hide-emphasis-markers t
+        org-hide-leading-stars t
+        org-log-into-drawer t
+        org-log-done 'time))
 
 (with-eval-after-load 'org
   ;; (require 'ob-swiftui)
@@ -1011,11 +1038,11 @@
   :commands elfeed
   :config
   (setq elfeed-feeds '(
-               ("https://news.ycombinator.com/rss")
-               ("https://ag91.github.io/rss")
-               ("https://www.reddit.com/r/emacs.rss")
-               ("https://xenodium.com/rss")
-               ("https://swiftbysundell.com/rss"))
+                       ("https://news.ycombinator.com/rss")
+                       ("https://ag91.github.io/rss")
+                       ("https://www.reddit.com/r/emacs.rss")
+                       ("https://xenodium.com/rss")
+                       ("https://swiftbysundell.com/rss"))
         elfeed-search-filter "@1-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
@@ -1053,16 +1080,39 @@
   ("M-S-<drag>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-  ;; Quickly jump to definition or usage
+;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
   :config
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-selector 'vertico))
 
+;; (setq mk-sourcekit-lsp-options '("--sync"))
+;; (defun mk-sourcekit-lsp-executable ()
+;;   (setq mk-sourcekit-lsp-executable
+;;         (cond ((executable-find "sourcekit-lsp"))
+;;               ((equal system-type 'darwin)
+;;                (cond ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
+;;                      ((executable-find "/usr/local/bin/sourcekit-lsp"))
+;;                      ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))))
+;;               ((equal system-type 'gnu/linux)
+;;                (cond ((executable-find "/home/linuxbrew/.linuxbrew/bin/sourcekit-lsp"))))
+;;               (t
+;;                ("sourcekit-lsp")))))
+
+;; (defun mk-sourcekit-lsp-command (interactive)
+;;   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
+
+;; (use-package eglot
+;;   :config
+;;   (add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command)))
+
+;; (use-package consult-eglot
+;;   :after eglot consult)
+
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-  
+  ;; (add-hook 'lsp-completion-mode-hook #'setup-swift-mode-company)
   (setup-swift-mode-company)
   ;; (setq tree-sitter-hl-use-font-lock-keywords nil) ;
   ;; (defface tree-sitter-hl-face:case-pattern
@@ -1135,14 +1185,14 @@
 
 (defun mk/toggle-transparency ()
   (interactive
-  (let ((alpha (frame-parameter nil 'alpha)))
-    (if (eq
-         (if (numberp alpha)
-             alpha
-           (cdr alpha)) ; may also be nil
-         100)
-        (set-frame-parameter nil 'alpha '(94 . 85))
-      (set-frame-parameter nil 'alpha '(100 . 100))))))
+   (let ((alpha (frame-parameter nil 'alpha)))
+     (if (eq
+          (if (numberp alpha)
+              alpha
+            (cdr alpha)) ; may also be nil
+          100)
+         (set-frame-parameter nil 'alpha '(94 . 85))
+       (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 ;;; esc quits
 (defun mk/browser-split-window (url &optional new-window)
@@ -1168,7 +1218,7 @@
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (local-set-key (kbd "C-M-K") #'kill-other-buffers)
 
-  ; When jumping got forward and back
+                                        ; When jumping got forward and back
   (hs-minor-mode)  
   (electric-pair-mode) ;; Auto insert pairs {} () [] etc
 
