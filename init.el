@@ -112,6 +112,27 @@
 ;; Clean up all those temporary files
 (use-package no-littering)
 
+; On macos use our custom settings ---------------------
+(when (eq system-type 'darwin)
+
+  (use-package exec-path-from-shell
+    :init (exec-path-from-shell-initialize))
+
+  (use-package ns-auto-titlebar
+    :config (ns-auto-titlebar-mode))
+
+  (setq mac-option-key-is-meta nil
+        mac-command-key-is-meta t
+        mac-command-modifier 'meta
+        mac-option-modifier 'none
+        dired-use-ls-dired nil
+        frame-title-format ""
+        ns-pop-up-frames nil
+        browse-url-browser-function #'mk/browser-split-window)
+
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
+
 (use-package flyspell
 :config (setq ispell-program-name "aspell"))
 
@@ -228,26 +249,6 @@
         auto-package-update-hide-results nil))
 
 
-; On macos use our custom settings ---------------------
-(when (eq system-type 'darwin)
-
-  (use-package exec-path-from-shell
-    :init (exec-path-from-shell-initialize))
-
-  (use-package ns-auto-titlebar
-    :config (ns-auto-titlebar-mode))
-
-  (setq mac-option-key-is-meta nil
-        mac-command-key-is-meta t
-        mac-command-modifier 'meta
-        mac-option-modifier 'none
-        dired-use-ls-dired nil
-        frame-title-format ""
-        ns-pop-up-frames nil
-        browse-url-browser-function #'mk/browser-split-window)
-
-  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 ;; Config and install modeline
 (use-package doom-modeline

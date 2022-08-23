@@ -81,7 +81,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground green :bold t))
   (numbers                              (:background green :foreground black))
-  (region                               (:background black-4))
+  (region                               (:background peach :foreground black-2))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))
