@@ -248,7 +248,7 @@
   (company-tooltip-quick-access         (:foreground blue :distant-foreground blue-bg))
   (company-scrollbar-bg                 (:inherit 'tooltip))
   (company-scrollbar-fg                 (:background red))
-  (company-preview                      (:foreground yellow))
+  (company-preview                      (:foreground blue))
   (company-preview-common               (:background red :foreground black))
   (company-preview-search               (:inherit 'company-tooltip-search))
   (company-template-field               (:inherit 'match))
