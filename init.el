@@ -587,7 +587,9 @@
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
 (use-package company-box
-  :hook (company-mode . company-box-mode))
+  :hook (company-mode . company-box-mode)
+  :custom (setq company-box-icon-right-margin
+                company-box-frame-behavior 'point))
 
 (use-package company-ctags
   :after company
@@ -599,35 +601,9 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-                (company-sourcekit company-dabbrev-code company-tabnine :separate) 
-                (company-ctags)
-                (company-capf)
+                (company-yasnippet :with company-dabbrev-code)
+                (company-ctags :with company-capf)
               )))
-
-;; (use-package lsp-mode
-;;   :hook (prog-mode . lsp-deferred)
-;;   :config
-;;   (setq lsp-completion-provider :capf))
-
-;; (use-package lsp-ui
-;;   :hook (lsp-mode . lsp-ui-mode))
-
-;; (use-package lsp-treemacs
-;;   :after lsp)
-
-;; (use-package treemacs-projectile
-;;   :hook (treemacs-mode-hook))
-
-;; (use-package lsp-ourcekit
-;;   :after lsp-mode
-;;   :config
-;;   (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain") ; guessing this from executable path returned from xcrun --find sourcekit-lsp
-;;   (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp")))
-;;   (setq lsp-sourcekit-extra-args
-;;         (quote
-;;          ("-Xswiftc" "-sdk" "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk" "-Xswiftc" "-target" "-Xswiftc" "x86_64-apple-ios15.5-simulator")
-;;          ))
-;;   (setq lsp-clients-clangd-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clangd"))) ; TODO run xcrun --find sourcekit-lsp directly
 
 (use-package consult-project-extra
   :bind
@@ -703,7 +679,7 @@
   :diminish
   :custom
   (flycheck-indication-mode 'left-fringe)
-  (flycheck-display-errors-delay 0.1)
+  (flycheck-display-errors-delay 0.2)
   (flycheck-check-syntax-automatically '(save idle-change newline))
   (flycheck-idle-change-delay 1))
 
@@ -1087,50 +1063,9 @@
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-selector 'vertico))
 
-;; (setq mk-sourcekit-lsp-options '("--sync"))
-;; (defun mk-sourcekit-lsp-executable ()
-;;   (setq mk-sourcekit-lsp-executable
-;;         (cond ((executable-find "sourcekit-lsp"))
-;;               ((equal system-type 'darwin)
-;;                (cond ((executable-find "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
-;;                      ((executable-find "/usr/local/bin/sourcekit-lsp"))
-;;                      ((executable-find "/Library/Developer/CommandLineTools/usr/bin/sourcekit-lsp"))))
-;;               ((equal system-type 'gnu/linux)
-;;                (cond ((executable-find "/home/linuxbrew/.linuxbrew/bin/sourcekit-lsp"))))
-;;               (t
-;;                ("sourcekit-lsp")))))
-
-;; (defun mk-sourcekit-lsp-command (interactive)
-;;   (append (list (mk-sourcekit-lsp-executable)) mk-sourcekit-lsp-options))
-
-;; (use-package eglot
-;;   :config
-;;   (add-to-list 'eglot-server-programs '((swift-mode) . mk-sourcekit-lsp-command)))
-
-;; (use-package consult-eglot
-;;   :after eglot consult)
-
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-  ;; (add-hook 'lsp-completion-mode-hook #'setup-swift-mode-company)
   (setup-swift-mode-company)
-  ;; (setq tree-sitter-hl-use-font-lock-keywords nil) ;
-  ;; (defface tree-sitter-hl-face:case-pattern
-  ;;   '((t :inherit tree-sitter-hl-face:property
-  ;;        :foreground "#666bb2"))
-  ;;   "Face for enum case names in a pattern match"
-  ;;   :group 'tree-sitter-hl-faces)
-
-  ;; (defface tree-sitter-hl-face:variable.synthesized
-  ;;   '((t :inherit tree-sitter-hl-face:variable))
-  ;;   "Face for compiler-synthesized identifiers (prefixed with '$')"
-  ;;   :group 'tree-sitter-hl-faces)
-
-  ;; (defface tree-sitter-hl-face:keyword.compiler
-  ;;   '((t :inherit tree-sitter-hl-face:keyword
-  ;;        :weight semi-bold))
-  ;;   "Face for compile-time keywords"
-  ;;   :group 'tree-sitter-hl-faces)
 
   (load "swift-additions")
   (load "periphery-swiftlint")

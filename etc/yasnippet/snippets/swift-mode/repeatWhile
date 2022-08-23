@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Repeat while
+# key: repeat
+# --
+ repeat {
+    
+ } while ${1:somethingThatIsTrue}

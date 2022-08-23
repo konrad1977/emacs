@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: Create class  
+# key: clas
+# --
+import Foundation
+
+final class ${1:classname} {
+    init() {
+    }
+}
+
+// MARK: - public
+extension $1 {
+
+}
+
+// MARK: - private
+extension $1 {
+
+}
