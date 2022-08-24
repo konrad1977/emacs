@@ -581,7 +581,7 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  (setq company-transformers '(company-sort-by-backend-importance)
+  (setq company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
         company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
         company-tooltip-margin              1
@@ -597,8 +597,7 @@
         company-async-wait                  0.5
         company-async-timeout               2
         company-dabbrev-time-limit          0.8
-        company-dabbrev-code-time-limit     0.8
-        company-dabbrev-code-modes          '(swift-mode)
+        company-dabbrev-code-time-limit     0.8 company-dabbrev-code-modes          '(swift-mode)
         company-backends '(
                            company-capf
                            company-dabbrev-code
@@ -610,8 +609,11 @@
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
-  :custom (setq company-box-icon-right-margin 4
-                company-box-frame-behavior 'point))
+  :custom
+  (setq company-box-icon-right-margin 4)
+  :init
+  (setq company-box-backends-colors '((company-yasnippet :all (:foreground "light blue") :selected (:foreground "black")))
+        company-box-doc-delay 0.2))
 
 (use-package company-ctags
   :after company
@@ -622,25 +624,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '(
-                (company-yasnippet company-sourcekit :with company-dabbrev-code)
-                ;; (company-yasnippet :with company-dabbrev-code) 
-              )))
-
-<<<<<<< HEAD
-;; (use-package lsp-mode
-;;   :hook (prog-mode . lsp-deferred)
-;;   :config
-;;   (setq lsp-completion-provider :capf))
-
-;; (use-package lsp-ui
-;;   :hook (lsp-mode . lsp-ui-mode))
-
-;; (use-package lsp-treemacs
-;;   :after lsp)
-
-;; (use-package treemacs-projectile
-;;   :hook (treemacs-mode-hook))
+              '((company-tabnine company-ctags company-capf :with company-yasnippet))))
 
 (use-package lsp-sourcekit
   :after lsp-mode
@@ -653,8 +637,6 @@
          ))
   (setq lsp-clients-clangd-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clangd"))) ; TODO run xcrun --find sourcekit-lsp directly
 
-=======
->>>>>>> f6bbfd49628f3e9a1cc7adef207be2633b2bfa99
 (use-package consult-project-extra
   :bind
   ("C-<tab>" . #'consult-projectile)
@@ -674,7 +656,8 @@
   :after company
   :config
   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
-        sourcekit-verbose t))
+        company-sourcekit-use-yasnippet t
+        sourcekit-verbose nil))
 
 (use-package company-tabnine
   :after company
@@ -682,6 +665,10 @@
   (setq company-tabnine-use-native-json t
         company-tabnine-auto-fallback t
         company-tabnine-show-annotation t))
+
+(use-package company-quickhelp
+  :config
+  (company-quickhelp-mode))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -693,7 +680,10 @@
   :bind ("M-g" . ace-jump-mode))
 
 (use-package yasnippet
-  :hook (company-mode . yas-minor-mode))
+  :hook (company-mode . yas-minor-mode)
+        (swift-mode . yas-minor-mode))
+
+(yas-global-mode 1)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -1076,7 +1066,7 @@
 (use-package elfeed-dashboard
   :after elfeed
   :config
-  (setq elfeed-dashboard-file "~/elfeed-dashboard.org")
+(setq elfeed-dashboard-file "~/elfeed-dashboard.org")
   (advice-add 'elfeed-search-quit-window :after #'elfeed-dashboard-update-links))
 
 (use-package highlight-indent-guides

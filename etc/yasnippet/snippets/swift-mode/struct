@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: Create Struct 
-# key: struc
+# key: struct
 # --
 struct ${1:Name} {
 	let ${2:VariableName}: ${3:Type}

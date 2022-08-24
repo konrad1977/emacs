@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: Create class  
-# key: clas
+# key: class
 # --
 import Foundation
 

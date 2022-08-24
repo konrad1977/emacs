@@ -253,6 +253,7 @@
   (company-preview-search               (:inherit 'company-tooltip-search))
   (company-template-field               (:inherit 'match))
 
+
   ;; Flycheck
   (flycheck-posframe-background-face	(:background black))
   (flycheck-posframe-face				(:background black))
