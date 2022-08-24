@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: import swiftui 
+# key: isui
+# --
+import SwiftUI

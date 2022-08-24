@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: Create Struct 
+# key: struc
+# --
+struct ${1:Name} {
+	let ${2:VariableName}: ${3:Type}
+}
+
+extension $1 {
+
+}
