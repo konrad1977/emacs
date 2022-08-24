@@ -600,10 +600,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '(
-                (company-yasnippet company-sourcekit :with company-dabbrev-code)
-                ;; (company-yasnippet :with company-dabbrev-code) 
-              )))
+              '((company-yasnippet company-tabnine company-sourcekit :with company-dabbrev-code :separate))))
 
 (use-package consult-project-extra
   :bind
@@ -628,10 +625,17 @@
 
 (use-package company-tabnine
   :after company
+  :commands company-tabnine-start-process
   :config
   (setq company-tabnine-use-native-json t
         company-tabnine-auto-fallback t
+        company-tabnine-no-continue t
         company-tabnine-show-annotation t))
+
+(defun tabnine//company-box-icons--tabnine (candidate)
+  (when (eq (get-text-property 0 'company-backend candidate)
+            'company-tabnine)
+    'Reference))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
