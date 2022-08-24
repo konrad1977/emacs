@@ -502,7 +502,8 @@ ARGS are rest arguments, appended to the argument list."
   (if (swift-additions:is-spm-project)
     (swift-additions:build-swift-package)
     (progn
-      (setup-current-project (get-ios-project-root))
+      (if (vc-root-dir)
+          (setup-current-project (get-ios-project-root)))
       (let ((default-directory current-project-root))
         (async-shell-command-to-string :process-name "periphery" :command (build-app-command (fetch-or-load-simulator-id)) :callback #'swift-additions:check-for-errors))
       (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))))

@@ -20,7 +20,6 @@
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
-(setq highlight-nonselected-windows nil)
 (setq fast-but-imprecise-scrolling t)
 (setq redisplay-skip-fontification-on-input t)
 
@@ -30,8 +29,8 @@
 (customize-set-variable 'max-specpdl-size 13000)
 
 (setq-default frame-inhibit-implied-resize t
-              frame-resize-pixelwise t
-              frame-title-format "\n"
+              frame-resize-pixelwise nil
+              frame-title-format "\""
               inhibit-startup-screen t
               inhibit-startup-message t
               inhibit-splash-screen t

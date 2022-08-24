@@ -35,16 +35,15 @@
 (setq ad-redefinition-action            'accept
       blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
       create-lockfiles                  nil
-      cursor-in-non-selected-windows    nil     ;; Keep cursor in focused windows only
-      highlight-nonselected-windows     nil     ;; Keep highlight in focused windows only
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
       read-process-output-max           (* 8 1024 1024)
+      highlight-nonselected-windows     t
       auto-mode-case-fold               nil
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
-      fast-but-imprecise-scrolling      nil
+      fast-but-imprecise-scrolling      t
       jit-lock-defer-time               0.0
       desktop-save-mode                 nil    ;; Done save desktop (open buffers)
       echo-keystrokes                   0.2
@@ -246,11 +245,8 @@
   (setq auto-package-update-interval 7
         auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
-<<<<<<< HEAD
 
-
-=======
-                                        ; On macos use our custom settings ---------------------
+;;  On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
   (use-package exec-path-from-shell
@@ -270,7 +266,6 @@
 
   (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
->>>>>>> 686e421434540daa842b2f47c266a3c40750a5fa
 
 ;; Config and install modeline
 (use-package doom-modeline
@@ -460,12 +455,12 @@
           )))
 
 ;; nyan cat
-(use-package nyan-mode
-  :hook (doom-modeline-mode . nyan-mode)
-  :config
-  (setq nyan-wavy-trail nil
-        nyan-bar-length 20
-        nyan-animate-nyancat t))
+;; (use-package nyan-mode
+;;   :hook (doom-modeline-mode . nyan-mode)
+;;   :config
+;;   (setq nyan-wavy-trail nil
+;;         nyan-bar-length 20
+;;         nyan-animate-nyancat t))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -506,9 +501,10 @@
 
 (use-package tree-sitter
   :defer t
-  :hook (swift-mode . tree-sitter-hl-mode)
-  :init
-  (global-tree-sitter-mode))
+  :hook (swift-mode . tree-sitter-hl-mode))
+
+(global-tree-sitter-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
 
 ;; Remember autocompletions
 (use-package amx
@@ -604,8 +600,8 @@
         company-dabbrev-code-time-limit     0.8
         company-dabbrev-code-modes          '(swift-mode)
         company-backends '(
-                           company-dabbrev-code
                            company-capf
+                           company-dabbrev-code
                            company-keywords
                            )
         company-frontends '(company-pseudo-tooltip-frontend))
@@ -644,16 +640,16 @@
 ;; (use-package treemacs-projectile
 ;;   :hook (treemacs-mode-hook))
 
-;; (use-package lsp-ourcekit
-;;   :after lsp-mode
-;;   :config
-;;   (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain") ; guessing this from executable path returned from xcrun --find sourcekit-lsp
-;;   (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp")))
-;;   (setq lsp-sourcekit-extra-args
-;;         (quote
-;;          ("-Xswiftc" "-sdk" "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk" "-Xswiftc" "-target" "-Xswiftc" "x86_64-apple-ios15.5-simulator")
-;;          ))
-;;   (setq lsp-clients-clangd-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clangd"))) ; TODO run xcrun --find sourcekit-lsp directly
+(use-package lsp-sourcekit
+  :after lsp-mode
+  :config
+  (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain") ; guessing this from executable path returned from xcrun --find sourcekit-lsp
+  (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp")))
+  (setq lsp-sourcekit-extra-args
+        (quote
+         ("-Xswiftc" "-sdk" "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk" "-Xswiftc" "-target" "-Xswiftc" "x86_64-apple-ios15.5-simulator")
+         ))
+  (setq lsp-clients-clangd-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clangd"))) ; TODO run xcrun --find sourcekit-lsp directly
 
 (use-package consult-project-extra
   :bind
