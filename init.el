@@ -563,11 +563,11 @@
         company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
         company-tooltip-margin              1
-        company-minimum-prefix-length       0
+        company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
         company-search-regexp-function      'company-search-flex-regexp
         company-require-match               'require-match
-        company-tooltip-limit               20
+        company-tooltip-limit               10
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
         company-idle-delay                  0
@@ -582,13 +582,13 @@
                            company-capf
                            company-keywords
                            )
-        company-frontends '(company-pseudo-tooltip-frontend))
+        company-frontends '(company-preview-if-just-one-frontend))
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 155)))))
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
-  :custom (setq company-box-icon-right-margin
+  :custom (setq company-box-icon-right-margin 4
                 company-box-frame-behavior 'point))
 
 (use-package company-ctags
@@ -601,8 +601,8 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-                (company-yasnippet :with company-dabbrev-code)
-                (company-ctags :with company-capf)
+                (company-yasnippet company-sourcekit :with company-dabbrev-code)
+                ;; (company-yasnippet :with company-dabbrev-code) 
               )))
 
 (use-package consult-project-extra
