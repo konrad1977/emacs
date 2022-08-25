@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: lazy init 
+# key: private lazy init
+# --
+private lazy var ${1:name}: ${2:type} = {
+    let $1 = $2()
+
+    return $1
+}()

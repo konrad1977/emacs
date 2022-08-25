@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: try catch 
+# key: try catch
+# --
+do {
+    let ${1:value} = try ${2:somethingThrowing}
+} catch let error {
+    print(error)
+}

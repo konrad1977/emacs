@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: if available 
+# key: if #available
+# --
+if #available(${1:iOS} ${2:version}, *) {
+    // Available
+} else {
+    // Fallback code
+} 

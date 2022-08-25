@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: dispatch group 
+# key: dispatch group
+# --
+let ${1:group} = DispatchGroup()
+let ${2:queue} = DispatchQueue(label: "${3:queuename}")
+
+$1.notify(queue: $2) {
+    
+}

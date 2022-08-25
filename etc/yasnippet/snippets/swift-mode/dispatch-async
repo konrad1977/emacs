@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: DispatchQueue async 
+# key: dispatchqueue async
+# --
+DispatchQueue.main.async {
+   ${1:statement} 
+}

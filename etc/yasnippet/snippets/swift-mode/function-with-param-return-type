@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: Function  with args and return types
+# key: fure
+# --
+
+private func ${1:functionName}(${2:paramName}: ${3:type}) -> ${4:returnType} {
+
+    return 
+}

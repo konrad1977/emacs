@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: for try await 
+# key: for try await
+# --
+for try await ${1:value} in ${2:list} {
+
+}

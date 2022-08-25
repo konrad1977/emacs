@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: var didset
+# key: vardid
+# --
+var ${1:name}: ${2:type} = ${3:initialValue} {
+    didset {
+    
+    }
+}

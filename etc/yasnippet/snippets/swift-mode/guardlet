@@ -1,6 +1,7 @@
 # -*- mode: snippet -*-
 # name: guard let 
-# key: guard 
+# key: guard
 # --
-guard let ${1:to} = ${2:from}
-else { return ${3:RetValue} }
+
+guard let ${1:name} = ${2:type}
+else { return ${3:retValue} }

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: await 
+# key: await
+# --
+let ${1:value} = await ${2:defferedValue}

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: dispatch after delay 
+# key: dispatch after delay
+# --
+DispatchQueue.main.asyncAfter(deadline: .now() + ${1:delay}) {
+    
+}
