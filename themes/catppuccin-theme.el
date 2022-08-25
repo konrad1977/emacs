@@ -113,7 +113,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background blue-bg-2 :foreground blue :weight 'semi-bold))
+  (highlight-symbol-face                (:background black-3 :foreground green :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
   
   (minibuffer-prompt-end                (:foreground red))
@@ -237,13 +237,13 @@
   (show-paren-match-expression			(:background peach :foreground dark :bold t))
   (show-paren-mismatch					(:background red :foreground white))
 
-  (company-tooltip                      (:background black :foreground white))
-  (company-tooltip-common               (:foreground peach))
-  (company-tooltip-search               (:background red :foreground black :distant-foreground rosewater))
-  (company-tooltip-selection            (:background red :foreground black :bold t))
+  (company-tooltip                      (:background black))
+  (company-tooltip-common               (:foreground peach :bold t))
+  (company-tooltip-search               (:background yellow-bg-2 :foreground black :distant-foreground yellow))
+  (company-tooltip-selection            (:background blue-bg-2 :foreground blue :bold t))
   (company-tooltip-mouse                (:background nil :foreground black :distant-foreground rosewater))
   (company-tooltip-annotation           (:foreground pink :distant-foreground red-bg))
-  (company-tooltip-scrollbar-track      (:background black-4))
+  (company-tooltip-scrollbar-track      (:background peach))
   (company-tooltip-scrollbar-thumb      (:background flamingo))
   (company-tooltip-quick-access         (:foreground blue :distant-foreground blue-bg))
   (company-scrollbar-bg                 (:inherit 'tooltip))
@@ -352,7 +352,8 @@
 
   ;; evil
   (evil-ex-lazy-highlight         (:foreground yellow :background yellow-bg :bold t))
-  (evil-ex-substitute-replacement (:foreground peach :strike-through nil :inherit 'evil-ex-substitute-matches))
+  (evil-ex-substitute-matches     (:background red-bg :foreground red :strike-through t))
+  (evil-ex-substitute-replacement (:foreground blue :background blue-bg-2 :bold t))
   (evil-search-highlight-persist-highlight-face (:background yellow))
 
   (ansi-color-black (:background black-2))

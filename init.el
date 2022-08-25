@@ -354,7 +354,7 @@
 
   ;; searching
   (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
-  (define-key evil-motion-state-map "F" 'consult-line)
+ ;; (define-key evil-motion-state-map "M-f" 'consult-line)
   
   ;; window resizing
   (define-key evil-motion-state-map (kbd "C-+") #'enlarge-window-horizontally)
@@ -581,7 +581,9 @@
 (use-package company
   :hook (prog-mode . company-mode)
   :init
-  (setq company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
+  (setq 
+        company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
+        ;; company-transformers nil
         company-format-margin-function  'company-vscode-dark-icons-margin
         company-dot-icons-format        " ● "
         company-tooltip-margin              1
@@ -596,23 +598,18 @@
         company-show-quick-access           'left
         company-async-wait                  0.5
         company-async-timeout               2
-        company-dabbrev-time-limit          0.8
-        company-dabbrev-code-time-limit     0.8 company-dabbrev-code-modes          '(swift-mode)
-        company-backends '(
-                           company-capf
+        company-backends '(company-capf
                            company-dabbrev-code
                            company-keywords
-                           )
+                           company-yasnippet)
         company-frontends '(company-preview-if-just-one-frontend))
   :custom-face
-  (company-tooltip ((t (:font "Menlo" :height 155)))))
+  (company-tooltip ((t (:font "Menlo" :height 145)))))
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
-  :custom
-  (setq company-box-icon-right-margin 4)
   :init
-  (setq company-box-backends-colors '((company-yasnippet :all (:foreground "light blue") :selected (:foreground "black")))
+  (setq company-box-backends-colors '((company-yasnippet :all (:foreground "yellow") :selected (:foreground "black")))
         company-box-doc-delay 0.2))
 
 (use-package company-ctags
@@ -624,24 +621,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-tabnine company-ctags company-capf :with company-yasnippet))))
-
-(use-package lsp-sourcekit
-  :after lsp-mode
-  :config
-  (setenv "SOURCEKIT_TOOLCHAIN_PATH" "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain") ; guessing this from executable path returned from xcrun --find sourcekit-lsp
-  (setq lsp-sourcekit-executable (string-trim (shell-command-to-string "Xcrun --find sourcekit-lsp")))
-  (setq lsp-sourcekit-extra-args
-        (quote
-         ("-Xswiftc" "-sdk" "-Xswiftc" "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk" "-Xswiftc" "-target" "-Xswiftc" "x86_64-apple-ios15.5-simulator")
-         ))
-  (setq lsp-clients-clangd-executable (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clangd"))) ; TODO run xcrun --find sourcekit-lsp directly
-
-(use-package consult-project-extra
-  :bind
-  ("C-<tab>" . #'consult-projectile)
-  ("M-O" . #'consult-project-extra-find-other-window)
-  :after consult)
+              '((company-dabbrev-code company-sourcekit :with company-yasnippet :separate))))
 
 (use-package consult-company
   :config
@@ -661,14 +641,21 @@
 
 (use-package company-tabnine
   :after company
+  :commands company-tabnine-start-process
   :config
   (setq company-tabnine-use-native-json t
         company-tabnine-auto-fallback t
+        company-tabnine-no-continue t
         company-tabnine-show-annotation t))
 
 (use-package company-quickhelp
   :config
   (company-quickhelp-mode))
+
+(defun tabnine//company-box-icons--tabnine (candidate)
+  (when (eq (get-text-property 0 'company-backend candidate)
+            'company-tabnine)
+    'Reference))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -676,12 +663,17 @@
 (use-package company-prescient
   :hook (company-mode . company-prescient-mode))
 
+(use-package consult-project-extra
+  :bind
+  ("C-<tab>" . #'consult-projectile)
+  ("M-O" . #'consult-project-extra-find-other-window)
+  :after consult)
+
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
 
 (use-package yasnippet
-  :hook (company-mode . yas-minor-mode)
-        (swift-mode . yas-minor-mode))
+  :hook (company-mode . yas-minor-mode))
 
 (yas-global-mode 1)
 
