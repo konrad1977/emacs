@@ -609,7 +609,9 @@
 (use-package company-box
   :hook (company-mode . company-box-mode)
   :init
-  (setq company-box-backends-colors '((company-yasnippet :all (:foreground "yellow") :selected (:foreground "black")))
+  (setq company-box-backends-colors '((company-yasnippet 
+  :all (:foreground "PaleVioletRed2" :background nil) 
+  :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.2))
 
 (use-package company-ctags
