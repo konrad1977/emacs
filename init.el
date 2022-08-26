@@ -472,7 +472,7 @@
   (dimmer-configure-hydra)
   (dimmer-configure-which-key)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
-  (setq dimmer-fraction 0.18))
+  (setq dimmer-fraction 0.5))
 
 ;; (use-package beacon
 ;;   :hook (after-init . beacon-mode)
@@ -578,6 +578,13 @@
   :defer t
   :bind ("C-x C-g" . google-this))
 
+(use-package eglot
+    :ensure t
+    :hook (swift-mode . eglot-ensure)
+    :config
+    (setq eglot-stay-out-of '(company))
+    (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
+
 (use-package company
   :hook (prog-mode . company-mode)
   :init
@@ -623,7 +630,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-dabbrev-code company-sourcekit :with company-yasnippet :separate))))
+              '((company-capf company-dabbrev-code company-yasnippet :separate))))
 
 (use-package consult-company
   :config
