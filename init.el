@@ -71,7 +71,7 @@
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0.1          ;; Increase linespacing a bit
+              line-spacing                  0.05          ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        nil          ;; Ignore case when completing
@@ -591,25 +591,25 @@
   (setq 
         company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
         ;; company-transformers nil
-        company-format-margin-function  'company-vscode-dark-icons-margin
-        company-dot-icons-format        " ● "
+        ;; company-format-margin-function  'company-vscode-dark-icons-margin
+        ;; company-dot-icons-format        " ● "
         company-tooltip-margin              1
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
-        company-search-regexp-function      'company-search-flex-regexp
-        company-require-match               'require-match
+        company-search-regexp-function      'company-search-words-in-any-order-regexp
+        company-require-match               nil
         company-tooltip-limit               10
         company-tooltip-width-grow-only     t
         company-tooltip-flip-when-above     t
-        company-idle-delay                  0
+        company-idle-delay                  0.5
         company-show-quick-access           'left
-        company-async-wait                  0.5
+        company-async-wait                  0.1
         company-async-timeout               2
         company-backends '(company-capf
                            company-dabbrev-code
                            company-keywords
                            company-yasnippet)
-        company-frontends '(company-preview-if-just-one-frontend))
+        company-frontends '(company-box-frontend))
   :custom-face
   (company-tooltip ((t (:font "Menlo" :height 145)))))
 
@@ -617,8 +617,8 @@
   :hook (company-mode . company-box-mode)
   :init
   (setq company-box-backends-colors '((company-yasnippet 
-  :all (:foreground "PaleVioletRed2" :background nil) 
-  :selected (:foreground "black" :background "PaleVioletRed4")))
+                                       :all (:foreground "PaleVioletRed2" :background nil) 
+                                       :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.2))
 
 (use-package company-ctags
