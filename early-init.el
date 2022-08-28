@@ -3,7 +3,7 @@
 ;;; Commentary: My early init file
 
 ;;; Code:
-(setq idle-update-delay 0.2)
+(setq idle-update-delay 0.2)            
 
 (set-frame-parameter (selected-frame) 'alpha '(98 . 95))
 (add-to-list 'default-frame-alist '(alpha . (98 . 95)))
@@ -21,7 +21,7 @@
 (customize-set-variable 'native-comp-deferred-compilation t)
 
 (setq fast-but-imprecise-scrolling t)
-(setq redisplay-skip-fontification-on-input t)
+;; (setq redisplay-skip-fontification-on-input t)
 
 (when (boundp 'read-process-output-max)
   (setq read-process-output-max (* 10 1024 1024)))
@@ -29,7 +29,7 @@
 (customize-set-variable 'max-specpdl-size 13000)
 
 (setq-default frame-inhibit-implied-resize t
-              frame-resize-pixelwise nil
+              frame-resize-pixelwise t
               frame-title-format "\""
               inhibit-startup-screen t
               inhibit-startup-message t
@@ -50,7 +50,6 @@
                 (right-divider-width . 1)            ; Thin vertical window divider
                 (right-fringe . 8)                   ; Thin right fringe
                 (tool-bar-lines . 0)                 ; No tool bar
-                ;; (undecorated . t)                    ; Remove extraneous X decorations
                 (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
               
 

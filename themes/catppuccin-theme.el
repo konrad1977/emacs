@@ -81,7 +81,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground green :bold t))
   (numbers                              (:background green :foreground black))
-  (region                               (:background black-4))
+  (region                               (:background blue :foreground blue-bg))
   (separator-line                       (:background black-2))
   (shadow                               (:background black))
   (success                              (:foreground green))
@@ -237,12 +237,12 @@
   (show-paren-match-expression			(:background peach :foreground dark :bold t))
   (show-paren-mismatch					(:background red :foreground white))
 
-  (company-tooltip                      (:background black))
-  (company-tooltip-common               (:foreground peach :bold t))
-  (company-tooltip-search               (:background yellow-bg-2 :foreground black :distant-foreground yellow))
-  (company-tooltip-selection            (:background blue-bg-2 :foreground blue :bold t))
+  (company-tooltip                      (:background black :foreground rosewater))
+  (company-tooltip-common               (:foreground red :bold t))
+  (company-tooltip-search               (:background peach))
+  (company-tooltip-selection            (:background lavender :foreground yellow-bg :bold t))
   (company-tooltip-mouse                (:background nil :foreground black :distant-foreground rosewater))
-  (company-tooltip-annotation           (:foreground pink :distant-foreground red-bg))
+  (company-tooltip-annotation           (:foreground gray))
   (company-tooltip-scrollbar-track      (:background peach))
   (company-tooltip-scrollbar-thumb      (:background flamingo))
   (company-tooltip-quick-access         (:foreground blue :distant-foreground blue-bg))
@@ -252,6 +252,9 @@
   (company-preview-common               (:background red :foreground black))
   (company-preview-search               (:inherit 'company-tooltip-search))
   (company-template-field               (:inherit 'match))
+
+  (company-box-annotation               (:foreground red :background red-bg))
+  (company-box-numbers                  (:foreground blue :background blue-bg))
 
 
   ;; Flycheck

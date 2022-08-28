@@ -6,20 +6,20 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(display-battery-mode t)		;; Show battery.
-(display-time-mode t)			;; Show time.
-(set-fringe-mode 1)             ;; Give us some space.
-(tooltip-mode 1)                ;; Disable tool-tip.
-(delete-selection-mode 1)		;; Use a more sane delete mode than evil.
-(fset 'yes-or-no-p 'y-or-n-p)	;; Set yes or no to y/n
-(global-font-lock-mode 1)		;; always highlight code
-(global-auto-revert-mode 1)		;; refresh a buffer if changed on disk
-(global-hl-line-mode 1)         ;; Highlight current line
-(semantic-mode 1)               ;; help out with semantics
-(savehist-mode 1)				;; Save history
-(save-place-mode 1)             ;; when buffer is closed, save the cursor position
+(display-battery-mode t)		  ;; Show battery.
+(display-time-mode t)			  ;; Show time.
+(set-fringe-mode 1)               ;; Give us some space.
+(tooltip-mode 1)                  ;; Disable tool-tip.
+(delete-selection-mode 1)		  ;; Use a more sane delete mode than evil.
+(fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
+(global-font-lock-mode 1)         ;; always highlight code
+(global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
+(global-hl-line-mode 1)           ;; Highlight current line
+(semantic-mode 1)                 ;; help out with semantics
+(savehist-mode 1)                 ;; Save history
+(save-place-mode 1)               ;; when buffer is closed, save the cursor position
 (blink-cursor-mode 1)
-
+  
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" )
@@ -33,7 +33,7 @@
 (setq default-buffer-file-coding-system 'utf-8)
 
 (setq ad-redefinition-action            'accept
-      blink-cursor-interval             0.6	   ;; Little slower cursor blinking . default is 0.5
+      blink-cursor-interval             0.6       ;; Little slower cursor blinking . default is 0.5
       create-lockfiles                  nil
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
       read-process-output-max           (* 8 1024 1024)
@@ -71,15 +71,14 @@
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0.05          ;; Increase linespacing a bit
+              line-spacing                  0            ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-              completion-ignore-case        nil          ;; Ignore case when completing
+              completion-ignore-case        t            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
 (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
-
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'savehist-additional-variables 'kill-ring)
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
@@ -126,13 +125,13 @@
         mac-option-modifier 'none
         dired-use-ls-dired nil
         frame-title-format ""
-        ns-pop-up-frames nil
         browse-url-browser-function #'mk/browser-split-window)
 
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 (use-package flyspell
+  :defer t
   :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
@@ -246,27 +245,6 @@
         auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
 
-;;  On macos use our custom settings ---------------------
-(when (eq system-type 'darwin)
-
-  (use-package exec-path-from-shell
-    :init (exec-path-from-shell-initialize))
-
-  (use-package ns-auto-titlebar
-    :config (ns-auto-titlebar-mode))
-
-  (setq mac-option-key-is-meta nil
-        mac-command-key-is-meta t
-        mac-command-modifier 'meta
-        mac-option-modifier 'none
-        dired-use-ls-dired nil
-        frame-title-format ""
-        ns-pop-up-frames nil
-        browse-url-browser-function #'mk/browser-split-window)
-
-  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ;; {light, dark}
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
-
 ;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -316,7 +294,7 @@
         which-key-min-display-lines 4
         which-key-max-display-columns 5))
 
-                                        ; helpful
+; helpful
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :bind
@@ -326,7 +304,7 @@
 (use-package undo-fu
   :defer t)
 
-                                        ; Use evil mode
+; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
   :bind ("<escape>" . keyboard-escape-quit)
@@ -500,11 +478,10 @@
         show-paren-when-point-in-periphery t))
 
 (use-package tree-sitter
-  :defer t
-  :hook (swift-mode . tree-sitter-hl-mode))
-
-(global-tree-sitter-mode)
-(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+  :hook (swift-mode . tree-sitter-hl-mode)
+  :init
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -586,10 +563,10 @@
     (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
 
 (use-package company
+  :defer t
   :hook (prog-mode . company-mode)
-  :init
-  (setq 
-        company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
+  :config
+  (setq company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
         ;; company-transformers nil
         ;; company-format-margin-function  'company-vscode-dark-icons-margin
         ;; company-dot-icons-format        " ● "
@@ -611,7 +588,7 @@
                            company-yasnippet)
         company-frontends '(company-box-frontend))
   :custom-face
-  (company-tooltip ((t (:font "Menlo" :height 145)))))
+  (company-tooltip ((t (:font "Fira Code" :height 156)))))
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
@@ -633,6 +610,7 @@
               '((company-capf company-dabbrev-code company-yasnippet :separate))))
 
 (use-package consult-company
+  :after company
   :config
   (define-key company-mode-map [remap completion-at-point] #'consult-company))
 
@@ -657,14 +635,14 @@
         company-tabnine-no-continue t
         company-tabnine-show-annotation t))
 
-(use-package company-quickhelp
-  :config
-  (company-quickhelp-mode))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
             'company-tabnine)
     'Reference))
+
+(use-package company-quickhelp
+  :hook (company-mode . company-quickhelp-mode))
 
 (use-package company-statistics
   :hook (company-mode . company-statistics-mode))
@@ -683,8 +661,6 @@
 
 (use-package yasnippet
   :hook (company-mode . yas-minor-mode))
-
-(yas-global-mode 1)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -713,7 +689,7 @@
   (treemacs-load-theme "all-the-icons"))
 
 (use-package restclient
-  :defer t)
+  :commands (restclient))
 
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
@@ -1074,9 +1050,6 @@
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'character))
 
-(use-package highlight-operators
-  :hook (swift-mode . highlight-operators-mode))
-
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
   :config
@@ -1094,7 +1067,7 @@
   :bind
   ("S-M-<down>" . drag-stuff-down)
   ("M-S-<up>" . drag-stuff-up)
-  ("M-S-<drag>" . left-stuff-left)
+  ("M-S-<left>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
 ;; Quickly jump to definition or usage
@@ -1194,17 +1167,16 @@
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (local-set-key (kbd "C-M-K") #'kill-other-buffers)
 
-                                        ; When jumping got forward and back
-  (hs-minor-mode)  
-  (electric-pair-mode) ;; Auto insert pairs {} () [] etc
+  (hs-minor-mode)       ; Add support for folding code blocks
+  (yas-global-mode 1)   ; Load our yassnippets
+  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
         indicate-empty-lines t            ;; Show empty lines
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
-        fill-column 100
-        display-line-numbers 'relative))          ;; Show line numbers
+        display-line-numbers 'relative))  ;; Show line numbers
 
 (defun mk/setup-flycheck ()
   "Setup margins for flycheck."
