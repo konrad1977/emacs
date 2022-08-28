@@ -148,7 +148,7 @@
   (doom-modeline-error                  (:background red))
   (doom-modeline-info                   (:foreground gray))
   (doom-modeline-project-dir            (:foreground peach))
-  (doom-modeline-bar                    (:background lavender))
+  (doom-modeline-bar                    (:background lavender :foreground black-4))
   (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground black-2))
   (doom-modeline                        (:foreground gray))
   (doom-themes-visual-bell              (:background red))

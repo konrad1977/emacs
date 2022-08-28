@@ -60,7 +60,7 @@
       undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
       )
 
-;; (setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
+(setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
@@ -255,10 +255,10 @@
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
         doom-modeline-icon t
+        doom-modeline-lsp nil
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
-        doom-modeline-hud nil
-        doom-modeline-height 27))
+        doom-modeline-time-icon nil))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -433,12 +433,12 @@
           )))
 
 ;; nyan cat
-;; (use-package nyan-mode
-;;   :hook (doom-modeline-mode . nyan-mode)
-;;   :config
-;;   (setq nyan-wavy-trail nil
-;;         nyan-bar-length 20
-;;         nyan-animate-nyancat t))
+(use-package nyan-mode
+  :hook (doom-modeline-mode . nyan-mode)
+  :config
+  (setq nyan-wavy-trail t
+        nyan-bar-length 30
+        nyan-animate-nyancat t))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -576,7 +576,7 @@
         company-search-regexp-function      'company-search-words-in-any-order-regexp
         company-require-match               nil
         company-tooltip-limit               10
-        company-tooltip-width-grow-only     t
+        company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
         company-idle-delay                  0.5
         company-show-quick-access           'left
@@ -588,7 +588,7 @@
                            company-yasnippet)
         company-frontends '(company-box-frontend))
   :custom-face
-  (company-tooltip ((t (:font "Fira Code" :height 156)))))
+  (company-tooltip ((t (:font "Iosevka Aile" :height 156)))))
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
@@ -597,12 +597,6 @@
                                        :all (:foreground "PaleVioletRed2" :background nil) 
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.2))
-
-(use-package company-ctags
-  :after company
-  :init (company-ctags-auto-setup)
-  :config
-  (setq company-ctags-extra-tags-files '("$HOME/source/swift/TAGS")))
 
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
@@ -613,28 +607,6 @@
   :after company
   :config
   (define-key company-mode-map [remap completion-at-point] #'consult-company))
-
-(use-package company-ctags
-  :after company
-  :config
-  (setq company-ctags-ignore-case t))
-
-(use-package company-sourcekit
-  :after company
-  :config
-  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
-        company-sourcekit-use-yasnippet t
-        sourcekit-verbose nil))
-
-(use-package company-tabnine
-  :after company
-  :commands company-tabnine-start-process
-  :config
-  (setq company-tabnine-use-native-json t
-        company-tabnine-auto-fallback t
-        company-tabnine-no-continue t
-        company-tabnine-show-annotation t))
-
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)

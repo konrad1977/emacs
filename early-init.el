@@ -5,12 +5,13 @@
 ;;; Code:
 (setq idle-update-delay 0.2)            
 
-(set-frame-parameter (selected-frame) 'alpha '(98 . 95))
-(add-to-list 'default-frame-alist '(alpha . (98 . 95)))
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(toggle-frame-fullscreen)
 
-(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+;; (set-frame-parameter (selected-frame) 'alpha '(98 . 95))
+;; (add-to-list 'default-frame-alist '(alpha . (98 . 95)))
+;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
+;; (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+
 
 (push '(tool-bar-lines . 0)   default-frame-alist)
 (push '(vertical-scroll-bars) default-frame-alist)
@@ -44,6 +45,7 @@
                 (bottom-divider-width . 1)           ; Thin horizontal window divider
                 (foreground-color . "#DCD7BA")       ; Default foreground color
                 (fullscreen . maximized)             ; Maximize the window by default
+                (alpha . (98 . 95)) 
                 (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
                 (left-fringe . 8)                    ; Thin left fringe
                 (menu-bar-lines . 0)                 ; No menu bar
