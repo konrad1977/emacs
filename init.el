@@ -556,7 +556,7 @@
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
         company-search-regexp-function      'regexp-quote
-        company-require-match               t
+        company-require-match               nil
         company-tooltip-limit               20
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
