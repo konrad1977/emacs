@@ -71,7 +71,7 @@
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0            ;; Increase linespacing a bit
+              line-spacing                  0.03          ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing

@@ -5,24 +5,15 @@
 ;;; Code:
 (setq idle-update-delay 0.2)            
 
-(toggle-frame-fullscreen)
 
-;; (set-frame-parameter (selected-frame) 'alpha '(98 . 95))
-;; (add-to-list 'default-frame-alist '(alpha . (98 . 95)))
-;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-;; (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
-
-
-(push '(tool-bar-lines . 0)   default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
-;; (push '(undecorated . t) default-frame-alist)
+(push '(undecorated . t) default-frame-alist)
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
 (setq fast-but-imprecise-scrolling t)
-;; (setq redisplay-skip-fontification-on-input t)
+(setq redisplay-skip-fontification-on-input t)
 
 (when (boundp 'read-process-output-max)
   (setq read-process-output-max (* 10 1024 1024)))
