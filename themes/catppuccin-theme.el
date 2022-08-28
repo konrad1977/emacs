@@ -237,12 +237,12 @@
   (show-paren-match-expression			(:background peach :foreground dark :bold t))
   (show-paren-mismatch					(:background red :foreground white))
 
-  (company-tooltip                      (:background black :foreground rosewater))
-  (company-tooltip-common               (:foreground red :bold t))
+  (company-tooltip                      (:background black :foreground gray-2))
+  (company-tooltip-common               (:foreground red :distant-foreground red :bold t))
   (company-tooltip-search               (:background peach))
-  (company-tooltip-selection            (:background lavender :foreground yellow-bg :bold t))
+  (company-tooltip-selection            (:background blue-bg-2 :foreground rosewater :distant-foreground rosewater :bold t))
   (company-tooltip-mouse                (:background nil :foreground black :distant-foreground rosewater))
-  (company-tooltip-annotation           (:foreground gray))
+  (company-tooltip-annotation           (:foreground green))
   (company-tooltip-scrollbar-track      (:background peach))
   (company-tooltip-scrollbar-thumb      (:background flamingo))
   (company-tooltip-quick-access         (:foreground blue :distant-foreground blue-bg))
@@ -257,8 +257,8 @@
   (company-box-numbers                  (:foreground blue :background blue-bg))
 
   ;; Eldoc
-  (eldoc-box-body                       (:background black-3 :foreground rosewater))
-  (eldoc-box-border                     (:background nil :foreground mauve))
+  (eldoc-box-body                       (:background black-3 :foreground peach))
+  (eldoc-box-border                     (:background nil :foreground nil))
 
   (markdown-hr-face (:background nil :foreground black-3))
 

@@ -437,13 +437,6 @@
           ("FIXME\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
           )))
 
-;; nyan cat
-;; (use-package nyan-mode
-;;   :hook (doom-modeline-mode . nyan-mode)
-;;   :config
-;;   (setq nyan-wavy-trail nil
-;;         nyan-bar-length 30
-;;         nyan-animate-nyancat t))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -456,16 +449,8 @@
   (dimmer-configure-which-key)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
   (add-to-list 'dimmer-exclusion-regexp-list "^\\*periphery\\*$")
-  (add-to-list 'dimmer-exclusion-regexp-list "^ \\*.*eldoc.*\\*$")
+  (add-to-list 'dimmer-exclusion-regexp-list "^ \\*.*eldoc-box.*\\*$")
   (setq dimmer-fraction 0.5))
-
-;; (use-package beacon
-;;   :hook (after-init . beacon-mode)
-;;   :config
-;;   (setq beacon-color "#A3D4D5"
-;;         beacon-blink-when-focused t
-;;         beacon-size 40
-;;         beacon-blink-when-window-scrolls nil))
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -559,37 +544,33 @@
   :hook (eglot-managed-mode . eldoc-box-hover-mode)
   :config
   (setq eldoc-box-cleanup-interval 0.5
-        eldoc-box-clear-with-C-g t)
-  (setq eldoc-box-max-pixel-height 400))
-
+        eldoc-box-clear-with-C-g t))
 
 (use-package company
   :defer t
   :hook (prog-mode . company-mode)
   :config
-  (setq company-transformers '(delete-consecutive-dups company-sort-by-occurrence)
-        ;; company-transformers nil
-        ;; company-format-margin-function  'company-vscode-dark-icons-margin
-        ;; company-dot-icons-format        " ● "
-        company-tooltip-margin              1
+  (setq company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
+        company-format-margin-function  'company-detect-icons-margin
+        company-tooltip-margin              10
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
-        company-search-regexp-function      'company-search-words-in-any-order-regexp
-        company-require-match               nil
-        company-tooltip-limit               10
+        company-search-regexp-function      'regexp-quote
+        company-require-match               t
+        company-tooltip-limit               20
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
-        company-idle-delay                  0.5
+        company-idle-delay                  0.2
         company-show-quick-access           'left
         company-async-wait                  0.1
-        company-async-timeout               2
+        company-async-timeout               3
         company-backends '(company-capf
                            company-dabbrev-code
                            company-keywords
                            company-yasnippet)
         company-frontends '(company-box-frontend))
   :custom-face
-  (company-tooltip ((t (:font "Iosevka Aile" :height 156)))))
+  (company-tooltip ((t (:font "JetBrains Mono" :height 167)))))
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
@@ -736,24 +717,24 @@
    '(("*xwidget*"
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       (body-function . select-window)
-      (window-width . 0.4)
+      (window-width . 0.3)
       (side . right))
      ("\\*occur\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.4)
+      (window-height . 0.18)
       (side . bottom)
       (slot . 1))
      ("\\*xcodebuild\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.3)
+      (window-height . 0.2)
       (side . bottom)
       (slot . 0))
      ("\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.3)
+      (window-height . 0.18)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -765,7 +746,7 @@
      ("\\*e?shell\\|vterm*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.2)
+      (window-height . 0.18)
       (side . bottom)
       (slot . -1))
      ("simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*\\|Warnings"
