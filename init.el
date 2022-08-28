@@ -258,7 +258,12 @@
         doom-modeline-lsp nil
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
-        doom-modeline-time-icon nil))
+        doom-modeline-time-icon nil)
+  (custom-set-faces
+   '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
+   '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
+   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.9)))))
+  )
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -433,12 +438,12 @@
           )))
 
 ;; nyan cat
-(use-package nyan-mode
-  :hook (doom-modeline-mode . nyan-mode)
-  :config
-  (setq nyan-wavy-trail t
-        nyan-bar-length 30
-        nyan-animate-nyancat t))
+;; (use-package nyan-mode
+;;   :hook (doom-modeline-mode . nyan-mode)
+;;   :config
+;;   (setq nyan-wavy-trail nil
+;;         nyan-bar-length 30
+;;         nyan-animate-nyancat t))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -450,6 +455,8 @@
   (dimmer-configure-hydra)
   (dimmer-configure-which-key)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
+  (add-to-list 'dimmer-exclusion-regexp-list "^\\*periphery\\*$")
+  (add-to-list 'dimmer-exclusion-regexp-list "^ \\*.*eldoc.*\\*$")
   (setq dimmer-fraction 0.5))
 
 ;; (use-package beacon
@@ -534,23 +541,6 @@
 (use-package consult-ls-git
   :after consult)
 
-;; ------------------ autocompletions -------------
-;; workaround for company-transformers
-(setq company-tabnine--disable-next-transform nil)
-(defun my-company--transform-candidates (func &rest args)
-  (if (not company-tabnine--disable-next-transform)
-      (apply func args)
-    (setq company-tabnine--disable-next-transform nil)
-    (car args)))
-
-(defun my-company-tabnine (func &rest args)
-  (when (eq (car args) 'candidates)
-    (setq company-tabnine--disable-next-transform t))
-  (apply func args))
-
-(advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
-(advice-add #'company-tabnine :around #'my-company-tabnine)
-
 (use-package google-this
   :defer t
   :bind ("C-x C-g" . google-this))
@@ -561,6 +551,17 @@
     :config
     (setq eglot-stay-out-of '(company))
     (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
+
+(use-package eldoc
+  :hook (eglot-managed-mode . eldoc-mode))
+
+(use-package eldoc-box
+  :hook (eglot-managed-mode . eldoc-box-hover-mode)
+  :config
+  (setq eldoc-box-cleanup-interval 0.5
+        eldoc-box-clear-with-C-g t)
+  (setq eldoc-box-max-pixel-height 400))
+
 
 (use-package company
   :defer t

@@ -256,6 +256,11 @@
   (company-box-annotation               (:foreground red :background red-bg))
   (company-box-numbers                  (:foreground blue :background blue-bg))
 
+  ;; Eldoc
+  (eldoc-box-body                       (:background black-3 :foreground rosewater))
+  (eldoc-box-border                     (:background nil :foreground mauve))
+
+  (markdown-hr-face (:background nil :foreground black-3))
 
   ;; Flycheck
   (flycheck-posframe-background-face	(:background black))
