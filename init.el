@@ -469,11 +469,14 @@
         show-paren-ring-bell-on-mismatch t
         show-paren-when-point-in-periphery t))
 
-(use-package tree-sitter
-  :hook (swift-mode . tree-sitter-hl-mode)
-  :init
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+;; (use-package tree-sitter-langs)
+
+;; (use-package tree-sitter
+;;   :after tree-sitter-langs
+;;   :hook ((json-mode swift-mode sh-mode) . tree-sitter-mode)
+;;   :config
+;;   (require 'tree-sitter-langs)
+;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -651,14 +654,16 @@
   :custom
   (flycheck-indication-mode 'left-fringe)
   (flycheck-display-errors-delay 0.2)
-  (flycheck-check-syntax-automatically '(save idle-change newline))
-  (flycheck-idle-change-delay 1))
+  (flycheck-check-syntax-automatically '(save idle-change))
+  (flycheck-idle-change-delay 2))
 
 (use-package flycheck-inline
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
-  :hook (swift-mode . setup-swift-programming))
+  :defer t)
+
+(add-hook 'swift-mode-hook #'setup-swift-programming)
 
 (use-package clean-aindent-mode
   :hook (prog-mode . clean-aindent-mode)
@@ -1000,9 +1005,9 @@
 (setq elfeed-dashboard-file "~/elfeed-dashboard.org")
   (advice-add 'elfeed-search-quit-window :after #'elfeed-dashboard-update-links))
 
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :custom (highlight-indent-guides-method #'character))
+;; (use-package highlight-indent-guides
+;;   :hook (prog-mode . highlight-indent-guides-mode)
+;;   :custom (highlight-indent-guides-method #'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
@@ -1028,11 +1033,15 @@
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
   :config
+  (put 'dumb-jump-go 'byte-obsolete-info nil)
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-selector 'vertico))
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
+
+  (setq tree-sitter-hl-use-font-lock-keywords nil)
+  (message "setup-swift-programming")
   (setup-swift-mode-company)
 
   (load "swift-additions")
