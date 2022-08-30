@@ -137,7 +137,7 @@
 (use-package autothemer)
 (load-theme 'catppuccin t)
 ;; (load-theme 'kanagawa t)
-;; (load-theme 'doom-old-hope t)
+ ;; (load-theme 'doom-old-hope t)
 
 (use-package vertico
   :hook (after-init . vertico-mode)
@@ -447,10 +447,10 @@
   (dimmer-configure-posframe)
   (dimmer-configure-hydra)
   (dimmer-configure-which-key)
-  (add-to-list 'dimmer-exclusion-regexp-list "^\\*xcodebuild\\*$")
-  (add-to-list 'dimmer-exclusion-regexp-list "^\\*periphery\\*$")
-  (add-to-list 'dimmer-exclusion-regexp-list "^ \\*.*eldoc-box.*\\*$")
-  (setq dimmer-fraction 0.5))
+  (setq dimmer-watch-frame-focus-events nil
+        dimmer-fraction 0.5)
+  (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
+
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
@@ -583,7 +583,10 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-capf company-dabbrev-code company-yasnippet :separate))))
+              '(
+              (company-dabbrev-code company-yasnippet :with company-sourcekit)
+              ;; (company-ctags) 
+              )))
 
 (use-package consult-company
   :after company
@@ -1024,12 +1027,21 @@
   ("M-S-<left>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
+(use-package company-sourcekit
+  :after company
+  :config
+  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
+        company-sourcekit-use-yasnippet t
+        sourcekit-verbose nil))
+        
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
   :config
+  (put 'dumb-jump-go 'byte-obsolete-info nil)
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
-  (setq dumb-jump-selector 'vertico))
+  (setq dumb-jump-window 'current)
+  (setq dumb-jump-prefer-searcher 'rg))
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
