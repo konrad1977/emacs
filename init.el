@@ -337,7 +337,6 @@
 
   ;; searching
   (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
- ;; (define-key evil-motion-state-map "M-f" 'consult-line)
   
   ;; window resizing
   (define-key evil-motion-state-map (kbd "C-+") #'enlarge-window-horizontally)
@@ -346,8 +345,6 @@
   (define-key evil-motion-state-map (kbd "C-M--") #'shrink-window)
 
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
-  (define-key evil-motion-state-map (kbd "M-u") #'evil-undo)
-  (define-key evil-motion-state-map (kbd "M-U") #'evil-redo)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
   (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
@@ -533,12 +530,12 @@
   :defer t
   :bind ("C-x C-g" . google-this))
 
-(use-package eglot
-    :ensure t
-    :hook (swift-mode . eglot-ensure)
-    :config
-    (setq eglot-stay-out-of '(company))
-    (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
+;; (use-package eglot
+;;     :ensure t
+;;     :hook (swift-mode . eglot-ensure)
+;;     :config
+;;     (setq eglot-stay-out-of '(company))
+;;     (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
 
 (use-package eldoc
   :hook (eglot-managed-mode . eldoc-mode))
@@ -553,10 +550,11 @@
   :defer t
   :hook (prog-mode . company-mode)
   :config
-  (setq company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
+  (setq 
+        ;;company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
         company-format-margin-function  'company-detect-icons-margin
         company-tooltip-margin              10
-        company-minimum-prefix-length       1
+        company-minimum-prefix-length       0
         company-tooltip-align-annotations   t
         company-search-regexp-function      'regexp-quote
         company-require-match               nil
@@ -1060,6 +1058,7 @@
   (load "periphery-loco")
   ;; (load "swift-querying")
   (load "localizeable-mode")
+  (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-mode))
 
   (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
   (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
@@ -1183,17 +1182,17 @@
   (split-window-right)
   (other-window 1))
 
-(defun mk/tabnine-off ()
-  "Turn off TabNine for this buffer."
+(defun company-sourcekit-off ()
+  "Turn off company-sourcekit for this buffer."
   (interactive)
-  (setq-local company-backends (delete 'company-tabnine company-backends))
-  (message "Turning off TabNine auto completion for current buffer"))
+  (setq-local company-backends (delete 'company-sourcekit company-backends))
+  (message "Turning off company-sourcekit auto completion for current buffer"))
 
-(defun mk/tabnine-on ()
-  "Turn on TabNine for this buffer."
+(defun company-sourcekit-on ()
+  "Turn on company-sourcekit for this buffer."
   (interactive)
-  (setq-local company-backends (add-to-list 'company-backends 'company-tabnine))
-  (message "Turning on TabNine auto completion for current buffer"))
+  (setq-local company-backends (add-to-list 'company-backends 'company-sourcekit))
+  (message "Turning on company-sourcekit auto completion for current buffer"))
 
 (defun un-indent-by-removing-4-spaces ()
   "remove 4 spaces from beginning of of line"
