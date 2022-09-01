@@ -361,6 +361,13 @@
 (use-package evil-tutor
   :commands evil-tutor)
 
+(use-package evil-goggles
+  :ensure t
+  :config
+  (setq evil-goggles-pulse t)
+  (evil-goggles-mode)
+  (evil-goggles-use-diff-faces))
+
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 
@@ -486,12 +493,12 @@
   :defer t
   :bind ("C-x C-g" . google-this))
 
-;; (use-package eglot
-;;     :ensure t
-;;     :hook (swift-mode . eglot-ensure)
-;;     :config
-;;     (setq eglot-stay-out-of '(company))
-;;     (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
+(use-package eglot
+    :ensure t
+    :hook (swift-mode . eglot-ensure)
+    :config
+    (setq eglot-stay-out-of '(company))
+    (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
 
 (use-package eldoc
   :hook (eglot-managed-mode . eldoc-mode))
@@ -541,7 +548,8 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-              (company-dabbrev-code company-yasnippet :with company-sourcekit)
+              ;; (company-dabbrev-code company-yasnippet :with company-sourcekit)
+              (company-yasnippet :with company-capf)
               ;; (company-ctags) 
               )))
 
