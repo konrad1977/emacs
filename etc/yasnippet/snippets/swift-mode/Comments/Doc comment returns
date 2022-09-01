@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Doc comment returns
+# key: returns
+# --
+- returns: $0

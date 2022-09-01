@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Doc comment parameter
+# key: param
+# --
+- parameter $1: $0

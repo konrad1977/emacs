@@ -9,8 +9,8 @@
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
 (set-fringe-mode 1)               ;; Give us some space.
-(tooltip-mode 1)                  ;; Disable tool-tip.
-(delete-selection-mode 1)		  ;; Use a more sane delete mode than evil.
+(tooltip-mode nil)                ;; Disable tool-tip.
+(delete-selection-mode nil)		  ;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-font-lock-mode 1)         ;; always highlight code
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
@@ -113,8 +113,8 @@
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
-  (use-package exec-path-from-shell
-    :init (exec-path-from-shell-initialize))
+  ;; (use-package exec-path-from-shell
+  ;;   :init (exec-path-from-shell-initialize))
 
   (use-package ns-auto-titlebar
     :config (ns-auto-titlebar-mode))
@@ -177,7 +177,7 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless basic)
+  (setq completion-styles '(orderless flex)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
@@ -286,19 +286,6 @@
                           (recents . 7)
                           )))
 
-;; Which key
-(use-package which-key
-  :hook (after-init . which-key-mode)
-  :diminish which-key-mode
-  :custom
-  (which-key-prefix-prefix "◉ ")
-  :config
-  (which-key-setup-side-window-bottom)
-  (setq which-key-sort-order 'which-key-key-order-alpha
-        which-key-idle-delay 1
-        which-key-min-display-lines 4
-        which-key-max-display-columns 5))
-
 ; helpful
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
@@ -364,12 +351,6 @@
   :after evil
   :config
   (global-evil-surround-mode 1))
-
-(use-package evil-goggles
-  :after evil
-  :config
-  (evil-goggles-mode)
-  (evil-goggles-use-diff-faces))
 
 (use-package evil-numbers
   :after evil
@@ -466,14 +447,15 @@
         show-paren-ring-bell-on-mismatch t
         show-paren-when-point-in-periphery t))
 
-;; (use-package tree-sitter-langs)
+(use-package tree-sitter-langs
+  :defer t)
 
-;; (use-package tree-sitter
-;;   :after tree-sitter-langs
-;;   :hook ((json-mode swift-mode sh-mode) . tree-sitter-mode)
-;;   :config
-;;   (require 'tree-sitter-langs)
-;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+(use-package tree-sitter
+  :after tree-sitter-langs
+  :hook ((json-mode swift-mode sh-mode) . tree-sitter-mode)
+  :config
+  (require 'tree-sitter-langs)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -490,33 +472,7 @@
   :defer t)
 
 ;; ------------------ EDITING -------------------
-;; - anzu search and replace/
-(use-package anzu
-  :commands (anzu-replace-at-cursor-thing anzu-query-replace)
-  :bind
-  ("C-M-e" . #'anzu-replace-at-cursor-thing)
-  ("C-M-r" . #'anzu-query-replace))
-
-(use-package multiple-cursors
-  :hook (prog-mode . multiple-cursors-mode)
-  :bind
-  ("C-M-s" . #'mc/edit-lines)
-  ("C-M-a" . #'mc/mark-all-like-this-dwim)
-  ("C-M-n" . #'mc/mark-next-symbol-like-this)
-  ("C-M-p" . #'mc/mark-previous-symbol-like-this))
-
 ;; Navigate through blocks
-(use-package block-nav
-  :commands (block-nav-next-block
-             block-nav-previous-block
-             block-nav-next-indentation-level
-             block-nav-previous-indentation-level)
-  :bind
-  ("C-c C-j" . block-nav-next-block)
-  ("C-c C-k" . block-nav-previous-block)
-  ("C-c C-l" . block-nav-next-indentation-level)
-  ("C-c C-h" . block-nav-previous-indentation-level))
-
 (use-package consult-project-extra
   :after consult
   :bind
@@ -619,6 +575,9 @@
 
 (use-package yasnippet
   :hook (company-mode . yas-minor-mode))
+
+(use-package consult-yasnippet
+  :after company)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -898,7 +857,6 @@
 
   (mk/leader-keys
     "t" '(:ignore t :which-key "Text")
-    "tr" '(anzu-query-replace-at-cursor-thing :which-key "Replace text")
     "ts" '(sort-lines :which-key "Sort lines")
     "tS" '(hydra-text-scale/body :which-key "Scale text")
     "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace")

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Doc comment important
+# key: important
+# --
+- important $1: $0

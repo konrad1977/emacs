@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Doc comment warning
+# key: warning
+# --
+- warning: $0

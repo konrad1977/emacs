@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: Typealias
+# key: alias
+# --
+typealias $1 = $2
