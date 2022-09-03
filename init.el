@@ -553,8 +553,8 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-              ;; (company-dabbrev-code company-yasnippet :with company-sourcekit)
-              (company-yasnippet :with company-capf)
+              (company-dabbrev-code company-yasnippet :with company-sourcekit)
+              ;; (company-yasnippet :with company-capf)
               ;; (company-ctags) 
               )))
 
