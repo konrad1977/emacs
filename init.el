@@ -555,7 +555,6 @@
               '(
               ;; (company-dabbrev-code company-yasnippet :with company-sourcekit)
               (company-yasnippet :with company-capf)
-              ;; (company-ctags) 
               )))
 
 (use-package consult-company
