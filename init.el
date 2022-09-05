@@ -149,10 +149,10 @@
   :after vertico
   :config (vertico-posframe-mode 1)
   (setq
-   vertico-posframe-width 120
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+   vertico-posframe-width 140
+   vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-   vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
    vertico-posframe-height nil
    vertico-posframe-border-width 2
    vertico-posframe-parameters
@@ -353,9 +353,13 @@
   (global-evil-surround-mode 1))
 
 (use-package evil-commentary
-    :after evil
-    :config 
-    (evil-commentary-mode 1))
+  :after evil
+  :config 
+  (evil-commentary-mode 1))
+
+(use-package evil-lion
+  :after evil  
+  :hook (prog-mode . evil-lion-mode))
 
 (use-package evil-numbers
   :after evil
@@ -462,12 +466,17 @@
 (use-package tree-sitter-langs
   :defer t)
 
+;; (use-package tree-sitter
+;;   :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
+;;   :config
+;;   (require 'tree-sitter-langs)
+;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
 (use-package tree-sitter
-  :after tree-sitter-langs
-  :hook ((json-mode swift-mode sh-mode) . tree-sitter-mode)
-  :config
-  (require 'tree-sitter-langs)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+   :hook (swift-mode . tree-sitter-hl-mode)
+   :init
+   (global-tree-sitter-mode)
+   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -553,8 +562,8 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-              (company-dabbrev-code company-yasnippet :with company-sourcekit)
-              ;; (company-yasnippet :with company-capf)
+              ;; (company-dabbrev-code company-yasnippet :with company-sourcekit)
+              (company-yasnippet :with company-capf)
               )))
 
 (use-package consult-company
@@ -976,20 +985,20 @@
 (setq elfeed-dashboard-file "~/elfeed-dashboard.org")
   (advice-add 'elfeed-search-quit-window :after #'elfeed-dashboard-update-links))
 
-;; (use-package highlight-indent-guides
-;;   :hook (prog-mode . highlight-indent-guides-mode)
-;;   :custom (highlight-indent-guides-method #'bitmap))
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :custom (highlight-indent-guides-method #'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
   :config
   (setq highlight-symbol-idle-delay 0.3))
 
-(use-package highlight-numbers
-  :hook (prog-mode . highlight-numbers-mode))
+;; (use-package highlight-numbers
+;;   :hook (prog-mode . highlight-numbers-mode))
 
-(use-package highlight-escape-sequences
-  :hook (prog-mode . hes-mode))
+;; (use-package highlight-escape-sequences
+;;   :hook (prog-mode . hes-mode))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1019,7 +1028,7 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
-  (setq tree-sitter-hl-use-font-lock-keywords nil)
+  (setq tree-sitter-hl-use-font-lock-keywords t)
   (message "setup-swift-programming")
   (setup-swift-mode-company)
 
