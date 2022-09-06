@@ -48,11 +48,6 @@
 
   ;; Crust - monochrome:ish
   (black       "#15121C" "#080808")
-  (blue-bg     "#0C121A" "#875f5f")
-  (blue-bg-2   "#243341" "#875f5f")
-  (gray        "#6E6C7E" "#585858")
-  (gray-1      "#988BA2" "#8a8a8a")
-  (gray-2      "#C3BAC6" "#9e9e9e")
   (red-bg      "#18090E" "#875f5f")
   (red-bg-2    "#18090E" "#875f5f")
   (yellow-bg   "#383227" "#875f5f")
@@ -69,9 +64,9 @@
   (child-frame-border                   (:background crust :foreground mantle))
   (cursor                               (:background mauve :foreground black))
   (error                                (:foreground red))
-  (fringe                               (:background crust :foreground gray))
+  (fringe                               (:background crust :foreground overlay2))
   (glyph-face                           (:background red))
-  (glyphless-char                       (:foreground gray))
+  (glyphless-char                       (:foreground overlay2))
   (header-line							(:background black))
   (highlight                            (:background surface1 :foreground lavender))
   (hl-line                              (:background surface0))
@@ -79,7 +74,7 @@
   (internal-border                      (:background crust :foreground crust))
   (line-number                          (:foreground surface1 :background nil))
   (line-number-current-line             (:foreground mauve :background surface0 :bold t))
-  (lv-separator                         (:foreground gray :background crust))
+  (lv-separator                         (:foreground overlay2 :background crust))
   (match                                (:background yellow :foreground black))
   (menu                                 (:background black :foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
@@ -113,9 +108,9 @@
   (font-lock-negation-char-face         (:foreground red))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
-  (font-lock-doc-face                   (:foreground gray))
-  (font-lock-doc-markup-face            (:foreground gray))
-  (font-lock-preprocessor-face	   		(:foreground gray))
+  (font-lock-doc-face                   (:foreground overlay2))
+  (font-lock-doc-markup-face            (:foreground overlay2))
+  (font-lock-preprocessor-face	   		(:foreground overlay2))
   (elisp-shorthand-font-lock-face       (:foreground peach))
 
   (highlight-operators-face             (:foreground red))
@@ -134,9 +129,9 @@
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:inherit 'error))
   (doom-modeline-battery-warning        (:inherit 'warning))
-  (doom-modeline-battery-charging       (:foreground gray-2))
+  (doom-modeline-battery-charging       (:foreground overlay2))
   (doom-modeline-battery-error          (:inherit 'eror))
-  (doom-modeline-battery-normal         (:foreground gray))
+  (doom-modeline-battery-normal         (:foreground overlay2))
   (doom-modeline-battery-full           (:foreground green))
 
   ;; Doom visual state
@@ -148,13 +143,13 @@
   (doom-modeline-evil-replace-state     (:foreground red))
   (doom-modeline-evil-operator-state    (:foreground blue))
 
-  (doom-modeline-project-dir            (:foreground gray))
-  (doom-modeline-buffer-path            (:foreground gray))
-  (doom-modeline-buffer-file            (:foreground gray-1 :bold t))
-  (doom-modeline-buffer-major-mode      (:foreground gray :bold t))
-  (doom-modeline-buffer-modified        (:foreground gray-2 :italic t :bold t))
+  (doom-modeline-project-dir            (:foreground overlay2))
+  (doom-modeline-buffer-path            (:foreground overlay2))
+  (doom-modeline-buffer-file            (:foreground overlay2 :bold t))
+  (doom-modeline-buffer-major-mode      (:foreground overlay2 :bold t))
+  (doom-modeline-buffer-modified        (:foreground overlay2 :italic t :bold t))
   (doom-modeline-error                  (:background red))
-  (doom-modeline-info                   (:foreground gray))
+  (doom-modeline-info                   (:foreground overlay2))
   (doom-modeline-project-dir            (:foreground peach))
   (doom-modeline-bar                    (:background lavender :foreground crust))
   (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground mantle))
@@ -166,7 +161,7 @@
   (elfeed-search-tag-face               (:foreground green))
 
   ;; message colors
-  (message-header-name                  (:foreground gray-2))
+  (message-header-name                  (:foreground overlay2))
   (message-header-other                 (:foreground peach))
   (message-header-subject               (:foreground yellow))
   (message-header-to                    (:foreground rosewater))
@@ -176,21 +171,21 @@
   (link                                 (:foreground blue))
 
   ;; org-mode
-  (org-done                             (:foreground gray-1))
+  (org-done                             (:foreground overlay2))
   (org-code                             (:background black))
-  (org-meta-line                        (:background blue-bg :foreground blue))
+  (org-meta-line                        (:background surface1 :foreground blue))
   (org-block                            (:background black))
-  (org-block-begin-line                 (:background black :foreground gray-1))
-  (org-block-end-line	                (:background black :foreground gray-1))
-  (org-headline-done                    (:foreground gray-1 :strike-through t))
+  (org-block-begin-line                 (:background black :foreground overlay2))
+  (org-block-end-line	                (:background black :foreground overlay2))
+  (org-headline-done                    (:foreground overlay2 :strike-through t))
   (org-todo                             (:foreground green :bold t))
   (org-headline-todo                    (:foreground crust))
   (org-upcoming-deadline                (:foreground red))
   (org-footnote                         (:foreground green))
   (org-indent                           (:background crust :foreground crust))
   (org-hide	                            (:background crust :foreground crust))
-  (org-date                             (:foreground gray))
-  (org-ellipsis                         (:foreground gray :bold t))
+  (org-date                             (:foreground overlay2))
+  (org-ellipsis                         (:foreground overlay2 :bold t))
   (org-level-1                          (:foreground red :height 1.3 :bold t))
   (org-level-2                          (:foreground mauve :height 1.15 :bold t))
   (org-level-3                          (:foreground flamingo :height 1.05))
@@ -229,7 +224,7 @@
   (rainbow-delimiters-mismatched-face   (:foreground red :background yellow))
   (rainbow-delimiters-unmatched-face    (:foreground green :background yellow))
   (rainbow-delimiters-base-error-face   (:foreground red :background yellow))
-  (rainbow-delimiters-base-face         (:foreground gray-2))
+  (rainbow-delimiters-base-face         (:foreground overlay2))
   (rainbow-delimiters-depth-1-face      (:foreground red))
   (rainbow-delimiters-depth-2-face      (:foreground blue))
   (rainbow-delimiters-depth-3-face      (:foreground pink))
@@ -245,15 +240,15 @@
   (show-paren-match-expression			(:background peach :foreground crust :bold t))
   (show-paren-mismatch					(:background red :foreground rosewater))
 
-  (company-tooltip                      (:background black :foreground gray-2))
+  (company-tooltip                      (:background black :foreground overlay2))
   (company-tooltip-common               (:foreground red :distant-foreground red :bold t))
   (company-tooltip-search               (:background peach))
-  (company-tooltip-selection            (:background blue-bg-2 :foreground text :distant-foreground text :bold t))
+  (company-tooltip-selection            (:background surface1 :foreground text :distant-foreground text :bold t))
   (company-tooltip-mouse                (:background nil :foreground black :distant-foreground text))
   (company-tooltip-annotation           (:foreground green))
   (company-tooltip-scrollbar-track      (:background peach))
   (company-tooltip-scrollbar-thumb      (:background flamingo))
-  (company-tooltip-quick-access         (:foreground blue :distant-foreground blue-bg))
+  (company-tooltip-quick-access         (:foreground blue :distant-foreground surface1))
   (company-scrollbar-bg                 (:inherit 'tooltip))
   (company-scrollbar-fg                 (:background red))
   (company-preview                      (:foreground blue))
@@ -262,13 +257,13 @@
   (company-template-field               (:inherit 'match))
 
   (company-box-annotation               (:foreground red :background red-bg))
-  (company-box-numbers                  (:foreground blue :background blue-bg))
+  (company-box-numbers                  (:foreground blue :background surface1))
 
   ;; Eldoc
   (eldoc-box-body                       (:background surface0 :foreground peach))
   (eldoc-box-border                     (:background nil :foreground nil))
 
-  (markdown-hr-face (:background nil :foreground surface0))
+  (markdown-hr-face                     (:background nil :foreground surface0))
 
   ;; Flycheck
   (flycheck-posframe-background-face	(:background black))
@@ -283,7 +278,7 @@
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:inherit 'info :bold t))
   (flycheck-inline-error                (:foreground red-bg :background red :weight 'semi-bold :height 128 :box '(:line-width 1 :color red-bg)))
-  (flycheck-inline-info                 (:foreground blue-bg :background blue :weight 'semi-bold :height 128 :box '(:line-width 1 :color blue-bg)))
+  (flycheck-inline-info                 (:foreground surface1 :background blue :weight 'semi-bold :height 128 :box '(:line-width 1 :color surface1)))
   (flycheck-inline-warning              (:foreground yellow-bg :background yellow :weight 'semi-bold :height 128 :box '(:line-width 1 :color yellow-bg)))
 
   ;; indent dots
@@ -320,7 +315,7 @@
   
   (comint-highlight-prompt                      (:background peach :foreground black))
 
-  (completions-annotations (:background nil :foreground gray-1 :italic t))
+  (completions-annotations                      (:background nil :foreground overlay1 :italic t))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))
@@ -328,7 +323,7 @@
 
   (treemacs-git-added-face						(:foreground peach))
   (treemacs-git-renamed-face				   	(:foreground rosewater))
-  (treemacs-git-ignored-face				   	(:foreground gray-2))
+  (treemacs-git-ignored-face				   	(:foreground overlay2))
   (treemacs-git-unmodified-face		   			(:foreground text))
   (treemacs-git-renamed-face		   			(:foreground text))
   (treemacs-git-modified-face		   			(:foreground maroon))
@@ -337,7 +332,7 @@
   (solaire-default-face (:background mantle))
   ;; lsp
   (lsp-headerline-breadcrumb-path-error-face (:underline (:color maroon :style 'wave)
-                                                         :foreground gray-2 :background black))
+                                                         :foreground overlay2 :background black))
   (lsp-headerline-breadcrumb-path-face				(:background black))
   (lsp-headerline-breadcrumb-path-hint-face	   		(:background black))
   (lsp-headerline-breadcrumb-path-info-face	   		(:background black))
@@ -352,13 +347,13 @@
   (lsp-ui-peek-filename								(:foreground teal))
   (lsp-ui-sideline-code-action			   			(:foreground yellow))
   (lsp-ui-sideline-current-symbol					(:foreground sky))
-  (lsp-ui-sideline-symbol							(:foreground gray-1))
+  (lsp-ui-sideline-symbol							(:foreground overlay1))
 
   ;; dashboard
   (dashboard-heading								(:foreground mauve :bold t))
   (dashboard-items-face								(:bold nil :foreground text))
   (dashboard-banner-logo-title						(:bold t :height 200))
-  (dashboard-no-items-face							(:foreground gray-2))
+  (dashboard-no-items-face							(:foreground overlay2))
 
   ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))
@@ -369,7 +364,7 @@
   ;; evil
   (evil-ex-lazy-highlight         (:foreground yellow :background yellow-bg :bold t))
   (evil-ex-substitute-matches     (:background red-bg :foreground red :strike-through t))
-  (evil-ex-substitute-replacement (:foreground blue :background blue-bg-2 :bold t))
+  (evil-ex-substitute-replacement (:foreground blue :background surface2 :bold t))
   (evil-search-highlight-persist-highlight-face (:background yellow))
 
   (ansi-color-black (:background crust))
@@ -415,7 +410,7 @@
   (anzu-mode-no-match	(:foreground text :background red))
   (anzu-replace-to		(:foreground yellow :background yellow-bg))
 
-  (ace-jump-face-background (:foreground gray))
+  (ace-jump-face-background (:foreground overlay2))
   (ace-jump-face-foreground (:foreground red :background black :bold t))
 
 
@@ -435,10 +430,10 @@
   (centaur-tabs-modified-marker-selected	(:background crust :foreground text))
   (centaur-tabs-close-selected				(:inherit 'centaur-tabs-selected))
 
-  (centaur-tabs-unselected					(:background mantle :foreground gray-2))
+  (centaur-tabs-unselected					(:background mantle :foreground overlay2))
   (centaur-tabs-unselected-modified			(:background mantle :foreground mauve))
-  (centaur-tabs-modified-marker-unselected	(:background mantle :foreground gray-2))
-  (centaur-tabs-close-unselected			(:background mantle :foreground gray-2))
+  (centaur-tabs-modified-marker-unselected	(:background mantle :foreground overlay2))
+  (centaur-tabs-close-unselected			(:background mantle :foreground overlay2))
 
   (centaur-tabs-close-mouse-face			(:background nil :foreground red))
   (centaur-tabs-default						(:background mantle))
@@ -472,17 +467,16 @@
   (tree-sitter-hl-face:property                  (:foreground rosewater))
   (tree-sitter-hl-face:property.definition       (:foreground rosewater :italic t))
 
-  
   (tree-sitter-hl-face:comment                   (:foreground surface2 :italic t))
   (tree-sitter-hl-face:doc                       (:foreground surface2 :italic t))
   (tree-sitter-hl-face:string                    (:foreground green :italic t))
   (tree-sitter-hl-face:string.special            (:foreground green :italic t))
-  (tree-sitter-hl-face:escape                    (:foreground yellow :background blue-bg-2))
+  (tree-sitter-hl-face:escape                    (:foreground yellow :background surface1))
   (tree-sitter-hl-face:embedded                  (:foreground teal))
 
   (tree-sitter-hl-face:keyword                   (:foreground maroon :bold t))
   (tree-sitter-hl-face:operator                  (:foreground blue :bold t))
-  (tree-sitter-hl-face:label                     (:foreground text :background gray :italic t))
+  (tree-sitter-hl-face:label                     (:foreground text :background overlay2 :italic t))
   (tree-sitter-hl-face:constant                  (:foreground yellow))
   (tree-sitter-hl-face:constant.builtin          (:foreground yellow :weight 'semi-bold))
   (tree-sitter-hl-face:number                    (:foreground peach))

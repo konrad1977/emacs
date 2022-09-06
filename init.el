@@ -467,16 +467,9 @@
 (use-package tree-sitter-langs
   :defer t)
 
-;; (use-package tree-sitter
-;;   :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
-;;   :config
-;;   (require 'tree-sitter-langs)
-;;   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-
 (use-package tree-sitter
-   :hook (swift-mode . tree-sitter-hl-mode)
+  :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
    :init
-   ;; (global-tree-sitter-mode)
    (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
@@ -538,7 +531,7 @@
         company-tooltip-limit               15
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
-        company-idle-delay                  0.5
+        company-idle-delay                  0.35
         company-show-quick-access           'left
         company-async-wait                  0.5
         company-async-timeout               2
