@@ -134,7 +134,11 @@
   :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-(load-theme 'catppuccin t)
+ ;; (load-theme 'catppuccin-latte t)
+;; (load-theme 'catppuccin-frappe t)
+;; (load-theme 'catppuccin-macchiato t)
+(load-theme 'catppuccin-mocha t)
+
 ;; (load-theme 'kanagawa t)
  ;; (load-theme 'doom-old-hope t)
 
