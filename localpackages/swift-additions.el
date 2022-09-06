@@ -41,7 +41,7 @@
 (defvar current-buildconfiguration-json-data nil)
 (defvar asked-to-use-secondary-simulator nil)
 (defvar local-device-id nil)
-(defvar DEBUG nil)
+(defvar DEBUG t)
 
 (defun get-booted-simulator ()
   "Get booted simulator if any."
@@ -237,8 +237,7 @@ ARGS are rest arguments, appended to the argument list."
    "-scmProvider xcode \\"
    "-parallelizeTargets \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
-   "-derivedDataPath build"
-   ))
+   "-derivedDataPath build"))
 
 (defun swift-additions:get-app-name (directory)
   "Get compiled app name from (DIRECTORY)."
@@ -399,6 +398,9 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:install-app-on-device ()
   "Install an app on device."
+  (when DEBUG
+    (message "Physical device installation"))
+
   (let* ((folder (swift-additions:build-folder))
          (app-name (swift-additions:get-app-name folder))
          (default-directory (concat current-project-root folder)))
@@ -463,6 +465,7 @@ ARGS are rest arguments, appended to the argument list."
   (setq current-simulator-id nil)
   (setq current-simulator-name nil)
   (setq current-buildconfiguration-json-data nil)
+  (setq local-device-id nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
 (defun swift-additions:build-and-run-ios-app ()
@@ -498,6 +501,8 @@ ARGS are rest arguments, appended to the argument list."
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
+
+  (setq local-device-id (get-connected-device-id))
 
   (if (swift-additions:is-spm-project)
     (swift-additions:build-swift-package)
@@ -697,8 +702,9 @@ ARGS are rest arguments, appended to the argument list."
   "Print a TAG and TEXT with ATTRIBUTES."
   (interactive)
   (setq-local inhibit-message nil)
-  (message "%s %s" (propertize tag 'face attributes) text)
-  (setq-local inhibit-message t))
+    (message "%s %s" (propertize tag 'face attributes) text)
+    (if (not DEBUG)
+        (setq-local inhibit-message t)))
 
 (defun swift-additions:is-spm-project ()
   "Check if project is a swift package based."

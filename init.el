@@ -9,7 +9,6 @@
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
 (set-fringe-mode 1)               ;; Give us some space.
-(tooltip-mode nil)                ;; Disable tool-tip.
 (delete-selection-mode nil)		  ;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-font-lock-mode 1)         ;; always highlight code
@@ -24,7 +23,7 @@
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'fixed-pitch nil :font "Source Code Pro" )
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :weight 'light)
-(variable-pitch-mode t)
+;; (variable-pitch-mode t)
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -45,7 +44,6 @@
       confirm-kill-processes            nil
       fast-but-imprecise-scrolling      t
       jit-lock-defer-time               0.0
-      desktop-save-mode                 nil    ;; Done save desktop (open buffers)
       echo-keystrokes                   0.2
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
@@ -64,8 +62,9 @@
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
-      use-package-expand-minimally t
+      use-package-expand-minimally nil
       use-package-compute-statistics nil
+      use-package-minimum-reported-time nil
       debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
@@ -262,7 +261,7 @@
   (custom-set-faces
    '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
    '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
-   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.9)))))
+   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95)))))
   )
 
 (use-package centered-cursor-mode
@@ -339,6 +338,8 @@
   (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
+
+  (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
 
 (use-package evil-collection
   :after evil
@@ -432,18 +433,18 @@
           )))
 
 
-(use-package dimmer
-  :hook (prog-mode . dimmer-mode)
-  :config
-  (dimmer-configure-org)
-  (dimmer-configure-magit)
-  (dimmer-configure-company-box)
-  (dimmer-configure-posframe)
-  (dimmer-configure-hydra)
-  (dimmer-configure-which-key)
-  (setq dimmer-watch-frame-focus-events nil
-        dimmer-fraction 0.5)
-  (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
+;; (use-package dimmer
+;;   :hook (prog-mode . dimmer-mode)
+;;   :config
+;;   (dimmer-configure-org)
+;;   (dimmer-configure-magit)
+;;   (dimmer-configure-company-box)
+;;   (dimmer-configure-posframe)
+;;   (dimmer-configure-hydra)
+;;   (dimmer-configure-which-key)
+;;   (setq dimmer-watch-frame-focus-events nil
+;;         dimmer-fraction 0.5)
+;;   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 
 ;; rainbow-delimieters
@@ -475,7 +476,7 @@
 (use-package tree-sitter
    :hook (swift-mode . tree-sitter-hl-mode)
    :init
-   (global-tree-sitter-mode)
+   ;; (global-tree-sitter-mode)
    (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
@@ -504,15 +505,15 @@
   :after consult)
 
 (use-package google-this
-  :defer t
+  :commands (google-this)
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
-    :ensure t
-    :hook (swift-mode . eglot-ensure)
-    :config
-    (setq eglot-stay-out-of '(company))
-    (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
+  :defer t
+  :hook (swift-mode . eglot-ensure)
+  :config
+  (setq eglot-stay-out-of '(company))
+  (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
 
 (use-package eldoc
   :hook (eglot-managed-mode . eldoc-mode))
@@ -528,20 +529,19 @@
   :hook (prog-mode . company-mode)
   :config
   (setq 
-        ;;company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
+        company-transformers '(delete-consecutive-dups company-sort-by-backend-importance)
         company-format-margin-function  'company-detect-icons-margin
-        company-tooltip-margin              10
+        company-tooltip-margin              2
         company-minimum-prefix-length       0
         company-tooltip-align-annotations   t
-        company-search-regexp-function      'regexp-quote
         company-require-match               nil
-        company-tooltip-limit               20
+        company-tooltip-limit               15
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
-        company-idle-delay                  0.2
+        company-idle-delay                  0.5
         company-show-quick-access           'left
-        company-async-wait                  0.1
-        company-async-timeout               3
+        company-async-wait                  0.5
+        company-async-timeout               2
         company-backends '(company-capf
                            company-dabbrev-code
                            company-keywords
@@ -563,7 +563,8 @@
   (setq-local company-backends
               '(
               ;; (company-dabbrev-code company-yasnippet :with company-sourcekit)
-              (company-yasnippet :with company-capf)
+              (company-dabbrev-code :with company-capf)
+                ;; (company-sourcekit)
               )))
 
 (use-package consult-company
@@ -693,7 +694,7 @@
         '(lambda (mode)
            (s-concat (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
 
-                                        ; Window / buffer configuration -----------------------------
+; Window / buffer configuration -----------------------------
 (use-package window
   :ensure nil
   :bind
@@ -1009,12 +1010,12 @@
   ("M-S-<left>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-(use-package company-sourcekit
-  :after company
-  :config
-  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
-        company-sourcekit-use-yasnippet t
-        sourcekit-verbose nil))
+;; (use-package company-sourcekit
+;;   :after company
+;;   :config
+;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
+;;         company-sourcekit-use-yasnippet t
+;;         sourcekit-verbose nil))
         
 ;; Quickly jump to definition or usage
 (use-package dumb-jump

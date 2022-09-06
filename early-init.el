@@ -5,9 +5,6 @@
 ;;; Code:
 (setq idle-update-delay 0.2)            
 
-
-(push '(undecorated . t) default-frame-alist)
-
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
@@ -17,8 +14,6 @@
 
 (when (boundp 'read-process-output-max)
   (setq read-process-output-max (* 10 1024 1024)))
-
-(customize-set-variable 'max-specpdl-size 13000)
 
 (setq-default frame-inhibit-implied-resize t
               frame-resize-pixelwise t
