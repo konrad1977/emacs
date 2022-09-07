@@ -21,7 +21,7 @@
   
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
-(set-face-attribute 'fixed-pitch nil :font "Source Code Pro" )
+(set-face-attribute 'fixed-pitch nil :font "Fira Code" )
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :weight 'light)
 ;; (variable-pitch-mode t)
 
@@ -1017,6 +1017,7 @@
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
+  :bind ("M-d" . dumb-jump-go)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)

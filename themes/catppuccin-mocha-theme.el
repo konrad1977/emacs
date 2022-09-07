@@ -115,7 +115,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background surface0 :foreground green :weight 'semi-bold))
+  (highlight-symbol-face                (:background mantle :foreground green :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
   
   (minibuffer-prompt-end                (:foreground red))
@@ -307,14 +307,19 @@
   (vertico-multiline                            (:background red))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:foreground crust :bold t :background overlay2))
+  (vertico-current                              (:foreground text :bold t :background crust :distant-background overlay1))
 
   (vertico-posframe-border                      (:background surface1))
-  (vertico-posframe                             (:background surface0))
-  
+  (vertico-posframe                             (:background surface0 :foreground text))
+
+  (orderless-match-face-0                       (:foreground peach :bold t))
+  (orderless-match-face-1                       (:foreground pink :bold t))
+  (orderless-match-face-2                       (:foreground green :bold t))
+  (orderless-match-face-4                       (:foreground yellow :bold t))
+
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
-  (completions-annotations                      (:background nil :foreground overlay1 :italic t))
+  (completions-annotations                      (:foreground text :italic t))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))

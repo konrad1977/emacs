@@ -116,7 +116,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background surface0 :foreground green :weight 'semi-bold))
+  (highlight-symbol-face                (:background mantle :foreground green :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
   
   (minibuffer-prompt-end                (:foreground red))
@@ -236,8 +236,8 @@
   (rainbow-delimiters-depth-9-face      (:foreground mauve))
 
   ;; show-paren
-  (show-paren-match						(:background peach :foreground crust :bold t))
-  (show-paren-match-expression			(:background peach :foreground crust :bold t))
+  (show-paren-match						(:background nil :foreground red :bold t))
+  (show-paren-match-expression			(:background nil :foreground red :bold t))
   (show-paren-mismatch					(:background red :foreground rosewater))
 
   (company-tooltip                      (:background crust :foreground overlay2))
@@ -308,14 +308,19 @@
   (vertico-multiline                            (:background red))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:foreground crust :bold t :background overlay2))
+  (vertico-current                              (:foreground text :bold t :background crust :distant-background overlay1))
 
-  (vertico-posframe-border                      (:background surface2))
-  (vertico-posframe                             (:background surface1))
-  
+  (vertico-posframe-border                      (:background surface1))
+  (vertico-posframe                             (:background surface0 :foreground text))
+
+  (orderless-match-face-0                       (:foreground peach :bold t))
+  (orderless-match-face-1                       (:foreground pink :bold t))
+  (orderless-match-face-2                       (:foreground green :bold t))
+  (orderless-match-face-4                       (:foreground yellow :bold t))
+
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
-  (completions-annotations                      (:background nil :foreground overlay1 :italic t))
+  (completions-annotations                      (:foreground text :italic t))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))
@@ -362,9 +367,9 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
-  (evil-ex-lazy-highlight         (:foreground yellow :background yellow-bg :bold t))
-  (evil-ex-substitute-matches     (:background red-bg :foreground red :strike-through t))
-  (evil-ex-substitute-replacement (:foreground blue :background surface2 :bold t))
+  (evil-ex-lazy-highlight         (:foreground yellow :bold t))
+  (evil-ex-substitute-matches     (:foreground red :strike-through t))
+  (evil-ex-substitute-replacement (:foreground blue :bold t))
   (evil-search-highlight-persist-highlight-face (:background yellow))
 
   (ansi-color-crust (:background crust))
