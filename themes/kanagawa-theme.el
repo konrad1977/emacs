@@ -67,12 +67,12 @@
 
   ;; Customize faces
   (
+  (default                                       (:background sumiInk-1b :foreground fujiWhite))
   (border                                        (:background sumiInk-1b :foreground sumiInk-0))
   (button                                        (:foreground waveAqua2))
   (child-frame                                   (:background sumiInk-0 :foreground sumiInk-0))
   (child-frame-border                            (:background sumiInk-0 :foreground sumiInk-0))
   (cursor                                        (:background lightBlue :foreground sumiInk-0 :bold t))
-  (default                                       (:background sumiInk-1b :foreground fujiWhite))
   (error                                         (:foreground samuraiRed))
   (fringe                                        (:foreground sumiInk-3))
   (glyph-face                                    (:background sumiInk-4))
@@ -304,8 +304,8 @@
   (ivy-confirm-face                              (:foreground waveAqua2))
 
   ;; posframe's
-  (ivy-posframe                                  (:background peachRed :foreground peachRed))
-  (ivy-posframe-border                           (:background peachRed :foreground peachRed))
+  (ivy-posframe                                  (:background sumiInk-2))
+  (ivy-posframe-border                           (:background sumiInk-3))
   
   ;;treemacs
   (treemacs-directory-collapsed-face             (:foreground fujiWhite))
