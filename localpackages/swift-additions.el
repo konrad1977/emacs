@@ -204,7 +204,7 @@ ARGS are rest arguments, appended to the argument list."
   "Fetch build folder."
   (let ((config (fetch-or-load-build-configuration)))
     (if local-device-id
-      (format "build/Build/Products/%s-iphoneos/" config)
+        (format "build/Build/Products/%s-iphoneos/" config)
       (format "build/Build/Products/%s-iphonesimulator/" config))))
 
 (defun swift-additions:number-of-available-cores ()
@@ -221,8 +221,8 @@ ARGS are rest arguments, appended to the argument list."
         (format "-workspace %s.xcworkspace \\" workspace)
       (format "-project %s.xcodeproj \\" projectname))))
 
-(defun build-app-command (simulator-id)
-  "Xcodebuild with (as SIMULATOR-ID)."
+(cl-defun build-app-command (&simulatorId simulatorId &deviceId deviceId)
+  "Xcodebuild with (as &SIMULATORID as &DEVICEID)."
   (concat
    (xcodebuild-command)
    (get-workspace-or-project)
@@ -230,13 +230,14 @@ ARGS are rest arguments, appended to the argument list."
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (swift-additions:number-of-available-cores))
    (format "-sdk %s \\" (swift-additions:current-sdk))
-   (when (not local-device-id)
-       (format "-destination 'platform=iOS Simulator,id=%s' \\" simulator-id))
+   (if simulatorId
+       (format "-destination 'platform=iOS Simulator,id=%s' \\" simulatorId)
+        (format "-destination 'generic/platform=iOS' \\"))
    "-skipUnavailableActions \\"
-   "-quiet \\"
    "-scmProvider xcode \\"
    "-parallelizeTargets \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
+   "-quiet \\"
    "-derivedDataPath build"))
 
 (defun swift-additions:get-app-name (directory)
@@ -278,24 +279,31 @@ ARGS are rest arguments, appended to the argument list."
   (message-with-color :tag "[Errors/Warnings]" :text "Warning not a clean build." :attributes 'error)
   (periphery-run-parser text))
 
+(defun format-device-id (id)
+  "Format device id (as ID)."
+  (if id
+      (if (not
+           (string-match-p (regexp-quote "-") id))
+          (concat (substring id 0 8) "-" (substring id 6))
+        id)))
+
 (defun swift-additions:run-app()
-  "Run app.  Either in simulator or on physical device."
-  (setq local-device-id (get-connected-device-id))
+  "Run app.  Either in simulator or on physical."
+  (message "Run app...")
   (if local-device-id
       (swift-additions:install-app-on-device)
     (swift-addition:install-app-in-simulator)))
  
 (defun swift-additions:check-for-errors (text)
   "Run periphery parser on TEXT."
-  (when DEBUG
-    (message text))
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
-       (string-match-p (regexp-quote "error:") text)
-       (string-match-p (regexp-quote "warning:") text))
+       (string-match-p (regexp-quote "error: ") text)
+       (string-match-p (regexp-quote "warning: ") text))
       (progn
         (swift-additions:parse-errors :text text)
-        (when (not (string-match-p (regexp-quote "error:") text))
+        (message text)
+        (when (not (string-match-p (regexp-quote "error: ") text))
           (swift-additions:run-app)))
     (swift-additions:run-app)))
 
@@ -388,7 +396,7 @@ ARGS are rest arguments, appended to the argument list."
           (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
     (if (= (length device-id) 0)
         nil
-      device-id)))
+      (format-device-id device-id))))
 
 (defun swift-additions:current-sdk ()
   "Return the current SDK."
@@ -398,9 +406,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:install-app-on-device ()
   "Install an app on device."
-  (when DEBUG
-    (message "Physical device installation"))
-
+  (message (swift-additions:build-folder))
   (let* ((folder (swift-additions:build-folder))
          (app-name (swift-additions:get-app-name folder))
          (default-directory (concat current-project-root folder)))
@@ -452,7 +458,9 @@ ARGS are rest arguments, appended to the argument list."
   "Build using builtin compile and 'compilation-mode'."
   (interactive)
   (let* ((default-directory (current-project-root))
-         (compile-command (build-app-command (fetch-or-load-simulator-id))))
+         (compile-command (build-app-command
+                           :simulatorId (fetch-or-load-simulator-id)
+                           :deviceId (get-connected-device-id))))
     (compile compile-command)))
 
 (defun swift-additions:reset-settings ()
@@ -468,33 +476,6 @@ ARGS are rest arguments, appended to the argument list."
   (setq local-device-id nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
-(defun swift-additions:build-and-run-ios-app ()
-  "Build project using xcodebuild and then run iOS simulator."
-  (interactive)
-  (save-some-buffers t)
-  (setup-current-project (get-ios-project-root))
-  (setq local-device-id (get-connected-device-id))
-  
-  (swift-additions:terminate-app-in-simulator current-simulator-id)
-
-  (if (get-buffer-process xcodebuild-buffer)
-      (delete-process xcodebuild-buffer))
-  
-  (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setup-default-buffer-state)
-    (let* ((default-directory current-project-root)
-           (proc (progn
-                   (if local-device-id
-                       (async-shell-command (concat (build-app-command local-device-id) " | xcbeautify") xcodebuild-buffer)
-                     (async-shell-command (concat (build-app-command (fetch-or-load-simulator-id)) " | xcbeautify") xcodebuild-buffer))
-                   (progn
-                     (compilation-minor-mode)
-                     (reset-default-buffer-state)
-                     (get-buffer-process xcodebuild-buffer)))))
-      (if (process-live-p proc)
-          (set-process-sentinel proc #'check-for-errors)))
-   (message-with-color :tag "[Build/Install]" :text (format "%s on %s" current-xcode-scheme (swift-additions:current-device)) :attributes 'warning)))
-
 (defun swift-additions:compile-and-run-silent ()
   "Build project using xcodebuild."
   (interactive)
@@ -502,16 +483,23 @@ ARGS are rest arguments, appended to the argument list."
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
 
+  (setq device-or-simulator "[Building device target]")
   (setq local-device-id (get-connected-device-id))
-
+  (when (not local-device-id)
+    (fetch-or-load-simulator-id)
+    (setq device-or-simulator "[Building simulator target]"))
+  
   (if (swift-additions:is-spm-project)
     (swift-additions:build-swift-package)
     (progn
       (if (vc-root-dir)
           (setup-current-project (get-ios-project-root)))
       (let ((default-directory current-project-root))
-        (async-shell-command-to-string :process-name "periphery" :command (build-app-command (fetch-or-load-simulator-id)) :callback #'swift-additions:check-for-errors))
-      (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))))
+        (async-shell-command-to-string
+        :process-name "periphery"
+        :command (build-app-command :simulatorId: current-simulator-id :deviceId local-device-id)
+        :callback #'swift-additions:check-for-errors))
+      (message-with-color :tag device-or-simulator :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))))
 
 (defun swift-additions:test-module-silent ()
     "Test module."
@@ -519,37 +507,14 @@ ARGS are rest arguments, appended to the argument list."
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
-  (swift-additions:test-swift-package)
-)
-
-(defun swift-additions:build-ios-app ()
-  "Build project using xcodebuild."
-  (interactive)
-  (save-some-buffers t)
-  (setup-current-project (get-ios-project-root))
-  (swift-additions:terminate-app-in-simulator)
-  (if (get-buffer-process xcodebuild-buffer)
-      (delete-process xcodebuild-buffer))
-  
-  (with-current-buffer (get-buffer-create xcodebuild-buffer)
-    (setup-default-buffer-state)
-    (message-with-color :tag "[Building]" :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning)
-    (let* ((default-directory current-project-root)
-           (proc (progn
-                   (async-shell-command (build-app-command (fetch-or-load-simulator-id)) xcodebuild-buffer)
-                   (compilation-minor-mode)
-                   (reset-default-buffer-state)
-                   (get-buffer-process xcodebuild-buffer))))
-      (if (process-live-p proc)
-          (set-process-sentinel proc #'check-for-errors)))))
+  (swift-additions:test-swift-package))
 
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
   (if (swift-additions:is-spm-project)
-        (swift-additions:clean-build-folder-with (vc-root-dir) ".build" "swift package")
-        (swift-additions:clean-build-folder-with (get-ios-project-root) "build" current-xcode-scheme)
-    ))
+      (swift-additions:clean-build-folder-with (vc-root-dir) ".build" "swift package")
+    (swift-additions:clean-build-folder-with (get-ios-project-root) "build" current-xcode-scheme)))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
   "Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
