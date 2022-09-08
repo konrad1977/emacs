@@ -231,10 +231,12 @@ ARGS are rest arguments, appended to the argument list."
    (format "-jobs %s \\" (swift-additions:number-of-available-cores))
    (format "-sdk %s \\" (swift-additions:current-sdk))
    (if simulatorId
-       ;; (format "-destination 'platform=iOS Simulator,id=%s' \\" simulatorId)
-        (format "-destination 'generic/platform=iOS Simulator' \\")
-        (format "-destination 'generic/platform=iOS' \\"))
+       (format "-destination id=%s \\" simulatorId)
+       (format "-destination id=%s \\" deviceId))
+        ;; (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" :simulatorId)
+        ;; (format "-destination 'generic/platform=iOS' \\"))
    "-skipUnavailableActions \\"
+   "-destination-timeout 1 \\"
    "-scmProvider xcode \\"
    "-parallelizeTargets \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
