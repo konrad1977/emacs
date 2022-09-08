@@ -41,7 +41,7 @@
 (defvar current-buildconfiguration-json-data nil)
 (defvar asked-to-use-secondary-simulator nil)
 (defvar local-device-id nil)
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun get-booted-simulator ()
   "Get booted simulator if any."
@@ -231,7 +231,8 @@ ARGS are rest arguments, appended to the argument list."
    (format "-jobs %s \\" (swift-additions:number-of-available-cores))
    (format "-sdk %s \\" (swift-additions:current-sdk))
    (if simulatorId
-       (format "-destination 'platform=iOS Simulator,id=%s' \\" simulatorId)
+       ;; (format "-destination 'platform=iOS Simulator,id=%s' \\" simulatorId)
+        (format "-destination 'generic/platform=iOS Simulator' \\")
         (format "-destination 'generic/platform=iOS' \\"))
    "-skipUnavailableActions \\"
    "-scmProvider xcode \\"
