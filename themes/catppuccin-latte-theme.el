@@ -44,14 +44,7 @@
   (surface0   "#ccd0da" "#ffffff")
   (base       "#eff1f5" "#ffffff")
   (mantle     "#e6e9ef" "#ffffff")
-  (crust      "#dce0e8" "#ffffff")
-
-  ;; Crust - monochrome:ish
-  (red-bg      "#18090E" "#875f5f")
-  (red-bg-2    "#18090E" "#875f5f")
-  (yellow-bg   "#383227" "#875f5f")
-  (yellow-bg-2 "#383227" "#875f5f")
-  )
+  (crust      "#dce0e8" "#ffffff"))
 
  ;; Customize faces
   (
@@ -235,9 +228,9 @@
   (rainbow-delimiters-depth-9-face      (:foreground mauve))
 
   ;; show-paren
-  (show-paren-match						(:background nil :foreground red :bold t))
-  (show-paren-match-expression			(:background nil :foreground red :bold t))
-  (show-paren-mismatch					(:background red :foreground rosewater))
+  (show-paren-match						(:background red :foreground crust :bold t))
+  (show-paren-match-expression			(:background red :foreground crust :bold t))
+  (show-paren-mismatch					(:background red :foreground crust))
 
   (company-tooltip                      (:background crust :foreground overlay2))
   (company-tooltip-common               (:foreground red :distant-foreground red :bold t))
@@ -255,7 +248,7 @@
   (company-preview-search               (:inherit 'company-tooltip-search))
   (company-template-field               (:inherit 'match))
 
-  (company-box-annotation               (:foreground red :background red-bg))
+  (company-box-annotation               (:foreground red :background surface1))
   (company-box-numbers                  (:foreground blue :background surface1))
 
   ;; Eldoc
@@ -276,9 +269,9 @@
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:inherit 'info :bold t))
-  (flycheck-inline-error                (:foreground red-bg :background red :weight 'semi-bold :height 128 :box '(:line-width 1 :color red-bg)))
-  (flycheck-inline-info                 (:foreground surface1 :background blue :weight 'semi-bold :height 128 :box '(:line-width 1 :color surface1)))
-  (flycheck-inline-warning              (:foreground yellow-bg :background yellow :weight 'semi-bold :height 128 :box '(:line-width 1 :color yellow-bg)))
+  (flycheck-inline-error                (:foreground overlay1 :background red :height 128))
+  (flycheck-inline-info                 (:foreground overlay1 :background blue :height 128))
+  (flycheck-inline-warning              (:foreground overlay1 :background yellow :height 128))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground surface0))
@@ -286,7 +279,7 @@
   (highlight-indent-guides-stack-odd-face       (:foreground surface0))
   (highlight-indent-guides-stack-even-face      (:foreground surface1))
   (highlight-indent-guides-stack-character-face (:foreground surface0))
-  (highlight-indent-guides-even-face            (:foreground crust))
+  (highlight-indent-guides-even-face            (:foreground surface0))
   (highlight-indent-guides-odd-face             (:foreground surface1))
 
    ;;;; ivy
@@ -412,7 +405,7 @@
 
   (anzu-mode-line		(:foreground crust :background mauve))
   (anzu-mode-no-match	(:foreground text :background red))
-  (anzu-replace-to		(:foreground yellow :background yellow-bg))
+  (anzu-replace-to		(:foreground yellow :background surface2))
 
   (ace-jump-face-background (:foreground overlay2))
   (ace-jump-face-foreground (:foreground red :background crust :bold t))
@@ -479,7 +472,7 @@
 
   (tree-sitter-hl-face:keyword                   (:foreground maroon :bold t))
   (tree-sitter-hl-face:operator                  (:foreground blue :bold t))
-  (tree-sitter-hl-face:label                     (:foreground text :background overlay2 :italic t))
+  (tree-sitter-hl-face:label                     (:foreground text :background surface0 :italic t))
   (tree-sitter-hl-face:constant                  (:foreground yellow))
   (tree-sitter-hl-face:constant.builtin          (:foreground yellow :weight 'semi-bold))
   (tree-sitter-hl-face:number                    (:foreground peach))
@@ -494,6 +487,7 @@
 
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))
+  (swift-mode:builtin-type-face (:foreground peach :bold t))
   (swift-mode:builtin-property-face (:foreground teal))
   (swift-mode:builtin-enum-case-face (:foreground teal))
   (swift-mode:builtin-method-trailing-closure-face (:foreground teal))

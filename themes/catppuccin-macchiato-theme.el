@@ -45,17 +45,10 @@
   (surface0   "#363a4f" "#ffffff")
   (base       "#24273a" "#ffffff")
   (mantle     "#1e2030" "#ffffff")
-  (crust      "#181926" "#ffffff")
-
-  ;; Crust - monochrome:ish
-  (red-bg      "#18090E" "#875f5f")
-  (red-bg-2    "#18090E" "#875f5f")
-  (yellow-bg   "#383227" "#875f5f")
-  (yellow-bg-2 "#383227" "#875f5f")
-  )
+  (crust      "#181926" "#ffffff"))
 
  ;; Customize faces
-  (
+(
   (default								(:foreground text :background base))
   (border                               (:background base :foreground base))
   (bookmark-face                        (:foreground red :background base))
@@ -256,7 +249,7 @@
   (company-preview-search               (:inherit 'company-tooltip-search))
   (company-template-field               (:inherit 'match))
 
-  (company-box-annotation               (:foreground red :background red-bg))
+  (company-box-annotation               (:foreground red :background surface1))
   (company-box-numbers                  (:foreground blue :background surface1))
 
   ;; Eldoc
@@ -277,9 +270,9 @@
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:inherit 'info :bold t))
-  (flycheck-inline-error                (:foreground red-bg :background red :weight 'semi-bold :height 128 :box '(:line-width 1 :color red-bg)))
-  (flycheck-inline-info                 (:foreground surface1 :background blue :weight 'semi-bold :height 128 :box '(:line-width 1 :color surface1)))
-  (flycheck-inline-warning              (:foreground yellow-bg :background yellow :weight 'semi-bold :height 128 :box '(:line-width 1 :color yellow-bg)))
+  (flycheck-inline-error                (:foreground text :background red :weight 'semi-bold :height 128 :box '(:line-width 1 :color surface1)))
+  (flycheck-inline-info                 (:foreground text :background blue :weight 'semi-bold :height 128 :box '(:line-width 1 :color surface1)))
+  (flycheck-inline-warning              (:foreground text :background yellow :weight 'semi-bold :height 128 :box '(:line-width 1 :color surface1)))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground surface0))
@@ -287,7 +280,7 @@
   (highlight-indent-guides-stack-odd-face       (:foreground surface0))
   (highlight-indent-guides-stack-even-face      (:foreground surface1))
   (highlight-indent-guides-stack-character-face (:foreground surface0))
-  (highlight-indent-guides-even-face            (:foreground crust))
+  (highlight-indent-guides-even-face            (:foreground surface0))
   (highlight-indent-guides-odd-face             (:foreground surface1))
 
    ;;;; ivy
@@ -413,7 +406,7 @@
 
   (anzu-mode-line		(:foreground crust :background mauve))
   (anzu-mode-no-match	(:foreground text :background red))
-  (anzu-replace-to		(:foreground yellow :background yellow-bg))
+  (anzu-replace-to		(:foreground yellow :background surface2))
 
   (ace-jump-face-background (:foreground overlay2))
   (ace-jump-face-foreground (:foreground red :background crust :bold t))
@@ -499,8 +492,7 @@
   (swift-mode:builtin-enum-case-face (:foreground teal))
   (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
   (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
- ))
-
+ )
 ;;;###autoload
 (and load-file-name
      (boundp 'custom-theme-load-path)
