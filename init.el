@@ -70,7 +70,7 @@
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0.03          ;; Increase linespacing a bit
+              line-spacing                  0            ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
@@ -134,10 +134,10 @@
   :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
- ;; (load-theme 'catppuccin-latte t)
+(load-theme 'catppuccin-latte t)
 ;; (load-theme 'catppuccin-frappe t)
 ;; (load-theme 'catppuccin-macchiato t)
-(load-theme 'catppuccin-mocha t)
+;; (load-theme 'catppuccin-mocha t)
 
 ;; (load-theme 'kanagawa t)
  ;; (load-theme 'doom-old-hope t)
@@ -509,7 +509,10 @@
   :defer t
   :hook (swift-mode . eglot-ensure)
   :config
-  (setq eglot-stay-out-of '(company))
+  (setq eglot-stay-out-of '(company)
+        eglot-autoshutdown t
+        eglot-autoreconnect t
+        eglot-send-changes-idle-time 0.8)
   (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
 
 (use-package eldoc
@@ -524,6 +527,11 @@
 (use-package company
   :defer t
   :hook (prog-mode . company-mode)
+  :bind 
+  (:map company-active-map 
+  ("RET" . nil)
+  ("<return>" . nil)
+  ("<tab>" . company-complete-selection))
   :config
   (setq 
         company-transformers '(delete-consecutive-dups company-sort-by-backend-importance)
@@ -547,6 +555,7 @@
   :custom-face
   (company-tooltip ((t (:font "JetBrains Mono" :height 167)))))
 
+
 (use-package company-box
   :hook (company-mode . company-box-mode)
   :init
@@ -559,9 +568,9 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-              ;; (company-dabbrev-code company-yasnippet :with company-sourcekit)
-              (company-dabbrev-code :with company-capf)
-                ;; (company-sourcekit)
+              (company-capf company-yasnippet :with company-sourcekit)
+              ;; (company-dabbrev-code :with company-capf)
+              ;; (company-sourcekit)
               )))
 
 (use-package consult-company
@@ -1007,12 +1016,12 @@
   ("M-S-<left>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-;; (use-package company-sourcekit
-;;   :after company
-;;   :config
-;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
-;;         company-sourcekit-use-yasnippet t
-;;         sourcekit-verbose nil))
+(use-package company-sourcekit
+  :after company
+  :config
+  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
+        company-sourcekit-use-yasnippet t
+        sourcekit-verbose nil))
         
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
