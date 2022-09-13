@@ -232,7 +232,7 @@ ARGS are rest arguments, appended to the argument list."
    (format "-sdk %s \\" (swift-additions:current-sdk))
    (if simulatorId
        (format "-destination id=%s \\" simulatorId)
-       (format "-destination id=%s \\" deviceId))
+       (format "-destination 'generic/platform=iOS' \\" ))
         ;; (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" :simulatorId)
         ;; (format "-destination 'generic/platform=iOS' \\"))
    "-skipUnavailableActions \\"
@@ -755,6 +755,126 @@ line."
                                     (zerop squares) (zerop curlies))
                            (setq comma t)))))))))
       (error (user-error "Cannot parse function decl or call here")))))
+
+
+(defface tree-sitter-hl-face:repeat
+  '((t :inherit tree-sitter-hl-face:keyword
+       :foreground "#666bb2"))
+  "Face for loops (for, in etc)."
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:parameter
+  '((t :inherit tree-sitter-hl-face:label
+       :foreground "#666bb2"))
+  "Face for parameters in function calls."
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:conditional
+  '((t :inherit tree-sitter-hl-face:property
+       :foreground "#666bb2"))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:include
+  '((t :inherit tree-sitter-hl-face:property
+       :foreground "#666bb2"))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:boolean
+  '((t :inherit tree-sitter-hl-face:property
+       :foreground "#666bb2"))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:keyword.return
+  '((t :inherit tree-sitter-hl-face:property
+       :foreground "#666bb2"))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:keyword.operator
+  '((t :inherit tree-sitter-hl-face:property
+       :foreground "#666bb2"))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:keyword.function
+  '((t :inherit tree-sitter-hl-face:property
+       :foreground "#666bb2"))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defun command-output-to-string (command &rest args)
+  "Like `shell-command-to-string' but dropping error output.
+
+Also trims whitespace from the ends of any output."
+  (string-trim
+   (with-output-to-string
+    (with-current-buffer standard-output
+      (apply #'call-process command nil '(t nil) nil args)))))
+
+(defvar-local my-swift-mode:eglot-server-platform :ios
+  "Platform for the current project, either `:ios' or `:macos'.
+`nil' by default.
+
+This is used to calculate Swift compiler args when starting up a
+SourceKit server through eglot. Note that this is really only
+needed for Xcode projects to work with SourceKit. SPM projects
+work without any extra configuration.")
+
+(defvar my-swift-mode:-eglot-default-target nil
+  "This machine's default Clang target triple.
+
+Lazily initialized during Swift Eglot configuration.")
+
+(defun my-swift-mode:xcrun (&rest args)
+  "Invoke xcrun with the given ARGS.
+
+The result is returned as a string."
+  (apply #'command-output-to-string "xcrun" args))
+
+(defun my-swift-mode:sourcekit-args (platform)
+  "Determine Swift compiler args for SourceKit for PLATFORM.
+
+See also `my-swift-mode:eglot-server-platform'."
+  (unless my-swift-mode:-eglot-default-target
+    (setq my-swift-mode:-eglot-default-target
+          (command-output-to-string "clang" "-print-target-triple")))
+  (let* ((show-sdk-path (lambda (sdk-name)
+                          (my-swift-mode:xcrun
+                           "--show-sdk-path" "--sdk" sdk-name)))
+         (arg-vals
+          (pcase platform
+            (:ios
+             (let* ((target-components
+                     (split-string my-swift-mode:-eglot-default-target "-"))
+                    (arch (nth 0 target-components))
+                    (vendor (nth 1 target-components))
+                    (sim-version (my-swift-mode:xcrun "--sdk" "iphonesimulator"
+                                                      "--show-sdk-version")))
+               (list (funcall show-sdk-path "iphonesimulator")
+                     (format "%s-%s-ios%s-simulator" arch vendor sim-version))))
+            ((or :macos :macosx :osx)
+             (list (funcall show-sdk-path "macosx")
+                   my-swift-mode:-eglot-default-target))
+            ;; No args needed for SPM
+            (_ nil))))
+    (when arg-vals
+      `("-Xswiftc" "-sdk"
+        "-Xswiftc" ,(car arg-vals)
+        "-Xswiftc" "-target"
+        "-Xswiftc" ,(cadr arg-vals)))))
+
+(defun my-swift-mode:eglot-server-contact (_ignored)
+  "Construct the list that eglot needs to start sourcekit-lsp.
+
+If `my-swift-mode:eglot-server-platform' is defined, the
+appropriate flags to pass to the Swift compiler for the platform
+will be included in the list."
+  (let ((args (my-swift-mode:sourcekit-args :ios))
+        (sourcekit-path (my-swift-mode:xcrun "--find" "sourcekit-lsp")))
+    `(,sourcekit-path ,@args)))
 
 (require 'ansi-color)
 ;;; Taken from https://stackoverflow.com/questions/5819719/emacs-shell-command-output-not-showing-ansi-colors-but-the-code

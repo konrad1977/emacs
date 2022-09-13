@@ -269,9 +269,9 @@
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:inherit 'info :bold t))
-  (flycheck-inline-error                (:foreground overlay1 :background red :height 128))
-  (flycheck-inline-info                 (:foreground overlay1 :background blue :height 128))
-  (flycheck-inline-warning              (:foreground overlay1 :background yellow :height 128))
+  (flycheck-inline-error                (:foreground "black" :background red :height 128))
+  (flycheck-inline-info                 (:foreground "black" :background blue :height 128))
+  (flycheck-inline-warning              (:foreground "black" :background yellow :height 128))
 
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground surface0))
@@ -330,6 +330,7 @@
   ;; lsp
   (lsp-headerline-breadcrumb-path-error-face (:underline (:color maroon :style 'wave)
                                                          :foreground overlay2 :background crust))
+
   (lsp-headerline-breadcrumb-path-face				(:background crust))
   (lsp-headerline-breadcrumb-path-hint-face	   		(:background crust))
   (lsp-headerline-breadcrumb-path-info-face	   		(:background crust))
@@ -472,7 +473,7 @@
 
   (tree-sitter-hl-face:keyword                   (:foreground maroon :bold t))
   (tree-sitter-hl-face:operator                  (:foreground blue :bold t))
-  (tree-sitter-hl-face:label                     (:foreground text :background surface0 :italic t))
+  (tree-sitter-hl-face:label                     (:inherit 'tree-sitter-hl-face:keyword :italic t))
   (tree-sitter-hl-face:constant                  (:foreground yellow))
   (tree-sitter-hl-face:constant.builtin          (:foreground yellow :weight 'semi-bold))
   (tree-sitter-hl-face:number                    (:foreground peach))
@@ -485,9 +486,18 @@
   (tree-sitter-hl-face:case-pattern              (:foreground peach))
   (tree-sitter-hl-face:keyword.compiler          (:foreground overlay2 :bold t :italic t))
 
+  ;; Custom for pinkus tree-sitter-swift
+  (tree-sitter-hl-face:include                   (:foreground teal))
+  (tree-sitter-hl-face:parameter                 (:foreground subtext0 :italic t))
+  (tree-sitter-hl-face:repeat                    (:foreground blue :bold t))
+  (tree-sitter-hl-face:boolean                   (:foreground yellow :bold t))
+  (tree-sitter-hl-face:keyword.return            (:foreground red :bold t))
+  (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
+  (tree-sitter-hl-face:keyword.function          (:foreground red :bold t))
+  (tree-sitter-hl-face:conditional               (:foreground pink :bold t))
+
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))
-  (swift-mode:builtin-type-face (:foreground peach :bold t))
   (swift-mode:builtin-property-face (:foreground teal))
   (swift-mode:builtin-enum-case-face (:foreground teal))
   (swift-mode:builtin-method-trailing-closure-face (:foreground teal))

@@ -134,10 +134,10 @@
   :config (setq ispell-program-name "aspell"))
 
 (use-package autothemer)
-(load-theme 'catppuccin-latte t)
+;; (load-theme 'catppuccin-latte t)
 ;; (load-theme 'catppuccin-frappe t)
 ;; (load-theme 'catppuccin-macchiato t)
-;; (load-theme 'catppuccin-mocha t)
+(load-theme 'catppuccin-mocha t)
 
 ;; (load-theme 'kanagawa t)
  ;; (load-theme 'doom-old-hope t)
@@ -265,8 +265,7 @@
   (custom-set-faces
    '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
    '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
-   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95)))))
-  )
+   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
 
 (use-package centered-cursor-mode
   :hook (prog-mode . centered-cursor-mode))
@@ -513,7 +512,14 @@
         eglot-autoshutdown t
         eglot-autoreconnect t
         eglot-send-changes-idle-time 0.8)
-  (add-to-list 'eglot-server-programs '(swift-mode . ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))))
+  ;; (add-to-list 'eglot-server-programs '(swift-mode . 
+  ;; ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"
+  ;; "-Xswiftc -sdk \\" 
+  ;; "-Xswiftc /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.5.sdk \\"
+  ;; "-Xswiftc -target \\"
+  ;; "-Xswiftc x86_64-apple-ios15.5-simulator"
+  ;; )))
+  )
 
 (use-package eldoc
   :hook (eglot-managed-mode . eldoc-mode))
@@ -568,9 +574,10 @@
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               '(
-              (company-capf company-yasnippet :with company-sourcekit)
-              ;; (company-dabbrev-code :with company-capf)
-              ;; (company-sourcekit)
+              ;; (company-capf company-yasnippet :with company-sourcekit)
+              ;; (company-yasnippet :with company-capf)
+              ;; (company-sourcekit :with company-capf)
+              (company-capf)
               )))
 
 (use-package consult-company
@@ -651,7 +658,11 @@
 (use-package swift-mode
   :defer t)
 
-(add-hook 'swift-mode-hook #'setup-swift-programming)
+(use-package markdown-mode
+  :defer t)
+
+(use-package yaml-mode
+  :defer t)
 
 (use-package clean-aindent-mode
   :hook (prog-mode . clean-aindent-mode)
@@ -936,6 +947,10 @@
         org-log-into-drawer t
         org-log-done 'time))
 
+(with-eval-after-load 'swift-mode
+    (message "swift-mode loaded")
+    (setup-swift-programming))
+
 (with-eval-after-load 'org
   ;; (require 'ob-swiftui)
   ;; (ob-swiftui-setup)
@@ -1016,12 +1031,12 @@
   ("M-S-<left>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-(use-package company-sourcekit
-  :after company
-  :config
-  (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
-        company-sourcekit-use-yasnippet t
-        sourcekit-verbose nil))
+;; (use-package company-sourcekit
+;;   :after company
+;;   :config
+;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
+;;         company-sourcekit-use-yasnippet t
+;;         sourcekit-verbose t))
         
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
@@ -1033,19 +1048,26 @@
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 
+(use-package localizeable-mode
+  :mode "\\.strings\\'"
+  :ensure nil
+  :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
+
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
-  (setq tree-sitter-hl-use-font-lock-keywords t)
-  (message "setup-swift-programming")
   (setup-swift-mode-company)
-
   (load "swift-additions")
+
+  (eglot-ensure)
+  (when (boundp 'eglot-server-programs)
+    (add-to-list 'eglot-server-programs
+                 '(swift-mode . my-swift-mode:eglot-server-contact)))
+  
+  (setq tree-sitter-hl-use-font-lock-keywords t)
+
   (load "periphery-swiftlint")
   (load "periphery-loco")
-  ;; (load "swift-querying")
-  (load "localizeable-mode")
-  (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-mode))
 
   (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
   (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
@@ -1182,7 +1204,7 @@
   (message "Turning on company-sourcekit auto completion for current buffer"))
 
 (defun un-indent-by-removing-4-spaces ()
-  "remove 4 spaces from beginning of of line"
+  "Remove 4 spaces from beginning of of line."
   (interactive)
   (save-excursion
     (save-match-data
