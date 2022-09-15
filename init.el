@@ -656,6 +656,17 @@
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
+  :bind
+  ("C-c C-c" . #'swift-additions:compile-and-run-silent)
+  ("C-c C-x" . #'swift-additions:reset-settings)
+  ("C-c C-l" . #'periphery-run-swiftlint)
+  ("C-c C-t" .  #'swift-additions:test-module-silent)
+  ("C-c C-s" .  #'swift-additions:split-func-list)
+  ("M-L" .  #'swift-additions:clean-build-folder)
+  ("M-P" .  #'swift-additions:print-thing-at-point)
+  ("C-M-t" . #'swift-additions:insert-todo)
+  ("M-m" . #'swift-additions:insert-mark)
+  ("M-s" . #'swift-additions:terminate-all-running-apps)
   :defer t)
 
 (use-package markdown-mode
@@ -952,11 +963,11 @@
     (setup-swift-programming))
 
 (with-eval-after-load 'org
-  ;; (require 'ob-swiftui)
-  ;; (ob-swiftui-setup)
-  ;; (org-babel-do-load-languages 'org-babel-load-languages
-  ;;                               '((emacs-lisp t)
-  ;;                               (swift t)))
+  (require 'ob-swiftui)
+  (ob-swiftui-setup)
+  (org-babel-do-load-languages 'org-babel-load-languages
+                                '((emacs-lisp t)
+                                (swift t)))
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -1068,22 +1079,6 @@
 
   (load "periphery-swiftlint")
   (load "periphery-loco")
-
-  (local-set-key (kbd "M-P") #'swift-additions:print-thing-at-point)
-  (local-set-key (kbd "M-m") #'swift-additions:insert-mark)
-  (local-set-key (kbd "C-M-t") #'swift-additions:insert-todo)
-  (local-set-key (kbd "M-r") #'swift-additions:build-and-run-ios-app)
-  (local-set-key (kbd "C-c C-a") #'swift-additions:analyze-using-periphery)
-  (local-set-key (kbd "C-c C-c") #'swift-additions:compile-and-run-silent)
-  (local-set-key (kbd "C-c C-t") #'swift-additions:test-module-silent)
-  (local-set-key (kbd "C-c C-x") #'swift-additions:reset-settings)
-  (local-set-key (kbd "M-s") #'swift-additions:terminate-all-running-apps)
-  (local-set-key (kbd "M-K") #'swift-additions:clean-build-folder)
-  (local-set-key (kbd "M-L") #'swift-additions:clear-xcodebuild-buffer)
-  (local-set-key (kbd "M-b") #'swift-additions:build-ios-app)
-  (local-set-key (kbd "C-c C-s") #'swift-additions:split-func-list)
-  (local-set-key (kbd "C-c C-r") #'xcode-build:run)
-  (local-set-key (kbd "C-x C-l") #'periphery-run-swiftlint)
 
   (use-package flycheck-swift3
     :after flycheck
