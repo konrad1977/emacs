@@ -233,12 +233,10 @@ ARGS are rest arguments, appended to the argument list."
    (if simulatorId
        (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId)
      (format "-destination 'generic/platform=iOS' \\" ))
-        ;; (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" :simulatorId)
-        ;; (format "-destination 'generic/platform=iOS' \\"))
    "-skipUnavailableActions \\"
    "-destination-timeout 1 \\"
    "-scmProvider system \\"
-   "-parallelizeTargets \\"
+   ;; "-parallelizeTargets \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
    "-quiet \\"
    "-derivedDataPath build"))
@@ -280,16 +278,16 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:terminate-all-running-apps ()
     "Terminate runnings apps."
     (interactive)
-    (swift-additions:terminate-app-in-simulator current-simulator-id)
-    (swift-additions:terminate-app-in-simulator secondary-simulator-id))
+    (terminate-app-in-simulator :simulatorID current-simulator-id)
+    (terminate-app-in-simulator :simulatorID secondary-simulator-id))
 
-(defun swift-additions:terminate-app-in-simulator (simulator-id)
-  "Terminate app that is running in simulator with SIMULATOR-ID."
+(cl-defun terminate-app-in-simulator (&key simulatorID)
+  "Terminate app that is running in simulator with SIMULATORID."
   (message-with-color :tag "[Terminating]" :text current-xcode-scheme :attributes 'warning)
   (call-process-shell-command
    (concat
-    (if simulator-id
-        (format "xcrun simctl terminate %s %s" simulator-id (fetch-or-load-app-identifier))
+    (if simulatorID
+        (format "xcrun simctl terminate %s %s" simulatorID (fetch-or-load-app-identifier))
       (format "xcrun simctl terminate booted %s" (fetch-or-load-app-identifier))))))
 
 (defun swift-additions:run-app()
@@ -311,34 +309,16 @@ ARGS are rest arguments, appended to the argument list."
           (swift-additions:run-app)))
     (swift-additions:run-app)))
 
-(defun swift-additions:analyze-using-periphery ()
-  "Analyze code base using periphery."
-  (interactive)
-  (setup-current-project (get-ios-project-root))
-  (if (executable-find "periphery")
-      (progn
-        (let* ((default-directory current-project-root)
-               (index-store-path (get-index-store-path))
-               (command
-                (concat
-                 (format "%s \\" periphery-command)
-                 (format "-%s" (get-workspace-or-project))
-                 (format "--schemes %s \\" (fetch-or-load-xcode-scheme))
-                 (format "--targets %s \\" (fetch-targets))
-                 " --quiet \\"
-                 (if index-store-path
-                     (format "--index-store-path %s --skip-build" (get-index-store-path))))))
-          (async-shell-command-to-string :process-name "periphery" :command command :callback #'periphery-run-parser))
-        (message-with-color :tag "[Analysing]" :text "Code base using \'periphery\'." :attributes 'warning)
-    (message-with-color :tag "[Missing binary]" :text "Periphery is not install. Run 'brew install periphery'" :attributes 'error))))
+(cl-defun launch-app-in-simulator (&key appIdentifier applicationName simulatorName simulatorID)
+  "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
 
-(defun swift-additions:launch-app-in-simulator (app-identifier &optional simulator-id)
-  "Command to filter and log the simulator (as APP-IDENTIFIER SIMULATOR-ID)."
-  (if-let ((simulator-id simulator-id))
-      (format "xcrun simctl launch --console-pty %s %s" simulator-id app-identifier)
-    (format "xcrun simctl launch --console-pty booted %s" app-identifier)))
+  (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
 
-(defun swift-additions:run-async-command-in-xcodebuild-buffer (command)
+  (if-let ((simulatorID simulatorID))
+      (format "xcrun simctl launch --console-pty %s %s" simulatorID appIdentifier)
+    (format "xcrun simctl launch --console-pty booted %s" appIdentifier)))
+
+(cl-defun run-async-command-in-buffer (&key command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
   (async-shell-command command xcodebuild-buffer))
 
@@ -416,7 +396,7 @@ ARGS are rest arguments, appended to the argument list."
          (app-name (get-app-name-from :folder folder))
          (default-directory (concat current-project-root folder)))
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
-    (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
+    (run-async-command-in-buffer :command (format "ios-deploy -b %s.app -d" app-name))))
 
 (defun install-app-in-simulator ()
   "Install the app in the simulator."
@@ -424,9 +404,12 @@ ARGS are rest arguments, appended to the argument list."
          (simulator-id (fetch-or-load-simulator-id)))
 
     (swift-additions:terminate-all-running-apps)
+    (setq applicationName (get-app-name-from :folder (get-build-folder)))
+    (setq simulatorName  (fetch-simulator-name))
+
     (message-with-color
      :tag "[Installing]"
-     :text (format "%s onto %s. Will launch app when done." (get-app-name-from :folder (get-build-folder)) (fetch-simulator-name))
+     :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
      :attributes '(:inherit success))
 
     (call-process-shell-command (install-app-in-simulator-command :simulatorID simulator-id))
@@ -435,7 +418,12 @@ ARGS are rest arguments, appended to the argument list."
       (setup-simulator-dwim secondary-simulator-id)
       (call-process-shell-command (install-app-in-simulator-command :simulatorID secondary-id)))
 
-    (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:launch-app-in-simulator current-app-identifier simulator-id))))
+    (run-async-command-in-buffer
+        :command (launch-app-in-simulator
+                  :appIdentifier current-app-identifier
+                  :applicationName applicationName
+                  :simulatorName simulatorName
+                  :simulatorID simulator-id))))
 
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
@@ -661,8 +649,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:check-for-spm-build-errors (text)
     "Check for Swift package build erros in TEXT."
-  (when DEBUG
-    (message text))
+  (when DEBUG (message text))
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text)
