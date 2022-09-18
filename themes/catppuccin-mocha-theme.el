@@ -1,6 +1,5 @@
 ;;; commentary: catppuccin-mocha based theme
 
-
 ;;; Code:
 (eval-when-compile
   (require 'cl-lib))
@@ -84,7 +83,7 @@
   (warning                              (:foreground yellow))
   (window-border                        (:foreground peach))
   (window-divider                       (:foreground surface0))
-  
+
   ;; ;; Font lock
   (font-lock-type-face                  (:foreground lavender))
   (font-lock-regexp-grouping-backslash  (:foreground yellow))
@@ -110,14 +109,14 @@
   (highlight-numbers-face               (:foreground pink))
   (highlight-symbol-face                (:background mantle :foreground green :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
-  
+
   (minibuffer-prompt-end                (:foreground red))
   (minibuffer-prompt                    (:foreground mauve))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
   (trailing-rosewaterspace                  (:background surface1))
-  
+
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:inherit 'error))
   (doom-modeline-battery-warning        (:inherit 'warning))
@@ -395,7 +394,7 @@
   (vterm-color-yellow (:background peach :foreground yellow))
   (vterm-color-red (:background red :foreground red))
   (vterm-color-rosewater (:background text :foreground text))
-  
+
   (popup-face (:inherit 'tooltip))
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
@@ -464,7 +463,7 @@
   (tree-sitter-hl-face:property                  (:foreground rosewater))
   (tree-sitter-hl-face:property.definition       (:foreground rosewater :italic t))
 
-  (tree-sitter-hl-face:comment                   (:foreground blue :italic t))
+  (tree-sitter-hl-face:comment                   (:foreground surface2 :italic t))
   (tree-sitter-hl-face:doc                       (:foreground blue :italic t))
   (tree-sitter-hl-face:string                    (:foreground green :italic t))
   (tree-sitter-hl-face:string.special            (:foreground green :italic t))
@@ -479,7 +478,7 @@
   (tree-sitter-hl-face:number                    (:foreground peach))
 
   (tree-sitter-hl-face:punctuation               (:foreground maroon))
-  (tree-sitter-hl-face:punctuation.bracket       (:foreground mauve))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground subtext1))
   (tree-sitter-hl-face:punctuation.delimiter     (:foreground text :bold t))
   (tree-sitter-hl-face:punctuation.special       (:foreground yellow))
 
@@ -487,14 +486,14 @@
   (tree-sitter-hl-face:keyword.compiler          (:foreground overlay2 :bold t :italic t))
 
   ;; Custom for pinkus tree-sitter-swift
-  (tree-sitter-hl-face:include                   (:foreground teal :italic t))
-  (tree-sitter-hl-face:parameter                 (:foreground peach :italic t))
+  (tree-sitter-hl-face:include                   (:foreground mauve :italic t))
+  (tree-sitter-hl-face:parameter                 (:foreground sky))
   (tree-sitter-hl-face:repeat                    (:foreground blue :bold t))
-  (tree-sitter-hl-face:boolean                   (:foreground green))
-  (tree-sitter-hl-face:keyword.return            (:foreground red :bold t))
+  (tree-sitter-hl-face:boolean                   (:foreground yellow))
+  (tree-sitter-hl-face:keyword.return            (:foreground maroon :bold t :italic t))
   (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
   (tree-sitter-hl-face:keyword.function          (:foreground maroon :bold t))
-  (tree-sitter-hl-face:conditional               (:foreground yellow :bold t))
+  (tree-sitter-hl-face:conditional               (:foreground lavender :bold t))
 
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))

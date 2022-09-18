@@ -12,8 +12,8 @@
 (require 'flycheck)
 (require 'swift-mode)
 (require 'evil-states)
-
 (require 'periphery)
+
 (load "periphery")
 
 (defgroup swift-additions:xcodebuild nil
@@ -57,7 +57,7 @@
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
-  
+
   (let ((output-buffer (generate-new-buffer process-name))
         (callback-fun callback))
     (set-process-sentinel
@@ -157,13 +157,13 @@ ARGS are rest arguments, appended to the argument list."
   (unless current-build-configuration
     (setq current-build-configuration (build-menu :title "Choose a configuration" :list (swift-additions:get-configuration-list))))
   current-build-configuration)
-    
+
 (defun fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."
   (unless current-app-identifier
     (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
   current-app-identifier)
-  
+
 (defun fetch-or-load-simulator-id ()
   "Get the booted simulator id or fetch a suiting one."
   (if (not asked-to-use-secondary-simulator)
@@ -200,14 +200,14 @@ ARGS are rest arguments, appended to the argument list."
    "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
     "xcrun xcodebuild build\\"))
 
-(defun swift-additions:build-folder ()
+(defun get-build-folder ()
   "Fetch build folder."
   (let ((config (fetch-or-load-build-configuration)))
     (if local-device-id
         (format "build/Build/Products/%s-iphoneos/" config)
       (format "build/Build/Products/%s-iphonesimulator/" config))))
 
-(defun swift-additions:number-of-available-cores ()
+(defun get-number-of-cores ()
   "Fetch number of available cores."
   (if-let ((cores (replace-regexp-in-string "\n$" "" (shell-command-to-string "sysctl -n hw.ncpu"))))
       cores
@@ -228,32 +228,54 @@ ARGS are rest arguments, appended to the argument list."
    (get-workspace-or-project)
    (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
-   (format "-jobs %s \\" (swift-additions:number-of-available-cores))
-   (format "-sdk %s \\" (swift-additions:current-sdk))
+   (format "-jobs %s \\" (get-number-of-cores))
+   (format "-sdk %s \\" (get-current-sdk))
    (if simulatorId
-       (format "-destination id=%s \\" simulatorId)
-       (format "-destination 'generic/platform=iOS' \\" ))
+       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId)
+     (format "-destination 'generic/platform=iOS' \\" ))
         ;; (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" :simulatorId)
         ;; (format "-destination 'generic/platform=iOS' \\"))
    "-skipUnavailableActions \\"
    "-destination-timeout 1 \\"
-   "-scmProvider xcode \\"
+   "-scmProvider system \\"
    "-parallelizeTargets \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
    "-quiet \\"
    "-derivedDataPath build"))
 
-(defun swift-additions:get-app-name (directory)
-  "Get compiled app name from (DIRECTORY)."
-  (when-let (binary-name (directory-files directory nil "\\.app$"))
+(cl-defun get-app-name-from (&key folder)
+  "Get compiled app name from (FOLDER)."
+  (when-let (binary-name (directory-files folder nil "\\.app$"))
     (file-name-sans-extension (car binary-name))))
 
-(defun swift-additions:install-in-simulator-command (simulator-id)
-  "Install and launch app (SIMULATOR-ID)."
-  (let ((folder (swift-additions:build-folder)))
+(defun get-index-store-path ()
+  "Get the index store path."
+  (let ((index-store-path (concat current-project-root "build/Index/DataStore")))
+        (if (file-directory-p index-store-path)
+            index-store-path
+          nil)))
+
+(cl-defun parse-errors-from (&key text)
+  "Parse errors from TEXT."
+  (when DEBUG (message (concat "Errors:" text)))
+  (message-with-color :tag "[Errors/Warnings]" :text "Warning not a clean build." :attributes 'error)
+  (periphery-run-parser text))
+
+(defun format-device-id (id)
+  "Format device id (as ID)."
+  (if id
+      (if (not
+           (string-match-p (regexp-quote "-") id))
+          (concat (substring id 0 8) "-" (substring id 6))
+        id)))
+
+(cl-defun install-app-in-simulator-command (&key simulatorID)
+  "Install and launch app (SIMULATORID)."
+  (when DEBUG (message (concat "Buildpath: "  (get-build-folder))))
+  (let ((folder (get-build-folder)))
     (concat
      "env /usr/bin/arch -x86_64 \\"
-     (format "xcrun simctl install %s %s%s.app\n" simulator-id folder (swift-additions:get-app-name folder)))))
+     (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (get-app-name-from :folder folder)))))
 
 (defun swift-additions:terminate-all-running-apps ()
     "Terminate runnings apps."
@@ -270,33 +292,12 @@ ARGS are rest arguments, appended to the argument list."
         (format "xcrun simctl terminate %s %s" simulator-id (fetch-or-load-app-identifier))
       (format "xcrun simctl terminate booted %s" (fetch-or-load-app-identifier))))))
 
-(defun get-index-store-path ()
-  "Get the index store path."
-  (let ((index-store-path (concat current-project-root "build/Index/DataStore")))
-        (if (file-directory-p index-store-path)
-            index-store-path
-          nil)))
-
-(cl-defun swift-additions:parse-errors (&key text)
-  "Parse errors from TEXT."
-  (message-with-color :tag "[Errors/Warnings]" :text "Warning not a clean build." :attributes 'error)
-  (periphery-run-parser text))
-
-(defun format-device-id (id)
-  "Format device id (as ID)."
-  (if id
-      (if (not
-           (string-match-p (regexp-quote "-") id))
-          (concat (substring id 0 8) "-" (substring id 6))
-        id)))
-
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
-  (message "Run app...")
   (if local-device-id
       (swift-additions:install-app-on-device)
-    (swift-addition:install-app-in-simulator)))
- 
+    (install-app-in-simulator)))
+
 (defun swift-additions:check-for-errors (text)
   "Run periphery parser on TEXT."
   (if (or
@@ -304,7 +305,7 @@ ARGS are rest arguments, appended to the argument list."
        (string-match-p (regexp-quote "error: ") text)
        (string-match-p (regexp-quote "warning: ") text))
       (progn
-        (swift-additions:parse-errors :text text)
+        (parse-errors-from :text text)
         (message text)
         (when (not (string-match-p (regexp-quote "error: ") text))
           (swift-additions:run-app)))
@@ -388,10 +389,6 @@ ARGS are rest arguments, appended to the argument list."
          (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
     (or workspace xcodeproj (expand-file-name (vc-root-dir)))))
 
-(cl-defun show-notification (&key title &key message)
-  "Show notification (as TITLE as MESSAGE)."
-  (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
-
 (defun get-connected-device-id ()
   "Get the id of the connected device."
   (let ((device-id
@@ -401,7 +398,11 @@ ARGS are rest arguments, appended to the argument list."
         nil
       (format-device-id device-id))))
 
-(defun swift-additions:current-sdk ()
+(cl-defun show-notification (&key title &key message)
+  "Show notification (as TITLE as MESSAGE)."
+  (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
+
+(defun get-current-sdk ()
   "Return the current SDK."
   (if local-device-id
       "iphoneos"
@@ -409,53 +410,32 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun swift-additions:install-app-on-device ()
   "Install an app on device."
-  (message (swift-additions:build-folder))
-  (let* ((folder (swift-additions:build-folder))
-         (app-name (swift-additions:get-app-name folder))
-         (default-directory (concat current-project-root folder)))
-         (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
-         (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
+  (when DEBUG (message (concat "Buildpath:" (get-build-folder))))
 
-(defun swift-addition:install-app-in-simulator ()
+  (let* ((folder (get-build-folder))
+         (app-name (get-app-name-from :folder folder))
+         (default-directory (concat current-project-root folder)))
+    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
+    (swift-additions:run-async-command-in-xcodebuild-buffer (format "ios-deploy -b %s.app -d" app-name))))
+
+(defun install-app-in-simulator ()
   "Install the app in the simulator."
   (let* ((default-directory current-project-root)
          (simulator-id (fetch-or-load-simulator-id)))
-    
+
     (swift-additions:terminate-all-running-apps)
     (message-with-color
      :tag "[Installing]"
-     :text (format "%s onto %s. Will launch app when done." (swift-additions:get-app-name (swift-additions:build-folder)) (fetch-simulator-name))
+     :text (format "%s onto %s. Will launch app when done." (get-app-name-from :folder (get-build-folder)) (fetch-simulator-name))
      :attributes '(:inherit success))
 
-    (call-process-shell-command (swift-additions:install-in-simulator-command simulator-id))
+    (call-process-shell-command (install-app-in-simulator-command :simulatorID simulator-id))
 
     (when-let ((secondary-id secondary-simulator-id))
       (setup-simulator-dwim secondary-simulator-id)
-      (call-process-shell-command (swift-additions:install-in-simulator-command secondary-id)))
+      (call-process-shell-command (install-app-in-simulator-command :simulatorID secondary-id)))
 
     (swift-additions:run-async-command-in-xcodebuild-buffer (swift-additions:launch-app-in-simulator current-app-identifier simulator-id))))
-
-(defun setup-default-buffer-state ()
-  "Setup buffer default state."
-  (setq-local buffer-read-only nil)
-  (erase-buffer))
-
-(defun reset-default-buffer-state ()
-  "Reset buffer default state."
-  (setq-local buffer-read-only t))
-
-(defun swift-additions:current-device ()
-  "Function that check we should run on simulator or device."
-  (if local-device-id
-      "physical device"
-    (fetch-simulator-name)))
-
-(defun check-for-errors (process signal)
-  "Launching ios-deploy and install app when done building (as PROCESS SIGNAL)."
-  (when (memq (process-status process) '(exit signal))
-    (with-current-buffer (get-buffer-create xcodebuild-buffer)
-      (swift-additions:check-for-errors (buffer-string))))
-    (shell-command-sentinel process signal))
 
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
@@ -491,8 +471,8 @@ ARGS are rest arguments, appended to the argument list."
   (when (not local-device-id)
     (fetch-or-load-simulator-id)
     (setq device-or-simulator "[Building simulator target]"))
-  
-  (if (swift-additions:is-spm-project)
+
+  (if (is-a-swift-package-base-project)
     (swift-additions:build-swift-package)
     (progn
       (if (vc-root-dir)
@@ -515,7 +495,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (if (swift-additions:is-spm-project)
+  (if (is-a-swift-package-base-project)
       (swift-additions:clean-build-folder-with (vc-root-dir) ".build" "swift package")
     (swift-additions:clean-build-folder-with (get-ios-project-root) "build" current-xcode-scheme)))
 
@@ -611,7 +591,7 @@ ARGS are rest arguments, appended to the argument list."
     (setq current-project-root (get-ios-project-root)))
 
   (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning))
-  
+
   (let* ((default-directory current-project-root)
          (json (swift-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
@@ -674,9 +654,8 @@ ARGS are rest arguments, appended to the argument list."
     (if (not DEBUG)
         (setq-local inhibit-message t)))
 
-(defun swift-additions:is-spm-project ()
+(defun is-a-swift-package-base-project ()
   "Check if project is a swift package based."
-  (interactive)
   (let ((default-directory (vc-root-dir)))
     (file-exists-p "Package.swift")))
 
@@ -689,19 +668,21 @@ ARGS are rest arguments, appended to the argument list."
        (string-match-p (regexp-quote "error:") text)
        (string-match-p (regexp-quote "warning:") text))
       (progn
-        (swift-additions:parse-errors :text text)
+        (parse-errors-from :text text)
         (when (not (string-match-p (regexp-quote "error:") text))
          (shell-command "swift run" xcodebuild-buffer)))
     (shell-command "swift run" xcodebuild-buffer)))
 
 (defun swift-additions:build-swift-package ()
   "Build swift package module."
+  (interactive)
   (let ((default-directory (vc-root-dir)))
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
 
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
+  (interactive)
   (let ((default-directory (vc-root-dir)))
     (async-shell-command-to-string :process-name "periphery" :command "swift test" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
@@ -861,7 +842,9 @@ See also `my-swift-mode:eglot-server-platform'."
             ;; No args needed for SPM
             (_ nil))))
     (when arg-vals
-      `("-Xswiftc" "-sdk"
+      `(
+        "--completion-max-results" "50"
+        "-Xswiftc" "-sdk"
         "-Xswiftc" ,(car arg-vals)
         "-Xswiftc" "-target"
         "-Xswiftc" ,(cadr arg-vals)))))
@@ -876,17 +859,6 @@ will be included in the list."
         (sourcekit-path (my-swift-mode:xcrun "--find" "sourcekit-lsp")))
     `(,sourcekit-path ,@args)))
 
-(require 'ansi-color)
-;;; Taken from https://stackoverflow.com/questions/5819719/emacs-shell-command-output-not-showing-ansi-colors-but-the-code
-(defadvice display-message-or-buffer (before ansi-color activate)
-  "Process ANSI color codes in shell output."
-  (let ((buf (ad-get-arg 0)))
-    (and (bufferp buf)
-         (string= (buffer-name buf) xcodebuild-buffer)
-         (with-current-buffer buf
-           (ansi-color-apply-on-region (point-min) (point-max))))))
-
 (provide 'swift-additions)
 
 ;;; swift-additions.el ends here
-

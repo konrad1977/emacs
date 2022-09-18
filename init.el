@@ -18,7 +18,7 @@
 (savehist-mode 1)                 ;; Save history
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
 (blink-cursor-mode 1)
-  
+
 ;; Setup fonts
 (set-face-attribute 'default nil :font "Source Code Pro" :height 158)
 (set-face-attribute 'fixed-pitch nil :font "Fira Code" )
@@ -326,7 +326,7 @@
 
   ;; searching
   (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
-  
+
   ;; window resizing
   (define-key evil-motion-state-map (kbd "C-+") #'enlarge-window-horizontally)
   (define-key evil-motion-state-map (kbd "C--") #'shrink-window-horizontally)
@@ -358,11 +358,11 @@
 
 (use-package evil-commentary
   :after evil
-  :config 
+  :config
   (evil-commentary-mode 1))
 
 (use-package evil-lion
-  :after evil  
+  :after evil
   :hook (prog-mode . evil-lion-mode))
 
 (use-package evil-numbers
@@ -510,16 +510,9 @@
   :config
   (setq eglot-stay-out-of '(company)
         eglot-autoshutdown t
+        eglot-events-buffer-size nil
         eglot-autoreconnect t
-        eglot-send-changes-idle-time 0.8)
-  ;; (add-to-list 'eglot-server-programs '(swift-mode . 
-  ;; ("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"
-  ;; "-Xswiftc -sdk \\" 
-  ;; "-Xswiftc /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.5.sdk \\"
-  ;; "-Xswiftc -target \\"
-  ;; "-Xswiftc x86_64-apple-ios15.5-simulator"
-  ;; )))
-  )
+        eglot-send-changes-idle-time 0.5))
 
 (use-package eldoc
   :hook (eglot-managed-mode . eldoc-mode))
@@ -533,40 +526,40 @@
 (use-package company
   :defer t
   :hook (prog-mode . company-mode)
-  :bind 
-  (:map company-active-map 
+  :bind
+  (:map company-active-map
   ("RET" . nil)
   ("<return>" . nil)
   ("<tab>" . company-complete-selection))
   :config
-  (setq 
-        company-transformers '(delete-consecutive-dups company-sort-by-backend-importance)
+  (setq
+        company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
         company-format-margin-function  'company-detect-icons-margin
-        company-tooltip-margin              2
-        company-minimum-prefix-length       0
-        company-tooltip-align-annotations   t
+        company-tooltip-margin              1
+        company-minimum-prefix-length       1
+        company-tooltip-align-annotations   nil
         company-require-match               nil
         company-tooltip-limit               15
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
-        company-idle-delay                  0.35
         company-show-quick-access           'left
         company-async-wait                  0.5
-        company-async-timeout               2
+        company-async-timeout               1
         company-backends '(company-capf
                            company-dabbrev-code
                            company-keywords
                            company-yasnippet)
         company-frontends '(company-box-frontend))
-  :custom-face
-  (company-tooltip ((t (:font "JetBrains Mono" :height 167)))))
+  ;; :custom-face
+  ;; (company-tooltip ((t (:font "JetBrains Mono" :height 167))))
+  )
 
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
   :init
-  (setq company-box-backends-colors '((company-yasnippet 
-                                       :all (:foreground "PaleVioletRed2" :background nil) 
+  (setq company-box-backends-colors '((company-yasnippet
+                                       :all (:foreground "PaleVioletRed2" :background nil)
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.2))
 
@@ -773,7 +766,7 @@
 ;; Winum - select windows easy ---------------------------
 (use-package winum
   :after doom-modeline
-  :bind 
+  :bind
   ("M-1" . winum-select-window-1)
   ("M-2" . winum-select-window-2)
   ("M-3" . winum-select-window-3)
@@ -877,7 +870,7 @@
     "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer")
     "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer")
     )
-  
+
   (mk/leader-keys
     "e" '(:ignore t :which-key "Eval")
     "ee" '(eval-expression :which-key "Eval expression")
@@ -1048,7 +1041,7 @@
 ;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
 ;;         company-sourcekit-use-yasnippet t
 ;;         sourcekit-verbose t))
-        
+
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
@@ -1074,7 +1067,7 @@
   (when (boundp 'eglot-server-programs)
     (add-to-list 'eglot-server-programs
                  '(swift-mode . my-swift-mode:eglot-server-contact)))
-  
+
   (setq tree-sitter-hl-use-font-lock-keywords t)
 
   (load "periphery-swiftlint")
@@ -1162,6 +1155,7 @@
   (flycheck-refresh-fringes-and-margins))
 
 (add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
+(add-hook 'before-save-hook #'delete-trailing-whitespace)
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."
