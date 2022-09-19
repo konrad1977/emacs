@@ -267,8 +267,8 @@
    '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
    '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
 
-(use-package centered-cursor-mode
-  :hook (prog-mode . centered-cursor-mode))
+;; (use-package centered-cursor-mode
+;;   :hook (prog-mode . centered-cursor-mode))
 
 (use-package dashboard
   :config
@@ -304,7 +304,7 @@
   :bind ("<escape>" . keyboard-escape-quit)
   :init
   (setq evil-want-integration t
-        evil-want-minibuffer nil
+        evil-want-minibuffer t
         evil-want-fine-undo t
         evil-want-keybinding nil
         evil-want-C-u-scroll t
@@ -343,6 +343,11 @@
   (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+
+(use-package evil-mc
+  :after evil
+  :init
+  (global-evil-mc-mode t))
 
 (use-package evil-collection
   :after evil
@@ -436,18 +441,17 @@
           )))
 
 
-;; (use-package dimmer
-;;   :hook (prog-mode . dimmer-mode)
-;;   :config
-;;   (dimmer-configure-org)
-;;   (dimmer-configure-magit)
-;;   (dimmer-configure-company-box)
-;;   (dimmer-configure-posframe)
-;;   (dimmer-configure-hydra)
-;;   (dimmer-configure-which-key)
-;;   (setq dimmer-watch-frame-focus-events nil
-;;         dimmer-fraction 0.5)
-;;   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
+(use-package dimmer
+  :hook (prog-mode . dimmer-mode)
+  :config
+  (dimmer-configure-org)
+  (dimmer-configure-magit)
+  (dimmer-configure-company-box)
+  (dimmer-configure-posframe)
+  (dimmer-configure-hydra)
+  (setq dimmer-watch-frame-focus-events nil
+        dimmer-fraction 0.25)
+  (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 
 ;; rainbow-delimieters
@@ -456,6 +460,7 @@
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
+  :defer t
   :hook (emacs-lisp-mode . rainbow-mode))
 
 (use-package paren
@@ -595,7 +600,7 @@
 (use-package consult-project-extra
   :bind
   ("C-<tab>" . #'consult-projectile)
-  ("M-O" . #'consult-project-extra-find-other-window)
+  ("M-O" . #'consult-project-extra-find)
   :after consult)
 
 (use-package ace-jump-mode
