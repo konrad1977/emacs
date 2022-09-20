@@ -693,8 +693,8 @@
         projectile-enable-caching t
         projectile-sort-order 'recentf
         projectile-indexing-method 'alien
-        projectile-switch-project-action #'consult-projectile-switch-project
-        projectile-ignored-files '(".orig" ".yml"))
+        projectile-switch-project-action #'fzf-git-files
+        projectile-ignored-files '(".orig" ".yml" "^.*"))
   (projectile-project-root-files-functions
    '(projectile-root-local
      projectile-root-top-down
