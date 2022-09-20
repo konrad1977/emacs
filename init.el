@@ -499,8 +499,7 @@
 (use-package consult-project-extra
   :after consult
   :bind
-  ("C-<tab>" . #'consult-projectile)
-  ("M-O" . #'consult-project-extra-find))
+  ("C-<tab>" . #'consult-projectile))
 
 (use-package consult-ls-git
   :after consult)
@@ -597,12 +596,6 @@
 (use-package company-prescient
   :hook (company-mode . company-prescient-mode))
 
-(use-package consult-project-extra
-  :bind
-  ("C-<tab>" . #'consult-projectile)
-  ("M-O" . #'consult-project-extra-find)
-  :after consult)
-
 (use-package ace-jump-mode
   :bind ("M-g" . ace-jump-mode))
 
@@ -682,6 +675,7 @@
 (use-package projectile
   :hook (prog-mode . projectile-mode)
   :diminish projectile-mode
+  :bind ("M-O" . projectile--find-file)
   :custom
   (add-to-list 'projectile-globally-ignored-directories '"^\\.build$")
   (add-to-list 'projectile-globally-ignored-directories '"^\\build$")
@@ -693,7 +687,7 @@
         projectile-enable-caching t
         projectile-sort-order 'recentf
         projectile-indexing-method 'alien
-        projectile-switch-project-action #'fzf-git-files
+        projectile-switch-project-action #'projectile-find-file-dwim
         projectile-ignored-files '(".orig" ".yml" "^.*"))
   (projectile-project-root-files-functions
    '(projectile-root-local
