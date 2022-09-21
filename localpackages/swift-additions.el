@@ -740,37 +740,37 @@ line."
 (defface tree-sitter-hl-face:conditional
   '((t :inherit tree-sitter-hl-face:property
        :foreground "#666bb2"))
-  "Face for enum case names in a pattern match"
+  "Face for if/switch."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:include
   '((t :inherit tree-sitter-hl-face:property
        :foreground "#666bb2"))
-  "Face for enum case names in a pattern match"
+  "Import/include face."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:boolean
   '((t :inherit tree-sitter-hl-face:property
        :foreground "#666bb2"))
-  "Face for enum case names in a pattern match"
+  "Face for true/false."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.return
   '((t :inherit tree-sitter-hl-face:property
        :foreground "#666bb2"))
-  "Face for enum case names in a pattern match"
+  "Face for 'return'."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.operator
   '((t :inherit tree-sitter-hl-face:property
        :foreground "#666bb2"))
-  "Face for enum case names in a pattern match"
+  "Face for operator."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.function
   '((t :inherit tree-sitter-hl-face:property
        :foreground "#666bb2"))
-  "Face for enum case names in a pattern match"
+  "Face for 'func' keyword."
   :group 'tree-sitter-hl-faces)
 
 (defun command-output-to-string (command &rest args)
