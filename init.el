@@ -20,7 +20,7 @@
 (blink-cursor-mode 1)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "Source Code Pro" :height 158)
+(set-face-attribute 'default nil :font "Fira Code" :height 172)
 (set-face-attribute 'fixed-pitch nil :font "Fira Code" )
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :weight 'light)
 ;; (variable-pitch-mode t)
