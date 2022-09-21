@@ -782,7 +782,7 @@ Also trims whitespace from the ends of any output."
     (with-current-buffer standard-output
       (apply #'call-process command nil '(t nil) nil args)))))
 
-(defvar-local my-swift-mode:eglot-server-platform :ios
+(defvar-local my-swift-mode:eglot-server-platform nil
   "Platform for the current project, either `:ios' or `:macos'.
 `nil' by default.
 
@@ -830,6 +830,7 @@ See also `my-swift-mode:eglot-server-platform'."
             (_ nil))))
     (when arg-vals
       `(
+        "build"
         "--completion-max-results" "50"
         "-Xswiftc" "-sdk"
         "-Xswiftc" ,(car arg-vals)
@@ -842,8 +843,9 @@ See also `my-swift-mode:eglot-server-platform'."
 If `my-swift-mode:eglot-server-platform' is defined, the
 appropriate flags to pass to the Swift compiler for the platform
 will be included in the list."
-  (let ((args (my-swift-mode:sourcekit-args :ios))
+  (let ((args (my-swift-mode:sourcekit-args my-swift-mode:eglot-server-platform))
         (sourcekit-path (my-swift-mode:xcrun "--find" "sourcekit-lsp")))
+        (message args)
     `(,sourcekit-path ,@args)))
 
 (provide 'swift-additions)

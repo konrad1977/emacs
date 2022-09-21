@@ -510,7 +510,6 @@
 
 (use-package eglot
   :defer t
-  :hook (swift-mode . eglot-ensure)
   :config
   (setq eglot-stay-out-of '(company)
         eglot-autoshutdown t
@@ -570,17 +569,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '(
-              ;; (company-capf company-yasnippet :with company-sourcekit)
-              ;; (company-yasnippet :with company-capf)
-              ;; (company-sourcekit :with company-capf)
-              (company-capf)
-              )))
-
-(use-package consult-company
-  :after company
-  :config
-  (define-key company-mode-map [remap completion-at-point] #'consult-company))
+              '((company-keywords company-capf :with company-dabbrev-code))))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
@@ -647,6 +636,7 @@
   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
+  :hook (swift-mode . setup-eglot-for-swift)
   :bind
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
   ("C-c C-x" . #'swift-additions:reset-settings)
@@ -657,8 +647,7 @@
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("C-M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
-  ("M-s" . #'swift-additions:terminate-all-running-apps)
-  :defer t)
+  ("M-s" . #'swift-additions:terminate-all-running-apps))
 
 (use-package markdown-mode
   :defer t)
@@ -951,7 +940,6 @@
         org-log-done 'time))
 
 (with-eval-after-load 'swift-mode
-    (message "swift-mode loaded")
     (setup-swift-programming))
 
 (with-eval-after-load 'org
@@ -1034,12 +1022,12 @@
   ("M-S-<left>" . left-stuff-left)
   ("M-S-<right>" . drag-stuff-right))
 
-;; (use-package company-sourcekit
-;;   :after company
-;;   :config
-;;   (setq sourcekit-sourcekittendaemon-executable "/usr/local/bin/sourcekittend"
-;;         company-sourcekit-use-yasnippet t
-;;         sourcekit-verbose t))
+(use-package company-sourcekit
+  :defer t
+  :config
+  (setq sourcekit-sourcekittendaemon-executable (string-trim (shell-command-to-string "which sourcekittend"))
+        company-sourcekit-use-yasnippet t
+        sourcekit-verbose nil))
 
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
@@ -1056,19 +1044,19 @@
   :ensure nil
   :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
 
+(defun setup-eglot-for-swift ()
+    "Setup eglot for swift buffers."
+    (eglot-ensure)
+    (when (boundp 'eglot-server-programs)
+      (add-to-list 'eglot-server-programs
+                   '(swift-mode . my-swift-mode:eglot-server-contact)))
+    (setup-swift-mode-company))
+
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
-  (setup-swift-mode-company)
-  (load "swift-additions")
-
-  (eglot-ensure)
-  (when (boundp 'eglot-server-programs)
-    (add-to-list 'eglot-server-programs
-                 '(swift-mode . my-swift-mode:eglot-server-contact)))
-
   (setq tree-sitter-hl-use-font-lock-keywords t)
-
+  (load "swift-additions")
   (load "periphery-swiftlint")
   (load "periphery-loco")
 
@@ -1154,7 +1142,7 @@
   (flycheck-refresh-fringes-and-margins))
 
 (add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
-(add-hook 'before-save-hook #'delete-trailing-whitespace)
+;; (add-hook 'before-save-hook #'delete-trailing-whitespace)
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."
