@@ -258,6 +258,7 @@
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
         doom-modeline-icon t
+        doom-modeline-modal-icon t
         doom-modeline-lsp nil
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
