@@ -215,7 +215,7 @@
 (use-package embark
   :bind
   (("C-," . embark-act)         ;; pick some comfortable binding
-   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-x C-e" . embark-dwim)        ;; good alternative: M-.
    ("C-x C-x" . kill-buffer-and-window)
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
   :init
@@ -258,6 +258,7 @@
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
         doom-modeline-icon t
+        doom-modeline-modal-icon t
         doom-modeline-lsp nil
         doom-modeline-major-mode-color-icon nil
         doom-modeline-buffer-state-icon nil
@@ -344,10 +345,11 @@
 
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
 
-(use-package evil-mc
+(use-package evil-multiedit
   :after evil
-  :init
-  (global-evil-mc-mode t))
+  :config
+  (setq evil-multiedit-follow-matches t)
+  (evil-multiedit-default-keybinds))
 
 (use-package evil-collection
   :after evil
@@ -375,6 +377,10 @@
   :config
   (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
   (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
+
+(use-package evil-quickscope
+  :after evil
+  :hook (prog-mode . evil-quickscope-mode))
 
 (use-package evil-tutor
   :commands evil-tutor)
@@ -569,7 +575,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-keywords company-capf :with company-dabbrev-code))))
+              '((company-yasnippet company-capf :with company-dabbrev-code))))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
