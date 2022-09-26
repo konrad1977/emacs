@@ -112,8 +112,8 @@
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
-  ;; (use-package exec-path-from-shell
-  ;;   :init (exec-path-from-shell-initialize))
+  (use-package exec-path-from-shell
+    :init (exec-path-from-shell-initialize))
 
   (use-package ns-auto-titlebar
     :config (ns-auto-titlebar-mode))
@@ -516,6 +516,7 @@
 
 (use-package eglot
   :defer t
+  :hook (rust-mode . eglot-ensure)
   :config
   (setq eglot-stay-out-of '(company)
         eglot-autoshutdown t
@@ -523,14 +524,14 @@
         eglot-autoreconnect t
         eglot-send-changes-idle-time 0.5))
 
-(use-package eldoc
-  :hook (eglot-managed-mode . eldoc-mode))
+;; (use-package eldoc
+;;   :hook (eglot-managed-mode . eldoc-mode))
 
-(use-package eldoc-box
-  :hook (eglot-managed-mode . eldoc-box-hover-mode)
-  :config
-  (setq eldoc-box-cleanup-interval 0.5
-        eldoc-box-clear-with-C-g t))
+;; (use-package eldoc-box
+;;   :hook (eglot-managed-mode . eldoc-box-hover-mode)
+;;   :config
+;;   (setq eldoc-box-cleanup-interval 0.5
+;;         eldoc-box-clear-with-C-g t))
 
 (use-package company
   :defer t
@@ -572,10 +573,13 @@
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.2))
 
+(use-package rust-mode
+  :defer t)
+
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-yasnippet company-capf :with company-dabbrev-code))))
+              '((company-keywords company-capf :with company-dabbrev-code))))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
@@ -949,8 +953,6 @@
     (setup-swift-programming))
 
 (with-eval-after-load 'org
-  (require 'ob-swiftui)
-  (ob-swiftui-setup)
   (org-babel-do-load-languages 'org-babel-load-languages
                                 '((emacs-lisp t)
                                 (swift t)))
@@ -1038,10 +1040,10 @@
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
-  :bind ("M-d" . dumb-jump-go)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
+  ;; (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 

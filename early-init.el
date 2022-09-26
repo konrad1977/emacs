@@ -3,14 +3,10 @@
 ;;; Commentary: My early init file
 
 ;;; Code:
-(setq idle-update-delay 0.2)            
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
-
-(setq fast-but-imprecise-scrolling t)
-(setq redisplay-skip-fontification-on-input t)
 
 (when (boundp 'read-process-output-max)
   (setq read-process-output-max (* 10 1024 1024)))
@@ -31,15 +27,14 @@
                 (bottom-divider-width . 1)           ; Thin horizontal window divider
                 (foreground-color . "#DCD7BA")       ; Default foreground color
                 (fullscreen . maximized)             ; Maximize the window by default
-                (alpha . (98 . 95)) 
+                (alpha . (98 . 95))
                 (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
-                (left-fringe . 8)                    ; Thin left fringe
+                (left-fringe . 4)                    ; Thin left fringe
+                (right-fringe . 1)                   ; Thin right fringe
                 (menu-bar-lines . 0)                 ; No menu bar
                 (right-divider-width . 1)            ; Thin vertical window divider
-                (right-fringe . 8)                   ; Thin right fringe
                 (tool-bar-lines . 0)                 ; No tool bar
                 (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
-              
 
 ;; Defer garbage collection further back in the startup process
 (setq gc-cons-threshold most-positive-fixnum
@@ -49,7 +44,10 @@
       tool-bar-mode nil
       initial-major-mode 'fundamental-mode
       menu-bar-mode nil
-      scroll-bar-mode nil)
+      scroll-bar-mode nil
+      idle-update-delay 0.2
+      fast-but-imprecise-scrolling t
+      redisplay-skip-fontification-on-input t)
 
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))
