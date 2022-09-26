@@ -20,18 +20,18 @@
 (blink-cursor-mode 1)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "Fira Code" :height 172)
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" )
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :weight 'light)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 168)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
+(set-face-attribute 'variable-pitch nil :font "JetBrainsMono Nerd Font Mono" :weight 'light)
 ;; (variable-pitch-mode t)
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-(setq default-buffer-file-coding-system 'utf-8)
 
 (setq ad-redefinition-action            'accept
+      default-buffer-file-coding-system 'utf-8
       blink-cursor-interval             0.6       ;; Little slower cursor blinking . default is 0.5
       create-lockfiles                  nil
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
@@ -456,7 +456,7 @@
 
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
-  :hook (emacs-lisp-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
@@ -790,14 +790,14 @@
 (use-package blamer
   :commands (blamer-mode)
   :config
-  (setq blamer-view 'overlay-right
-        blamer-type 'visual
-        blamer-max-commit-message-length 180
+  (setq blamer-view 'overlay
+        blamer-type 'posframe-popup
+        blamer-max-commit-message-length 70
+        blamer-force-truncate-long-line nil
         blamer-author-formatter " ✎ [%s] - "
         blamer-commit-formatter "● %s ● ")
   :custom
   (blamer-idle-time 1.0)
-  (blamer-min-offset 10)
   :custom-face
   (blamer-face ((t :foreground "#E46876"
                    :height 140
