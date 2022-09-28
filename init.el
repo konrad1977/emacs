@@ -1143,6 +1143,7 @@
   (hs-minor-mode)       ; Add support for folding code blocks
   (yas-global-mode 1)   ; Load our yassnippets
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
+  (global-hl-todo-mode t)
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
         indicate-empty-lines t            ;; Show empty lines
