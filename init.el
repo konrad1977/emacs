@@ -22,8 +22,8 @@
 ;; Setup fonts
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 168)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
-(set-face-attribute 'variable-pitch nil :font "JetBrainsMono Nerd Font Mono" :weight 'light)
-;; (variable-pitch-mode t)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150)
+(variable-pitch-mode t)
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
