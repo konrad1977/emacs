@@ -1202,6 +1202,28 @@
 
 (setq gc-cons-threshold (* 2 1024 1024))
 
+(advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
+
+(defun xref-eglot+dumb-backend () 'eglot+dumb)
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot+dumb)))
+  (cons (xref-backend-identifier-at-point 'eglot)
+        (xref-backend-identifier-at-point 'dumb-jump)))
+
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot+dumb)))
+  (xref-backend-identifier-completion-table 'eglot))
+
+(cl-defmethod xref-backend-definitions ((_backend (eql eglot+dumb)) identifier)
+  (or (xref-backend-definitions 'eglot (car identifier))
+      (xref-backend-definitions 'dumb-jump (cdr identifier))))
+
+(cl-defmethod xref-backend-references ((_backend (eql eglot+dumb)) identifier)
+  (or (xref-backend-references 'eglot (car identifier))
+      (xref-backend-references 'dumb-jump (cdr identifier))))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql eglot+dumb)) pattern)
+  (xref-backend-apropos 'eglot pattern))
+
 (provide 'init)
 
 ;;; init.el ends here
