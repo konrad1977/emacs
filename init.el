@@ -524,14 +524,14 @@
         eglot-autoreconnect t
         eglot-send-changes-idle-time 0.5))
 
-;; (use-package eldoc
-;;   :hook (eglot-managed-mode . eldoc-mode))
+(use-package eldoc
+  :hook (eglot-managed-mode . eldoc-mode))
 
-;; (use-package eldoc-box
-;;   :hook (eglot-managed-mode . eldoc-box-hover-mode)
-;;   :config
-;;   (setq eldoc-box-cleanup-interval 0.5
-;;         eldoc-box-clear-with-C-g t))
+(use-package eldoc-box
+  :hook (eglot-managed-mode . eldoc-box-hover-mode)
+  :config
+  (setq eldoc-box-cleanup-interval 0.5
+        eldoc-box-clear-with-C-g t))
 
 (use-package company
   :defer t
@@ -948,6 +948,14 @@
         org-hide-leading-stars t
         org-log-into-drawer t
         org-log-done 'time))
+
+(defun setup-rust-mode ()
+    "Setup rust mode."
+    (use-package flycheck-rust
+      :after flycheck))
+       
+(with-eval-after-load 'rust-mode
+    (setup-rust-mode))
 
 (with-eval-after-load 'swift-mode
     (setup-swift-programming))
