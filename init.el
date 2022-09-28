@@ -112,8 +112,8 @@
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
 
-  ;; (use-package exec-path-from-shell
-  ;;   :init (exec-path-from-shell-initialize))
+  (use-package exec-path-from-shell
+    :init (exec-path-from-shell-initialize))
 
   (use-package ns-auto-titlebar
     :config (ns-auto-titlebar-mode))
@@ -516,6 +516,7 @@
 
 (use-package eglot
   :defer t
+  :hook (rust-mode . eglot-ensure)
   :config
   (setq eglot-stay-out-of '(company)
         eglot-autoshutdown t
@@ -572,10 +573,13 @@
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.2))
 
+(use-package rust-mode
+  :defer t)
+
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-yasnippet company-capf :with company-dabbrev-code))))
+              '((company-keywords company-capf :with company-dabbrev-code))))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
@@ -945,12 +949,18 @@
         org-log-into-drawer t
         org-log-done 'time))
 
+(defun setup-rust-mode ()
+    "Setup rust mode."
+    (use-package flycheck-rust
+      :after flycheck))
+       
+(with-eval-after-load 'rust-mode
+    (setup-rust-mode))
+
 (with-eval-after-load 'swift-mode
     (setup-swift-programming))
 
 (with-eval-after-load 'org
-  (require 'ob-swiftui)
-  (ob-swiftui-setup)
   (org-babel-do-load-languages 'org-babel-load-languages
                                 '((emacs-lisp t)
                                 (swift t)))
@@ -1038,10 +1048,10 @@
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
   :hook (prog-mode . dumb-jump-mode)
-  :bind ("M-d" . dumb-jump-go)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
+  ;; (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 
@@ -1133,6 +1143,7 @@
   (hs-minor-mode)       ; Add support for folding code blocks
   (yas-global-mode 1)   ; Load our yassnippets
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
+  (global-hl-todo-mode t)
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
         indicate-empty-lines t            ;; Show empty lines
