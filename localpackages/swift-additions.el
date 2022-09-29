@@ -10,6 +10,7 @@
 (require 'dash)
 (require 'cl-lib)
 (require 'flycheck)
+(require 'projectile)
 (require 'swift-mode)
 (require 'evil-states)
 (require 'periphery)
@@ -354,7 +355,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (cl-defun find-project-root-folder-with (&key extension)
   "Find project folder where it has its project files EXTENSION."
-  (let* ((project-root (expand-file-name (vc-root-dir)))
+  (if-let* ((project-root (expand-file-name (projectile-project-root)))
          (root (directory-files project-root nil (format "\\%s$" extension)))
          (subroot (get-files-from :directory project-root :extension extension :exclude "build"))
          (workroot (or root subroot))
@@ -367,7 +368,7 @@ ARGS are rest arguments, appended to the argument list."
   "Get the current root of the project."
   (let* ((workspace (find-project-root-folder-with :extension ".xcworkspace"))
          (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
-    (or workspace xcodeproj (expand-file-name (vc-root-dir)))))
+    (or workspace xcodeproj (expand-file-name (projectile-project-root)))))
 
 (defun get-connected-device-id ()
   "Get the id of the connected device."
@@ -463,8 +464,7 @@ ARGS are rest arguments, appended to the argument list."
   (if (is-a-swift-package-base-project)
     (swift-additions:build-swift-package)
     (progn
-      (if (vc-root-dir)
-          (setup-current-project (get-ios-project-root)))
+      (setup-current-project (get-ios-project-root))
       (let ((default-directory current-project-root))
         (async-shell-command-to-string
         :process-name "periphery"
@@ -484,7 +484,7 @@ ARGS are rest arguments, appended to the argument list."
   "Clean app build folder."
   (interactive)
   (if (is-a-swift-package-base-project)
-      (swift-additions:clean-build-folder-with (vc-root-dir) ".build" "swift package")
+      (swift-additions:clean-build-folder-with (projectile-project-root) ".build" "swift package")
     (swift-additions:clean-build-folder-with (get-ios-project-root) "build" current-xcode-scheme)))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
@@ -644,7 +644,7 @@ ARGS are rest arguments, appended to the argument list."
 
 (defun is-a-swift-package-base-project ()
   "Check if project is a swift package based."
-  (let ((default-directory (vc-root-dir)))
+  (let ((default-directory (projectile-project-root)))
     (file-exists-p "Package.swift")))
 
 (defun swift-additions:check-for-spm-build-errors (text)
@@ -663,16 +663,16 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:build-swift-package ()
   "Build swift package module."
   (interactive)
-  (let ((default-directory (vc-root-dir)))
+  (let ((default-directory (projectile-project-root)))
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
+    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
 
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
   (interactive)
-  (let ((default-directory (vc-root-dir)))
+  (let ((default-directory (projectile-project-root)))
     (async-shell-command-to-string :process-name "periphery" :command "swift test" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (vc-root-dir)) :attributes 'warning)))
+    (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
 
 ; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
 (defun swift-additions:split-func-list ()
