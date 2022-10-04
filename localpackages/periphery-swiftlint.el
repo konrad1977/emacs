@@ -36,7 +36,8 @@ PROCESS-NAME is the name of the process."
 (defun periphery--swiftlint:analyze-result (result)
   "Analyze RESULT."
   (periphery-run-parser result)
-  (periphery-message :tag "[Done]" :text "Linting done" :attributes 'success))
+  ;; (periphery-message :tag "[Done]" :text "Linting done" :attributes 'success)
+  )
 
 (defun periphery-run-swiftlint ()
   "Lint the whole project not just current file."
@@ -48,8 +49,15 @@ PROCESS-NAME is the name of the process."
            :process-name swiftlint
            :command swiftlint
            :callback #'periphery--swiftlint:analyze-result))
-        (periphery-message :tag "[Linting]" :text "Linting project" :attributes 'success))
-    (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." swiftlint) :attributes 'warning)))
+        (periphery-message-with-count
+         :tag "[Linting]"
+         :text (file-name-nondirectory (directory-file-name
+                                        (file-name-directory default-directory)))
+         :attributes 'success))
+    (periphery-message
+     :tag "[Failed]"
+     :text (format "Install %s to use this command." swiftlint)
+     :attributes 'warning)))
 
 (provide 'perihery-swiftlint)
 

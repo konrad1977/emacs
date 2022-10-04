@@ -364,6 +364,19 @@
   (interactive)
   (setq-local inhibit-message nil)
   (message "%s %s" (propertize tag 'face attributes) text)
+
+  ;; (periphery-message :tag "[Search result]:" :text (format "%d occurrences found.'" (length periphery-errorList) query) :attributes 'periphery-info-face)
+  (setq-local inhibit-message t))
+
+(cl-defun periphery-message-with-count (&key tag &key text &key attributes)
+  "Print a TAG and TEXT with ATTRIBUTES with Count"
+  (interactive)
+  (setq-local inhibit-message nil)
+  (message
+    "%s %s - %s occurances found."
+    (propertize tag 'face attributes) text
+    (propertize (format "%d" (length periphery-errorList)) 'face 'periphery-warning-face))
+
   (setq-local inhibit-message t))
 
 (defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
