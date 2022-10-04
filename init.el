@@ -1071,7 +1071,7 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
-  (setq tree-sitter-hl-use-font-lock-keywords t)
+  (setq tree-sitter-hl-use-font-lock-keywords nil)
   (load "swift-additions")
   (load "periphery-swiftlint")
   (load "periphery-loco")

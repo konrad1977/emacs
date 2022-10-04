@@ -46,7 +46,7 @@
   (crust      "#11111b" "#ffffff"))
 
  ;; Customize faces
-  (
+ (
   (default								(:foreground text :background base))
   (border                               (:background base :foreground base))
   (bookmark-face                        (:foreground red :background base))
@@ -359,10 +359,13 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
-  (evil-ex-lazy-highlight         (:foreground yellow :bold t))
-  (evil-ex-substitute-matches     (:foreground red :strike-through t))
-  (evil-ex-substitute-replacement (:foreground blue :bold t))
+  (evil-ex-lazy-highlight           (:foreground yellow :bold t))
+  (evil-ex-substitute-matches       (:foreground red :strike-through t))
+  (evil-ex-substitute-replacement   (:foreground blue :bold t))
   (evil-search-highlight-persist-highlight-face (:background yellow))
+  (evil-quickscope-first-face       (:foreground yellow :underline t))
+  (evil-quickscope-second-face      (:foreground peach :underline t))
+  (evil-goggles-default-face        (:background nil))
 
   (ansi-color-crust (:background crust))
 
