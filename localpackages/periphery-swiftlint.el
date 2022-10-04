@@ -4,6 +4,7 @@
 
 ;;; Code:
 (require 'periphery)
+(require 'projectile)
 (require 'cl-lib)
 
 (defconst swiftlint "swiftlint")
@@ -29,15 +30,17 @@ PROCESS-NAME is the name of the process."
 
 (defun get-swiftlint-file-root ()
     "Get the path of the swiftlint file."
-    (let* ((directory (directory-files-recursively (vc-root-dir) "\\.swiftlint\\.yml$" nil))
+    (let* ((directory (directory-files-recursively (projectile-project-root) "\\.swiftlint\\.yml$" nil))
         (lint-directory (file-name-directory (car-safe (last directory)))))
       lint-directory))
 
 (defun periphery--swiftlint:analyze-result (result)
   "Analyze RESULT."
   (periphery-run-parser result)
-  ;; (periphery-message :tag "[Done]" :text "Linting done" :attributes 'success)
-  )
+  (periphery-message-with-count
+   :tag "[Done]"
+   :text "Result"
+   :attributes 'success))
 
 (defun periphery-run-swiftlint ()
   "Lint the whole project not just current file."
@@ -49,7 +52,7 @@ PROCESS-NAME is the name of the process."
            :process-name swiftlint
            :command swiftlint
            :callback #'periphery--swiftlint:analyze-result))
-        (periphery-message-with-count
+        (periphery-message
          :tag "[Linting]"
          :text (file-name-nondirectory (directory-file-name
                                         (file-name-directory default-directory)))
