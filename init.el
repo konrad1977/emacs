@@ -954,11 +954,6 @@
     (use-package flycheck-rust
       :after flycheck))
        
-(with-eval-after-load 'rust-mode
-    (setup-rust-mode))
-
-(with-eval-after-load 'swift-mode
-    (setup-swift-programming))
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -1022,12 +1017,6 @@
   :hook (prog-mode . highlight-symbol-mode)
   :config
   (setq highlight-symbol-idle-delay 0.3))
-
-;; (use-package highlight-numbers
-;;   :hook (prog-mode . highlight-numbers-mode))
-
-;; (use-package highlight-escape-sequences
-;;   :hook (prog-mode . hes-mode))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1131,7 +1120,6 @@
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
 
-  (load "periphery-search")
   (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
 
   ;; Drag stuff
@@ -1208,8 +1196,17 @@
       (when (looking-at "^    ")
         (replace-match "")))))
 
-(add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
+(add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
+
+(with-eval-after-load 'prog-mode
+  (load "periphery-search"))
+
+(with-eval-after-load 'rust-mode
+    (setup-rust-mode))
+
+(with-eval-after-load 'swift-mode
+    (setup-swift-programming))
 
 (setq gc-cons-threshold (* 2 1024 1024))
 
