@@ -36,6 +36,7 @@
       create-lockfiles                  nil
       idle-update-delay                 1.2    ;; Speed things up by not updating so often
       read-process-output-max           (* 8 1024 1024)
+      ediff-split-window-function       'split-window-horizontally
       highlight-nonselected-windows     t
       auto-mode-case-fold               nil
       backup-by-copying                 t
@@ -784,7 +785,8 @@
 
 ;; Use git
 (use-package magit
-  :commands magit-status
+  :commands (magit-status magit-ediff-show-working-tree)
+  :bind ("C-c C-d" . magit-ediff-show-working-tree)
   :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package magit-todos
