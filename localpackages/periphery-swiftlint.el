@@ -30,9 +30,9 @@ PROCESS-NAME is the name of the process."
 
 (defun get-swiftlint-file-root ()
     "Get the path of the swiftlint file."
-    (let* ((directory (directory-files-recursively (projectile-project-root) "\\.swiftlint\\.yml$" nil))
-        (lint-directory (file-name-directory (car-safe (last directory)))))
-      lint-directory))
+    (let* ((default-directory (projectile-project-root))
+           (root (locate-dominating-file default-directory ".swiftlint.yml")))
+      root))
 
 (defun periphery--swiftlint:analyze-result (result)
   "Analyze RESULT."
@@ -48,6 +48,7 @@ PROCESS-NAME is the name of the process."
   (if (executable-find swiftlint)
       (progn
         (let ((default-directory (get-swiftlint-file-root)))
+        (message default-directory)
           (periphery--swiftlint:async-shell-command-to-string
            :process-name swiftlint
            :command swiftlint
@@ -55,7 +56,7 @@ PROCESS-NAME is the name of the process."
         (periphery-message
          :tag "[Linting]"
          :text (file-name-nondirectory (directory-file-name
-                                        (file-name-directory default-directory)))
+                                        (file-name-directory (get-swiftlint-file-root))))
          :attributes 'success))
     (periphery-message
      :tag "[Failed]"
