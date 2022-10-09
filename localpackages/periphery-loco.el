@@ -4,10 +4,11 @@
 
 ;;; Code:
 (require 'periphery)
+(require 'cl-lib)
 
 (defvar loco-command "loco")
 
-(defun periphery-loco:async-shell-command-to-string (process-name command callback)
+(cl-defun periphery--loco:async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
 
@@ -28,18 +29,31 @@ PROCESS-NAME is the name of the process."
 
 (defun send-loco-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
-  (periphery-run-parser text))
+  (periphery-run-parser text)
+  (periphery-message-with-count
+   :tag "[Done]"
+   :text "Result"
+   :attributes 'success))
 
 (defun periphery-loco:run-linter ()
-  "Run linter."
+  "Run LOCO linter."
   (interactive)
   (if (executable-find loco-command)
       (progn
         (let ((default-directory (vc-root-dir)))
-          (periphery-message :tag "[Loco]" :text "Linting, stand by..." :attributes 'info)
-          (periphery-loco:async-shell-command-to-string "loco" (concat loco-command " --no-color") #'send-loco-result-to-periphery))
-        )
-    (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." loco-command) :attributes 'warning)))
+          (periphery--loco:async-shell-command-to-string
+           :process-name "loco"
+           :command (concat loco-command " --no-color")
+           :callback #'send-loco-result-to-periphery))
+        (periphery-message
+         :tag "[Linting]"
+         :text (file-name-nondirectory (directory-file-name
+                                        (file-name-directory (vc-root-dir))))
+         :attributes 'success))
+  (periphery-message
+   :tag "[Failed]"
+   :text (format "Install %s to use this command." loco-command)
+   :attributes 'warning)))
 
 (provide 'perihery-loco)
 ;;; periphery-loco.el ends here.

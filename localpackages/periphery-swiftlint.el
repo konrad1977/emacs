@@ -48,7 +48,6 @@ PROCESS-NAME is the name of the process."
   (if (executable-find swiftlint)
       (progn
         (let ((default-directory (get-swiftlint-file-root)))
-        (message default-directory)
           (periphery--swiftlint:async-shell-command-to-string
            :process-name swiftlint
            :command swiftlint
