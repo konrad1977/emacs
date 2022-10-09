@@ -115,7 +115,8 @@
  "Create a ERRORLIST for current mode."
   (pop-to-buffer periphery-buffer-name nil)
   (periphery-mode)
-  (setq tabulated-list-entries (-non-nil errorList))
+  (setq tabulated-list-entries (nreverse (-non-nil errorList)))
+  (periphery--go-to-first-error tabulated-list-entries)
   (tabulated-list-print t))
 
 
@@ -200,9 +201,7 @@
           (push secondEntry periphery-errorList))
       )))
   (if periphery-errorList
-      (progn
-        (periphery-listing-command periphery-errorList)
-        (periphery--go-to-first-error periphery-errorList))
+      (periphery-listing-command periphery-errorList)
     (periphery-message :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
 
 (defun periphery-mode-all ()
