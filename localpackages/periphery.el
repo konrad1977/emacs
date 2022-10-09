@@ -117,7 +117,13 @@
   (periphery-mode)
   (setq tabulated-list-entries (nreverse (-non-nil errorList)))
   (periphery--go-to-first-error tabulated-list-entries)
-  (tabulated-list-print t))
+  (tabulated-list-print t)
+
+  (if (proper-list-p tabulated-list-entries)
+      (periphery-message-with-count
+       :tag "[Done]"
+       :text "Containts errors or warnings."
+       :attributes 'error)))
 
 
 (defun mark-all-symbols (input regex)

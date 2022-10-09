@@ -652,6 +652,7 @@
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
   ("C-c C-x" . #'swift-additions:reset-settings)
   ("C-c C-l" . #'periphery-run-swiftlint)
+  ("C-c C-k" . #'periphery-run-loco)
   ("C-c C-t" .  #'swift-additions:test-module-silent)
   ("C-c C-s" .  #'swift-additions:split-func-list)
   ("M-L" .  #'swift-additions:clean-build-folder)

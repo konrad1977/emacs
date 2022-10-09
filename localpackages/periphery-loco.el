@@ -35,7 +35,7 @@ PROCESS-NAME is the name of the process."
    :text "Result"
    :attributes 'success))
 
-(defun periphery-loco:run-linter ()
+(defun periphery-run-loco()
   "Run LOCO linter."
   (interactive)
   (if (executable-find loco-command)
@@ -46,7 +46,7 @@ PROCESS-NAME is the name of the process."
            :command (concat loco-command " --no-color")
            :callback #'send-loco-result-to-periphery))
         (periphery-message
-         :tag "[Linting]"
+         :tag "[Linting|Loco]"
          :text (file-name-nondirectory (directory-file-name
                                         (file-name-directory (vc-root-dir))))
          :attributes 'success))

@@ -58,7 +58,7 @@
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
-
+  (setq-local inhibit-message t)
   (let ((output-buffer (generate-new-buffer process-name))
         (callback-fun callback))
     (set-process-sentinel
@@ -257,7 +257,6 @@ ARGS are rest arguments, appended to the argument list."
 (cl-defun parse-errors-from (&key text)
   "Parse errors from TEXT."
   (when DEBUG (message (concat "Errors:" text)))
-  (message-with-color :tag "[Errors/Warnings]" :text "Warning not a clean build." :attributes 'error)
   (periphery-run-parser text))
 
 (defun format-device-id (id)
@@ -305,7 +304,6 @@ ARGS are rest arguments, appended to the argument list."
        (string-match-p (regexp-quote "warning: ") text))
       (progn
         (parse-errors-from :text text)
-        (message text)
         (when (not (string-match-p (regexp-quote "error: ") text))
           (swift-additions:run-app)))
     (swift-additions:run-app)))
@@ -664,6 +662,7 @@ ARGS are rest arguments, appended to the argument list."
   "Build swift package module."
   (interactive)
   (let ((default-directory (projectile-project-root)))
+    (setq-local inhibit-message nil)
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
 

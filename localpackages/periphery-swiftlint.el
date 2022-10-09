@@ -53,7 +53,7 @@ PROCESS-NAME is the name of the process."
            :command swiftlint
            :callback #'periphery--swiftlint:analyze-result))
         (periphery-message
-         :tag "[Linting]"
+         :tag "[Linting|Swiftlint]"
          :text (file-name-nondirectory (directory-file-name
                                         (file-name-directory (get-swiftlint-file-root))))
          :attributes 'success))
