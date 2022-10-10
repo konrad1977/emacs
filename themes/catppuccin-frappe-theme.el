@@ -445,25 +445,25 @@
   (git-gutter:modified                           (:foreground blue))
 
   ;; Tree sitter highlightning
-  (tree-sitter-hl-face:function                  (:foreground blue))
-  (tree-sitter-hl-face:function.call             (:foreground sapphire :italic t :underline t))
+  (tree-sitter-hl-face:function                  (:foreground blue :italic t))
+  (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function :italic nil))
   (tree-sitter-hl-face:function.builtin          (:foreground sky))
   (tree-sitter-hl-face:function.special          (:foreground text :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground sapphire))
 
-  (tree-sitter-hl-face:method                    (:foreground blue :italic t))
-  (tree-sitter-hl-face:method.call               (:foreground peach))
+  (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
+  (tree-sitter-hl-face:method.call               (:inherit 'tree-sitter-hl-face:method :italic nil))
 
-  (tree-sitter-hl-face:type                      (:foreground maroon :bold t))
+  (tree-sitter-hl-face:type                      (:foreground pink :bold t))
   (tree-sitter-hl-face:type.parameter            (:foreground sapphire :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground subtext0 :background peach))
   (tree-sitter-hl-face:type.builtin              (:foreground peach :italic t))
-  (tree-sitter-hl-face:type.super                (:foreground green :bold t))
+  (tree-sitter-hl-face:type.super                (:foreground maroon :bold t))
   (tree-sitter-hl-face:constructor               (:foreground teal :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:foreground rosewater))
   (tree-sitter-hl-face:variable.parameter        (:foreground flamingo))
-  (tree-sitter-hl-face:variable.builtin          (:foreground mauve :bold t))
+  (tree-sitter-hl-face:variable.builtin          (:foreground mauve :weight 'semi-bold))
   (tree-sitter-hl-face:variable.special          (:foreground mauve))
   (tree-sitter-hl-face:property                  (:foreground rosewater))
   (tree-sitter-hl-face:property.definition       (:foreground rosewater :italic t))
@@ -475,7 +475,7 @@
   (tree-sitter-hl-face:escape                    (:foreground yellow :background surface1))
   (tree-sitter-hl-face:embedded                  (:foreground teal))
 
-  (tree-sitter-hl-face:keyword                   (:foreground maroon :bold t))
+  (tree-sitter-hl-face:keyword                   (:foreground red :weight 'semi-bold))
   (tree-sitter-hl-face:operator                  (:foreground blue :bold t))
   (tree-sitter-hl-face:label                     (:inherit 'tree-sitter-hl-face:keyword :italic t))
   (tree-sitter-hl-face:constant                  (:foreground yellow))
@@ -483,7 +483,7 @@
   (tree-sitter-hl-face:number                    (:foreground peach))
 
   (tree-sitter-hl-face:punctuation               (:foreground maroon))
-  (tree-sitter-hl-face:punctuation.bracket       (:foreground subtext1))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground text :weight 'semi-bold))
   (tree-sitter-hl-face:punctuation.delimiter     (:foreground text :bold t))
   (tree-sitter-hl-face:punctuation.special       (:foreground yellow))
 
@@ -491,14 +491,14 @@
   (tree-sitter-hl-face:keyword.compiler          (:foreground overlay2 :bold t :italic t))
 
   ;; Custom for pinkus tree-sitter-swift
-  (tree-sitter-hl-face:include                   (:foreground mauve :italic t))
-  (tree-sitter-hl-face:parameter                 (:foreground sky))
-  (tree-sitter-hl-face:repeat                    (:foreground blue :bold t))
+  (tree-sitter-hl-face:include                   (:foreground peach :italic t))
+  (tree-sitter-hl-face:parameter                 (:foreground subtext0 :italic t))
+  (tree-sitter-hl-face:repeat                    (:foreground teal :bold t))
   (tree-sitter-hl-face:boolean                   (:foreground yellow))
-  (tree-sitter-hl-face:keyword.return            (:foreground maroon :bold t :italic t))
+  (tree-sitter-hl-face:keyword.return            (:foreground teal :bold t :italic t))
   (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
-  (tree-sitter-hl-face:keyword.function          (:foreground maroon :bold t))
-  (tree-sitter-hl-face:conditional               (:foreground lavender :bold t))
+  (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
+  (tree-sitter-hl-face:conditional               (:foreground teal :weight 'semi-bold))
 
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))

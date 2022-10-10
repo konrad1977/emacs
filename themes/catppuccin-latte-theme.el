@@ -84,7 +84,7 @@
   (warning                              (:foreground yellow))
   (window-border                        (:foreground peach))
   (window-divider                       (:foreground surface0))
-  
+
   ;; ;; Font lock
   (font-lock-type-face                  (:foreground lavender))
   (font-lock-regexp-grouping-backslash  (:foreground yellow))
@@ -110,14 +110,14 @@
   (highlight-numbers-face               (:foreground pink))
   (highlight-symbol-face                (:background mantle :foreground green :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
-  
+
   (minibuffer-prompt-end                (:foreground red))
   (minibuffer-prompt                    (:foreground mauve))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
   (trailing-rosewaterspace                  (:background surface1))
-  
+
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:inherit 'error))
   (doom-modeline-battery-warning        (:inherit 'warning))
@@ -217,15 +217,15 @@
   (rainbow-delimiters-unmatched-face    (:foreground green :background yellow))
   (rainbow-delimiters-base-error-face   (:foreground red :background yellow))
   (rainbow-delimiters-base-face         (:foreground overlay2))
-  (rainbow-delimiters-depth-1-face      (:foreground red))
-  (rainbow-delimiters-depth-2-face      (:foreground blue))
-  (rainbow-delimiters-depth-3-face      (:foreground pink))
-  (rainbow-delimiters-depth-4-face      (:foreground green))
-  (rainbow-delimiters-depth-5-face      (:foreground mauve))
-  (rainbow-delimiters-depth-6-face      (:foreground lavender))
-  (rainbow-delimiters-depth-7-face      (:foreground flamingo))
-  (rainbow-delimiters-depth-8-face      (:foreground teal))
-  (rainbow-delimiters-depth-9-face      (:foreground mauve))
+  (rainbow-delimiters-depth-1-face      (:foreground text))
+  (rainbow-delimiters-depth-2-face      (:foreground red))
+  (rainbow-delimiters-depth-3-face      (:foreground blue))
+  (rainbow-delimiters-depth-4-face      (:foreground yellow))
+  (rainbow-delimiters-depth-5-face      (:foreground green))
+  (rainbow-delimiters-depth-6-face      (:foreground mauve))
+  (rainbow-delimiters-depth-7-face      (:foreground peach))
+  (rainbow-delimiters-depth-8-face      (:foreground flamingo))
+  (rainbow-delimiters-depth-9-face      (:foreground teal))
 
   ;; show-paren
   (show-paren-match						(:background red :foreground crust :bold t))
@@ -263,9 +263,9 @@
   (flycheck-posframe-info-face  		(:background crust :inherit 'info))
   (flycheck-posframe-warning-face  		(:background crust :inherit 'warning))
   (flycheck-posframe-error-face  		(:background crust :inherit 'error))
-  (flycheck-fringe-warning				(:inherit 'warning :background crust))
-  (flycheck-fringe-error				(:inherit 'error :background crust))
-  (flycheck-fringe-info					(:inherit 'info :background crust))
+  (flycheck-fringe-warning				(:inherit 'warning))
+  (flycheck-fringe-error				(:inherit 'error))
+  (flycheck-fringe-info					(:inherit 'info ))
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:inherit 'info :bold t))
@@ -360,10 +360,13 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
-  (evil-ex-lazy-highlight         (:foreground yellow :bold t))
-  (evil-ex-substitute-matches     (:foreground red :strike-through t))
-  (evil-ex-substitute-replacement (:foreground blue :bold t))
+  (evil-ex-lazy-highlight           (:foreground yellow :bold t))
+  (evil-ex-substitute-matches       (:foreground red :strike-through t))
+  (evil-ex-substitute-replacement   (:foreground blue :bold t))
   (evil-search-highlight-persist-highlight-face (:background yellow))
+  (evil-quickscope-first-face       (:foreground yellow :underline t))
+  (evil-quickscope-second-face      (:foreground peach :underline t))
+  (evil-goggles-default-face        (:background nil))
 
   (ansi-color-crust (:background crust))
 
@@ -395,7 +398,7 @@
   (vterm-color-yellow (:background peach :foreground yellow))
   (vterm-color-red (:background red :foreground red))
   (vterm-color-rosewater (:background text :foreground text))
-  
+
   (popup-face (:inherit 'tooltip))
   (popup-selection-face (:inherit 'tooltip))
   (popup-tip-face (:inherit 'tooltip))
@@ -441,37 +444,37 @@
   (git-gutter:modified                           (:foreground blue))
 
   ;; Tree sitter highlightning
-  (tree-sitter-hl-face:function                  (:foreground blue))
-  (tree-sitter-hl-face:function.call             (:foreground sapphire :italic t :underline t))
+  (tree-sitter-hl-face:function                  (:foreground blue :italic t))
+  (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function :italic nil))
   (tree-sitter-hl-face:function.builtin          (:foreground sky))
   (tree-sitter-hl-face:function.special          (:foreground text :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground sapphire))
 
-  (tree-sitter-hl-face:method                    (:foreground peach :italic t))
-  (tree-sitter-hl-face:method.call               (:foreground peach))
+  (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
+  (tree-sitter-hl-face:method.call               (:inherit 'tree-sitter-hl-face:method :italic nil))
 
-  (tree-sitter-hl-face:type                      (:foreground maroon :bold t))
+  (tree-sitter-hl-face:type                      (:foreground pink :bold t))
   (tree-sitter-hl-face:type.parameter            (:foreground sapphire :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground subtext0 :background peach))
   (tree-sitter-hl-face:type.builtin              (:foreground peach :italic t))
-  (tree-sitter-hl-face:type.super                (:foreground subtext1 :bold t))
-  (tree-sitter-hl-face:constructor               (:foreground text :weight 'semi-bold))
+  (tree-sitter-hl-face:type.super                (:foreground maroon :bold t))
+  (tree-sitter-hl-face:constructor               (:foreground teal :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:foreground rosewater))
   (tree-sitter-hl-face:variable.parameter        (:foreground flamingo))
-  (tree-sitter-hl-face:variable.builtin          (:foreground mauve :bold t))
+  (tree-sitter-hl-face:variable.builtin          (:foreground mauve :weight 'semi-bold))
   (tree-sitter-hl-face:variable.special          (:foreground mauve))
   (tree-sitter-hl-face:property                  (:foreground rosewater))
   (tree-sitter-hl-face:property.definition       (:foreground rosewater :italic t))
 
-  (tree-sitter-hl-face:comment                   (:foreground blue :italic t))
+  (tree-sitter-hl-face:comment                   (:foreground surface2 :italic t))
   (tree-sitter-hl-face:doc                       (:foreground blue :italic t))
   (tree-sitter-hl-face:string                    (:foreground green :italic t))
   (tree-sitter-hl-face:string.special            (:foreground green :italic t))
   (tree-sitter-hl-face:escape                    (:foreground yellow :background surface1))
   (tree-sitter-hl-face:embedded                  (:foreground teal))
 
-  (tree-sitter-hl-face:keyword                   (:foreground maroon :bold t))
+  (tree-sitter-hl-face:keyword                   (:foreground red :weight 'semi-bold))
   (tree-sitter-hl-face:operator                  (:foreground blue :bold t))
   (tree-sitter-hl-face:label                     (:inherit 'tree-sitter-hl-face:keyword :italic t))
   (tree-sitter-hl-face:constant                  (:foreground yellow))
@@ -479,7 +482,7 @@
   (tree-sitter-hl-face:number                    (:foreground peach))
 
   (tree-sitter-hl-face:punctuation               (:foreground maroon))
-  (tree-sitter-hl-face:punctuation.bracket       (:foreground mauve))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground text :weight 'semi-bold))
   (tree-sitter-hl-face:punctuation.delimiter     (:foreground text :bold t))
   (tree-sitter-hl-face:punctuation.special       (:foreground yellow))
 
@@ -487,14 +490,14 @@
   (tree-sitter-hl-face:keyword.compiler          (:foreground overlay2 :bold t :italic t))
 
   ;; Custom for pinkus tree-sitter-swift
-  (tree-sitter-hl-face:include                   (:foreground teal))
+  (tree-sitter-hl-face:include                   (:foreground peach :italic t))
   (tree-sitter-hl-face:parameter                 (:foreground subtext0 :italic t))
-  (tree-sitter-hl-face:repeat                    (:foreground blue :bold t))
-  (tree-sitter-hl-face:boolean                   (:foreground yellow :bold t))
-  (tree-sitter-hl-face:keyword.return            (:foreground red :bold t))
+  (tree-sitter-hl-face:repeat                    (:foreground teal :bold t))
+  (tree-sitter-hl-face:boolean                   (:foreground yellow))
+  (tree-sitter-hl-face:keyword.return            (:foreground teal :bold t :italic t))
   (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
-  (tree-sitter-hl-face:keyword.function          (:foreground red :bold t))
-  (tree-sitter-hl-face:conditional               (:foreground pink :bold t))
+  (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
+  (tree-sitter-hl-face:conditional               (:foreground teal :weight 'semi-bold))
 
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))
@@ -502,7 +505,7 @@
   (swift-mode:builtin-enum-case-face (:foreground teal))
   (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
   (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
-  ))
+ ))
 
 ;;;###autoload
 (and load-file-name

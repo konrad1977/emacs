@@ -20,7 +20,7 @@
 (blink-cursor-mode 1)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 168)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150)
 (variable-pitch-mode t)
@@ -136,9 +136,9 @@
 
 (use-package autothemer)
 ;; (load-theme 'catppuccin-latte t)
-;; (load-theme 'catppuccin-frappe t)
+(load-theme 'catppuccin-frappe t)
 ;; (load-theme 'catppuccin-macchiato t)
-(load-theme 'catppuccin-mocha t)
+ ;; (load-theme 'catppuccin-mocha t)
 
 ;; (load-theme 'kanagawa t)
  ;; (load-theme 'doom-old-hope t)
@@ -1063,7 +1063,7 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
-  (setq tree-sitter-hl-use-font-lock-keywords nil)
+  (setq tree-sitter-hl-use-font-lock-keywords t)
   (load "swift-additions")
   (load "periphery-swiftlint")
   (load "periphery-loco")
