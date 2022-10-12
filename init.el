@@ -136,9 +136,9 @@
 
 (use-package autothemer)
 ;; (load-theme 'catppuccin-latte t)
-(load-theme 'catppuccin-frappe t)
+;; (load-theme 'catppuccin-frappe t)
 ;; (load-theme 'catppuccin-macchiato t)
- ;; (load-theme 'catppuccin-mocha t)
+ (load-theme 'catppuccin-mocha t)
 
 ;; (load-theme 'kanagawa t)
  ;; (load-theme 'doom-old-hope t)
@@ -169,7 +169,7 @@
   :after vertico
   :ensure nil
   :bind (:map vertico-map
-              ("RET" . vertico-directory-enter)
+              ("TAB" . vertico-directory-enter)
               ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word))
   ;; Tidy shadowed file names
@@ -539,9 +539,9 @@
   :hook (prog-mode . company-mode)
   :bind
   (:map company-active-map
-  ("RET" . nil)
-  ("<return>" . nil)
-  ("<tab>" . company-complete-selection))
+        ("RET" . company-complete-selection)
+        ("<return>" . company-complete-selection)
+        ("<tab>" . company-complete-selection))
   :config
   (setq
         company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
@@ -572,7 +572,7 @@
   (setq company-box-backends-colors '((company-yasnippet
                                        :all (:foreground "PaleVioletRed2" :background nil)
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
-        company-box-doc-delay 0.2))
+        company-box-doc-delay 0.1))
 
 (use-package rust-mode
   :defer t)
@@ -580,7 +580,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-keywords company-capf :with company-dabbrev-code))))
+                '((company-ctags company-capf company-keywords :with company-dabbrev-code))))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
