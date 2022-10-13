@@ -169,7 +169,7 @@
   :after vertico
   :ensure nil
   :bind (:map vertico-map
-              ("TAB" . vertico-directory-enter)
+              ("<tab>" . vertico-directory-enter)
               ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word))
   ;; Tidy shadowed file names
@@ -580,7 +580,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-                '((company-ctags company-capf company-keywords :with company-dabbrev-code))))
+                '((company-capf company-yasnippet company-keywords :with company-dabbrev-code))))
 
 (defun tabnine//company-box-icons--tabnine (candidate)
   (when (eq (get-text-property 0 'company-backend candidate)
@@ -601,6 +601,22 @@
 
 (use-package yasnippet
   :hook (company-mode . yas-minor-mode))
+
+(use-package citre
+  :defer t
+  :init
+  (require 'citre-config)
+  (global-set-key (kbd "C-x c j") 'citre-jump)
+  (global-set-key (kbd "C-x c J") 'citre-jump-back)
+  (global-set-key (kbd "C-x c p") 'citre-ace-peek)
+  (global-set-key (kbd "C-x c u") 'citre-update-this-tags-file)
+  :config
+  (setq
+   citre-project-root-function #'projectile-project-root
+   citre-default-create-tags-file-location 'global-cache
+   citre-use-project-root-when-creating-tags t
+   citre-prompt-language-for-ctags-command t
+   citre-auto-enable-citre-mode-modes '(prog-mode)))
 
 (use-package consult-yasnippet
   :after company)
