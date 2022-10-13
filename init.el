@@ -69,7 +69,7 @@
       debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
-              c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
+              c-basic-offset                2            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
               line-spacing                  0            ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
@@ -158,9 +158,10 @@
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
    vertico-posframe-height nil
-   vertico-posframe-border-width 2
+   vertico-posframe-border-width 1
    vertico-posframe-parameters
    '(
+     (alph . 0.8)
      (left-fringe . 0)
      (right-fringe . 0))))
 
@@ -544,12 +545,12 @@
         ("<tab>" . company-complete-selection))
   :config
   (setq
-        company-transformers '(delete-consecutive-dups company-sort-prefer-same-case-prefix)
+        company-transformers '(company-sort-by-occurrence)
         company-format-margin-function  'company-detect-icons-margin
         company-tooltip-margin              1
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   nil
-        company-require-match               nil
+        company-require-match               t
         company-tooltip-limit               15
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
@@ -601,22 +602,6 @@
 
 (use-package yasnippet
   :hook (company-mode . yas-minor-mode))
-
-(use-package citre
-  :defer t
-  :init
-  (require 'citre-config)
-  (global-set-key (kbd "C-x c j") 'citre-jump)
-  (global-set-key (kbd "C-x c J") 'citre-jump-back)
-  (global-set-key (kbd "C-x c p") 'citre-ace-peek)
-  (global-set-key (kbd "C-x c u") 'citre-update-this-tags-file)
-  :config
-  (setq
-   citre-project-root-function #'projectile-project-root
-   citre-default-create-tags-file-location 'global-cache
-   citre-use-project-root-when-creating-tags t
-   citre-prompt-language-for-ctags-command t
-   citre-auto-enable-citre-mode-modes '(prog-mode)))
 
 (use-package consult-yasnippet
   :after company)
@@ -675,7 +660,11 @@
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("C-M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
-  ("M-s" . #'swift-additions:terminate-all-running-apps))
+  ("M-s" . #'swift-additions:terminate-all-running-apps)
+  :config
+  (setq swift-mode:basic-offset 4
+        swift-mode:parenthesized-expression-offset 4)
+  (setq-local indent-tabs-mode t))
 
 (use-package markdown-mode
   :defer t)
@@ -972,7 +961,6 @@
     "Setup rust mode."
     (use-package flycheck-rust
       :after flycheck))
-       
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -1025,7 +1013,7 @@
 (use-package elfeed-dashboard
   :after elfeed
   :config
-(setq elfeed-dashboard-file "~/elfeed-dashboard.org")
+  (setq elfeed-dashboard-file "~/elfeed-dashboard.org")
   (advice-add 'elfeed-search-quit-window :after #'elfeed-dashboard-update-links))
 
 (use-package highlight-indent-guides
@@ -1042,12 +1030,11 @@
   :hook (prog-mode . drag-stuff-mode)
   :bind
   ("S-M-<down>" . drag-stuff-down)
-  ("M-S-<up>" . drag-stuff-up)
-  ("M-S-<left>" . left-stuff-left)
-  ("M-S-<right>" . drag-stuff-right))
+  ("M-S-<up>" . drag-stuff-up))
 
 (use-package company-sourcekit
   :defer t
+  :ensure nil
   :config
   (setq sourcekit-sourcekittendaemon-executable (string-trim (shell-command-to-string "which sourcekittend"))
         company-sourcekit-use-yasnippet t

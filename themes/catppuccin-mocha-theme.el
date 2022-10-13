@@ -111,11 +111,11 @@
   (info-xref                            (:foreground yellow))
 
   (minibuffer-prompt-end                (:foreground red))
-  (minibuffer-prompt                    (:foreground mauve))
+  (minibuffer-prompt                    (:foreground red))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
 
-  (trailing-rosewaterspace                  (:background surface1))
+  (trailing-rosewaterspace              (:background surface1))
 
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:inherit 'error))
@@ -301,8 +301,8 @@
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
   (vertico-current                              (:foreground text :bold t :background crust :distant-background overlay1))
 
-  (vertico-posframe-border                      (:background surface1))
-  (vertico-posframe                             (:background surface0 :foreground text))
+  (vertico-posframe-border                      (:background crust))
+  (vertico-posframe                             (:background mantle :foreground text))
 
   (orderless-match-face-0                       (:foreground peach :bold t))
   (orderless-match-face-1                       (:foreground pink :bold t))
