@@ -91,17 +91,16 @@
 
 ;; Initialize package sources
 (require 'package)
-(setq package-archives '(
-                         ("elpa" . "https://elpa.gnu.org/packages/")
+;; (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+;;                          ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+(setq package-archives '(("elpa" . "https://elpa.gnu.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")))
-
 (package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
 
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
-  (package-refresh-contents)
+  (unless package-archive-contents
+    (package-refresh-contents))
   (package-install 'use-package))
 
 (require 'use-package)
@@ -231,11 +230,8 @@
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :ensure t
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
@@ -269,9 +265,6 @@
    '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
    '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
    '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
-
-;; (use-package centered-cursor-mode
-;;   :hook (prog-mode . centered-cursor-mode))
 
 (use-package dashboard
   :config
@@ -367,7 +360,7 @@
 
 (use-package evil-commentary
   :after evil
-  :config
+  :init
   (evil-commentary-mode 1))
 
 (use-package evil-lion
@@ -388,16 +381,16 @@
   :commands evil-tutor)
 
 (use-package evil-goggles
-  :ensure t
+  :after evil
   :config
   (setq evil-goggles-pulse t)
-  (evil-goggles-mode)
-  (evil-goggles-use-diff-faces))
+  (evil-goggles-use-diff-faces)
+  :init
+  (evil-goggles-mode))
 
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 
-(global-set-key (kbd "C-c C-b") #'consult-bookmark)
 (global-set-key (kbd "M-/") #'comment-dwim)
 
 ;; Theming
@@ -468,7 +461,6 @@
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
-  :defer t
   :hook (emacs-lisp-mode . rainbow-mode))
 
 (use-package paren
@@ -485,8 +477,8 @@
 
 (use-package tree-sitter
   :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
-   :init
-   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+  :init
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; Remember autocompletions
 (use-package amx
@@ -518,7 +510,6 @@
 
 (use-package eglot
   :defer t
-  :hook (rust-mode . eglot-ensure)
   :config
   (setq eglot-stay-out-of '(company)
         eglot-autoshutdown t
@@ -575,18 +566,10 @@
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
         company-box-doc-delay 0.1))
 
-(use-package rust-mode
-  :defer t)
-
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
                 '((company-capf company-yasnippet company-keywords :with company-dabbrev-code))))
-
-(defun tabnine//company-box-icons--tabnine (candidate)
-  (when (eq (get-text-property 0 'company-backend candidate)
-            'company-tabnine)
-    'Reference))
 
 (use-package company-quickhelp
   :hook (company-mode . company-quickhelp-mode))
@@ -964,8 +947,7 @@
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
-                                '((emacs-lisp t)
-                                (swift t)))
+                                '((emacs-lisp t))
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -985,9 +967,11 @@
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
                                               (org-redisplay-inline-images))))
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
-  (add-to-list 'org-modules 'org-tempo t))
+  (add-to-list 'org-structure-template-alist 
+               '("sh" . "src shell")
+                ("elisp" . "src emacs-lisp")
+                ("swift" . "src swift"))
+  (add-to-list 'org-modules 'org-tempo t)))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -1010,12 +994,6 @@
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
 
-(use-package elfeed-dashboard
-  :after elfeed
-  :config
-  (setq elfeed-dashboard-file "~/elfeed-dashboard.org")
-  (advice-add 'elfeed-search-quit-window :after #'elfeed-dashboard-update-links))
-
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :custom (highlight-indent-guides-method #'bitmap))
@@ -1031,14 +1009,6 @@
   :bind
   ("S-M-<down>" . drag-stuff-down)
   ("M-S-<up>" . drag-stuff-up))
-
-(use-package company-sourcekit
-  :defer t
-  :ensure nil
-  :config
-  (setq sourcekit-sourcekittendaemon-executable (string-trim (shell-command-to-string "which sourcekittend"))
-        company-sourcekit-use-yasnippet t
-        sourcekit-verbose nil))
 
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
@@ -1094,23 +1064,6 @@
   (variable-pitch-mode 1)
   (visual-line-mode t))
 
-;; Kill all other buffers
-(defun kill-other-buffers ()
-  "Kill all other buffer than current."
-  (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))) (delete-other-windows))
-
-(defun mk/toggle-transparency ()
-  (interactive
-   (let ((alpha (frame-parameter nil 'alpha)))
-     (if (eq
-          (if (numberp alpha)
-              alpha
-            (cdr alpha)) ; may also be nil
-          100)
-         (set-frame-parameter nil 'alpha '(94 . 85))
-       (set-frame-parameter nil 'alpha '(100 . 100))))))
-
 ;;; esc quits
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser window to the right of the current one."
@@ -1132,7 +1085,6 @@
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
-  (local-set-key (kbd "C-M-K") #'kill-other-buffers)
 
   (hs-minor-mode)       ; Add support for folding code blocks
   (yas-global-mode 1)   ; Load our yassnippets
