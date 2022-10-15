@@ -91,10 +91,10 @@
 
 ;; Initialize package sources
 (require 'package)
-;; (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-;;                          ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
-(setq package-archives '(("elpa" . "https://elpa.gnu.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
+(setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+;; (setq package-archives '(("elpa" . "https://elpa.gnu.org/packages/")
+;;                          ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
 ;; Initialize use-package on non-Linux platforms
@@ -111,12 +111,6 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-
-  (use-package exec-path-from-shell
-    :init (exec-path-from-shell-initialize))
-
-  (use-package ns-auto-titlebar
-    :config (ns-auto-titlebar-mode))
 
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
@@ -292,8 +286,8 @@
   ([remap describe-key] . helpful-key))
 
 (use-package undo-fu
-  :defer t)
-
+  :defer t) 
+ 
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
@@ -334,7 +328,6 @@
   (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
   (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
-  (define-key evil-motion-state-map (kbd "C-f") #'periphery-search-rg)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
@@ -472,9 +465,6 @@
         show-paren-ring-bell-on-mismatch t
         show-paren-when-point-in-periphery t))
 
-(use-package tree-sitter-langs
-  :defer t)
-
 (use-package tree-sitter
   :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
   :init
@@ -536,7 +526,7 @@
         ("<tab>" . company-complete-selection))
   :config
   (setq
-        company-transformers '(company-sort-by-occurrence)
+        company-transformers '(company-sort-by-backend-importance)
         company-format-margin-function  'company-detect-icons-margin
         company-tooltip-margin              1
         company-minimum-prefix-length       1
@@ -569,7 +559,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-                '((company-capf company-yasnippet company-keywords :with company-dabbrev-code))))
+                '((company-capf company-yasnippet :separate))))
 
 (use-package company-quickhelp
   :hook (company-mode . company-quickhelp-mode))
@@ -730,7 +720,7 @@
      ("\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.18)
+      (window-height . 0.35)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -939,11 +929,6 @@
         org-hide-leading-stars t
         org-log-into-drawer t
         org-log-done 'time))
-
-(defun setup-rust-mode ()
-    "Setup rust mode."
-    (use-package flycheck-rust
-      :after flycheck))
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages 'org-babel-load-languages
@@ -1157,14 +1142,9 @@
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
-(with-eval-after-load 'prog-mode
-  (load "periphery-search"))
-
-(with-eval-after-load 'rust-mode
-    (setup-rust-mode))
-
 (with-eval-after-load 'swift-mode
-    (setup-swift-programming))
+  (load "periphery-search")
+  (setup-swift-programming))
 
 (setq gc-cons-threshold (* 2 1024 1024))
 
