@@ -151,12 +151,10 @@
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
    vertico-posframe-height nil
-   vertico-posframe-border-width 1
+   vertico-posframe-border-width 3
    vertico-posframe-parameters
-   '(
-     (alph . 0.8)
-     (left-fringe . 0)
-     (right-fringe . 0))))
+   '((left-fringe . 1)
+     (right-fringe . 1))))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -270,13 +268,9 @@
         dashboard-set-init-info t
         dashboard-center-content t
         dashboard-set-heading-icons t
-        dashboard-filter-agenda-entry 'dashboard-filter-agenda-by-time
-        dashboard-week-agenda t
         dashboard-items '(
-                          (projects . 5)
-                          (bookmarks . 5)
-                          (recents . 7)
-                          )))
+                          (projects . 3)
+                          (recents . 9))))
 
 ; helpful
 (use-package helpful
@@ -286,8 +280,8 @@
   ([remap describe-key] . helpful-key))
 
 (use-package undo-fu
-  :defer t) 
- 
+  :defer t)
+
 ; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
@@ -489,7 +483,7 @@
 (use-package consult-project-extra
   :after consult
   :bind
-  ("C-<tab>" . #'consult-projectile))
+  ("C-<tab>" . #'consult-projectile-switch-to-buffer))
 
 (use-package consult-ls-git
   :after consult)
@@ -531,22 +525,18 @@
         company-tooltip-margin              1
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   nil
-        company-require-match               t
-        company-tooltip-limit               15
+        company-require-match               nil
+        company-tooltip-limit               12
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
         company-show-quick-access           'left
-        company-async-wait                  0.5
+        company-async-wait                  0.1
         company-async-timeout               1
         company-backends '(company-capf
                            company-dabbrev-code
                            company-keywords
                            company-yasnippet)
-        company-frontends '(company-box-frontend))
-  ;; :custom-face
-  ;; (company-tooltip ((t (:font "JetBrains Mono" :height 167))))
-  )
-
+        company-frontends '(company-box-frontend)))
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
@@ -554,7 +544,7 @@
   (setq company-box-backends-colors '((company-yasnippet
                                        :all (:foreground "PaleVioletRed2" :background nil)
                                        :selected (:foreground "black" :background "PaleVioletRed4")))
-        company-box-doc-delay 0.1))
+        company-box-doc-delay 1))
 
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
@@ -582,6 +572,7 @@
 ;; ------------------ FILES -----------------------
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
+  :bind ("M-J" . treemacs-find-file)
   :config
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
@@ -653,31 +644,20 @@
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
-  :diminish projectile-mode
-  :bind ("M-O" . projectile--find-file)
+  :bind ("M-O" . projectile-find-file-dwim)  
   :custom
-  (add-to-list 'projectile-globally-ignored-directories '"^\\.build$")
-  (add-to-list 'projectile-globally-ignored-directories '"^\\build$")
-  (add-to-list 'projectile-globally-ignored-directories '"^\\.swiftpm$")
-  (add-to-list 'projectile-globally-ignored-directories '"^\\elpa$")
-  (add-to-list 'projectile-globally-ignored-directories '"^\\xcodeproj$")
-  (add-to-list 'projectile-globally-ignored-directories '"^\\pods$")
-  (setq projectile-completion-system 'vertico
+  (setq projectile-completion-system 'default
         projectile-enable-caching t
-        projectile-sort-order 'recentf
+        projectile-sort-order 'access-time
         projectile-indexing-method 'alien
         projectile-switch-project-action #'projectile-find-file-dwim
-        projectile-ignored-files '(".orig" ".yml" "^.*"))
-  (projectile-project-root-files-functions
-   '(projectile-root-local
-     projectile-root-top-down
-     projectile-root-bottom-up
-     projectile-root-top-down-recurring))
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/Documents/git")
-    (setq projectile-project-search-path '("~/Documents/git"))))
-
+        projectile-ignored-files '(".orig$" ".yml$"))
+  (add-to-list 'projectile-globally-ignored-directories '(("^\\.build$")
+                                                          ("^\\.swiftpm$") 
+                                                          ("^\\.swiftpm$")
+                                                          ("^\\elpa$")
+                                                          ("^\\xcodeproj$")
+                                                          ("^\\pods$"))))
 ;; Restart emacs
 (use-package restart-emacs
   :commands restart-emacs)
@@ -720,7 +700,7 @@
      ("\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.35)
+      (window-height . 0.3)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -811,7 +791,6 @@
 
 ;; general
 (use-package general
-  :defer t
   :config
   (general-create-definer mk/leader-keys
     :keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
@@ -830,37 +809,20 @@
     "5" '(winum-select-window-5 :which-key "Window 5")
     "6" '(winum-select-window-6 :which-key "Window 6")
     "P" 'package-install
-    "'" '((lambda () (interactive) (vterm)) :which-key "Term")
-    ":" 'eval-expression)
+    "'" '((lambda () (interactive) (vterm)) :which-key "Term"))
 
   (mk/leader-keys
-    "a" '(:ignore t :which-key "Agenda")
-    "aa" '(org-agenda :which-key "Show agenda")
-    "as" '(org-agenda-schedule :which-key "Show schedule")
-    "al" '(org-agenda-list :which-key "Show agenda list")
-    "aF" '(org-agenda-file-to-front :which-key "Bring file to front")
-    "at" '(:ignore t:which-key "Time/date")
-    "att" '(org-time-stamp :which-key "Schedule")
-    "atd" '(org-deadline :which-key "Add deadline"))
-
-  (mk/leader-keys
-    "b" '(:ignore t :which-key "Buffer")
-    "bb" '(consult-buffer :which-key "Switch buffer")
     "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer")
-    "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer")
-    )
+    "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer"))
 
   (mk/leader-keys
-    "e" '(:ignore t :which-key "Eval")
     "ee" '(eval-expression :which-key "Eval expression")
     "eb" '(eval-buffer :which-key "Eval buffer")
     "el" '(eval-last-sexp :which-key "Eval before point")
     "er" '(eval-region :which-key "Eval region"))
 
   (mk/leader-keys
-    "f" '(:ignore t :which-key "Files")
     "fs" '(save-buffer :which-key "Save file")
-    "fo" '(dired :which-key "Open file")
     "ff" '(find-file :which-key "Find file")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
@@ -869,7 +831,6 @@
     "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "User configuration"))
 
   (mk/leader-keys
-    "h" '(:ignore t :which-key "Help")
     "hc" '(helpful-command :which-key "Describe command")
     "hk" '(helpful-key :which-key "Describe key")
     "hv" '(helpful-variable :which-key "Describe variable")
@@ -878,30 +839,15 @@
     "hp" '(describe-package :which-key "Describe package"))
 
   (mk/leader-keys
-    "t" '(:ignore t :which-key "Text")
     "ts" '(sort-lines :which-key "Sort lines")
-    "tS" '(hydra-text-scale/body :which-key "Scale text")
-    "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace")
-    "tw" '(mark-word :which-key "Select word")
-    "tp" '(mark-page :which-key "Select page"))
+    "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace"))
 
   (mk/leader-keys
-    "w" '(:ignore t :which-key "Windows")
     "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
     "wp" '(previous-window-any-frame :which-key "Previous window")
-    "wx" '(delete-window :which-key "Delete window")
-    "wk" '(delete-window-internal :which-key "Delete window")
-    "wr" '(evil-window-rotate-upwards :which-key "Rotate clockwise")
-    "wR" '(evil-window-rotate-downwards :which-key "Rotate counter clockwise")
-    "w-" '(mk/split-window-below :which-key "Split window horizontally")
-    "w/" '(mk/split-window-right :which-key "Split window vertically")
-    "wn" '(next-window-any-frame :which-key "Next window"))
+    "wx" '(delete-window :which-key "Delete window"))
 
   (mk/leader-keys
-    "p" '(:ignore t :which-key "Project")
-    "pp" '(:ignore t :which-key "Project management")
-    "ppa" '(treemacs-add-project-to-workspace :which-key "Add project")
-    "ppr" '(treemacs-remove-project-from-workspace :which-key "Remove project")
     "pf" '(projectile-find-file-dwim :which-key "Find file")
     "pF" '(projectile-project-files :which-key "Project files")
     "pk" '(projectile-kill-buffers :which-key "Kill buffers")
@@ -909,16 +855,15 @@
     "pS" '(projectile-switch-open-project :which-key "Switch open project"))
 
   (mk/leader-keys
-    "v" '(:ignore t :which-key "Version control")
     "vs" '(magit-status :which-key "Status")
     "vb" '(blamer-show-commit-info :which-key "Show git blame")
     "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
     "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
 
   (mk/leader-keys
-    "q" '(:ignore t :which-key "Quit")
     "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
     "qr" '(restart-emacs :which-key "Restart emacs")))
+
 
 (use-package org
   :hook (org-mode . mk/org-mode-setup)
@@ -952,7 +897,7 @@
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
                                               (org-redisplay-inline-images))))
-  (add-to-list 'org-structure-template-alist 
+  (add-to-list 'org-structure-template-alist
                '("sh" . "src shell")
                 ("elisp" . "src emacs-lisp")
                 ("swift" . "src swift"))

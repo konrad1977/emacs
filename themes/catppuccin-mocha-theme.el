@@ -299,7 +299,7 @@
   (vertico-multiline                            (:background red))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:foreground text :bold t :background crust :distant-background overlay1))
+  (vertico-current                              (:background overlay0 :foreground crust :bold t :distant-foreground crust))
 
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background mantle :foreground text))
