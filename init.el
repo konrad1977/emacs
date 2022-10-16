@@ -514,13 +514,13 @@
         ("<return>" . company-complete-selection)
         ("<tab>" . company-complete-selection))
   :config
-  (setq company-transformers '(company-sort-by-backend-importance)
-        company-format-margin-function  'company-detect-icons-margin
-        company-tooltip-margin              1
+  (setq company-transformers '(company-sort-prefer-same-case-prefix)
+        company-format-margin-function  'company-vscode-dark-icons-margin
+        company-tooltip-margin              0
         company-minimum-prefix-length       1
-        company-tooltip-align-annotations   nil
+        company-tooltip-align-annotations   t
         company-require-match               nil
-        company-tooltip-limit               12
+        company-tooltip-limit               15
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
         company-show-quick-access           'left
@@ -533,11 +533,20 @@
         company-frontends '(company-box-frontend)))
 
 (use-package company-box
+  :after (company all-the-icons)
   :hook (company-mode . company-box-mode)
-  :init
-  (setq company-box-backends-colors '((company-yasnippet
-                                       :all (:foreground "PaleVioletRed2" :background nil)
-                                       :selected (:foreground "black" :background "PaleVioletRed4")))
+  :functions (all-the-icons-faicon
+              all-the-icons-material
+              all-the-icons-octicon
+              all-the-icons-alltheicon)
+  :config
+  (setq company-box-frame-behavior 'point
+        company-box-icons-alist 'company-box-icons-images
+        company-box-backends-colors t
+        company-box-icon-right-margin 0.5
+        company-box-backends-colors '((company-yasnippet
+                                       :all (:foreground "RosyBrown1" :background nil :italic t)
+                                       :selected (:foreground "black" :background "RosyBrown4")))
         company-box-doc-delay 1))
 
 (defun setup-swift-mode-company ()
