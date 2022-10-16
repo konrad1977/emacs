@@ -56,8 +56,7 @@
       scroll-margin                     4   ;; scroll N to screen edge
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
-      undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
-      )
+      undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
 (setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
@@ -69,7 +68,7 @@
       debug-on-error nil)
 
 (setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
-              c-basic-offset                2            ;; Set tab indent for c/c++ to 4 tabs
+              c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
               line-spacing                  0            ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
@@ -85,16 +84,16 @@
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
-(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")); set prefix for auto-saves
-(setq auto-save-file-name-transforms `((".*", my-auto-save-folder t))); location for all auto-save files
-(setq custom-file (concat user-emacs-directory "var/custom.el"))
-
+(setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")
+      auto-save-file-name-transforms `((".*", my-auto-save-folder t))
+      custom-file (concat user-emacs-directory "var/custom.el"))
+      
 ;; Initialize package sources
 (require 'package)
-(setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-                         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
-;; (setq package-archives '(("elpa" . "https://elpa.gnu.org/packages/")
-;;                          ("melpa" . "https://melpa.org/packages/")))
+;; (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+;;                          ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+(setq package-archives '(("elpa" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
 ;; Initialize use-package on non-Linux platforms
@@ -111,7 +110,6 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
         mac-command-modifier 'meta
@@ -124,17 +122,17 @@
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 (use-package flyspell
-  :defer t
+  :defer 10
   :config (setq ispell-program-name "aspell"))
 
-(use-package autothemer)
-;; (load-theme 'catppuccin-latte t)
-;; (load-theme 'catppuccin-frappe t)
-;; (load-theme 'catppuccin-macchiato t)
- (load-theme 'catppuccin-mocha t)
-
-;; (load-theme 'kanagawa t)
- ;; (load-theme 'doom-old-hope t)
+(use-package autothemer
+  :config
+  ;; (load-theme 'catppuccin-latte t)
+  ;; (load-theme 'catppuccin-frappe t)
+  ;; (load-theme 'catppuccin-macchiato t)
+  ;; (load-theme 'kanagawa t)
+  ;; (load-theme 'doom-old-hope t)
+  (load-theme 'catppuccin-mocha t))
 
 (use-package vertico
   :hook (after-init . vertico-mode)
@@ -211,10 +209,8 @@
    ("C-x C-e" . embark-dwim)        ;; good alternative: M-.
    ("C-x C-x" . kill-buffer-and-window)
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
   :config
-  ;; Hide the mode line of the Embark live/completions buffers
+  (setq prefix-help-command #'embark-prefix-help-command)
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
@@ -441,7 +437,6 @@
         dimmer-fraction 0.25)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
-
 ;; rainbow-delimieters
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -519,8 +514,7 @@
         ("<return>" . company-complete-selection)
         ("<tab>" . company-complete-selection))
   :config
-  (setq
-        company-transformers '(company-sort-by-backend-importance)
+  (setq company-transformers '(company-sort-by-backend-importance)
         company-format-margin-function  'company-detect-icons-margin
         company-tooltip-margin              1
         company-minimum-prefix-length       1
@@ -561,6 +555,7 @@
   :hook (company-mode . company-prescient-mode))
 
 (use-package ace-jump-mode
+  :commands (ace-jump-mode)
   :bind ("M-g" . ace-jump-mode))
 
 (use-package yasnippet
@@ -573,6 +568,7 @@
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
   :bind ("M-J" . treemacs-find-file)
+  :init (treemacs-project-follow-mode)
   :config
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
@@ -585,8 +581,7 @@
         treemacs-is-never-other-window nil
         treemacs-silent-refresh	t
         treemacs-sorting 'alphabetic-case-insensitive-desc
-        treemacs-width 40)
-  :init (treemacs-project-follow-mode))
+        treemacs-width 40))
 
 (use-package treemacs-magit
   :after treemacs magit)
