@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: Create IA Button
+# key: iabutton
+# --
+Button {
+    ${1:callback}
+} label: {
+    HStack {
+        ${2:view}
+    }
+}
+.iaButtonStyle(${3:$$(yas-choose-value '(".plain" ".plainLarge" ".plainWithState" ".plainWithLoadingState" ".plainLargeWithLoadingState" ".start" ".bezel"))})

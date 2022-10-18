@@ -6,7 +6,6 @@
 
 ;;; Code:
 
-(require 'ansi-color)
 (require 'dash)
 (require 'cl-lib)
 (require 'flycheck)
@@ -237,7 +236,7 @@ ARGS are rest arguments, appended to the argument list."
    "-skipUnavailableActions \\"
    "-destination-timeout 1 \\"
    "-scmProvider system \\"
-   ;; "-parallelizeTargets \\"
+   "-parallelizeTargets \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
    "-quiet \\"
    "-derivedDataPath build"))
@@ -805,6 +804,7 @@ The result is returned as a string."
   "Determine Swift compiler args for SourceKit for PLATFORM.
 
 See also `my-swift-mode:eglot-server-platform'."
+
   (unless my-swift-mode:-eglot-default-target
     (setq my-swift-mode:-eglot-default-target
           (command-output-to-string "clang" "-print-target-triple")))
@@ -829,8 +829,7 @@ See also `my-swift-mode:eglot-server-platform'."
             (_ nil))))
     (when arg-vals
       `(
-        "build"
-        "--completion-max-results" "50"
+        "--completion-max-results" "100"
         "-Xswiftc" "-sdk"
         "-Xswiftc" ,(car arg-vals)
         "-Xswiftc" "-target"
@@ -842,9 +841,8 @@ See also `my-swift-mode:eglot-server-platform'."
 If `my-swift-mode:eglot-server-platform' is defined, the
 appropriate flags to pass to the Swift compiler for the platform
 will be included in the list."
-  (let ((args (my-swift-mode:sourcekit-args my-swift-mode:eglot-server-platform))
+  (let* ((args (my-swift-mode:sourcekit-args :ios))
         (sourcekit-path (my-swift-mode:xcrun "--find" "sourcekit-lsp")))
-        (message args)
     `(,sourcekit-path ,@args)))
 
 (provide 'swift-additions)

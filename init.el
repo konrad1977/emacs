@@ -49,6 +49,7 @@
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
       use-dialog-box                    nil
+      load-prefer-newer                 t
       word-wrap                         nil
       visible-bell                      nil
       bidi-display-reordering           nil
@@ -514,23 +515,24 @@
         ("<return>" . company-complete-selection)
         ("<tab>" . company-complete-selection))
   :config
-  (setq company-transformers '(company-sort-prefer-same-case-prefix)
+  (setq company-transformers '(company-sort-by-backend-importance)
         company-format-margin-function  'company-vscode-dark-icons-margin
         company-tooltip-margin              0
+        company-dabbrev-downcase            nil
+        company-dabbrev-ignore-case         t
+        company-dabbrev-other-buffers       'all
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
         company-require-match               nil
-        company-tooltip-limit               15
+        company-tooltip-limit               25
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
         company-show-quick-access           'left
         company-async-wait                  0.1
         company-async-timeout               1
-        company-backends '(company-capf
-                           company-dabbrev-code
-                           company-keywords
-                           company-yasnippet)
-        company-frontends '(company-box-frontend)))
+        company-idle-delay                  0.1
+        company-frontends '(company-box-frontend))
+  (push '(company-semantic :with company-yasnippet) company-backends))
 
 (use-package company-box
   :after (company all-the-icons)
@@ -552,7 +554,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-                '((company-capf company-yasnippet :separate))))
+              '((company-capf company-dabbrev-code company-yasnippet :separate))))
 
 (use-package company-quickhelp
   :hook (company-mode . company-quickhelp-mode))
@@ -677,7 +679,6 @@
         '(lambda (mode)
            (s-concat (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
 
-; Window / buffer configuration -----------------------------
 (use-package window
   :ensure nil
   :bind
@@ -780,6 +781,7 @@
 
 (use-package git-gutter
   :hook (prog-mode . git-gutter-mode)
+  :diminish git-gutter-mode
   :config
   (setq git-gutter:update-interval 0.5))
 
@@ -880,8 +882,6 @@
         org-log-done 'time))
 
 (with-eval-after-load 'org
-  (org-babel-do-load-languages 'org-babel-load-languages
-                                '((emacs-lisp t))
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -901,11 +901,14 @@
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
                                               (org-redisplay-inline-images))))
-  (add-to-list 'org-structure-template-alist
-               '("sh" . "src shell")
-                ("elisp" . "src emacs-lisp")
-                ("swift" . "src swift"))
-  (add-to-list 'org-modules 'org-tempo t)))
+  ;; (org-babel-do-load-languages 'org-babel-load-languages
+  ;;                               '((emacs-lisp t))
+
+  ;; (add-to-list 'org-structure-template-alist
+  ;;              '("sh" . "src shell")
+  ;;               ("elisp" . "src emacs-lisp")
+  ;;               ("swift" . "src swift"))
+  (add-to-list 'org-modules 'org-tempo t))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -950,7 +953,6 @@
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
-  ;; (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 
@@ -958,6 +960,12 @@
   :mode "\\.strings\\'"
   :ensure nil
   :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
+
+(use-package smartparens
+  :config
+  (sp-local-pair 'swift-mode "\\(" nil :actions nil)
+  (sp-local-pair 'swift-mode "\\(" ")")
+  (sp-local-pair 'swift-mode "<" ">"))
 
 (defun setup-eglot-for-swift ()
     "Setup eglot for swift buffers."
@@ -1012,7 +1020,6 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
-
   (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
 
   ;; Drag stuff
@@ -1063,18 +1070,6 @@
   (interactive)
   (split-window-right)
   (other-window 1))
-
-(defun company-sourcekit-off ()
-  "Turn off company-sourcekit for this buffer."
-  (interactive)
-  (setq-local company-backends (delete 'company-sourcekit company-backends))
-  (message "Turning off company-sourcekit auto completion for current buffer"))
-
-(defun company-sourcekit-on ()
-  "Turn on company-sourcekit for this buffer."
-  (interactive)
-  (setq-local company-backends (add-to-list 'company-backends 'company-sourcekit))
-  (message "Turning on company-sourcekit auto completion for current buffer"))
 
 (defun un-indent-by-removing-4-spaces ()
   "Remove 4 spaces from beginning of of line."
