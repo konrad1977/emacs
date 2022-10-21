@@ -79,7 +79,7 @@
   (numbers                              (:background green :foreground base))
   (region                               (:background text :distant-foreground base))
   (separator-line                       (:background base))
-  (shadow                               (:background crust))
+  (shadow                               (:background base))
   (success                              (:foreground green))
   (vertical-border                      (:foreground surface0 :background nil))
   (warning                              (:foreground yellow))
@@ -113,11 +113,12 @@
   (info-xref                            (:foreground yellow))
 
   (minibuffer-prompt-end                (:foreground red))
-  (minibuffer-prompt                    (:foreground mauve))
+  (minibuffer-prompt                    (:foreground red))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
+  (dired-ignored                        (:background peach))
 
-  (trailing-rosewaterspace                  (:background surface1))
+  (trailing-rosewaterspace              (:background surface1))
 
   ;; ;; Battery colors
   (doom-modeline-battery-critical       (:inherit 'error))
@@ -229,28 +230,26 @@
   (rainbow-delimiters-depth-9-face      (:foreground teal))
 
   ;; show-paren
-  (show-paren-match						(:background red :foreground crust :bold t))
-  (show-paren-match-expression			(:background red :foreground crust :bold t))
+  (show-paren-match						(:background pink :foreground crust :bold t))
+  (show-paren-match-expression			(:background pink :bold t))
   (show-paren-mismatch					(:background red :foreground crust))
 
-  (company-tooltip                      (:background crust :foreground overlay2))
-  (company-tooltip-common               (:foreground red :distant-foreground red :bold t))
-  (company-tooltip-search               (:background peach))
-  (company-tooltip-selection            (:background surface1 :foreground text :distant-foreground text :bold t))
-  (company-tooltip-mouse                (:background nil :foreground crust :distant-foreground text))
-  (company-tooltip-annotation           (:foreground green))
-  (company-tooltip-scrollbar-track      (:background peach))
-  (company-tooltip-scrollbar-thumb      (:background flamingo))
-  (company-tooltip-quick-access         (:foreground blue :distant-foreground surface1))
-  (company-scrollbar-bg                 (:inherit 'tooltip))
-  (company-scrollbar-fg                 (:background red))
-  (company-preview                      (:foreground blue))
-  (company-preview-common               (:background red :foreground crust))
-  (company-preview-search               (:inherit 'company-tooltip-search))
-  (company-template-field               (:inherit 'match))
-
-  (company-box-annotation               (:foreground red :background surface1))
-  (company-box-numbers                  (:foreground blue :background surface1))
+  (company-tooltip                          (:background surface0 :foreground text))
+  (company-tooltip-common                   (:foreground peach :distant-foreground crust :bold t))
+  (company-tooltip-search                   (:foreground yellow))
+  (company-tooltip-selection                (:background surface1 :bold t :underline t))
+  (company-tooltip-mouse                    (:background nil :foreground crust :distant-foreground text))
+  (company-tooltip-annotation               (:foreground overlay0 :distant-foreground yellow))
+  (company-tooltip-scrollbar-track          (:background peach))
+  (company-tooltip-scrollbar-thumb          (:background flamingo))
+  (company-tooltip-quick-access             (:foreground blue))
+  (company-tooltip-quick-access-selection   (:foreground peach))
+  (company-scrollbar-bg                     (:inherit 'tooltip))
+  (company-scrollbar-fg                     (:background red))
+  (company-preview                          (:foreground blue))
+  (company-preview-common                   (:background red :foreground crust))
+  (company-preview-search                   (:inherit 'company-tooltip-search))
+  (company-template-field                   (:inherit 'match))
 
   ;; Eldoc
   (eldoc-box-body                       (:background surface0 :foreground peach))
@@ -301,10 +300,10 @@
   (vertico-multiline                            (:background red))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:foreground text :bold t :background crust :distant-background overlay1))
+  (vertico-current                              (:background overlay0 :foreground crust :bold t :distant-foreground crust))
 
-  (vertico-posframe-border                      (:background surface1))
-  (vertico-posframe                             (:background surface0 :foreground text))
+  (vertico-posframe-border                      (:background crust))
+  (vertico-posframe                             (:background mantle :foreground text))
 
   (orderless-match-face-0                       (:foreground peach :bold t))
   (orderless-match-face-1                       (:foreground pink :bold t))
@@ -313,7 +312,10 @@
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
-  (completions-annotations                      (:foreground text :italic t))
+  (completions-annotations                      (:foreground subtext1 :italic t))
+  (completions-common-part                      (:foreground peach :bold t :italic t))
+
+  (file-name-shadow (:background nil))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))

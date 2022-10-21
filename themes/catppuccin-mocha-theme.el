@@ -77,7 +77,7 @@
   (numbers                              (:background green :foreground base))
   (region                               (:background text :distant-foreground base))
   (separator-line                       (:background base))
-  (shadow                               (:background crust))
+  (shadow                               (:background base))
   (success                              (:foreground green))
   (vertical-border                      (:foreground surface0 :background nil))
   (warning                              (:foreground yellow))
@@ -114,6 +114,7 @@
   (minibuffer-prompt                    (:foreground red))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
+  (dired-ignored                        (:background peach))
 
   (trailing-rosewaterspace              (:background surface1))
 
@@ -309,7 +310,10 @@
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
-  (completions-annotations                      (:foreground text :italic t))
+  (completions-annotations                      (:foreground subtext1 :italic t))
+  (completions-common-part                      (:foreground peach :bold t :italic t))
+
+  (file-name-shadow (:background nil))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))

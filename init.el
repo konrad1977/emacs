@@ -14,7 +14,6 @@
 (global-font-lock-mode 1)         ;; always highlight code
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
-(semantic-mode 1)                 ;; help out with semantics
 (savehist-mode 1)                 ;; Save history
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
 (blink-cursor-mode 1)
@@ -128,12 +127,13 @@
 
 (use-package autothemer
   :config
-  ;; (load-theme 'catppuccin-latte t)
+ ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
-  ;; (load-theme 'catppuccin-macchiato t)
+   ;; (load-theme 'catppuccin-macchiato t)
+ (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'doom-old-hope t)
-  (load-theme 'catppuccin-mocha t))
+  )
 
 (use-package vertico
   :hook (after-init . vertico-mode)
@@ -172,7 +172,7 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless flex)
+  (setq completion-styles '(substring orderless flex)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
@@ -520,7 +520,8 @@
         company-tooltip-margin              0
         company-dabbrev-downcase            nil
         company-dabbrev-ignore-case         t
-        company-dabbrev-other-buffers       'all
+        company-dabbrev-other-buffers       t
+        company-dabbrev-time-limit          0.5
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
         company-require-match               nil
@@ -554,7 +555,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
-              '((company-capf company-dabbrev-code company-yasnippet :separate))))
+              '((company-capf :with company-files company-dabbrev-code company-yasnippet))))
 
 (use-package company-quickhelp
   :hook (company-mode . company-quickhelp-mode))
