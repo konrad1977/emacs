@@ -924,11 +924,10 @@
   :config
   (setq elfeed-feeds '(
                        ("https://news.ycombinator.com/rss")
-                       ("https://ag91.github.io/rss")
                        ("https://www.reddit.com/r/emacs.rss")
                        ("https://xenodium.com/rss")
                        ("https://swiftbysundell.com/rss"))
-        elfeed-search-filter "@1-days-ago +unread"
+        elfeed-search-filter "@7-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
 
