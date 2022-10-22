@@ -771,79 +771,43 @@ line."
   "Face for 'func' keyword."
   :group 'tree-sitter-hl-faces)
 
-(defun command-output-to-string (command &rest args)
-  "Like `shell-command-to-string' but dropping error output.
+(defun current-simulator-sdk-version ()
+  "Get the current simulator sdk-version."
+  (calc-clean-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
 
-Also trims whitespace from the ends of any output."
-  (string-trim
-   (with-output-to-string
-    (with-current-buffer standard-output
-      (apply #'call-process command nil '(t nil) nil args)))))
+(defun current-simulator-sdk-path ()
+  "Get the current simulator sdk-path."
+  (calc-clean-newlines (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
 
-(defvar-local my-swift-mode:eglot-server-platform nil
-  "Platform for the current project, either `:ios' or `:macos'.
-`nil' by default.
+(defun current-arch ()
+  "Get the current arch."
+  (calc-clean-newlines (shell-command-to-string "clang -print-target-triple")))
 
-This is used to calculate Swift compiler args when starting up a
-SourceKit server through eglot. Note that this is really only
-needed for Xcode projects to work with SourceKit. SPM projects
-work without any extra configuration.")
+(defun current-simulator-sdk ()
+  "Get the current simulator sdk."
+  (let* ((target-components (split-string (current-arch) "-"))
+         (arch (nth 0 target-components))
+         (vendor (nth 1 target-components))
+         (version (current-simulator-sdk-version)))
+    (format "%s-%s-ios%s-simulator" arch vendor version)))
 
-(defvar my-swift-mode:-eglot-default-target nil
-  "This machine's default Clang target triple.
-
-Lazily initialized during Swift Eglot configuration.")
-
-(defun my-swift-mode:xcrun (&rest args)
-  "Invoke xcrun with the given ARGS.
-
-The result is returned as a string."
-  (apply #'command-output-to-string "xcrun" args))
-
-(defun my-swift-mode:sourcekit-args (platform)
-  "Determine Swift compiler args for SourceKit for PLATFORM.
-
-See also `my-swift-mode:eglot-server-platform'."
-
-  (unless my-swift-mode:-eglot-default-target
-    (setq my-swift-mode:-eglot-default-target
-          (command-output-to-string "clang" "-print-target-triple")))
-  (let* ((show-sdk-path (lambda (sdk-name)
-                          (my-swift-mode:xcrun
-                           "--show-sdk-path" "--sdk" sdk-name)))
-         (arg-vals
-          (pcase platform
-            (:ios
-             (let* ((target-components
-                     (split-string my-swift-mode:-eglot-default-target "-"))
-                    (arch (nth 0 target-components))
-                    (vendor (nth 1 target-components))
-                    (sim-version (my-swift-mode:xcrun "--sdk" "iphonesimulator"
-                                                      "--show-sdk-version")))
-               (list (funcall show-sdk-path "iphonesimulator")
-                     (format "%s-%s-ios%s-simulator" arch vendor sim-version))))
-            ((or :macos :macosx :osx)
-             (list (funcall show-sdk-path "macosx")
-                   my-swift-mode:-eglot-default-target))
-            ;; No args needed for SPM
-            (_ nil))))
-    (when arg-vals
-      `(
+(defun sourcekit-lsp-arguments ()
+    "Get the lsp arguments to support UIKit."
+    (let* ((sdk (current-simulator-sdk-path))
+           (target (current-simulator-sdk))
+           )
+      (list
         "--completion-max-results" "100"
         "-Xswiftc" "-sdk"
-        "-Xswiftc" ,(car arg-vals)
+        "-Xswiftc" sdk
         "-Xswiftc" "-target"
-        "-Xswiftc" ,(cadr arg-vals)))))
+        "-Xswiftc" target)))
 
 (defun my-swift-mode:eglot-server-contact (_ignored)
-  "Construct the list that eglot needs to start sourcekit-lsp.
-
-If `my-swift-mode:eglot-server-platform' is defined, the
-appropriate flags to pass to the Swift compiler for the platform
-will be included in the list."
-  (let* ((args (my-swift-mode:sourcekit-args :ios))
-        (sourcekit-path (my-swift-mode:xcrun "--find" "sourcekit-lsp")))
-    `(,sourcekit-path ,@args)))
+  "Construct the list that eglot needs to start sourcekit-lsp."
+  (setq arglist (sourcekit-lsp-arguments))
+  (add-to-list 'arglist
+               (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
 (provide 'swift-additions)
 
