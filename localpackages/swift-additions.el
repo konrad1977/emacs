@@ -384,7 +384,7 @@ ARGS are rest arguments, appended to the argument list."
   "Return the current SDK."
   (if local-device-id
       "iphoneos"
-    "iphonesimulator"))
+    (current-simulator-sdk)))
 
 (defun swift-additions:install-app-on-device ()
   "Install an app on device."
@@ -773,15 +773,15 @@ line."
 
 (defun current-simulator-sdk-version ()
   "Get the current simulator sdk-version."
-  (calc-clean-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
+  (clean-up-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
 
 (defun current-simulator-sdk-path ()
   "Get the current simulator sdk-path."
-  (calc-clean-newlines (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
+  (clean-up-newlines (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
 
 (defun current-arch ()
   "Get the current arch."
-  (calc-clean-newlines (shell-command-to-string "clang -print-target-triple")))
+  (clean-up-newlines (shell-command-to-string "clang -print-target-triple")))
 
 (defun current-simulator-sdk ()
   "Get the current simulator sdk."
@@ -794,10 +794,8 @@ line."
 (defun sourcekit-lsp-arguments ()
     "Get the lsp arguments to support UIKit."
     (let* ((sdk (current-simulator-sdk-path))
-           (target (current-simulator-sdk))
-           )
+           (target (current-simulator-sdk)))
       (list
-        "--completion-max-results" "100"
         "-Xswiftc" "-sdk"
         "-Xswiftc" sdk
         "-Xswiftc" "-target"
