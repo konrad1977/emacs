@@ -384,7 +384,7 @@ ARGS are rest arguments, appended to the argument list."
   "Return the current SDK."
   (if local-device-id
       "iphoneos"
-    (current-simulator-sdk)))
+      "iphonesimulator"))
 
 (defun swift-additions:install-app-on-device ()
   "Install an app on device."
@@ -458,16 +458,19 @@ ARGS are rest arguments, appended to the argument list."
     (fetch-or-load-simulator-id)
     (setq device-or-simulator "[Building simulator target]"))
 
-  (if (is-a-swift-package-base-project)
-    (swift-additions:build-swift-package)
-    (progn
-      (setup-current-project (get-ios-project-root))
-      (let ((default-directory current-project-root))
-        (async-shell-command-to-string
-        :process-name "periphery"
-        :command (build-app-command :simulatorId: current-simulator-id :deviceId local-device-id)
-        :callback #'swift-additions:check-for-errors))
-      (message-with-color :tag device-or-simulator :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))))
+  (if (is-xcodeproject)
+      (progn
+        (setup-current-project (get-ios-project-root))
+        (let ((default-directory current-project-root))
+          (async-shell-command-to-string
+           :process-name "periphery"
+           :command (build-app-command :simulatorId: current-simulator-id :deviceId local-device-id)
+           :callback #'swift-additions:check-for-errors))
+        (message-with-color :tag device-or-simulator :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))
+        (if (is-a-swift-package-base-project)
+            (swift-additions:build-swift-package)
+          (messsage "Not xcodeproject nor swift package")
+        )))
 
 (defun swift-additions:test-module-silent ()
     "Test module."
@@ -638,6 +641,13 @@ ARGS are rest arguments, appended to the argument list."
     (message "%s %s" (propertize tag 'face attributes) text)
     (if (not DEBUG)
         (setq-local inhibit-message t)))
+
+(defun is-xcodeproject ()
+  "Check if its an xcode-project."
+  (if-let ((default-directory (get-ios-project-root)))
+      (or (directory-files default-directory t "\\xcworkspace$")
+          (directory-files default-directory t "\\xcodeproj$"))
+    ))
 
 (defun is-a-swift-package-base-project ()
   "Check if project is a swift package based."
