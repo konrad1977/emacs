@@ -139,13 +139,15 @@
   :hook (after-init . vertico-mode)
   :config
   (setq vertico-resize t
+        vertico-count 10
+        vertico-scroll-margin 2  
         vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
   :config (vertico-posframe-mode 1)
   (setq
-   vertico-posframe-width 140
+   vertico-posframe-width 120
    vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
@@ -172,7 +174,7 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(substring orderless flex)
+  (setq completion-styles '(substring orderless basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles partial-completion)))))
 
@@ -185,6 +187,12 @@
   (marginalia-annotators '(marginalia-annotators-heave marginalia-annotators-light nil))
   :init
   (marginalia-mode))
+
+(use-package all-the-icons-completion
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
 
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -397,7 +405,7 @@
 (use-package all-the-icons
   :after doom-modeline
   :custom
-  (setq all-the-icons-scale-factor 1.1))
+  (setq all-the-icons-scale-factor 0.9))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -489,7 +497,7 @@
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
-  :defer t
+  :commands (eglot eglot-ensure)
   :config
   (setq eglot-stay-out-of '(company)
         eglot-autoshutdown t
@@ -571,6 +579,7 @@
   :bind ("M-g" . ace-jump-mode))
 
 (use-package yasnippet
+  :defer t
   :hook (company-mode . yas-minor-mode))
 
 (use-package consult-yasnippet
@@ -1020,17 +1029,18 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
-  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
 
-  ;; Drag stuff
+  (load "periphery-search")
+
+  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
   (hs-minor-mode)       ; Add support for folding code blocks
-  (yas-global-mode 1)   ; Load our yassnippets
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
   (global-hl-todo-mode t)
+  (yas-global-mode t)
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
         indicate-empty-lines t            ;; Show empty lines
@@ -1087,7 +1097,6 @@
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
 (with-eval-after-load 'swift-mode
-  (load "periphery-search")
   (setup-swift-programming))
 
 (setq gc-cons-threshold (* 2 1024 1024))

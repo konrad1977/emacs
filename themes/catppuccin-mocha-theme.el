@@ -298,7 +298,7 @@
   (vertico-multiline                            (:background red))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:background overlay0 :foreground crust :bold t :distant-foreground crust))
+  (vertico-current                              (:background surface1 :foreground rosewater :bold t :distant-foreground subtext1))
 
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background mantle :foreground text))
@@ -312,8 +312,9 @@
 
   (completions-annotations                      (:foreground subtext1 :italic t))
   (completions-common-part                      (:foreground peach :bold t :italic t))
+  (consult-file                                 (:foreground subtext0))
 
-  (file-name-shadow (:background nil))
+  (file-name-shadow                             (:background nil))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))
