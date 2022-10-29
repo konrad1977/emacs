@@ -199,6 +199,7 @@
   :bind
   ("C-s" . consult-line-symbol-at-point)
   ("M-l" . consult-goto-line)
+  ("C-c C-a" . consult-apropos)
   ("M-f" . consult-imenu-multi))
 
 (defun consult-line-symbol-at-point ()
@@ -243,7 +244,7 @@
         auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
 
-;; Config and install modeline
+; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :config
@@ -252,7 +253,8 @@
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
-        doom-modeline-icon t
+        doom-modeline-height 42
+        ;; doom-modeline-icon t
         doom-modeline-modal-icon t
         doom-modeline-lsp nil
         doom-modeline-major-mode-color-icon nil
@@ -262,6 +264,20 @@
    '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
    '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
    '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
+
+
+;; (use-package telephone-line
+;;   :config
+;;   (setq telephone-line-lhs
+;;         '((evil . (telephone-line-evil-tag-segment))
+;;           (nil . (telephone-line-buffer-name-segment))
+;;           (accent . (telephone-line-airline-position-segment))))
+;;   (setq telephone-line-rhs
+;;         '((accent . (telephone-line-major-mode-segment))
+;;           (nil . (telephone-line-vc-segment))
+;;           (evil   . (telephone-line-misc-info-segment)))))
+
+;; (telephone-line-mode 1) 
 
 (use-package dashboard
   :config
@@ -314,7 +330,7 @@
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
   ;; searching
-  (define-key evil-motion-state-map (kbd "M-F") #'consult-ag)
+  (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
 
   ;; window resizing
   (define-key evil-motion-state-map (kbd "C-+") #'enlarge-window-horizontally)
@@ -382,7 +398,6 @@
 
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-
 (global-set-key (kbd "M-/") #'comment-dwim)
 
 ;; Theming
@@ -468,12 +483,6 @@
   :init
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-;; Remember autocompletions
-(use-package amx
-  :after vertico
-  :config
-  (amx-mode 1))
-
 ;; ------------------ SEARCHING -------------------
 ;; the silver searcher
 (use-package ag
@@ -497,6 +506,7 @@
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
+  :diminish
   :commands (eglot eglot-ensure)
   :config
   (setq eglot-stay-out-of '(company)
@@ -746,6 +756,8 @@
   ("M-4" . winum-select-window-4)
   ("M-5" . winum-select-window-5)
   ("M-6" . winum-select-window-6)
+  :config 
+  (setq winum-auto-setup-mode-line t)
   :init
   (winum-mode 1))
 

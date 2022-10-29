@@ -73,7 +73,7 @@
   (mode-line-inactive                   (:background base :foreground subtext1 :bold nil))
   (mode-line-active		                (:background mantle :foreground subtext0 :bold t))
   (mode-line-highlight                  (:foreground flamingo))
-  (mode-line-buffer-id                  (:foreground green :bold t))
+  (mode-line-buffer-id                  (:foreground subtext0 :bold t))
   (numbers                              (:background green :foreground base))
   (region                               (:background text :distant-foreground base))
   (separator-line                       (:background base))
@@ -147,6 +147,14 @@
   (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground mantle))
   (doom-modeline                        (:foreground overlay1))
   (doom-themes-visual-bell              (:background red))
+
+
+  (telephone-line-accent-active         (:background surface0 :foreground subtext1))
+  (telephone-line-accent-inactive       (:background surface0 :foreground subtext0))
+  (telephone-line-evil-normal           (:background overlay1 :foreground crust :bold t))
+  (telephone-line-evil-visual           (:background yellow :foreground crust :bold t))
+  (telephone-line-evil-motion           (:background blue :foreground crust :bold t))
+  (telephone-line-evil-insert           (:background green :foreground crust :bold t))
 
   ;;elfeed
   (elfeed-search-feed-face              (:foreground lavender))
