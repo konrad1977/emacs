@@ -168,9 +168,6 @@
   ;; Tidy shadowed file names
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-(use-package savehist
-  :hook (after-init . savehist-mode))
-
 (use-package orderless
   :after vertico
   :init
@@ -213,6 +210,7 @@
   :after projectile)
 
 (use-package embark
+  :after vertico
   :bind
   (("C-," . embark-act)         ;; pick some comfortable binding
    ("C-x C-e" . embark-dwim)        ;; good alternative: M-.
@@ -237,7 +235,6 @@
 
 ;; Make sure we are up to date, atleast once a week
 (use-package auto-package-update
-  :defer t
   :custom
   (setq auto-package-update-interval 7
         auto-package-update-prompt-before-update t
@@ -322,15 +319,18 @@
   (define-key evil-motion-state-map (kbd "C-M-+") #'enlarge-window)
   (define-key evil-motion-state-map (kbd "C-M--") #'shrink-window)
 
+  (define-key evil-motion-state-map (kbd "C-w C-s") #'mk/split-window-below)
+  (define-key evil-motion-state-map (kbd "C-w C-v") #'mk/split-window-right)
+  (define-key evil-motion-state-map (kbd "C-w C-b") #'evil-split-buffer)
+
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
   (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-insert-state-map (kbd "<backtab>") #'un-indent-by-removing-4-spaces))
 
-  (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+  (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
 
 (use-package evil-multiedit
   :after evil
@@ -515,7 +515,6 @@
         eldoc-box-clear-with-C-g t))
 
 (use-package company
-  :defer t
   :hook (prog-mode . company-mode)
   :bind
   (:map company-active-map
@@ -579,7 +578,6 @@
   :bind ("M-g" . ace-jump-mode))
 
 (use-package yasnippet
-  :defer t
   :hook (company-mode . yas-minor-mode))
 
 (use-package consult-yasnippet
@@ -678,17 +676,6 @@
 (use-package restart-emacs
   :commands restart-emacs)
 
-;; hydra
-(use-package hydra
-  :defer t)
-
-(use-package pretty-hydra
-  :after hydra
-  :config
-  (setq major-mode-hydra-title-generator
-        '(lambda (mode)
-           (s-concat (all-the-icons-icon-for-mode mode :v-adjust 0.0 :height 2.4)))))
-
 (use-package window
   :ensure nil
   :bind
@@ -751,10 +738,9 @@
 
 ;; darkroom (go to focus mode)
 (use-package darkroom
-  :commands darkroom-mode
   :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
-  (setq darkroom-text-scale-increase 1
+  (setq darkroom-text-scale-increase 2.5
         darkroom-margins 0.1))
 
 ;; Use git
@@ -1080,18 +1066,6 @@
   (interactive)
   (split-window-right)
   (other-window 1))
-
-(defun un-indent-by-removing-4-spaces ()
-  "Remove 4 spaces from beginning of of line."
-  (interactive)
-  (save-excursion
-    (save-match-data
-      (beginning-of-line)
-      ;; get rid of tabs at beginning of line
-      (when (looking-at "^\\s-+")
-        (untabify (match-beginning 0) (match-end 0)))
-      (when (looking-at "^    ")
-        (replace-match "")))))
 
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
