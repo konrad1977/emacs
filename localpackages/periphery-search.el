@@ -31,20 +31,25 @@ PROCESS-NAME is the name of the process."
   "Send result (as TEXT) to periphery."
    (periphery-parse-search-result text current-query))
 
-(defun periphery-search-thing-at-point-ag ()
+(defun periphery-search-dwiw-ag ()
   "Search using ag (Silver searcher)."
   (interactive)
   (periphery--search-thing-at-point "ag"))
 
-(defun periphery-search-thing-at-point-rg ()
+(defun periphery-search-dwiw-rg ()
   "Search using rg (ripgrep)."
   (interactive)
   (periphery--search-thing-at-point "rg"))
 
 (defun periphery--search-thing-at-point (searcher)
   "Search thing at point using (SEARCHER)."
-  (periphery-run-query searcher (thing-at-point 'symbol)))
-
+  (if (use-region-p)
+      (let ((text (buffer-substring-no-properties (region-beginning) (region-end))))
+        (when (> (length text) 1)
+          (message text)
+          (periphery-run-query searcher text)))
+    (periphery-run-query searcher (thing-at-point 'symbol))))
+ 
 (defun periphery-search-rg ()
   "Search using RG (Ripgrep)."
   (interactive)

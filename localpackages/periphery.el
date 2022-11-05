@@ -24,7 +24,7 @@
   :group 'periphery)
 
 (defface periphery-filename-face
-  '((t (:inherit font-lock-builtin-face)))
+  '((t (:inherit link)))
   "Warning."
   :group 'periphery)
 
@@ -195,6 +195,7 @@
       (propertize text 'face 'periphery-error-face))
      (t (propertize text 'face 'periphery-info-face)))))
 
+;;;###autoload
 (defun periphery-run-parser (input)
   "Run parser (as INPUT)."
   (setq periphery-errorList nil)
@@ -299,12 +300,14 @@
     ("o" "Open" periphery--open-current-line)
  ])
 
+;;;###autoload
 (defun periphery-kill-buffer ()
   "Kill the periphery buffer."
   (interactive)
   (when (get-buffer periphery-buffer-name)
     (kill-buffer periphery-buffer-name)))
 
+;;;###autoload
 (defun periphery-show-buffer ()
   "Show current periphery buffer."
   (interactive)

@@ -14,8 +14,6 @@
 (require 'evil-states)
 (require 'periphery)
 
-(load "periphery")
-
 (defgroup swift-additions:xcodebuild nil
   "REPL."
   :tag "swift-additions:xcodebuild"
@@ -25,7 +23,7 @@
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-warning-command "xcrun xcodebuild -list -json")
-(defconst list-simulators-command "xcrun simctl list devices iPhone -j")
+(defconst list-simulators-command "xcrun simctl list devices iPhone available -j")
 (defconst get-booted-simulator-command
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
   "Get booted simulator id if any.")
@@ -39,7 +37,7 @@
 (defvar secondary-simulator-id nil)
 (defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
-(defvar asked-to-use-secondary-simulator nil)
+(defvar asked-to-use-secondary-simulator t)
 (defvar local-device-id nil)
 (defvar DEBUG nil)
 
@@ -57,7 +55,6 @@
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
-  (setq-local inhibit-message t)
   (let ((output-buffer (generate-new-buffer process-name))
         (callback-fun callback))
     (set-process-sentinel
@@ -178,7 +175,8 @@ ARGS are rest arguments, appended to the argument list."
     (progn
       (let ((device-id
              (or (get-booted-simulator)
-                 (widget-choose "Choose a simulator:" (swift-additions:list-available-simulators)))))
+                 (build-simulator-menu :title "Choose a simulator:" :list (swift-additions:list-available-simulators)))))
+                 ;; (widget-choose "Choose a simulator:" (swift-additions:list-available-simulators)))))
         (progn
           (setup-simulator-dwim current-simulator-id)
           (setq current-simulator-id device-id)))))
@@ -307,7 +305,7 @@ ARGS are rest arguments, appended to the argument list."
           (swift-additions:run-app)))
     (swift-additions:run-app)))
 
-(cl-defun launch-app-in-simulator (&key appIdentifier applicationName simulatorName simulatorID)
+(cl-defun launch-app-in-simulator (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
   "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
 
   (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
@@ -316,9 +314,22 @@ ARGS are rest arguments, appended to the argument list."
       (format "xcrun simctl launch --console-pty %s %s" simulatorID appIdentifier)
     (format "xcrun simctl launch --console-pty booted %s" appIdentifier)))
 
+(defun inhibit-sentinel-messages (fun &rest args)
+  "Inhibit messages in all sentinels started by fun."
+  (cl-letf* ((old-set-process-sentinel (symbol-function 'set-process-sentinel))
+         ((symbol-function 'set-process-sentinel)
+          (lambda (process sentinel)
+        (funcall
+         old-set-process-sentinel
+         process
+         `(lambda (&rest args)
+            (let ((inhibit-message t))
+              (apply (quote ,sentinel) args)))))))
+        (apply fun args)))
+
 (cl-defun run-async-command-in-buffer (&key command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
-  (async-shell-command command xcodebuild-buffer))
+  (inhibit-sentinel-messages #'async-shell-command command xcodebuild-buffer))
 
 (defun filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
@@ -417,11 +428,11 @@ ARGS are rest arguments, appended to the argument list."
       (call-process-shell-command (install-app-in-simulator-command :simulatorID secondary-id)))
 
     (run-async-command-in-buffer
-        :command (launch-app-in-simulator
-                  :appIdentifier current-app-identifier
-                  :applicationName applicationName
-                  :simulatorName simulatorName
-                  :simulatorID simulator-id))))
+     :command (launch-app-in-simulator
+               :appIdentifier current-app-identifier
+               :applicationName applicationName
+               :simulatorName simulatorName
+               :simulatorID simulator-id))))
 
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
@@ -445,13 +456,21 @@ ARGS are rest arguments, appended to the argument list."
   (setq local-device-id nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
+(defun swift-additions:run-without-compiling ()
+    "Run app in simulator/device without compiling."
+    (interactive)
+    (setq-local inhibit-message t)
+    (periphery-kill-buffer)
+    (swift-additions:kill-xcode-buffer)
+    (swift-additions:run-app))
+
 (defun swift-additions:compile-and-run-silent ()
   "Build project using xcodebuild."
   (interactive)
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
-
+  (setq-local inhibit-message t)
   (setq device-or-simulator "[Building device target]")
   (setq local-device-id (get-connected-device-id))
   (when (not local-device-id)
@@ -536,7 +555,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:insert-todo ()
   "Insert a Todo."
   (interactive)
-  (insert-text-and-go-to-eol "// TODO:"))
+  (insert-text-and-go-to-eol "// TODO: "))
 
 (defun swift-additions:toggle-xcodebuild-buffer ()
   "Function to toggle xcodebuild-buffer."
@@ -618,16 +637,25 @@ ARGS are rest arguments, appended to the argument list."
                          (cdr (assoc 'udid device)))) devices)))
     items))
 
-(cl-defun build-menu (&key title &key list)
+(cl-defun build-simulator-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
+  (interactive)
   (if (<= (length list) 1)
       (elt list 0)
     (progn
-      (let* ((choices (seq-map (lambda (item) (cons item item)) list)))
-        (pcase (length list)
-          (1 (car list))
-          (0 nil)
-          (_ (widget-choose title choices)))))))
+      (let* ((choices (seq-map (lambda (item) item) list))
+             (choice (completing-read title choices)))
+          (cdr (assoc choice choices))))))
+
+(cl-defun build-menu (&key title &key list)
+  "Builds a widget menu from (as TITLE as LIST)."
+  (interactive)
+  (if (<= (length list) 1)
+      (elt list 0)
+    (progn
+      (let* ((choices (seq-map (lambda (item) (cons item item)) list))
+             (choice (completing-read title choices)))
+         (cdr (assoc choice choices))))))
 
 (defun swift-additions:kill-xcode-buffer ()
   "Kill the xcode buffer."
@@ -638,7 +666,7 @@ ARGS are rest arguments, appended to the argument list."
   "Print a TAG and TEXT with ATTRIBUTES."
   (interactive)
   (setq-local inhibit-message nil)
-    (message "%s %s" (propertize tag 'face attributes) text)
+  (message "%s %s" (propertize tag 'face attributes) text)
     (if (not DEBUG)
         (setq-local inhibit-message t)))
 
@@ -671,7 +699,6 @@ ARGS are rest arguments, appended to the argument list."
   "Build swift package module."
   (interactive)
   (let ((default-directory (projectile-project-root)))
-    (setq-local inhibit-message nil)
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
 

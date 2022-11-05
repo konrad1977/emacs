@@ -147,19 +147,20 @@
   :after vertico
   :config (vertico-posframe-mode 1)
   (setq
-   vertico-posframe-width 120
    vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+   vertico-posframe-truncate-lines nil
+   vertico-posframe-width 168
    vertico-posframe-height nil
-   vertico-posframe-border-width 3
+   vertico-posframe-border-width 2
    vertico-posframe-parameters
-   '((left-fringe . 1)
-     (right-fringe . 1))))
+   '((left-fringe . 0)
+     (right-fringe . 0))))
 
 ;; Configure directory extension.
 (use-package vertico-directory
-  :after vertico
+  :commands (find-file)
   :ensure nil
   :bind (:map vertico-map
               ("<tab>" . vertico-directory-enter)
@@ -173,7 +174,7 @@
   :init
   (setq completion-styles '(substring orderless basic)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion)))))
+        completion-category-overrides '((file (styles partial-completion flex)))))
 
 (use-package marginalia
   :after vertico
@@ -262,20 +263,6 @@
    '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
    '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
 
-
-;; (use-package telephone-line
-;;   :config
-;;   (setq telephone-line-lhs
-;;         '((evil . (telephone-line-evil-tag-segment))
-;;           (nil . (telephone-line-buffer-name-segment))
-;;           (accent . (telephone-line-airline-position-segment))))
-;;   (setq telephone-line-rhs
-;;         '((accent . (telephone-line-major-mode-segment))
-;;           (nil . (telephone-line-vc-segment))
-;;           (evil   . (telephone-line-misc-info-segment)))))
-
-;; (telephone-line-mode 1) 
-
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
@@ -342,11 +329,12 @@
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
-  (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
+  ;; (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
+
 
 (use-package evil-multiedit
   :after evil
@@ -501,6 +489,18 @@
 (use-package consult-ls-git
   :after consult)
 
+(use-package dash-docs
+  :defer t
+  :config
+  )
+
+ (use-package consult-dash
+    :bind ("C-c C-i" . consult-dash)
+    :config
+    (setq consult-dash-docsets '("swift"))
+    ;; Use the symbol at point as initial search term
+    (consult-customize consult-dash :initial (thing-at-point 'symbol)))
+
 (use-package google-this
   :commands (google-this)
   :bind ("C-x C-g" . google-this))
@@ -572,6 +572,7 @@
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
+              ;; '((company-sourcekitten))))
               '((company-capf :with company-files company-dabbrev-code company-yasnippet))))
 
 (use-package company-quickhelp
@@ -632,13 +633,14 @@
   (flycheck-check-syntax-automatically '(save idle-change))
   (flycheck-idle-change-delay 2))
 
-(use-package flycheck-inline
-  :hook (flycheck-mode . turn-on-flycheck-inline))
+;; (use-package flycheck-inline
+;;   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
   :hook (swift-mode . setup-eglot-for-swift)
   :bind
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
+  ("M-r" . #'swift-additions:run-without-compiling)
   ("C-c C-x" . #'swift-additions:reset-settings)
   ("C-c C-l" . #'periphery-run-swiftlint)
   ("C-c C-k" . #'periphery-run-loco)
@@ -668,10 +670,12 @@
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
-  :bind ("M-O" . projectile-find-file-dwim)  
+  :bind 
+  ("M-O" . projectile-find-file-dwim)
+  ("<backtab>" . projectile-ibuffer)
   :custom
   (setq projectile-completion-system 'default
-        projectile-enable-caching t
+        projectile-enable-caching nil
         projectile-sort-order 'access-time
         projectile-indexing-method 'alien
         projectile-switch-project-action #'projectile-find-file-dwim
@@ -1030,7 +1034,9 @@
 
   (load "periphery-search")
 
-  (local-set-key (kbd "C-c C-f") #'periphery-search-thing-at-point-rg)
+  (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
+  (local-set-key (kbd "C-c C-e") #'periphery-search-rg)
+  (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
