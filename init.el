@@ -973,6 +973,7 @@
   :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
 
 (use-package smartparens
+  :defer t
   :config
   (sp-local-pair 'swift-mode "\\(" nil :actions nil)
   (sp-local-pair 'swift-mode "\\(" ")")
