@@ -129,15 +129,15 @@
   ;; Doom visual state
   (doom-modeline-evil-motion-state      (:foreground teal))
   (doom-modeline-evil-emacs-state       (:foreground blue))
-  (doom-modeline-evil-insert-state      (:foreground mauve))
-  (doom-modeline-evil-normal-state      (:foreground text))
+  (doom-modeline-evil-insert-state      (:foreground maroon))
+  (doom-modeline-evil-normal-state      (:foreground subtext0))
   (doom-modeline-evil-visual-state      (:foreground sky))
   (doom-modeline-evil-replace-state     (:foreground red))
   (doom-modeline-evil-operator-state    (:foreground blue))
 
   (doom-modeline-project-dir            (:foreground overlay2))
   (doom-modeline-buffer-path            (:foreground overlay2))
-  (doom-modeline-buffer-file            (:foreground subtext1 :bold t))
+  (doom-modeline-buffer-file            (:foreground overlay2 :bold t))
   (doom-modeline-buffer-major-mode      (:foreground peach :bold t))
   (doom-modeline-buffer-modified        (:foreground overlay2 :italic t :bold t))
   (doom-modeline-error                  (:background red))
@@ -236,9 +236,9 @@
   (rainbow-delimiters-depth-9-face      (:foreground teal))
 
   ;; show-paren
-  (show-paren-match						(:background pink :foreground crust :bold t))
+  (show-paren-match						(:background pink :bold t))
   (show-paren-match-expression			(:background pink :bold t))
-  (show-paren-mismatch					(:background red :foreground crust))
+  (show-paren-mismatch					(:background red))
 
   (company-tooltip                          (:background surface0 :foreground text))
   (company-tooltip-common                   (:foreground peach :distant-foreground crust :bold t))
@@ -377,6 +377,12 @@
   (evil-quickscope-first-face       (:foreground yellow :underline t))
   (evil-quickscope-second-face      (:foreground peach :underline t))
   (evil-goggles-default-face        (:background nil))
+  (evil-goggles-join-face           (:foreground blue))
+  (evil-goggles-delete-face         (:background red))
+  (evil-goggles-paste-face          (:background green))
+  (evil-goggles-indent-face         (:background subtext0))
+  (evil-goggles-set-marker-face     (:foreground red :background red))
+  (evil-goggles-yank-face           (:foreground blue :background blue))
 
   (ansi-color-crust (:background crust))
 

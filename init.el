@@ -49,6 +49,7 @@
       line-number-mode                  nil
       use-dialog-box                    nil
       load-prefer-newer                 t
+      find-file-visit-truename          t
       word-wrap                         nil
       visible-bell                      nil
       bidi-display-reordering           nil
@@ -252,11 +253,10 @@
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
         doom-modeline-height 42
-        ;; doom-modeline-icon t
-        doom-modeline-modal-icon t
+        doom-modeline-icon t
+        doom-modeline-modal-icon nil
         doom-modeline-lsp nil
-        doom-modeline-major-mode-color-icon nil
-        doom-modeline-buffer-state-icon nil
+        doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
   (custom-set-faces
    '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
@@ -302,11 +302,11 @@
         evil-want-C-i-jump nil)
   :config
   (setq evil-emacs-state-cursor '("#FF5D62" box))
-  (setq evil-normal-state-cursor '("#FF5D62" box))
-  (setq evil-visual-state-cursor '("#98BB6C" box))
-  (setq evil-insert-state-cursor '("#E82424" bar))
-  (setq evil-replace-state-cursor '("#FF9E3B" hbar))
-  (setq evil-operator-state-cursor '("#7E9CD8" hollow))
+  (setq evil-normal-state-cursor '("#bac2de" hollow))
+  (setq evil-visual-state-cursor '("#a6e3a1" box))
+  (setq evil-insert-state-cursor '("#f38ba8" box))
+  (setq evil-replace-state-cursor '("#fab387" hbar))
+  (setq evil-operator-state-cursor '("#89b4fa" hollow))
 
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
@@ -490,9 +490,7 @@
   :after consult)
 
 (use-package dash-docs
-  :defer t
-  :config
-  )
+  :defer t)
 
  (use-package consult-dash
     :bind ("C-c C-i" . consult-dash)
@@ -506,6 +504,7 @@
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
+  :hook (swift-mode . eglot-ensure)
   :diminish
   :commands (eglot eglot-ensure)
   :config
@@ -513,16 +512,10 @@
         eglot-autoshutdown t
         eglot-events-buffer-size nil
         eglot-autoreconnect t
-        eglot-send-changes-idle-time 0.5))
-
-(use-package eldoc
-  :hook (eglot-managed-mode . eldoc-mode))
-
-(use-package eldoc-box
-  :hook (eglot-managed-mode . eldoc-box-hover-mode)
-  :config
-  (setq eldoc-box-cleanup-interval 0.5
-        eldoc-box-clear-with-C-g t))
+        eglot-send-changes-idle-time 0.5
+        eglot-ignored-server-capabilities '(:hoverProvider))
+  (add-to-list 'eglot-server-programs
+               '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package company
   :hook (prog-mode . company-mode)
@@ -542,38 +535,21 @@
         company-minimum-prefix-length       1
         company-tooltip-align-annotations   t
         company-require-match               nil
-        company-tooltip-limit               25
+        company-tooltip-limit               7
         company-tooltip-width-grow-only     nil
         company-tooltip-flip-when-above     t
         company-show-quick-access           'left
         company-async-wait                  0.1
         company-async-timeout               1
         company-idle-delay                  0.1
-        company-frontends '(company-box-frontend))
-  (push '(company-semantic :with company-yasnippet) company-backends))
-
-(use-package company-box
-  :after (company all-the-icons)
-  :hook (company-mode . company-box-mode)
-  :functions (all-the-icons-faicon
-              all-the-icons-material
-              all-the-icons-octicon
-              all-the-icons-alltheicon)
-  :config
-  (setq company-box-frame-behavior 'point
-        company-box-icons-alist 'company-box-icons-images
-        company-box-backends-colors t
-        company-box-icon-right-margin 0.5
-        company-box-backends-colors '((company-yasnippet
-                                       :all (:foreground "RosyBrown1" :background nil :italic t)
-                                       :selected (:foreground "black" :background "RosyBrown4")))
-        company-box-doc-delay 1))
+        company-frontends '(company-pseudo-tooltip-frontend))
+  (push '(company-capf :with company-dabbrev-code company-yasnippet) company-backends))
 
 (defun setup-swift-mode-company ()
   "Setup company with separate bakends merged into one."
   (setq-local company-backends
               ;; '((company-sourcekitten))))
-              '((company-capf :with company-files company-dabbrev-code company-yasnippet))))
+              '((company-capf :with company-dabbrev-code company-yasnippet))))
 
 (use-package company-quickhelp
   :hook (company-mode . company-quickhelp-mode))
@@ -637,7 +613,7 @@
 ;;   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
-  :hook (swift-mode . setup-eglot-for-swift)
+  :hook (swift-mode . setup-swift-mode-company)
   :bind
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
   ("M-r" . #'swift-additions:run-without-compiling)
@@ -662,11 +638,11 @@
 (use-package yaml-mode
   :defer t)
 
-(use-package clean-aindent-mode
-  :hook (prog-mode . clean-aindent-mode)
-  :config
-  (setq clean-aindent-is-simple-indent t)
-  (define-key global-map (kbd "RET") 'newline-and-indent))
+;; (use-package clean-aindent-mode
+;;   :hook (prog-mode . clean-aindent-mode)
+;;   :config
+;;   (setq clean-aindent-is-simple-indent t)
+;;   (define-key global-map (kbd "RET") 'newline-and-indent))
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -979,34 +955,28 @@
   (sp-local-pair 'swift-mode "\\(" ")")
   (sp-local-pair 'swift-mode "<" ">"))
 
-(defun setup-eglot-for-swift ()
-    "Setup eglot for swift buffers."
-    (eglot-ensure)
-    (when (boundp 'eglot-server-programs)
-      (add-to-list 'eglot-server-programs
-                   '(swift-mode . my-swift-mode:eglot-server-contact)))
-    (setup-swift-mode-company))
-
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
-  (setq tree-sitter-hl-use-font-lock-keywords t)
   (load "swift-additions")
   (load "periphery-swiftlint")
   (load "periphery-loco")
 
-  (use-package flycheck-swift3
-    :after flycheck
-    :custom (flycheck-swift3-setup))
+  (setq tree-sitter-hl-use-font-lock-keywords t)
+
+  ;; (use-package flycheck-swift3
+  ;;   :after flycheck
+  ;;   :custom (flycheck-swift3-setup))
 
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
 
-  (add-to-list 'flycheck-checkers 'swift3)
+  ;; (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
 
-  (flycheck-add-next-checker 'swiftlint 'swift3))
+  ;; (flycheck-add-next-checker 'swiftlint 'swift3)
+  (setup-swift-mode-company))
 
 (defun mk/org-mode-visual-fill ()
   (setq visual-fill-column-width 100

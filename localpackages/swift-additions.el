@@ -418,10 +418,11 @@ ARGS are rest arguments, appended to the argument list."
     (setq applicationName (get-app-name-from :folder (get-build-folder)))
     (setq simulatorName  (fetch-simulator-name))
     
-    (message-with-color
+    (animate-message-with-color
      :tag "[Installing]"
      :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
-     :attributes '(:inherit success))
+     :attributes '(:inherit success)
+     :times 3)
 
     (swift-additions:terminate-all-running-apps)
 
@@ -490,7 +491,11 @@ ARGS are rest arguments, appended to the argument list."
            :process-name "periphery"
            :command (build-app-command :simulatorId: current-simulator-id :deviceId local-device-id)
            :callback #'swift-additions:check-for-errors))
-        (message-with-color :tag device-or-simulator :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme) :attributes 'warning))
+        (animate-message-with-color
+         :tag device-or-simulator
+         :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
+         :attributes 'warning
+         :times 5))
     (if (is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
       (messsage "Not xcodeproject nor swift package")
@@ -671,6 +676,14 @@ ARGS are rest arguments, appended to the argument list."
   "Print a TAG and TEXT with ATTRIBUTES."
   (message "%s %s" (propertize tag 'face attributes) text))
 
+(cl-defun animate-message-with-color (&key tag &key text &key attributes &key times)
+  "Print a TAG and TEXT with ATTRIBUTES."
+  (dotimes (x times)
+    (dotimes (current 4)
+      (message "%s %s%s" (propertize tag 'face attributes) text (make-string current ?.))
+      (sit-for 0.3)))
+  (message "%s %s" (propertize tag 'face attributes) text))
+
 (defun is-xcodeproject ()
   "Check if its an xcode-project."
   (if-let ((default-directory (get-ios-project-root)))
@@ -701,7 +714,7 @@ ARGS are rest arguments, appended to the argument list."
   (interactive)
   (let ((default-directory (projectile-project-root)))
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
+    (animate-message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning :times 5)))
 
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
