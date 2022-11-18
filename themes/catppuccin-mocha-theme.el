@@ -77,7 +77,7 @@
   (numbers                              (:background green :foreground base))
   (region                               (:background text :distant-foreground base))
   (separator-line                       (:background base))
-  (shadow                               (:background base))
+  (shadow                               (:background nil))
   (success                              (:foreground green))
   (vertical-border                      (:foreground surface0 :background nil))
   (warning                              (:foreground yellow))
@@ -257,6 +257,12 @@
   (company-preview-search                   (:inherit 'company-tooltip-search))
   (company-template-field                   (:inherit 'match))
 
+  (corfu-annotations                        (:background surface0 :foreground blue))
+  (corfu-current                            (:background surface1 :foreground mauve :distant-foreground mauve :bold t :foreground base))
+  (corfu-border                             (:background surface0))
+  (corfu-bar                                (:background mauve))
+  (corfu-default                            (:background mantle :foreground text))
+  
   ;; Eldoc
   (eldoc-box-body                       (:background surface0 :foreground peach))
   (eldoc-box-border                     (:background nil :foreground nil))
@@ -303,13 +309,13 @@
   (ivy-posframe                                 (:background surface2))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (vertico-multiline                            (:background red))
+  (vertico-multiline                            (:background crust))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:background surface1 :foreground rosewater :bold t :distant-foreground subtext1))
+  (vertico-current                              (:background surface0 :foreground text :bold t :distant-foreground text))
 
-  (vertico-posframe-border                      (:background crust))
-  (vertico-posframe                             (:background mantle :foreground text))
+  (vertico-posframe-border                      (:background mantle))
+  (vertico-posframe                             (:background crust :foreground subtext0 :bold nil))
 
   (orderless-match-face-0                       (:foreground peach :bold t))
   (orderless-match-face-1                       (:foreground pink :bold t))
@@ -318,11 +324,10 @@
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
-  (completions-annotations                      (:foreground subtext1 :italic t))
-  (completions-common-part                      (:foreground peach :bold t :italic t))
-  (consult-file                                 (:foreground subtext0))
-
-  (file-name-shadow                             (:background nil))
+  (completions-annotations                      (:foreground subtext0 :italic t))
+  (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
+  (completions-first-difference                 (:foreground subtext1))
+  (consult-file                                 (:foreground subtext0 :distant-foreground crust))
 
   (treemacs-directory-collapsed-face			(:foreground text))
   (treemacs-directory-face						(:foreground text))

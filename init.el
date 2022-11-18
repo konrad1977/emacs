@@ -140,24 +140,29 @@
   :hook (after-init . vertico-mode)
   :config
   (setq vertico-resize t
-        vertico-count 10
+        vertico-count 9
         vertico-scroll-margin 2  
         vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
-  :config (vertico-posframe-mode 1)
-  (setq
-   vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-   vertico-posframe-truncate-lines nil
-   vertico-posframe-width 168
-   vertico-posframe-height nil
-   vertico-posframe-border-width 2
-   vertico-posframe-parameters
-   '((left-fringe . 0)
-     (right-fringe . 0))))
+  :init
+  (vertico-posframe-mode 1)
+  (vertico-posframe-cleanup)
+  (setq vertico-posframe-parameters
+        '((left-fringe . 10)
+          (right-fringe . 10)))
+  :custom
+  (setq vertico-posframe-font "Iosevka")
+  :config
+  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+        vertico-posframe-truncate-lines nil
+        vertico-posframe-width 168
+        vertico-posframe-height nil
+        vertico-posframe-min-height 2
+        vertico-posframe-border-width 1))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -175,15 +180,14 @@
   :init
   (setq completion-styles '(substring orderless basic)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion flex)))))
+        completion-category-overrides '((file (styles partial-completion flex))
+                                        (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
   :after vertico
   :bind (("M-A" . marginalia-cycle)
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle))
-  :custom
-  (marginalia-annotators '(marginalia-annotators-heave marginalia-annotators-light nil))
   :init
   (marginalia-mode))
 
@@ -266,7 +270,8 @@
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
+  (setq
+        dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
         dashboard-path-style 'truncate-beginning
         dashboard-banner-logo-title "Mikaels dashboard!"
         dashboard-set-file-icons t
@@ -508,7 +513,7 @@
   :diminish
   :commands (eglot eglot-ensure)
   :config
-  (setq eglot-stay-out-of '(company)
+  (setq eglot-stay-out-of '(corfu company)
         eglot-autoshutdown t
         eglot-events-buffer-size nil
         eglot-autoreconnect t
@@ -517,48 +522,109 @@
   (add-to-list 'eglot-server-programs
                '(swift-mode . my-swift-mode:eglot-server-contact)))
 
-(use-package company
-  :hook (prog-mode . company-mode)
-  :bind
-  (:map company-active-map
-        ("RET" . company-complete-selection)
-        ("<return>" . company-complete-selection)
-        ("<tab>" . company-complete-selection))
+(use-package kind-icon
+  :ensure t
+  :after corfu
+  :custom
+  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  (kind-icon-use-icons nil)
+  (kind-icon-blend-background t)
+  (kind-icon-blend-frac 0.1)
   :config
-  (setq company-transformers '(company-sort-by-backend-importance)
-        company-format-margin-function  'company-vscode-dark-icons-margin
-        company-tooltip-margin              0
-        company-dabbrev-downcase            nil
-        company-dabbrev-ignore-case         t
-        company-dabbrev-other-buffers       t
-        company-dabbrev-time-limit          0.5
-        company-minimum-prefix-length       1
-        company-tooltip-align-annotations   t
-        company-require-match               nil
-        company-tooltip-limit               7
-        company-tooltip-width-grow-only     nil
-        company-tooltip-flip-when-above     t
-        company-show-quick-access           'left
-        company-async-wait                  0.1
-        company-async-timeout               1
-        company-idle-delay                  0.1
-        company-frontends '(company-pseudo-tooltip-frontend))
-  (push '(company-capf :with company-dabbrev-code company-yasnippet) company-backends))
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
-(defun setup-swift-mode-company ()
-  "Setup company with separate bakends merged into one."
-  (setq-local company-backends
-              ;; '((company-sourcekitten))))
-              '((company-capf :with company-dabbrev-code company-yasnippet))))
+(use-package corfu
+  :bind
+  (:map corfu-map
+        ("SPC" . corfu-insert-separator)
+        ("<escape>" . corfu-quit)
+        ("C-n" . corfu-next)
+        ("C-p" . corfu-previous))
+  :custom
+  (corfu-auto t)
+  (corfu-cycle t)
+  (corfu-scroll-margin 5)
+  (corfu-min-width 50)
+  :init
+  (global-corfu-mode))
 
-(use-package company-quickhelp
-  :hook (company-mode . company-quickhelp-mode))
+;; Add extensions
+(use-package cape
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :bind (("C-c p p" . completion-at-point) ;; capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p h" . cape-history)
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-symbol)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p i" . cape-ispell)
+         ("C-c p l" . cape-line)
+         ("C-c p w" . cape-dict)
+         ("C-c p \\" . cape-tex)
+         ("C-c p _" . cape-tex)
+         ("C-c p ^" . cape-tex)
+         ("C-c p &" . cape-sgml)
+         ("C-c p r" . cape-rfc1345))
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-symbol))
 
-(use-package company-statistics
-  :hook (company-mode . company-statistics-mode))
+(use-package corfu-doc
+  :after corfu
+  :hook (corfu-mode . corfu-doc-mode)
+  :custom
+  (corfu-doc-delay 0.5)
+  (corfu-doc-max-width 50)
+  (corfu-doc-max-height 50)
+  (corfu-echo-documentation nil))
 
-(use-package company-prescient
-  :hook (company-mode . company-prescient-mode))
+;; (use-package company
+;;   :hook (prog-mode . company-mode)
+;;   :bind
+;;   (:map company-active-map
+;;         ("RET" . company-complete-selection)
+;;         ("<return>" . company-complete-selection)
+;;         ("<tab>" . company-complete-selection))
+;;   :config
+;;   (setq company-transformers '(company-sort-prefer-same-case-prefix)
+;;         company-format-margin-function  'company-vscode-dark-icons-margin
+;;         company-tooltip-margin              0
+;;         company-dabbrev-downcase            nil
+;;         company-dabbrev-ignore-case         t
+;;         company-dabbrev-other-buffers       t
+;;         company-dabbrev-time-limit          0.5
+;;         company-minimum-prefix-length       1
+;;         company-tooltip-align-annotations   t
+;;         company-require-match               nil
+;;         company-tooltip-limit               14
+;;         company-tooltip-width-grow-only     nil
+;;         company-tooltip-flip-when-above     t
+;;         company-show-quick-access           'left
+;;         company-async-wait                  0.1
+;;         company-async-timeout               1
+;;         company-idle-delay                  0.1
+;;         company-frontends '(company-pseudo-tooltip-frontend))
+;;   (push '(company-capf :with company-dabbrev-code company-yasnippet) company-backends))
+
+;; (defun setup-swift-mode-company ()
+;;   "Setup company with separate bakends merged into one."
+;;   (setq-local completion-styles '(shorthand))
+;;   (setq-local company-backends
+;;               ;; '((company-sourcekitten))))
+;;               '((company-capf :with company-dabbrev-code company-yasnippet))))
+
+;; (use-package company-quickhelp
+;;   :hook (company-mode . company-quickhelp-mode))
+
+;; (use-package company-statistics
+;;   :hook (company-mode . company-statistics-mode))
+
+;; (use-package company-prescient
+;;   :hook (company-mode . company-prescient-mode))
 
 (use-package ace-jump-mode
   :commands (ace-jump-mode)
@@ -613,7 +679,7 @@
 ;;   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package swift-mode
-  :hook (swift-mode . setup-swift-mode-company)
+  ;; :hook (swift-mode . setup-swift-mode-company)
   :bind
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
   ("M-r" . #'swift-additions:run-without-compiling)
@@ -964,9 +1030,9 @@
 
   (setq tree-sitter-hl-use-font-lock-keywords t)
 
-  ;; (use-package flycheck-swift3
-  ;;   :after flycheck
-  ;;   :custom (flycheck-swift3-setup))
+  (use-package flycheck-swift3
+    :after flycheck
+    :custom (flycheck-swift3-setup))
 
   (use-package flycheck-swiftlint
     :after flycheck
@@ -975,8 +1041,10 @@
   ;; (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
 
-  ;; (flycheck-add-next-checker 'swiftlint 'swift3)
-  (setup-swift-mode-company))
+  (flycheck-add-next-checker 'swiftlint 'swift3)
+  (setq-local completion-at-point-functions
+              (list (cape-super-capf #'cape-dabbrev #'cape-symbol #'cape-line #'cape-keyword)))
+)
 
 (defun mk/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
