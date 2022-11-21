@@ -1,4 +1,4 @@
-;;; commentary: catppuccin-mocha based theme
+;;; commentary: kman based theme
 
 ;;; Code:
 (eval-when-compile
@@ -11,46 +11,47 @@
 
 
 (autothemer-deftheme
-	catppuccin-mocha "A theme based on catppuccin's amazing color scheme"
+	kman "A dark KMan theme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette
 
-  (rosewater  "#f5e0dc" "#ffffff")
-  (flamingo   "#f2cdcd" "#ffd7df")
-  (pink       "#f5c2e7" "#d7afaf")
-  (mauve      "#cba6f7" "#d7afd7")
-  (red        "#f38ba8" "#ff87af")
+  (rosewater  "#FFFBFB" "#ffffff")
+  (flamingo   "#D19A66" "#ffd7df")
+  (pink       "#C678DD" "#d7afaf")
+  (mauve      "#D55986" "#d7afd7")
+  (red        "#E06D76" "#ff87af")
   (maroon     "#eba0ac" "#ffafaf")
-  (peach      "#fab387" "#ffaf87")
-  (yellow     "#f9e2af" "#ffd7af")
-  (green      "#a6e3a1" "#87afaf")
-  (teal       "#94e2d5" "#afd7d7")
-  (sky        "#89dceb" "#afffff")
-  (sapphire   "#74c7ec" "#afffff")
-  (blue       "#89b4fa" "#00d7ff")
+  (peach      "#EC8077" "#ffaf87")
+  (yellow     "#FDD153" "#ffd7af")
+  (green      "#4CB78B" "#87afaf")
+  (teal       "#76B0A0" "#afd7d7")
+  (sky        "#1BE8AC" "#afffff")
+  (sapphire   "#56B6C2" "#afffff")
+  (blue       "#61AFEE" "#00d7ff")
   (lavender   "#b4befe" "#d7d7ff")
-  (text       "#cdd6f4" "#ffffff")
-  (subtext1   "#bac2de" "#ffffff")
-  (subtext0   "#a6adc8" "#ffffff")
+  (text-light "#FFFFFF" "#ffffff")
+  (text       "#C7CBD3" "#ffffff")
+  (subtext1   "#ABB2BF" "#ffffff")
+  (subtext0   "#5C6370" "#ffffff")
   (overlay2   "#9399b2" "#ffffff")
   (overlay1   "#7f849c" "#ffffff")
   (overlay0   "#6c7086" "#ffffff")
   (surface2   "#585b70" "#ffffff")
-  (surface1   "#45475a" "#ffffff")
-  (surface0   "#313244" "#ffffff")
-  (base       "#1e1e2e" "#ffffff")
-  (mantle     "#181825" "#ffffff")
-  (crust      "#11111b" "#ffffff"))
+  (surface1   "#2D323C" "#ffffff")
+  (surface0   "#282C34" "#ffffff")
+  (base       "#21252B" "#ffffff")
+  (mantle     "#191C20" "#ffffff")
+  (crust      "#181A1F" "#ffffff"))
 
  ;; Customize faces
  (
   (default								(:foreground text :background base))
   (border                               (:background base :foreground base))
   (bookmark-face                        (:foreground red :background base))
-  (button                               (:foreground green))
+  (button                               (:foreground blue))
   (child-frame		                    (:background base :foreground mantle))
   (child-frame-border                   (:background base :foreground mantle))
   (cursor                               (:background mauve :foreground base))
@@ -63,8 +64,8 @@
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background base :foreground base))
-  (line-number                          (:foreground surface1 :background nil))
-  (line-number-current-line             (:foreground mauve :background surface0 :bold t))
+  (line-number                          (:foreground subtext0 :background nil))
+  (line-number-current-line             (:foreground yellow :background surface0 :bold t))
   (lv-separator                         (:foreground overlay2 :background base))
   (match                                (:background yellow :foreground crust))
   (menu                                 (:background base :foreground rosewater))
@@ -75,35 +76,34 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground subtext0 :bold t))
   (numbers                              (:background green :foreground base))
-  (region                               (:background text :distant-foreground base))
+  (region                               (:background crust :distant-foreground text))
   (separator-line                       (:background base))
   (shadow                               (:background nil))
   (success                              (:foreground green))
   (vertical-border                      (:foreground surface0 :background nil))
-  (warning                              (:foreground yellow))
+  (warning                              (:foreground flamingo))
   (window-border                        (:foreground peach))
   (window-divider                       (:foreground surface0))
 
   ;; ;; Font lock
-  (font-lock-keyword-face               (:foreground pink :weight 'semi-bold))
-  (font-lock-type-face                  (:foreground mauve))
-  (font-lock-regexp-grouping-backslash  (:foreground mauve))
+  (font-lock-keyword-face               (:foreground sapphire :weight 'semi-bold))
+  (font-lock-type-face                  (:foreground peach))
+  (font-lock-regexp-grouping-backslash  (:foreground text))
   (font-lock-warning-face               (:inherit 'warning))
-  (font-lock-constant-face              (:foreground flamingo))
-  (font-lock-string-face                (:foreground green :italic t))
-  (font-lock-builtin-face               (:foreground flamingo))
-  (font-lock-reference-face				(:foreground sky))
   (font-lock-constant-face              (:foreground yellow))
-  (font-lock-function-name-face         (:foreground blue))
-  (font-lock-variable-name-face         (:foreground rosewater :italic t))
+  (font-lock-string-face                (:foreground green :italic t))
+  (font-lock-builtin-face               (:foreground red))
+  (font-lock-reference-face				(:foreground text))
+  (font-lock-function-name-face         (:foreground teal))
+  (font-lock-variable-name-face         (:foreground subtext1 :italic t))
   (font-lock-negation-char-face         (:foreground red))
-  (font-lock-comment-face               (:foreground overlay1 :italic t))
+  (font-lock-comment-face               (:foreground subtext0 :italic t))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
   (font-lock-doc-face                   (:foreground overlay2))
   (font-lock-doc-markup-face            (:foreground overlay2))
   (font-lock-preprocessor-face	   		(:foreground overlay2))
-  (elisp-shorthand-font-lock-face       (:foreground peach))
-
+  (elisp-shorthand-font-lock-face       (:foreground text-light))
+  
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
@@ -169,7 +169,7 @@
   (message-header-xheader               (:foreground rosewater))
   (custom-link                          (:foreground blue))
   (link                                 (:foreground blue))
-
+  
   ;; org-mode
   (org-done                             (:foreground overlay2))
   (org-code                             (:background crust))
@@ -218,7 +218,7 @@
   (counsel-outline-default              (:foreground yellow))
   (info-header-xref                     (:foreground yellow))
   (xref-file-header                     (:foreground yellow))
-  (xref-match		                    (:foreground peach))
+  (xref-match		                    (:foreground text-light))
 
   ;; rainbow delimiter
   (rainbow-delimiters-mismatched-face   (:foreground red :background yellow))
@@ -241,7 +241,7 @@
   (show-paren-mismatch					(:background red))
 
   (company-tooltip                          (:background surface0 :foreground text))
-  (company-tooltip-common                   (:foreground peach :distant-foreground crust :bold t))
+  (company-tooltip-common                   (:foreground text-light :distant-foreground crust :bold t))
   (company-tooltip-search                   (:foreground yellow))
   (company-tooltip-selection                (:background surface1 :bold t :underline t))
   (company-tooltip-mouse                    (:background nil :foreground crust :distant-foreground text))
@@ -258,16 +258,15 @@
   (company-template-field                   (:inherit 'match))
 
   (corfu-annotations                        (:background surface0 :foreground subtext1))
-  (corfu-current                            (:background surface1 :foreground mauve :distant-foreground text :bold t :foreground base))
-  (corfu-border                             (:background surface0))
-  (corfu-bar                                (:background yellow))
-  (corfu-default                            (:background crust :foreground text))
-  
-  ;; Eldoc
-  (eldoc-box-body                       (:background surface0 :foreground peach))
-  (eldoc-box-border                     (:background nil :foreground nil))
+  (corfu-current                            (:background surface1 :foreground yellow :distant-foreground subtext0 :bold t))
+  (corfu-border                             (:background mantle))
+  (corfu-bar                                (:background yellow :foreground mauve))
+  (corfu-default                            (:background surface0 :foreground subtext1))
 
-  (markdown-hr-face                     (:background nil :foreground surface0))
+  ;; Eldoc
+  (eldoc-box-body                       (:foreground peach))
+  (eldoc-box-border                     (:background nil :foreground nil))
+  (markdown-hr-face                     (:foreground surface0))
 
   ;; Flycheck
   (flycheck-posframe-background-face	(:background crust))
@@ -312,33 +311,34 @@
   (vertico-multiline                            (:background crust))
   (vertico-group-title                          (:foreground subtext0 :bold t))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:background surface0 :foreground text :bold t :distant-foreground text))
+  (vertico-current                              (:background surface1 :foreground yellow :bold t :distant-foreground text-light))
+  (consult-file                                 (:distant-foreground text :bold t))
 
   (vertico-posframe-border                      (:background mantle))
   (vertico-posframe                             (:background crust :foreground subtext0 :bold nil))
 
-  (orderless-match-face-0                       (:foreground peach :bold t))
-  (orderless-match-face-1                       (:foreground pink :bold t))
+  (orderless-match-face-0                       (:foreground text-light :bold t))
+  (orderless-match-face-1                       (:foreground blue :bold t))
   (orderless-match-face-2                       (:foreground green :bold t))
   (orderless-match-face-4                       (:foreground yellow :bold t))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
   (completions-annotations                      (:foreground subtext0 :italic t))
-  (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
+  (completions-common-part                      (:foreground text-light :distant-foreground crust :distant-background green :bold t :italic t))
   (completions-first-difference                 (:foreground subtext1))
-  (consult-file                                 (:foreground subtext0 :distant-foreground crust))
 
-  (treemacs-directory-collapsed-face			(:foreground text))
-  (treemacs-directory-face						(:foreground text))
-  (treemacs-file-face							(:foreground text))
+  (treemacs-directory-collapsed-face			(:foreground subtext1))
+  (treemacs-directory-face						(:foreground subtext1))
+  (treemacs-file-face							(:foreground subtext1))
 
   (treemacs-git-added-face						(:foreground peach))
   (treemacs-git-renamed-face				   	(:foreground rosewater))
   (treemacs-git-ignored-face				   	(:foreground overlay2))
-  (treemacs-git-unmodified-face		   			(:foreground text))
-  (treemacs-git-renamed-face		   			(:foreground text))
-  (treemacs-git-modified-face		   			(:foreground maroon))
+  (treemacs-git-unmodified-face		   			(:foreground subtext1))
+  (treemacs-git-untracked-face		   			(:foreground subtext0))
+  (treemacs-git-renamed-face		   			(:foreground subtext1))
+  (treemacs-git-modified-face		   			(:foreground maroon :italic t))
 
   ;; lets support solaire mode
   (solaire-default-face (:background mantle))
@@ -354,9 +354,9 @@
   (lsp-headerline-breadcrumb-project-prefix-face	(:background crust))
   (lsp-headerline-breadcrumb-symbols-error-face     (:foreground red))
 
-  (lsp-ui-doc-background							(:background crust :foreground red))
-  (lsp-ui-doc-header								(:background crust :foreground red))
-  (lsp-ui-doc-border								(:background nil :foreground nil))
+  (lsp-ui-doc-background							(:background yellow :foreground red))
+  (lsp-ui-doc-header								(:background yellow :foreground red))
+  (lsp-ui-doc-border								(:foreground nil))
   (lsp-ui-peek-filename								(:foreground teal))
   (lsp-ui-sideline-code-action			   			(:foreground yellow))
   (lsp-ui-sideline-current-symbol					(:foreground sky))
@@ -485,8 +485,8 @@
   (tree-sitter-hl-face:variable.parameter        (:foreground flamingo))
   (tree-sitter-hl-face:variable.builtin          (:foreground mauve :weight 'semi-bold))
   (tree-sitter-hl-face:variable.special          (:foreground mauve))
-  (tree-sitter-hl-face:property                  (:foreground rosewater))
-  (tree-sitter-hl-face:property.definition       (:foreground rosewater :italic t))
+  (tree-sitter-hl-face:property                  (:foreground sky))
+  (tree-sitter-hl-face:property.definition       (:foreground sky :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
@@ -522,7 +522,7 @@
 
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))
-  (swift-mode:builtin-property-face (:foreground rosewater))
+  (swift-mode:builtin-property-face (:foreground maroon))
   (swift-mode:builtin-enum-case-face (:foreground teal))
   (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
   (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
@@ -535,5 +535,5 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'catppuccin-mocha)
-;;; catppuccin-mocha-theme.el ends here
+(provide-theme 'kman)
+;;; kman-theme.el ends here

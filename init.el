@@ -20,6 +20,7 @@
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
+;; (set-face-attribute 'default nil :font "Fira Code" :height 160)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150)
 (variable-pitch-mode t)
@@ -30,31 +31,32 @@
 (set-keyboard-coding-system 'utf-8)
 
 (setq ad-redefinition-action            'accept
-      default-buffer-file-coding-system 'utf-8
-      blink-cursor-interval             0.6       ;; Little slower cursor blinking . default is 0.5
-      create-lockfiles                  nil
-      idle-update-delay                 1.2    ;; Speed things up by not updating so often
-      read-process-output-max           (* 8 1024 1024)
-      ediff-split-window-function       'split-window-horizontally
-      highlight-nonselected-windows     t
       auto-mode-case-fold               nil
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
+      bidi-display-reordering           nil
+      blink-cursor-interval             0.6       ;; Little slower cursor blinking . default is 0.5
+      cursor-in-non-selected-windows    nil
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
-      fast-but-imprecise-scrolling      t
-      jit-lock-defer-time               0.0
+      create-lockfiles                  nil
       echo-keystrokes                   0.2
+      ediff-split-window-function       'split-window-horizontally
+      fast-but-imprecise-scrolling      t
+      find-file-visit-truename          t
+      font-lock-maximum-decoration t
+      highlight-nonselected-windows     t
+      idle-update-delay                 1.1    ;; Speed things up by not updating so often
+      jit-lock-defer-time               0.0
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
-      use-dialog-box                    nil
       load-prefer-newer                 t
-      find-file-visit-truename          t
-      word-wrap                         nil
-      visible-bell                      nil
-      bidi-display-reordering           nil
-      x-stretch-cursor                  t   ;; stretch cursor on tabs
+      read-process-output-max           (* 8 1024 1024)
       scroll-margin                     4   ;; scroll N to screen edge
+      use-dialog-box                    nil
+      visible-bell                      nil
+      word-wrap                         nil
+      x-stretch-cursor                  t   ;; stretch cursor on tabs
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
@@ -131,7 +133,7 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
- (load-theme 'catppuccin-mocha t)
+ (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'doom-old-hope t)
   )
@@ -152,14 +154,13 @@
   (setq vertico-posframe-parameters
         '((left-fringe . 10)
           (right-fringe . 10)))
-  :custom
-  (setq vertico-posframe-font "Iosevka")
+  (setq vertico-posframe-font "JetBrains Mono")
   :config
   (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines nil
-        vertico-posframe-width 168
+        vertico-posframe-width 170
         vertico-posframe-height nil
         vertico-posframe-min-height 2
         vertico-posframe-border-width 1))
@@ -268,21 +269,63 @@
    '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
 
 (use-package dashboard
+  :after (consult projectile)
   :config
   (dashboard-setup-startup-hook)
   (setq
-        dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
-        dashboard-path-style 'truncate-beginning
-        dashboard-banner-logo-title "Mikaels dashboard!"
-        dashboard-set-file-icons t
-        dashboard-set-init-info t
-        dashboard-center-content t
-        dashboard-set-heading-icons t
-        dashboard-items '(
-                          (projects . 3)
-                          (recents . 9))))
+   dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
+   dashboard-path-style 'truncate-end
+   dashboard-banner-logo-title "Mikaels dashboard!"
+   dashboard-set-file-icons t
+   dashboard-projects-show-base t
+   dashboard-recentf-show-base t
+   dashboard-image-banner-max-height 250
+   dashboard-set-init-info t
+   dashboard-set-navigator t
+   dashboard-center-content t
+   dashboard-projects-item-format "%s"
+   dashboard-recentf-item-format "%s"
+   dashboard-set-heading-icons t
+   dashboard-items '()
+   ;; dashboard-items '(
+   ;;                   (projects . 2)
+   ;;                   (recents . 7))
+   dashboard-navigator-buttons
+   `(;; line1
+     ;; Keybindings
+     ((,(all-the-icons-octicon "settings" :height 1.2 :v-adjust -0.1)
+       "\tSettings     " nil
+       (lambda (&rest _) (open-config-file)) nil "" "\tSPC f e"))
 
-; helpful
+     ((,(all-the-icons-octicon "search" :height 1.2 :v-adjust -0.1)
+       "\tFind files  " nil
+       (lambda (&rest _) (find-file)) nil "" "\tSPC f f"))
+     
+     ((,(all-the-icons-octicon "file-binary" :height 1.2 :v-adjust -0.1)
+       "\tRecent files " nil
+       (lambda (&rest _) (consult-recent-files)) nil "" "\tSPC f r"))
+     
+     ((,(all-the-icons-octicon "package" :height 1.2 :v-adjust -0.1)
+       "\tSelect project" nil
+       (lambda (&rest _) (projectile-switch-project)) nil " " "\tSPC p s"))
+
+     ((,(all-the-icons-octicon "file-text" :height 1.2 :v-adjust -0.1)
+       "\tScratch buffer" nil
+       (lambda (&rest _) (switch-to-buffer "*scratch*")) nil " " "\tSPC b s"))
+
+     ((,(all-the-icons-octicon "bug" :height 1.2 :v-adjust -0.1)
+       "\tElfeed        " nil
+       (lambda (&rest _) (elfeed)) nil " " "\tSPC a a"))
+
+     ((,(all-the-icons-octicon "dashboard" :height 1.2 :v-adjust -0.1)
+       "\tGoogle        " nil
+       (lambda (&rest _) (google-this)) nil " " "\tSPC g g"))
+
+     ((,(all-the-icons-octicon "calendar" :height 1.2 :v-adjust -0.1)
+       "\tCalendar      " nil
+       (lambda (&rest _) (calendar)) nil " " "\tSPC c c"))
+     )))
+
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :bind
@@ -339,7 +382,6 @@
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
-
 
 (use-package evil-multiedit
   :after evil
@@ -450,8 +492,8 @@
   (dimmer-configure-company-box)
   (dimmer-configure-posframe)
   (dimmer-configure-hydra)
-  (setq dimmer-watch-frame-focus-events nil
-        dimmer-fraction 0.25)
+  (setq dimmer-watch-frame-focus-events t
+        dimmer-fraction 0.1)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 ;; rainbow-delimieters
@@ -542,9 +584,12 @@
         ("C-p" . corfu-previous))
   :custom
   (corfu-auto t)
+  (corfu-auto-delay 0)
+  (corfu-auto-prefix 0)
   (corfu-cycle t)
   (corfu-scroll-margin 5)
   (corfu-min-width 50)
+  (completion-styles '(basic))
   :init
   (global-corfu-mode))
 
@@ -577,6 +622,8 @@
   :after corfu
   :hook (corfu-mode . corfu-doc-mode)
   :custom
+  (corfu-doc-display-within-parent-frame nil)
+  (corfu-doc-auto t)
   (corfu-doc-delay 0.5)
   (corfu-doc-max-width 50)
   (corfu-doc-max-height 50)
@@ -872,6 +919,15 @@
     "'" '((lambda () (interactive) (vterm)) :which-key "Term"))
 
   (mk/leader-keys
+    "aa" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
+  
+  (mk/leader-keys
+    "gg" '(google-this :which-key "Google this"))
+  
+  (mk/leader-keys
+    "cc" '(calendar :which-key "Calendar"))
+  
+  (mk/leader-keys
     "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer")
     "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer"))
 
@@ -909,7 +965,6 @@
 
   (mk/leader-keys
     "pf" '(projectile-find-file-dwim :which-key "Find file")
-    "pF" '(projectile-project-files :which-key "Project files")
     "pk" '(projectile-kill-buffers :which-key "Kill buffers")
     "ps" '(projectile-switch-project :which-key "Switch project")
     "pS" '(projectile-switch-open-project :which-key "Switch open project"))
@@ -923,7 +978,6 @@
   (mk/leader-keys
     "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
     "qr" '(restart-emacs :which-key "Restart emacs")))
-
 
 (use-package org
   :hook (org-mode . mk/org-mode-setup)
@@ -970,7 +1024,10 @@
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (use-package visual-fill-column
-  :hook (org-mode . mk/org-mode-visual-fill))
+  :hook (org-mode . visual-fill-column-mode)
+  :config
+  (setq visual-fill-column-width 120
+        visual-fill-column-center-text t))
 
 (use-package elfeed
   :commands elfeed
@@ -1021,6 +1078,9 @@
   (sp-local-pair 'swift-mode "\\(" ")")
   (sp-local-pair 'swift-mode "<" ">"))
 
+(use-package company-tabnine
+  :defer t)
+
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
 
@@ -1033,7 +1093,7 @@
   (use-package flycheck-swift3
     :after flycheck
     :custom (flycheck-swift3-setup))
-
+  
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
@@ -1043,13 +1103,7 @@
 
   (flycheck-add-next-checker 'swiftlint 'swift3)
   (setq-local completion-at-point-functions
-              (list (cape-super-capf #'cape-dabbrev #'cape-symbol #'cape-line #'cape-keyword)))
-)
-
-(defun mk/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
-        visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
+              (list (cape-super-capf #'cape-dabbrev #'cape-symbol #'cape-line #'cape-keyword))))
 
 (defun mk/org-mode-setup()
   (org-indent-mode 1)
