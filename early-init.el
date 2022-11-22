@@ -8,6 +8,11 @@
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
+(setq package-enable-at-startup nil ; don't auto-initialize!
+      ;; don't add that `custom-set-variables' block to my init.el!
+      package--init-file-ensured t)
+(setq package-archives nil)
+
 (when (boundp 'read-process-output-max)
   (setq read-process-output-max (* 10 1024 1024)))
 
@@ -15,6 +20,7 @@
               frame-resize-pixelwise t
               frame-title-format "\""
               inhibit-startup-screen t
+              inhibit-startup-buffer-menu t
               inhibit-startup-message t
               inhibit-splash-screen t
               inhibit-compacting-font-caches t
@@ -51,6 +57,11 @@
 
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))
+
+(push '(fullscreen . maximized) default-frame-alist)
+(push '(menu-bar-lines . 0) default-frame-alist)
+(push '(tool-bar-lines . 0) default-frame-alist)
+(push '(vertical-scroll-bars) default-frame-alist)
 
 (provide 'early-init)
 ;;; early-init.el ends here

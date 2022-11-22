@@ -1,6 +1,5 @@
 ;;; init.el --- -*- lexical-binding: t -*-
 ;;; Code:
-
 ;; Window
 
 (eval-when-compile (defvar display-time-24hr-format t))
@@ -9,21 +8,17 @@
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
 (set-fringe-mode 1)               ;; Give us some space.
-(delete-selection-mode nil)		  ;; Use a more sane delete mode than evil.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
-(global-font-lock-mode 1)         ;; always highlight code
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
 (savehist-mode 1)                 ;; Save history
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
-(blink-cursor-mode 1)
+(blink-cursor-mode 1)               ;; Blink cursor
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
-;; (set-face-attribute 'default nil :font "Fira Code" :height 160)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150)
-(variable-pitch-mode t)
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -44,7 +39,7 @@
       ediff-split-window-function       'split-window-horizontally
       fast-but-imprecise-scrolling      t
       find-file-visit-truename          t
-      font-lock-maximum-decoration t
+      font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
       idle-update-delay                 1.1    ;; Speed things up by not updating so often
       jit-lock-defer-time               0.0
@@ -56,12 +51,11 @@
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
-      x-stretch-cursor                  t   ;; stretch cursor on tabs
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-(setq gc-cons-threshold (eval-when-compile (* 50 1024 1024)))
+(setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
@@ -70,7 +64,7 @@
       use-package-minimum-reported-time nil
       debug-on-error nil)
 
-(setq-default display-line-numbers-width    4            ;; Set so we can display thousands of lines
+(setq-default display-line-numbers-width    5            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
               line-spacing                  0            ;; Increase linespacing a bit
@@ -273,23 +267,22 @@
   :config
   (dashboard-setup-startup-hook)
   (setq
-   dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
-   dashboard-path-style 'truncate-end
    dashboard-banner-logo-title "Mikaels dashboard!"
+   dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
+   dashboard-center-content t
+   dashboard-path-style 'truncate-beginning
    dashboard-set-file-icons t
-   dashboard-projects-show-base t
-   dashboard-recentf-show-base t
+   dashboard-projects-show-base nil
+   dashboard-recentf-show-base nil
+   dashboard-show-shortcuts nil
    dashboard-image-banner-max-height 250
    dashboard-set-init-info t
    dashboard-set-navigator t
-   dashboard-center-content t
    dashboard-projects-item-format "%s"
    dashboard-recentf-item-format "%s"
    dashboard-set-heading-icons t
-   dashboard-items '()
-   ;; dashboard-items '(
-   ;;                   (projects . 2)
-   ;;                   (recents . 7))
+   dashboard-items '((projects . 2)
+                     (recents . 7))
    dashboard-navigator-buttons
    `(;; line1
      ;; Keybindings
@@ -349,12 +342,13 @@
         evil-search-module 'evil-search
         evil-want-C-i-jump nil)
   :config
-  (setq evil-emacs-state-cursor '("#FF5D62" box))
-  (setq evil-normal-state-cursor '("#bac2de" hollow))
-  (setq evil-visual-state-cursor '("#a6e3a1" box))
-  (setq evil-insert-state-cursor '("#f38ba8" box))
-  (setq evil-replace-state-cursor '("#fab387" hbar))
-  (setq evil-operator-state-cursor '("#89b4fa" hollow))
+
+  ;; (setq evil-emacs-state-cursor '("#FF5D62" box))
+  ;; (setq evil-normal-state-cursor '("#bac2de" hollow))
+  ;; (setq evil-visual-state-cursor '("#000000" box))
+  ;; (setq evil-insert-state-cursor '("#f38ba8" box))
+  ;; (setq evil-replace-state-cursor '("#fab387" hbar))
+  ;; (setq evil-operator-state-cursor '("#89b4fa" hollow))
 
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
@@ -1026,7 +1020,7 @@
 (use-package visual-fill-column
   :hook (org-mode . visual-fill-column-mode)
   :config
-  (setq visual-fill-column-width 120
+  (setq visual-fill-column-width 130
         visual-fill-column-center-text t))
 
 (use-package elfeed

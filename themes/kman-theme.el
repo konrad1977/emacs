@@ -44,7 +44,8 @@
   (surface0   "#282C34" "#ffffff")
   (base       "#21252B" "#ffffff")
   (mantle     "#191C20" "#ffffff")
-  (crust      "#181A1F" "#ffffff"))
+  (crust      "#181A1F" "#ffffff")
+  (dark       "#111316" "#000000"))
 
  ;; Customize faces
  (
@@ -76,7 +77,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground subtext0 :bold t))
   (numbers                              (:background green :foreground base))
-  (region                               (:background crust :distant-foreground text))
+  (region                               (:background dark :foreground yellow))
   (separator-line                       (:background base))
   (shadow                               (:background nil))
   (success                              (:foreground green))
