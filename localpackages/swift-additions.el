@@ -653,11 +653,14 @@ ARGS are rest arguments, appended to the argument list."
   "Build language menu (as TITLE)."
   (interactive)
   (defconst languageList '(
-                           ("English" "en-EN")
-                           ("German" "de-DE")
-                           ("Swedish" "sv-SE")
-                           ("Spanish" "es-ES")
-                           ("French" "fr-FR")))
+                           ("🏴󠁧󠁢󠁥󠁮󠁧󠁿 󠁿English " "en-EN")
+                           ("🇫🇷 French" "fr-FR")
+                           ("🇳🇴 Norwegian (Bokmål)" "nb-NO")
+                           ("🇯🇵 Japanese" "ja-JP")
+                           ("🇩🇪 German" "de-DE")
+                           ("🇪🇸 Spanish" "es-ES")
+                           ("🇸🇪 Swedish" "sv-SE")
+                           ))
   (progn
     (let* ((choices (seq-map (lambda (item) item) languageList))
            (choice (completing-read title choices)))
