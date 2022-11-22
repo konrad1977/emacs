@@ -577,15 +577,29 @@
         ("C-n" . corfu-next)
         ("C-p" . corfu-previous))
   :custom
+  (completion-cycle-threshold nil)
   (corfu-auto t)
-  (corfu-auto-delay 0)
-  (corfu-auto-prefix 0)
+  (corfu-auto-delay 0.25)
+  (corfu-auto-prefix 1)
   (corfu-cycle t)
   (corfu-scroll-margin 5)
   (corfu-min-width 50)
   (completion-styles '(basic))
   :init
   (global-corfu-mode))
+
+(use-package corfu-history
+  :ensure nil
+  :after (corfu savehist)
+  :config
+  (corfu-history-mode 1)
+  (savehist-mode t)
+  (add-to-list 'savehist-additional-variables 'corfu-history))
+
+(use-package dabbrev
+  :ensure nil
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
 
 ;; Add extensions
 (use-package cape
@@ -608,9 +622,10 @@
          ("C-c p &" . cape-sgml)
          ("C-c p r" . cape-rfc1345))
   :init
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-symbol))
+  (add-to-list 'completion-at-point-functions #'cape-keyword))
 
 (use-package corfu-doc
   :after corfu
@@ -755,7 +770,7 @@
   :hook (prog-mode . projectile-mode)
   :bind 
   ("M-O" . projectile-find-file-dwim)
-  ("<backtab>" . projectile-ibuffer)
+  ("<backtab>" . ibuffer)
   :custom
   (setq projectile-completion-system 'default
         projectile-enable-caching nil
@@ -1096,8 +1111,16 @@
   (add-to-list 'flycheck-checkers 'swiftlint)
 
   (flycheck-add-next-checker 'swiftlint 'swift3)
+  
+  (defun mk/eglot-capf ()
+    (setq-local completion-at-point-functions
+                (list (cape-super-capf
+                       #'eglot-completion-at-point
+                       (cape-company-to-capf #'company-yasnippet)))))
+  (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf)
+
   (setq-local completion-at-point-functions
-              (list (cape-super-capf #'cape-dabbrev #'cape-symbol #'cape-line #'cape-keyword))))
+              (list (cape-capf-buster #'cape-dabbrev #'cape-symbol #'cape-keyword #'cape-ispell))))
 
 (defun mk/org-mode-setup()
   (org-indent-mode 1)
