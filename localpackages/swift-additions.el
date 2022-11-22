@@ -28,6 +28,8 @@
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
   "Get booted simulator id if any.")
 
+
+(defvar current-language-selection "en-EN")
 (defvar current-xcode-scheme nil)
 (defvar current-app-identifier nil)
 (defvar current-project-root nil)
@@ -179,8 +181,8 @@ ARGS are rest arguments, appended to the argument list."
       (let ((device-id
              (or (get-booted-simulator)
                  (build-simulator-menu :title "Choose a simulator:" :list (swift-additions:list-available-simulators)))))
-        ;; (widget-choose "Choose a simulator:" (swift-additions:list-available-simulators)))))
         (progn
+          (setq current-language-selection (build-language-menu :title "Choose simulator language"))
           (setup-simulator-dwim current-simulator-id)
           (setq current-simulator-id device-id)))))
   current-simulator-id)
@@ -312,10 +314,9 @@ ARGS are rest arguments, appended to the argument list."
   "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
 
   (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
-
   (if-let ((simulatorID simulatorID))
-      (format "xcrun simctl launch --console-pty %s %s" simulatorID appIdentifier)
-    (format "xcrun simctl launch --console-pty booted %s" appIdentifier)))
+      (format "xcrun simctl launch --console-pty %s %s -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)
+    (format "xcrun simctl launch --console-pty booted %s -AppleLanguages \"\(%s\)\"" appIdentifier current-language-selection)))
 
 (defun inhibit-sentinel-messages (fun &rest args)
   "Inhibit messages in all sentinels started by fun."
@@ -454,6 +455,7 @@ ARGS are rest arguments, appended to the argument list."
 (defun swift-additions:reset-settings ()
   "Reset current settings.  Change current configuration."
   (interactive)
+  (setq current-language-selection nil)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
   (setq current-project-root nil)
@@ -647,6 +649,20 @@ ARGS are rest arguments, appended to the argument list."
                          (cdr (assoc 'udid device)))) devices)))
     items))
 
+(cl-defun build-language-menu (&key title)
+  "Build language menu (as TITLE)."
+  (interactive)
+  (defconst languageList '(
+                           ("English" "en-EN")
+                           ("German" "de-DE")
+                           ("Swedish" "sv-SE")
+                           ("Spanish" "es-ES")
+                           ("French" "fr-FR")))
+  (progn
+    (let* ((choices (seq-map (lambda (item) item) languageList))
+           (choice (completing-read title choices)))
+      (car (cdr (assoc choice choices))))))
+ 
 (cl-defun build-simulator-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
   (interactive)
