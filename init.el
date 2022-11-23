@@ -197,8 +197,9 @@
   :bind
   ("C-s" . consult-line-symbol-at-point)
   ("M-l" . consult-goto-line)
+  ("<backtab>" . consult-buffer)
   ("C-c C-a" . consult-apropos)
-  ("M-f" . consult-imenu-multi))
+  ("M-f" . consult-line))
 
 (defun consult-line-symbol-at-point ()
   "Search consult - thing at point."
@@ -559,13 +560,12 @@
                '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package kind-icon
-  :ensure t
   :after corfu
   :custom
   (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   (kind-icon-use-icons nil)
-  (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.1)
+  (kind-icon-blend-background nil)
+  (kind-icon-blend-frac 0.15)
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
@@ -603,8 +603,6 @@
 
 ;; Add extensions
 (use-package cape
-  ;; Bind dedicated completion commands
-  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
   :bind (("C-c p p" . completion-at-point) ;; capf
          ("C-c p t" . complete-tag)        ;; etags
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
@@ -621,9 +619,12 @@
          ("C-c p ^" . cape-tex)
          ("C-c p &" . cape-sgml)
          ("C-c p r" . cape-rfc1345))
+  :custom
+  (setq cape-dabbrev-check-other-buffers t
+        cape-dabbrev-min-length 2)
   :init
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
@@ -637,50 +638,6 @@
   (corfu-doc-max-width 50)
   (corfu-doc-max-height 50)
   (corfu-echo-documentation nil))
-
-;; (use-package company
-;;   :hook (prog-mode . company-mode)
-;;   :bind
-;;   (:map company-active-map
-;;         ("RET" . company-complete-selection)
-;;         ("<return>" . company-complete-selection)
-;;         ("<tab>" . company-complete-selection))
-;;   :config
-;;   (setq company-transformers '(company-sort-prefer-same-case-prefix)
-;;         company-format-margin-function  'company-vscode-dark-icons-margin
-;;         company-tooltip-margin              0
-;;         company-dabbrev-downcase            nil
-;;         company-dabbrev-ignore-case         t
-;;         company-dabbrev-other-buffers       t
-;;         company-dabbrev-time-limit          0.5
-;;         company-minimum-prefix-length       1
-;;         company-tooltip-align-annotations   t
-;;         company-require-match               nil
-;;         company-tooltip-limit               14
-;;         company-tooltip-width-grow-only     nil
-;;         company-tooltip-flip-when-above     t
-;;         company-show-quick-access           'left
-;;         company-async-wait                  0.1
-;;         company-async-timeout               1
-;;         company-idle-delay                  0.1
-;;         company-frontends '(company-pseudo-tooltip-frontend))
-;;   (push '(company-capf :with company-dabbrev-code company-yasnippet) company-backends))
-
-;; (defun setup-swift-mode-company ()
-;;   "Setup company with separate bakends merged into one."
-;;   (setq-local completion-styles '(shorthand))
-;;   (setq-local company-backends
-;;               ;; '((company-sourcekitten))))
-;;               '((company-capf :with company-dabbrev-code company-yasnippet))))
-
-;; (use-package company-quickhelp
-;;   :hook (company-mode . company-quickhelp-mode))
-
-;; (use-package company-statistics
-;;   :hook (company-mode . company-statistics-mode))
-
-;; (use-package company-prescient
-;;   :hook (company-mode . company-prescient-mode))
 
 (use-package ace-jump-mode
   :commands (ace-jump-mode)
@@ -731,28 +688,8 @@
   (flycheck-check-syntax-automatically '(save idle-change))
   (flycheck-idle-change-delay 2))
 
-;; (use-package flycheck-inline
-;;   :hook (flycheck-mode . turn-on-flycheck-inline))
-
-(use-package swift-mode
-  ;; :hook (swift-mode . setup-swift-mode-company)
-  :bind
-  ("C-c C-c" . #'swift-additions:compile-and-run-silent)
-  ("M-r" . #'swift-additions:run-without-compiling)
-  ("C-c C-x" . #'swift-additions:reset-settings)
-  ("C-c C-l" . #'periphery-run-swiftlint)
-  ("C-c C-k" . #'periphery-run-loco)
-  ("C-c C-t" .  #'swift-additions:test-module-silent)
-  ("C-c C-s" .  #'swift-additions:split-func-list)
-  ("M-L" .  #'swift-additions:clean-build-folder)
-  ("M-P" .  #'swift-additions:print-thing-at-point)
-  ("C-M-t" . #'swift-additions:insert-todo)
-  ("M-m" . #'swift-additions:insert-mark)
-  ("M-s" . #'swift-additions:terminate-all-running-apps)
-  :config
-  (setq swift-mode:basic-offset 4
-        swift-mode:parenthesized-expression-offset 4)
-  (setq-local indent-tabs-mode t))
+(use-package flycheck-inline
+  :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package markdown-mode
   :defer t)
@@ -760,18 +697,12 @@
 (use-package yaml-mode
   :defer t)
 
-;; (use-package clean-aindent-mode
-;;   :hook (prog-mode . clean-aindent-mode)
-;;   :config
-;;   (setq clean-aindent-is-simple-indent t)
-;;   (define-key global-map (kbd "RET") 'newline-and-indent))
-
 (use-package projectile
   :hook (prog-mode . projectile-mode)
   :bind 
   ("M-O" . projectile-find-file-dwim)
-  ("<backtab>" . ibuffer)
-  :custom
+  ;; ("<backtab>" . ibuffer)
+  :custom                               
   (setq projectile-completion-system 'default
         projectile-enable-caching nil
         projectile-sort-order 'access-time
@@ -1090,9 +1021,29 @@
 (use-package company-tabnine
   :defer t)
 
+(use-package swift-mode
+  ;; :hook (swift-mode . setup-swift-mode-company)
+  :bind
+  ("C-c C-c" . #'swift-additions:compile-and-run-silent)
+  ("M-r" . #'swift-additions:run-without-compiling)
+  ("C-c C-x" . #'swift-additions:reset-settings)
+  ("C-c C-l" . #'periphery-run-swiftlint)
+  ("C-c C-k" . #'periphery-run-loco)
+  ("C-c C-t" .  #'swift-additions:test-module-silent)
+  ("C-c C-s" .  #'swift-additions:split-func-list)
+  ("M-L" .  #'swift-additions:clean-build-folder)
+  ("M-P" .  #'swift-additions:print-thing-at-point)
+  ("C-M-t" . #'swift-additions:insert-todo)
+  ("M-m" . #'swift-additions:insert-mark)
+  ("M-s" . #'swift-additions:terminate-all-running-apps)
+  :config
+  (setq swift-mode:basic-offset 4
+        swift-mode:parenthesized-expression-offset 4)
+  (setq-local indent-tabs-mode t))
+
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-
+  
   (load "swift-additions")
   (load "periphery-swiftlint")
   (load "periphery-loco")
@@ -1110,17 +1061,15 @@
   ;; (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
 
-  (flycheck-add-next-checker 'swiftlint 'swift3)
-  
+  (flycheck-add-next-checker 'swiftlint 'swift3)  
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
-                (list (cape-super-capf
-                       #'eglot-completion-at-point
-                       (cape-company-to-capf #'company-yasnippet)))))
+                (list (cape-super-capf #'eglot-completion-at-point #'cape-dabbrev #'cape-line (cape-company-to-capf #'company-yasnippet)))))
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf)
 
-  (setq-local completion-at-point-functions
-              (list (cape-capf-buster #'cape-dabbrev #'cape-symbol #'cape-keyword #'cape-ispell))))
+  ;; (setq-local completion-at-point-functions
+  ;;             (list (cape-super-capf #'cape-dabbrev #'cape-file #'cape-keyword)))
+  )
 
 (defun mk/org-mode-setup()
   (org-indent-mode 1)

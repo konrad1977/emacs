@@ -39,7 +39,7 @@
   (overlay2   "#9399b2" "#ffffff")
   (overlay1   "#7f849c" "#ffffff")
   (overlay0   "#6c7086" "#ffffff")
-  (surface2   "#585b70" "#ffffff")
+  (surface2   "#3B414C" "#ffffff")
   (surface1   "#2D323C" "#ffffff")
   (surface0   "#282C34" "#ffffff")
   (base       "#21252B" "#ffffff")
@@ -258,12 +258,12 @@
   (company-preview-search                   (:inherit 'company-tooltip-search))
   (company-template-field                   (:inherit 'match))
 
-  (corfu-annotations                        (:background surface0 :foreground subtext1))
-  (corfu-current                            (:background surface1 :foreground yellow :distant-foreground subtext0 :bold t))
+  (corfu-annotations                        (:background surface1 :foreground teal))
+  (corfu-current                            (:background surface2 :foreground yellow :distant-foreground subtext0 :bold t))
   (corfu-border                             (:background mantle))
   (corfu-bar                                (:background yellow :foreground mauve))
   (corfu-default                            (:background surface0 :foreground subtext1))
-
+  
   ;; Eldoc
   (eldoc-box-body                       (:foreground peach))
   (eldoc-box-border                     (:background nil :foreground nil))
