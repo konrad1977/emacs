@@ -55,8 +55,8 @@
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-(setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
-(run-with-idle-timer 4 t (lambda () (garbage-collect)))
+;; (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
+;; (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
 (setq use-package-verbose nil
       use-package-expand-minimally nil
@@ -329,7 +329,6 @@
 (use-package undo-fu
   :defer t)
 
-; Use evil mode
 (use-package evil
   :hook (after-init . evil-mode)
   :bind ("<escape>" . keyboard-escape-quit)
@@ -343,14 +342,14 @@
         evil-search-module 'evil-search
         evil-want-C-i-jump nil)
   :config
-
+      
   ;; (setq evil-emacs-state-cursor '("#FF5D62" box))
   ;; (setq evil-normal-state-cursor '("#bac2de" hollow))
   ;; (setq evil-visual-state-cursor '("#000000" box))
   ;; (setq evil-insert-state-cursor '("#f38ba8" box))
   ;; (setq evil-replace-state-cursor '("#fab387" hbar))
   ;; (setq evil-operator-state-cursor '("#89b4fa" hollow))
-
+  (define-key evil-visual-state-map (kbd "u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
@@ -564,7 +563,7 @@
   :custom
   (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   (kind-icon-use-icons nil)
-  (kind-icon-blend-background nil)
+  (kind-icon-blend-background t)
   (kind-icon-blend-frac 0.15)
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
@@ -1150,7 +1149,7 @@
 (with-eval-after-load 'swift-mode
   (setup-swift-programming))
 
-(setq gc-cons-threshold (* 2 1024 1024))
+;; (setq gc-cons-threshold (* 2 1024 1024))
 
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
 

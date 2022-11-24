@@ -79,7 +79,7 @@
   (numbers                              (:background green :foreground base))
   (region                               (:background dark :foreground yellow))
   (separator-line                       (:background base))
-  (shadow                               (:background nil))
+  (shadow                               (:background nil :foreground peach))
   (success                              (:foreground green))
   (vertical-border                      (:foreground surface0 :background nil))
   (warning                              (:foreground flamingo))
