@@ -252,16 +252,15 @@
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
-        doom-modeline-height 42
         doom-modeline-icon t
         doom-modeline-modal-icon nil
         doom-modeline-lsp nil
         doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
   (custom-set-faces
-   '(mode-line ((t (:family "Iosevka Aile" :height 1.0))))
-   '(mode-line-active ((t (:family "Iosevka Aile" :height 1.0)))) ; For 29+
-   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.95))))))
+   '(mode-line ((t (:family "Iosevka Aile" :height 0.95))))
+   '(mode-line-active ((t (:family "Iosevka Aile" :height 0.95)))) ; For 29+
+   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.90))))))
 
 (use-package dashboard
   :after (consult projectile)
@@ -342,13 +341,7 @@
         evil-search-module 'evil-search
         evil-want-C-i-jump nil)
   :config
-      
-  ;; (setq evil-emacs-state-cursor '("#FF5D62" box))
-  ;; (setq evil-normal-state-cursor '("#bac2de" hollow))
-  ;; (setq evil-visual-state-cursor '("#000000" box))
-  ;; (setq evil-insert-state-cursor '("#f38ba8" box))
-  ;; (setq evil-replace-state-cursor '("#fab387" hbar))
-  ;; (setq evil-operator-state-cursor '("#89b4fa" hollow))
+
   (define-key evil-visual-state-map (kbd "u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
@@ -455,7 +448,8 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook (org-mode . svg-tag-mode)
+  :hook ((prog-mode . svg-tag-mode)
+         (org-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags
         '(
@@ -490,7 +484,6 @@
         dimmer-fraction 0.1)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
-;; rainbow-delimieters
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
@@ -521,7 +514,6 @@
   :defer t)
 
 ;; ------------------ EDITING -------------------
-;; Navigate through blocks
 (use-package consult-project-extra
   :after consult
   :bind
@@ -680,10 +672,10 @@
 
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
-  :diminish
+  :diminish t
   :custom
   (flycheck-indication-mode 'left-fringe)
-  (flycheck-display-errors-delay 0.2)
+  (flycheck-display-errors-delay 2)
   (flycheck-check-syntax-automatically '(save idle-change))
   (flycheck-idle-change-delay 2))
 
