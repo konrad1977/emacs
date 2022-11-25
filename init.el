@@ -1013,13 +1013,15 @@
   :defer t)
 
 (use-package swift-mode
-  ;; :hook (swift-mode . setup-swift-mode-company)
+  :config
+  (setq swift-mode:basic-offset 4
+        swift-mode:parenthesized-expression-offset 4)
+  (setq-local indent-tabs-mode t))
+
+(use-package swift-additions
+  :ensure nil
+  :after swift-mode
   :bind
-  ("C-c C-c" . #'swift-additions:compile-and-run-silent)
-  ("M-r" . #'swift-additions:run-without-compiling)
-  ("C-c C-x" . #'swift-additions:reset-settings)
-  ("C-c C-l" . #'periphery-run-swiftlint)
-  ("C-c C-k" . #'periphery-run-loco)
   ("C-c C-t" .  #'swift-additions:test-module-silent)
   ("C-c C-s" .  #'swift-additions:split-func-list)
   ("M-L" .  #'swift-additions:clean-build-folder)
@@ -1027,18 +1029,29 @@
   ("C-M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
   ("M-s" . #'swift-additions:terminate-all-running-apps)
-  :config
-  (setq swift-mode:basic-offset 4
-        swift-mode:parenthesized-expression-offset 4)
-  (setq-local indent-tabs-mode t))
+  ("C-c C-c" . #'swift-additions:compile-and-run-silent)
+  ("M-r" . #'swift-additions:run-without-compiling)
+  ("C-c C-x" . #'swift-additions:reset-settings)
+  :load-path "~/.emacs.d/localpackages/swift-additions.el")
+
+(use-package periphery-loco
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("C-c C-k" . #'periphery-run-loco)
+  :load-path "~/.emacs.d/localpackages/periphery-loco.el")
+
+(use-package periphery-swiftlint
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("C-c C-l" . #'periphery-run-swiftlint)
+  :load-path "~/.emacs.d/localpackages/periphery-swiftlint.el")
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-  
-  (load "swift-additions")
-  (load "periphery-swiftlint")
-  (load "periphery-loco")
 
+  (message "swetup-swift-programming")
   (setq tree-sitter-hl-use-font-lock-keywords t)
 
   (use-package flycheck-swift3
@@ -1056,11 +1069,7 @@
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point #'cape-dabbrev #'cape-line (cape-company-to-capf #'company-yasnippet)))))
-  (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf)
-
-  ;; (setq-local completion-at-point-functions
-  ;;             (list (cape-super-capf #'cape-dabbrev #'cape-file #'cape-keyword)))
-  )
+  (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
 (defun mk/org-mode-setup()
   (org-indent-mode 1)

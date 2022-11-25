@@ -62,6 +62,6 @@ PROCESS-NAME is the name of the process."
      :text (format "Install %s to use this command." swiftlint)
      :attributes 'warning)))
 
-(provide 'perihery-swiftlint)
-
+(provide 'periphery-swiftlint)
 ;;; periphery-swiftlint.el ends here.
+

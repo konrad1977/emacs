@@ -55,6 +55,5 @@ PROCESS-NAME is the name of the process."
    :text (format "Install %s to use this command." loco-command)
    :attributes 'warning)))
 
-(provide 'perihery-loco)
+(provide 'periphery-loco)
 ;;; periphery-loco.el ends here.
-
