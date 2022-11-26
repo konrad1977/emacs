@@ -117,7 +117,7 @@
   "Get the booted simulator id or fetch a suiting one."
   (if (not asked-to-use-secondary-simulator)
       (if (yes-or-no-p "Launch an additional simulator?")
-          (let ((another-simulator-id (widget-choose "Choose secondrary simulator" (swift-additions:list-available-simulators))))
+          (let ((another-simulator-id (widget-choose "Choose secondrary simulator" (ios-simulator:available-simulators))))
             (setup-simulator-dwim another-simulator-id)
             (setq secondary-simulator-id another-simulator-id))))
   (setq asked-to-use-secondary-simulator t)
@@ -127,7 +127,7 @@
     (progn
       (let ((device-id
              (or (get-booted-simulator)
-                 (build-simulator-menu :title "Choose a simulator:" :list (swift-additions:list-available-simulators)))))
+                 (build-simulator-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
         (progn
           (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))
           (setup-simulator-dwim current-simulator-id)
@@ -570,26 +570,6 @@
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
     result))
-
-(defun swift-additions:list-simulators ()
-  "List available simulators."
-  (message-with-color :tag "[Fetching]" :text "available simulators..." :attributes '(:inherit warning))
-  (let* ((json (call-process-to-json list-simulators-command))
-         (devices (cdr (assoc 'devices json)))
-         (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
-         (available-devices
-          (seq-filter
-           (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
-         ) available-devices))
-
-(defun swift-additions:list-available-simulators ()
-  "List available simulators."
-  (let* ((devices (swift-additions:list-simulators))
-         (items (seq-map
-                 (lambda (device)
-                   (cons (cdr (assoc 'name device))
-                         (cdr (assoc 'udid device)))) devices)))
-    items))
  
 (cl-defun build-simulator-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."

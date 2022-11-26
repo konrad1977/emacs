@@ -19,6 +19,15 @@
 
 (defvar current-language-selection "en-EN")
 
+(defun ios-simulator:available-simulators ()
+  "List available simulators."
+  (let* ((devices (ios-simulator:fetch-available-simulators))
+         (items (seq-map
+                 (lambda (device)
+                   (cons (cdr (assoc 'name device))
+                         (cdr (assoc 'udid device)))) devices)))
+    items))
+
 (cl-defun ios-simulator:build-language-menu (&key title)
   "Build language menu (as TITLE)."
   (interactive)
@@ -50,6 +59,16 @@
         (format "xcrun simctl terminate %s %s" simulatorID appIdentifier)
       (format "xcrun simctl terminate booted %s" appIdentifier)))))
 
+(defun ios-simulator:fetch-available-simulators ()
+  "List available simulators."
+  (message-with-color :tag "[Fetching]" :text "available simulators..." :attributes '(:inherit warning))
+  (let* ((json (call-process-to-json list-simulators-command))
+         (devices (cdr (assoc 'devices json)))
+         (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
+         (available-devices
+          (seq-filter
+           (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
+         ) available-devices))
 
 (provide 'ios-simulator)
 ;;; ios-simulator.el ends here
