@@ -41,41 +41,6 @@
 (defvar local-device-id nil)
 (defvar DEBUG nil)
 
-(defun start-simulator-with-id (id)
-  "Launch a specific simulator with (as ID)."
-  (inhibit-sentinel-messages
-   #'call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
-
-(defun boot-simuator-with-id (id)
-  "Simulator app is running.  Boot simulator (as ID)."
-  (inhibit-sentinel-messages
-   #'call-process-shell-command (format "xcrun simctl boot %s" id)))
-
-(defun is-simulator-app-running ()
-  "Check if simulator is running."
-  (let ((output (shell-command-to-string "ps ax | grep -v grep | grep Simulator.app")))
-    (not (string= "" output))))
-
-(defun get-simulator-name (id)
-  "Get simulator name (as ID)."
-  (clean-up-newlines
-   (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))))
-
-(defun setup-simulator-dwim (id)
-  "Setup simulator dwim (as ID)."
-  (if (not (is-simulator-app-running))
-      (start-simulator-with-id id)
-    (boot-simuator-with-id id)))
-
-(defun fetch-simulator-name ()
-  "Fetches simulator name."
-  (unless current-simulator-name
-    (let ((simulator-name (get-simulator-name current-simulator-id)))
-      (if simulator-name
-          (setq current-simulator-name (format "%s(simulator)" simulator-name))
-        (setq current-simulator-name "Simulator (unknown)"))))
-  current-simulator-name)
-
 (defun fetch-targets ()
   "Select the target."
   (build-menu :title "Choose target" :list (swift-additions:get-target-list)))
@@ -103,19 +68,19 @@
   (if (not asked-to-use-secondary-simulator)
       (if (yes-or-no-p "Launch an additional simulator?")
           (let ((another-simulator-id (widget-choose "Choose secondrary simulator" (ios-simulator:available-simulators))))
-            (setup-simulator-dwim another-simulator-id)
+            (ios-simulator:setup-simulator-dwim another-simulator-id)
             (setq secondary-simulator-id another-simulator-id))))
   (setq asked-to-use-secondary-simulator t)
 
   (if current-simulator-id
-      (setup-simulator-dwim current-simulator-id)
+      (ios-simulator:setup-simulator-dwim current-simulator-id)
     (progn
       (let ((device-id
              (or (ios-simulator:booted-simulator)
                  (build-simulator-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
         (progn
           (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))
-          (setup-simulator-dwim current-simulator-id)
+          (ios-simulator:setup-simulator-dwim current-simulator-id)
           (setq current-simulator-id device-id)))))
   current-simulator-id)
 
@@ -209,20 +174,6 @@
     (concat
      "env /usr/bin/arch -x86_64 \\"
      (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (get-app-name-from :folder folder)))))
-
-(defun swift-additions:terminate-all-running-apps ()
-  "Terminate runnings apps."
-  (interactive)
-  (terminate-app-in-simulator :simulatorID current-simulator-id)
-  (terminate-app-in-simulator :simulatorID secondary-simulator-id))
-
-(cl-defun terminate-app-in-simulator (&key simulatorID)
-  "Terminate app that is running in simulator with SIMULATORID."
-  (inhibit-sentinel-messages #'call-process-shell-command
-   (concat
-    (if simulatorID
-        (format "xcrun simctl terminate %s %s" simulatorID (fetch-or-load-app-identifier))
-      (format "xcrun simctl terminate booted %s" (fetch-or-load-app-identifier))))))
 
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
@@ -344,7 +295,7 @@
          (simulator-id (fetch-or-load-simulator-id)))
 
     (setq applicationName (get-app-name-from :folder (get-build-folder)))
-    (setq simulatorName  (fetch-simulator-name))
+    (setq simulatorName  (ios-simulator:fetch-simulator-name))
     
     (animate-message-with-color
      :tag "[Installing]"
@@ -352,13 +303,14 @@
      :attributes '(:inherit success)
      :times 3)
 
-    (swift-additions:terminate-all-running-apps)
+    (ios-simulator:terminate-app-with
+     :appIdentifier (fetch-or-load-app-identifier))
 
     (inhibit-sentinel-messages #'
      call-process-shell-command (install-app-in-simulator-command :simulatorID simulator-id))
 
     (when-let ((secondary-id secondary-simulator-id))
-      (setup-simulator-dwim secondary-simulator-id)
+      (ios-simulator:setup-simulator-dwim secondary-simulator-id)
       (call-process-shell-command (install-app-in-simulator-command :simulatorID secondary-id)))
 
     (inhibit-sentinel-messages #'async-shell-command

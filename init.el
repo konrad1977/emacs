@@ -1043,7 +1043,7 @@
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("C-M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
-  ("M-s" . #'swift-additions:terminate-all-running-apps)
+  ("M-s" . #'ios-simulator:terminate-current-app)
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
   ("M-r" . #'swift-additions:run-without-compiling)
   ("C-c C-x" . #'swift-additions:reset-settings)

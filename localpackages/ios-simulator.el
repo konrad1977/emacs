@@ -18,6 +18,45 @@
   "Get booted simulator id if any.")
 
 (defvar current-language-selection "en-EN")
+(defvar current-simulator-name nil)
+(defvar current-simulator-id nil)
+(defvar secondary-simulator-id nil)
+(defvar current-app-identifier nil)
+
+(defun ios-simulator:setup-simulator-dwim (id)
+  "Setup simulator dwim (as ID)."
+  (if (not (ios-simulator:is-simulator-app-running))
+      (ios-simulator:start-simulator-with-id id)
+    (ios-simulator:boot-simuator-with-id id)))
+
+(defun ios-simulator:fetch-simulator-name ()
+  "Fetches simulator name."
+  (unless current-simulator-name
+    (let ((simulator-name (ios-simulator:simulator-name current-simulator-id)))
+      (if simulator-name
+          (setq current-simulator-name (format "%s(simulator)" simulator-name))
+        (setq current-simulator-name "Simulator (unknown)"))))
+  current-simulator-name)
+
+(defun ios-simulator:boot-simuator-with-id (id)
+  "Simulator app is running.  Boot simulator (as ID)."
+  (inhibit-sentinel-messages
+   #'call-process-shell-command (format "xcrun simctl boot %s" id)))
+
+(defun ios-simulator:start-simulator-with-id (id)
+  "Launch a specific simulator with (as ID)."
+  (inhibit-sentinel-messages
+   #'call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
+
+(defun ios-simulator:is-simulator-app-running ()
+  "Check if simulator is running."
+  (let ((output (shell-command-to-string "ps ax | grep -v grep | grep Simulator.app")))
+    (not (string= "" output))))
+
+(defun ios-simulator:simulator-name (id)
+  "Get simulator name (as ID)."
+  (clean-up-newlines
+   (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))))
 
 (defun ios-simulator:available-simulators ()
   "List available simulators."
@@ -50,6 +89,19 @@
     (if (not (string= "" device-id))
         (clean-up-newlines device-id)
       nil)))
+
+(defun ios-simulator:terminate-current-app ()
+  "Terminate the current app running in simulator."
+  (interactive)
+  (if current-app-identifier
+      (ios-simulator:terminate-app-with :appIdentifier current-app-identifier)))
+
+(cl-defun ios-simulator:terminate-app-with (&key appIdentifier)
+  "Terminate runnings apps (as APPIDENTIFIER)."
+  (interactive)
+  (setq current-app-identifier appIdentifier)
+  (ios-simulator:terminate-app :simulatorID current-simulator-id :appIdentifier appIdentifier)
+  (ios-simulator:terminate-app :simulatorID secondary-simulator-id :appIdentifier appIdentifier))
 
 (cl-defun ios-simulator:terminate-app (&key simulatorID &key appIdentifier)
   "Terminate app (as APPIDENTIFIER as SIMULATORID)."
