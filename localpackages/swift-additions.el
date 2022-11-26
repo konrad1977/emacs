@@ -26,10 +26,6 @@
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst build-warning-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list devices iPhone available -j")
-(defconst get-booted-simulator-command
-  "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
-  "Get booted simulator id if any.")
-
 
 (defvar current-language-selection "en-EN")
 (defvar current-xcode-scheme nil)
@@ -44,17 +40,6 @@
 (defvar asked-to-use-secondary-simulator t)
 (defvar local-device-id nil)
 (defvar DEBUG nil)
-
-(defun get-booted-simulator ()
-  "Get booted simulator if any."
-  (let ((device-id (shell-command-to-string get-booted-simulator-command)))
-    (if (not (string= "" device-id))
-        (clean-up-newlines device-id)
-      nil)))
-
-(defun command-string-to-list (cmd)
-  "Split the CMD unless it is a list.  This function respects quotes."
-  (if (listp cmd) cmd (split-string-and-unquote cmd)))
 
 (defun start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
@@ -126,7 +111,7 @@
       (setup-simulator-dwim current-simulator-id)
     (progn
       (let ((device-id
-             (or (get-booted-simulator)
+             (or (ios-simulator:booted-simulator)
                  (build-simulator-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
         (progn
           (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))

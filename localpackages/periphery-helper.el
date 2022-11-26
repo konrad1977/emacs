@@ -6,6 +6,7 @@
 
 ;;; Text and animations
 
+
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
   (string-trim-left
@@ -24,6 +25,10 @@
   (message "%s %s" (propertize tag 'face attributes) text))
 
 ;;; Processes
+(defun command-string-to-list (cmd)
+  "Split the CMD unless it is a list.  This function respects quotes."
+  (if (listp cmd) cmd (split-string-and-unquote cmd)))
+
 (cl-defun run-async-command-in-buffer (&key command &key buffername)
   "Run async-command in xcodebuild buffer (as COMMAND and BUFFERNAME)."
   (inhibit-sentinel-messages #'async-shell-command command buffername))

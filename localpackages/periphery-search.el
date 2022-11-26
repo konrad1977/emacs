@@ -49,7 +49,10 @@
       (progn
         (let ((default-directory (vc-root-dir)))
           (setq current-query text)
-          (async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher text) #'send-search-result-to-periphery)))
+          (async-shell-command-to-string
+           :process-name searcher
+           :command (format "%s --vimgrep -w %s" searcher text)
+           :callback #'send-search-result-to-periphery)))
     (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)
