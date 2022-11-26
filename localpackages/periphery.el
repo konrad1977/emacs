@@ -7,6 +7,7 @@
 (require 'dash)
 (require 'transient)
 (require 'evil)
+(require 'periphery-helper)
 
 (defface periphery-info-face
   '((t (:inherit compilation-info :bold t)))
@@ -209,7 +210,7 @@
       )))
   (if periphery-errorList
       (periphery-listing-command periphery-errorList)
-    (periphery-message :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
+    (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
 
 (defun periphery-mode-all ()
   "Show all."
@@ -366,16 +367,6 @@
                      (propertize-severity (if note note "error") (string-trim-left note))
                      (propertize message 'face 'periphery-message-face)))))))
 
-
-(cl-defun periphery-message (&key tag &key text &key attributes)
-  "Print a TAG and TEXT with ATTRIBUTES."
-  (interactive)
-  (setq-local inhibit-message nil)
-  (message "%s %s" (propertize tag 'face attributes) text)
-
-  ;; (periphery-message :tag "[Search result]:" :text (format "%d occurrences found.'" (length periphery-errorList) query) :attributes 'periphery-info-face)
-  (setq-local inhibit-message t))
-
 (cl-defun periphery-message-with-count (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count"
   (interactive)
@@ -415,7 +406,7 @@
       (push entry periphery-errorList)))
   (when periphery-errorList
     (progn
-      (periphery-message :tag "[Search result]:" :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
+      (message-with-color :tag "[Search result]:" :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
       (periphery-listing-command periphery-errorList))))
 
 (provide 'periphery)

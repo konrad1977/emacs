@@ -27,12 +27,12 @@
            :process-name "loco"
            :command (concat loco-command " --no-color")
            :callback #'send-loco-result-to-periphery))
-        (periphery-message
+        (message-with-color
          :tag "[Linting|Loco]"
          :text (file-name-nondirectory (directory-file-name
                                         (file-name-directory (vc-root-dir))))
          :attributes 'success))
-  (periphery-message
+  (message-with-color
    :tag "[Failed]"
    :text (format "Install %s to use this command." loco-command)
    :attributes 'warning)))

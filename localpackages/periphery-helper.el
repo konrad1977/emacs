@@ -6,7 +6,6 @@
 
 ;;; Text and animations
 
-
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
   (string-trim-left

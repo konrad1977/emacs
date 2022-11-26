@@ -53,7 +53,7 @@
            :process-name searcher
            :command (format "%s --vimgrep -w %s" searcher text)
            :callback #'send-search-result-to-periphery)))
-    (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
+    (message-with-color :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."

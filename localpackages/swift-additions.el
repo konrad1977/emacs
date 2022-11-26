@@ -63,27 +63,6 @@
     (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
   current-app-identifier)
 
-(defun fetch-or-load-simulator-id ()
-  "Get the booted simulator id or fetch a suiting one."
-  (if (not asked-to-use-secondary-simulator)
-      (if (yes-or-no-p "Launch an additional simulator?")
-          (let ((another-simulator-id (widget-choose "Choose secondrary simulator" (ios-simulator:available-simulators))))
-            (ios-simulator:setup-simulator-dwim another-simulator-id)
-            (setq secondary-simulator-id another-simulator-id))))
-  (setq asked-to-use-secondary-simulator t)
-
-  (if current-simulator-id
-      (ios-simulator:setup-simulator-dwim current-simulator-id)
-    (progn
-      (let ((device-id
-             (or (ios-simulator:booted-simulator)
-                 (build-simulator-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
-        (progn
-          (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))
-          (ios-simulator:setup-simulator-dwim current-simulator-id)
-          (setq current-simulator-id device-id)))))
-  current-simulator-id)
-
 (defun setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
   (unless current-project-root
@@ -121,8 +100,8 @@
         (format "-workspace %s.xcworkspace \\" workspace)
       (format "-project %s.xcodeproj \\" projectname))))
 
-(cl-defun build-app-command (&simulatorId simulatorId &deviceId deviceId)
-  "Xcodebuild with (as &SIMULATORID as &DEVICEID)."
+(cl-defun build-app-command (&simulatorId simulatorId)
+  "Xcodebuild with (as SIMULATORID as DEVICEID)."
   (concat
    (xcodebuild-command)
    (get-workspace-or-project)
@@ -169,7 +148,7 @@
     (ios-simulator:install-and-run-app
      :rootfolder current-project-root
      :build-folder (get-build-folder)
-     :simulatorId (fetch-or-load-simulator-id)
+     :simulatorId (ios-simulator:load-simulator-id)
      :appIdentifier (fetch-or-load-app-identifier)
      :buffer xcodebuild-buffer
     )))
@@ -265,9 +244,7 @@
   "Build using builtin compile and 'compilation-mode'."
   (interactive)
   (let* ((default-directory (current-project-root))
-         (compile-command (build-app-command
-                           :simulatorId (fetch-or-load-simulator-id)
-                           :deviceId (get-connected-device-id))))
+         (compile-command (build-app-command :simulatorId (ios-simulator:load-simulator-id))))
     (compile compile-command)))
 
 (defun swift-additions:reset-settings ()
@@ -299,8 +276,9 @@
   (swift-additions:kill-xcode-buffer)
   (setq device-or-simulator "[Building device target]")
   (setq local-device-id (get-connected-device-id))
+
   (when (not local-device-id)
-    (fetch-or-load-simulator-id)
+    (ios-simulator:load-simulator-id)
     (setq device-or-simulator "[Building simulator target]"))
 
   (if (is-xcodeproject)
@@ -309,7 +287,7 @@
         (let ((default-directory current-project-root))
           (async-shell-command-to-string
            :process-name "periphery"
-           :command (build-app-command :simulatorId: current-simulator-id :deviceId local-device-id)
+           :command (build-app-command :simulatorId: current-simulator-id)
            :callback #'swift-additions:check-for-errors))
         (animate-message-with-color
          :tag device-or-simulator
@@ -446,16 +424,6 @@
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
     result))
- 
-(cl-defun build-simulator-menu (&key title &key list)
-  "Builds a widget menu from (as TITLE as LIST)."
-  (interactive)
-  (if (<= (length list) 1)
-      (elt list 0)
-    (progn
-      (let* ((choices (seq-map (lambda (item) item) list))
-             (choice (completing-read title choices)))
-        (cdr (assoc choice choices))))))
 
 (cl-defun build-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
@@ -510,11 +478,25 @@
     (async-shell-command-to-string :process-name "periphery" :command "swift test" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
 
-                                        ; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
+(defun swift-additions:lsp-arguments ()
+  "Get the lsp arguments to support UIKit."
+  (let* ((sdk (ios-simulator:sdk-path))
+         (target (ios-simulator:target)))
+    (list
+     "-Xswiftc" "-sdk"
+     "-Xswiftc" sdk
+     "-Xswiftc" "-target"
+     "-Xswiftc" target)))
+
+(defun my-swift-mode:eglot-server-contact (_ignored)
+  "Construct the list that eglot needs to start sourcekit-lsp."
+  (setq arglist (swift-additions:lsp-arguments))
+  (add-to-list 'arglist
+               (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
+
+ ; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
 (defun swift-additions:split-func-list ()
-  "While on either the header of a function-like declaration or a
-call to a function, split each parameter/argument to its own
-line."
+  "While on either the header of a function-like declaration or a call to a function, split each parameter/argument to its own line."
   (interactive)
   (save-excursion
     (beginning-of-line)
@@ -609,41 +591,6 @@ line."
   "Face for 'func' keyword."
   :group 'tree-sitter-hl-faces)
 
-(defun current-simulator-sdk-version ()
-  "Get the current simulator sdk-version."
-  (clean-up-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
-
-(defun current-simulator-sdk-path ()
-  "Get the current simulator sdk-path."
-  (clean-up-newlines (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
-
-(defun current-arch ()
-  "Get the current arch."
-  (clean-up-newlines (shell-command-to-string "clang -print-target-triple")))
-
-(defun current-simulator-sdk ()
-  "Get the current simulator sdk."
-  (let* ((target-components (split-string (current-arch) "-"))
-         (arch (nth 0 target-components))
-         (vendor (nth 1 target-components))
-         (version (current-simulator-sdk-version)))
-    (format "%s-%s-ios%s-simulator" arch vendor version)))
-
-(defun sourcekit-lsp-arguments ()
-  "Get the lsp arguments to support UIKit."
-  (let* ((sdk (current-simulator-sdk-path))
-         (target (current-simulator-sdk)))
-    (list
-     "-Xswiftc" "-sdk"
-     "-Xswiftc" sdk
-     "-Xswiftc" "-target"
-     "-Xswiftc" target)))
-
-(defun my-swift-mode:eglot-server-contact (_ignored)
-  "Construct the list that eglot needs to start sourcekit-lsp."
-  (setq arglist (sourcekit-lsp-arguments))
-  (add-to-list 'arglist
-               (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
 (provide 'swift-additions)
 

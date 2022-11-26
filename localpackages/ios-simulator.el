@@ -23,6 +23,26 @@
 (defvar secondary-simulator-id nil)
 (defvar current-app-identifier nil)
 
+(defun ios-simulator:current-sdk-version ()
+  "Get the current simulator sdk-version."
+  (clean-up-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
+
+(defun ios-simulator:sdk-path ()
+  "Get the current simulator sdk-path."
+  (clean-up-newlines (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
+
+(defun ios-simulator:current-arch ()
+  "Get the current arch."
+  (clean-up-newlines (shell-command-to-string "clang -print-target-triple")))
+
+(defun ios-simulator:target ()
+  "Get the current simulator sdk."
+  (let* ((target-components (split-string (ios-simulator:current-arch) "-"))
+         (arch (nth 0 target-components))
+         (vendor (nth 1 target-components))
+         (version (ios-simulator:current-sdk-version)))
+    (format "%s-%s-ios%s-simulator" arch vendor version)))
+
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier &key buffer)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
 
@@ -126,6 +146,30 @@
     (let* ((choices (seq-map (lambda (item) item) languageList))
            (choice (completing-read title choices)))
       (car (cdr (assoc choice choices))))))
+
+(cl-defun ios-simulator-build-selection-menu (&key title &key list)
+  "Builds a widget menu from (as TITLE as LIST)."
+  (interactive)
+  (if (<= (length list) 1)
+      (elt list 0)
+    (progn
+      (let* ((choices (seq-map (lambda (item) item) list))
+             (choice (completing-read title choices)))
+        (cdr (assoc choice choices))))))
+
+(defun ios-simulator:load-simulator-id ()
+  "Get the booted simulator id or fetch a suiting one."
+  (if current-simulator-id
+      (ios-simulator:setup-simulator-dwim current-simulator-id)
+    (progn
+      (let ((device-id
+             (or (ios-simulator:booted-simulator)
+                 (ios-simulator:build-selection-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
+        (progn
+          (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))
+          (ios-simulator:setup-simulator-dwim current-simulator-id)
+          (setq current-simulator-id device-id)))))
+  current-simulator-id)
 
 (defun ios-simulator:booted-simulator ()
   "Get booted simulator if any."
