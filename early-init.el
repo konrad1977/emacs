@@ -33,7 +33,7 @@
                 (bottom-divider-width . 1)           ; Thin horizontal window divider
                 (foreground-color . "#DCD7BA")       ; Default foreground color
                 (fullscreen . maximized)             ; Maximize the window by default
-                (alpha . (100 . 100))
+                (alpha . (98 . 100))
                 (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
                 (left-fringe . 4)                    ; Thin left fringe
                 (right-fringe . 1)                   ; Thin right fringe

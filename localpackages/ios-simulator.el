@@ -1,65 +1,55 @@
-;;; Simulator --- A small package for viewing iOS simulator logs
-
+;;; Simulator --- A small package for viewing iOS simulator logs -*- lexical-binding: t -*-
 ;;; Commentary: This package provides some support for iOS Simulator
-
-(require 's)
-
 ;;; Code:
 
-;; ----------------- READ SIMULATOR LOGS --------------------------------------------
-(defun run-simulator-command (app-identifier)
-    "Run simulator with simctl with (as APP-IDENTIFIER)."
-    (format "xcrun simctl launch --console-pty booted %s -MyDefaultKey YES" app-identifier))
+(require 'periphery-helper)
 
-(defun ios-simulator-logs (app-identifier)
-  "Show simulator logs in a buffer with (APP-IDENTIFIER)."
+(defgroup ios-simulator nil
+  "ios-simulator."
+  :tag "ios-simulator"
+  :group 'ios-simulator)
+
+(defconst list-simulators-command
+  "xcrun simctl list devices iPhone available -j"
+  "List available simulators.")
+
+(defconst get-booted-simulator-command
+  "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
+  "Get booted simulator id if any.")
+
+(defvar current-language-selection "en-EN")
+
+(cl-defun ios-simulator:build-language-menu (&key title)
+  "Build language menu (as TITLE)."
   (interactive)
-  (with-output-to-temp-buffer "*simulator logs*"
-    (async-shell-command
-     (format "bash -c %s"
-             (shell-quote-argument (run-simulator-command app-identifier))) "*simulator logs*")
-    (pop-to-buffer "*simulator logs*")
-    (auto-revert-tail-mode)))
+  (defconst languageList '(
+                           ("🏴󠁧󠁢󠁥󠁮󠁧󠁿 󠁿English " "en-EN")
+                           ("🇫🇷 French" "fr-FR")
+                           ("🇳🇴 Norwegian (Bokmål)" "nb-NO")
+                           ("🇯🇵 Japanese" "ja-JP")
+                           ("🇩🇪 German" "de-DE")
+                           ("🇪🇸 Spanish" "es-ES")
+                           ("🇸🇪 Swedish" "sv-SE")))
+  (progn
+    (let* ((choices (seq-map (lambda (item) item) languageList))
+           (choice (completing-read title choices)))
+      (car (cdr (assoc choice choices))))))
 
-;; ----------------- OPEN SIMULATOR FOLDER --------------------------------------------
-(setq simulator-folder
-      (shell-command-to-string "xcrun simctl getenv booted SIMULATOR_LOG_ROOT"))
+(defun ios-simulator:booted-simulator ()
+  "Get booted simulator if any."
+  (let ((device-id (shell-command-to-string get-booted-simulator-command)))
+    (if (not (string= "" device-id))
+        (clean-up-newlines device-id)
+      nil)))
 
-(setq simulator-id
-      (file-name-nondirectory simulator-folder))
+(cl-defun ios-simulator:terminate-app (&key simulatorID &key appIdentifier)
+  "Terminate app (as APPIDENTIFIER as SIMULATORID)."
+  (inhibit-sentinel-messages #'call-process-shell-command
+   (concat
+    (if simulatorID
+        (format "xcrun simctl terminate %s %s" simulatorID appIdentifier)
+      (format "xcrun simctl terminate booted %s" appIdentifier)))))
 
-(defun ios-simulator-print-type-and-name ()
-  "Print the currently booted simulator name."
-  (interactive)
-  (message
-   (string-trim
-    (shell-command-to-string
-     (concat "xcrun simctl list | grep -m1 "
-             (file-name-nondirectory
-              (shell-command-to-string "xcrun simctl getenv booted SIMULATOR_LOG_ROOT")))))))
-
-
-(defun ios-simulator-open-root ()
-  "Opens up the folder of the currect simulator root"
-  (shell-command
-   (concat "open " simulator-folder)))
-
-;; ----------------- HYDRA MENU FOR SIMULATOR --------------------------------------------
-(require 'all-the-icons)
-(defun with-faicon (icon str &optional height v-adjust)
-  "Displays an icon from Font Awesome icon."
-	(s-concat (all-the-icons-faicon icon :v-adjust (or v-adjust 0) :height (or height 1)) " " str))
-
-(require 'pretty-hydra)
-
-(defvar simulator-hydra--title (with-faicon "mobile" "Simulator" 1.5 -0.225))
-(pretty-hydra-define ios-simulator-menu
- (:color amaranth :quit-key "q" :title simulator-hydra--title)
-  ("Simulators"
-   (
-    ("o" ios-simulator-open-root "Open simulator root")
-    ("p" ios-simulator-print-type-and-name "Print name of simulator")
-    )))
 
 (provide 'ios-simulator)
 ;;; ios-simulator.el ends here

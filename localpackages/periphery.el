@@ -1,5 +1,5 @@
 ;;; Periphery --- A simple package to parse output from compile commands
-;; -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Commentary: --- A simple package
 

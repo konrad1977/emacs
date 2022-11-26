@@ -175,9 +175,9 @@
   (org-done                             (:foreground overlay2))
   (org-code                             (:background crust))
   (org-meta-line                        (:background surface1 :foreground blue))
-  (org-block                            (:background base))
-  (org-block-begin-line                 (:background base :foreground overlay2))
-  (org-block-end-line	                (:background base :foreground overlay2))
+  (org-block                            (:background crust))
+  (org-block-begin-line                 (:background crust :foreground surface2 :italic t))
+  (org-block-end-line	                (:background crust :foreground surface2 :italic t))
   (org-headline-done                    (:foreground overlay2 :strike-through t))
   (org-todo                             (:foreground green :bold t))
   (org-headline-todo                    (:foreground base))
@@ -315,7 +315,7 @@
   (vertico-current                              (:background surface1 :foreground yellow :bold t :distant-foreground text-light))
   (consult-file                                 (:distant-foreground text :bold t))
 
-  (vertico-posframe-border                      (:background mantle))
+  (vertico-posframe-border                      (:background surface2))
   (vertico-posframe                             (:background crust :foreground subtext0 :bold nil))
 
   (orderless-match-face-0                       (:foreground text-light :bold t))

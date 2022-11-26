@@ -12,7 +12,9 @@
 (require 'projectile)
 (require 'swift-mode)
 (require 'evil-states)
+(require 'periphery-helper)
 (require 'periphery)
+(require 'ios-simulator)
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
@@ -42,61 +44,6 @@
 (defvar asked-to-use-secondary-simulator t)
 (defvar local-device-id nil)
 (defvar DEBUG nil)
-
-
-(cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
-  "Execute shell command COMMAND asynchronously in the background.
-PROCESS-NAME is the name of the process."
-  (let ((output-buffer (generate-new-buffer process-name))
-        (callback-fun callback))
-    (set-process-sentinel
-     (start-process process-name output-buffer shell-file-name shell-command-switch command)
-     (lambda (process signal)
-       (when (memq (process-status process) '(exit signal))
-         (with-current-buffer output-buffer
-           (let ((output-string
-                  (buffer-substring-no-properties
-                   (point-min)
-                   (point-max))))
-             (funcall callback-fun output-string)))
-         (kill-buffer output-buffer))))
-    output-buffer))
-
-(defun do-call-process (executable infile destination display args)
-  "Wrapper for `call-process'.
-
-EXECUTABLE may be a string or a list.  The string is split by spaces,
-then unquoted.
-For INFILE, DESTINATION, DISPLAY, see `call-process'.
-ARGS are rest arguments, appended to the argument list.
-Returns the exit status."
-  (let ((command-list
-         (append (command-string-to-list executable) args)))
-    (apply 'call-process
-           (append
-            (list (car command-list))
-            (list infile destination display)
-            (cdr command-list)))))
-
-(defun call-process-to-json (executable &rest args)
-  "Call EXECUTABLE synchronously in separate process.
-
-The output is parsed as a JSON document.
-EXECUTABLE may be a string or a list.  The string is split by spaces,
-then unquoted.
-ARGS are rest arguments, appended to the argument list."
-  (with-temp-buffer
-    (unless (zerop
-             (do-call-process executable
-                              nil
-                              ;; Disregard stderr output, as it
-                              ;; corrupts JSON.
-                              (list t nil)
-                              nil
-                              args))
-      (error "%s: %s %s" "Cannot invoke executable" executable (buffer-string) default-directory))
-    (goto-char (point-min))
-    (json-read)))
 
 (defun get-booted-simulator ()
   "Get booted simulator if any."
@@ -182,7 +129,7 @@ ARGS are rest arguments, appended to the argument list."
              (or (get-booted-simulator)
                  (build-simulator-menu :title "Choose a simulator:" :list (swift-additions:list-available-simulators)))))
         (progn
-          (setq current-language-selection (build-language-menu :title "Choose simulator language"))
+          (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))
           (setup-simulator-dwim current-simulator-id)
           (setq current-simulator-id device-id)))))
   current-simulator-id)
@@ -349,11 +296,6 @@ ARGS are rest arguments, appended to the argument list."
 (defun workspace-name ()
   "Get workspace name."
   (filename-by-extension ".xcworkspace"))
-
-(defun clean-up-newlines (text)
-  "Clean up new lines (as TEXT)."
-  (string-trim-left
-   (replace-regexp-in-string "\n$" "" text)))
 
 (cl-defun get-files-from (&key directory &key extension &key exclude)
   "Get files from DIRECTORY by EXTENSION and EXCLUDE."
@@ -648,23 +590,6 @@ ARGS are rest arguments, appended to the argument list."
                    (cons (cdr (assoc 'name device))
                          (cdr (assoc 'udid device)))) devices)))
     items))
-
-(cl-defun build-language-menu (&key title)
-  "Build language menu (as TITLE)."
-  (interactive)
-  (defconst languageList '(
-                           ("🏴󠁧󠁢󠁥󠁮󠁧󠁿 󠁿English " "en-EN")
-                           ("🇫🇷 French" "fr-FR")
-                           ("🇳🇴 Norwegian (Bokmål)" "nb-NO")
-                           ("🇯🇵 Japanese" "ja-JP")
-                           ("🇩🇪 German" "de-DE")
-                           ("🇪🇸 Spanish" "es-ES")
-                           ("🇸🇪 Swedish" "sv-SE")
-                           ))
-  (progn
-    (let* ((choices (seq-map (lambda (item) item) languageList))
-           (choice (completing-read title choices)))
-      (car (cdr (assoc choice choices))))))
  
 (cl-defun build-simulator-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
@@ -691,24 +616,11 @@ ARGS are rest arguments, appended to the argument list."
   (when (get-buffer xcodebuild-buffer)
     (kill-buffer xcodebuild-buffer)))
 
-(cl-defun message-with-color (&key tag &key text &key attributes)
-  "Print a TAG and TEXT with ATTRIBUTES."
-  (message "%s %s" (propertize tag 'face attributes) text))
-
-(cl-defun animate-message-with-color (&key tag &key text &key attributes &key times)
-  "Print a TAG and TEXT with ATTRIBUTES."
-  (dotimes (x times)
-    (dotimes (current 4)
-      (message "%s %s%s" (propertize tag 'face attributes) text (make-string current ?.))
-      (sit-for 0.3)))
-  (message "%s %s" (propertize tag 'face attributes) text))
-
 (defun is-xcodeproject ()
   "Check if its an xcode-project."
   (if-let ((default-directory (get-ios-project-root)))
       (or (directory-files default-directory t "\\xcworkspace$")
-          (directory-files default-directory t "\\xcodeproj$"))
-    ))
+          (directory-files default-directory t "\\xcodeproj$"))))
 
 (defun is-a-swift-package-base-project ()
   "Check if project is a swift package based."

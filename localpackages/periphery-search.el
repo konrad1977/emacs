@@ -3,29 +3,11 @@
 ;;; Commentary: Package for showing search as result in a tabulated list
 
 ;;; Code:
+(require 'periphery-helper)
 (require 'periphery)
 (require 'thingatpt)
 
 (defvar current-query "")
-
-(defun periphery-search--async-shell-command-to-string (process-name command callback)
-  "Execute shell command COMMAND asynchronously in the background.
-PROCESS-NAME is the name of the process."
-
-  (let ((output-buffer (generate-new-buffer process-name))
-        (callback-fun callback))
-    (set-process-sentinel
-     (start-process process-name output-buffer shell-file-name shell-command-switch command)
-     (lambda (process signal)
-       (when (memq (process-status process) '(exit signal))
-         (with-current-buffer output-buffer
-           (let ((output-string
-                  (buffer-substring-no-properties
-                   (point-min)
-                   (point-max))))
-             (funcall callback-fun output-string)))
-         (kill-buffer output-buffer))))
-    output-buffer))
 
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
@@ -67,7 +49,7 @@ PROCESS-NAME is the name of the process."
       (progn
         (let ((default-directory (vc-root-dir)))
           (setq current-query text)
-          (periphery-search--async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher text) #'send-search-result-to-periphery)))
+          (async-shell-command-to-string searcher (format "%s --vimgrep -w %s" searcher text) #'send-search-result-to-periphery)))
     (periphery-message :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)

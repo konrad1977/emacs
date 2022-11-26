@@ -67,7 +67,7 @@
 (setq-default display-line-numbers-width    5            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0            ;; Increase linespacing a bit
+              line-spacing                  0.0         ;; Increase linespacing a bit
               truncate-lines                1			 ;; Truncate lines
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
@@ -75,9 +75,9 @@
               history-length                100)
 
 (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
+(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 (eval-when-compile (defvar savehist-additional-variables))
 (add-to-list 'savehist-additional-variables 'kill-ring)
-(add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -118,10 +118,6 @@
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
-(use-package flyspell
-  :defer 10
-  :config (setq ispell-program-name "aspell"))
-
 (use-package autothemer
   :config
  ;; (load-theme 'catppuccin-latte t)
@@ -146,18 +142,20 @@
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
-        '((left-fringe . 10)
-          (right-fringe . 10)))
-  (setq vertico-posframe-font "JetBrains Mono")
+        '((left-fringe . 0)
+          (right-fringe . 0)))
+  (setq vertico-posframe-font "Iosevka Aile")
   :config
-  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-        vertico-posframe-truncate-lines nil
-        vertico-posframe-width 170
-        vertico-posframe-height nil
-        vertico-posframe-min-height 2
-        vertico-posframe-border-width 1))
+  (setq
+   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
+   vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+   vertico-posframe-truncate-lines nil
+   vertico-posframe-width 180
+   vertico-posframe-height nil
+   vertico-posframe-min-height 2
+   vertico-posframe-border-width 1))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -448,8 +446,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook ((prog-mode . svg-tag-mode)
-         (org-mode . svg-tag-mode))
+  :hook ((prog-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags
         '(
@@ -916,6 +913,7 @@
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
+        org-startup-with-inline-images t
         org-hide-leading-stars t
         org-log-into-drawer t
         org-log-done 'time))
@@ -925,29 +923,46 @@
   (require 'org-tempo)
 
   ;; Setup fonts for org-mode
-  (set-face-attribute 'org-block nil    :inherit 'fixed-pitch)
-  (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
-  (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
-  (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block nil                :inherit 'fixed-pitch)
+  (set-face-attribute 'org-table nil                :inherit 'fixed-pitch)
+  (set-face-attribute 'org-formula nil              :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil                 :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil                :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil             :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil      :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil            :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil             :inherit 'fixed-pitch)
+  (set-face-attribute 'line-number nil              :inherit 'fixed-pitch)
   (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
 
+
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               '((emacs-lisp t)
+                                 (swift t)
+                                 (swiftui t)))
+
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("sw" . "src swift"))
+  (add-to-list 'org-structure-template-alist '("swui" . "src swiftui"))
+  (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
+  
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
                                               (org-redisplay-inline-images))))
-  ;; (org-babel-do-load-languages 'org-babel-load-languages
-  ;;                               '((emacs-lisp t))
-
-  ;; (add-to-list 'org-structure-template-alist
-  ;;              '("sh" . "src shell")
-  ;;               ("elisp" . "src emacs-lisp")
-  ;;               ("swift" . "src swift"))
   (add-to-list 'org-modules 'org-tempo t))
+
+(use-package ob-swift
+  :defer t)
+  
+(use-package ob-swiftui
+  :defer t
+  :config
+  (add-to-list 'org-babel-tangle-lang-exts
+               '("swiftui" . "swift"))
+  (add-to-list 'org-babel-load-languages
+	             '((swiftui . t)))
+  (add-to-list 'org-src-lang-modes
+               '("swiftui" . swift)))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
