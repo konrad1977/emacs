@@ -23,6 +23,50 @@
 (defvar secondary-simulator-id nil)
 (defvar current-app-identifier nil)
 
+(cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier &key buffer)
+  "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
+
+  (let* ((default-directory rootfolder)
+         (simulator-id simulatorId))
+
+    (setq applicationName (ios-simulator:app-name-from :folder build-folder))
+    (setq simulatorName  (ios-simulator:fetch-simulator-name))
+    
+    (animate-message-with-color
+     :tag "[Installing]"
+     :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
+     :attributes '(:inherit success)
+     :times 3)
+
+    (ios-simulator:terminate-app-with
+     :appIdentifier appIdentifier)
+    
+    (ios-simulator:install-app
+     :simulatorID simulator-id
+     :build-folder build-folder)
+
+    (inhibit-sentinel-messages #'async-shell-command
+                               (ios-simulator:launch-app
+                                :appIdentifier current-app-identifier
+                                :applicationName applicationName
+                                :simulatorName simulatorName
+                                :simulatorID simulator-id)
+                               buffer)))
+
+(cl-defun ios-simulator:install-app (&key simulatorID &key build-folder)
+  "Install and launch app (as SIMULATORID and BUILD-FOLDER)."
+  (let ((folder build-folder))
+    (inhibit-sentinel-messages #'
+     call-process-shell-command
+     (concat
+      "env /usr/bin/arch -x86_64 \\"
+      (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (ios-simulator:app-name-from :folder folder))))))
+
+(cl-defun ios-simulator:app-name-from (&key folder)
+  "Get compiled app name from (FOLDER)."
+  (when-let (binary-name (directory-files folder nil "\\.app$"))
+    (file-name-sans-extension (car binary-name))))
+
 (defun ios-simulator:setup-simulator-dwim (id)
   "Setup simulator dwim (as ID)."
   (if (not (ios-simulator:is-simulator-app-running))
@@ -95,6 +139,14 @@
   (interactive)
   (if current-app-identifier
       (ios-simulator:terminate-app-with :appIdentifier current-app-identifier)))
+
+(cl-defun ios-simulator:launch-app (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
+  "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
+
+  (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
+  (if-let ((simulatorID simulatorID))
+      (format "xcrun simctl launch --console-pty %s %s -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)
+    (format "xcrun simctl launch --console-pty booted %s -AppleLanguages \"\(%s\)\"" appIdentifier current-language-selection)))
 
 (cl-defun ios-simulator:terminate-app-with (&key appIdentifier)
   "Terminate runnings apps (as APPIDENTIFIER)."

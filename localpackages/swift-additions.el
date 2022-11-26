@@ -142,11 +142,6 @@
    "-quiet \\"
    "-derivedDataPath build"))
 
-(cl-defun get-app-name-from (&key folder)
-  "Get compiled app name from (FOLDER)."
-  (when-let (binary-name (directory-files folder nil "\\.app$"))
-    (file-name-sans-extension (car binary-name))))
-
 (defun get-index-store-path ()
   "Get the index store path."
   (let ((index-store-path (concat current-project-root "build/Index/DataStore")))
@@ -167,19 +162,17 @@
           (concat (substring id 0 8) "-" (substring id 6))
         id)))
 
-(cl-defun install-app-in-simulator-command (&key simulatorID)
-  "Install and launch app (SIMULATORID)."
-  (when DEBUG (message (concat "Buildpath: "  (get-build-folder))))
-  (let ((folder (get-build-folder)))
-    (concat
-     "env /usr/bin/arch -x86_64 \\"
-     (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (get-app-name-from :folder folder)))))
-
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
   (if local-device-id
       (swift-additions:install-app-on-device)
-    (install-app-in-simulator)))
+    (ios-simulator:install-and-run-app
+     :rootfolder current-project-root
+     :build-folder (get-build-folder)
+     :simulatorId (fetch-or-load-simulator-id)
+     :appIdentifier (fetch-or-load-app-identifier)
+     :buffer xcodebuild-buffer
+    )))
 
 (defun swift-additions:check-for-errors (text)
   "Run periphery parser on TEXT."
@@ -192,27 +185,6 @@
         (when (not (string-match-p (regexp-quote "error: ") text))
           (swift-additions:run-app)))
     (swift-additions:run-app)))
-
-(cl-defun launch-app-in-simulator (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
-  "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
-
-  (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
-  (if-let ((simulatorID simulatorID))
-      (format "xcrun simctl launch --console-pty %s %s -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)
-    (format "xcrun simctl launch --console-pty booted %s -AppleLanguages \"\(%s\)\"" appIdentifier current-language-selection)))
-
-(defun inhibit-sentinel-messages (fun &rest args)
-  "Inhibit messages in all sentinels started by fun."
-  (cl-letf* ((old-set-process-sentinel (symbol-function 'set-process-sentinel))
-         ((symbol-function 'set-process-sentinel)
-          (lambda (process sentinel)
-        (funcall
-         old-set-process-sentinel
-         process
-         `(lambda (&rest args)
-            (cl-letf (((symbol-function 'message) #'ignore))
-              (apply (quote ,sentinel) args)))))))
-        (apply fun args)))
 
 (cl-defun run-async-command-in-buffer (&key command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
@@ -284,43 +256,10 @@
   (when DEBUG (message (concat "Buildpath:" (get-build-folder))))
 
   (let* ((folder (get-build-folder))
-         (app-name (get-app-name-from :folder folder))
+         (app-name (ios-simulator:app-name-from :folder folder))
          (default-directory (concat current-project-root folder)))
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
     (run-async-command-in-buffer :command (format "ios-deploy -b %s.app -d" app-name))))
-
-(defun install-app-in-simulator ()
-  "Install the app in the simulator."
-  (let* ((default-directory current-project-root)
-         (simulator-id (fetch-or-load-simulator-id)))
-
-    (setq applicationName (get-app-name-from :folder (get-build-folder)))
-    (setq simulatorName  (ios-simulator:fetch-simulator-name))
-    
-    (animate-message-with-color
-     :tag "[Installing]"
-     :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
-     :attributes '(:inherit success)
-     :times 3)
-
-    (ios-simulator:terminate-app-with
-     :appIdentifier (fetch-or-load-app-identifier))
-
-    (inhibit-sentinel-messages #'
-     call-process-shell-command (install-app-in-simulator-command :simulatorID simulator-id))
-
-    (when-let ((secondary-id secondary-simulator-id))
-      (ios-simulator:setup-simulator-dwim secondary-simulator-id)
-      (call-process-shell-command (install-app-in-simulator-command :simulatorID secondary-id)))
-
-    (inhibit-sentinel-messages #'async-shell-command
-                               (launch-app-in-simulator
-                                :appIdentifier current-app-identifier
-                                :applicationName applicationName
-                                :simulatorName simulatorName
-                                :simulatorID simulator-id)
-                               xcodebuild-buffer)
-    ))
 
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
