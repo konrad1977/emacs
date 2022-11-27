@@ -5,7 +5,7 @@
 (require 'periphery-helper)
 
 (defgroup ios-simulator nil
-  "ios-simulator."
+  "IOS-SIMULATOR."
   :tag "ios-simulator"
   :group 'ios-simulator)
 
@@ -206,6 +206,14 @@
     (if simulatorID
         (format "xcrun simctl terminate %s %s" simulatorID appIdentifier)
       (format "xcrun simctl terminate booted %s" appIdentifier)))))
+
+(defun ios-simulator:appcontainer ()
+  "Get the app container of the current app (as SIMULATORID, APPIDENTIFIER)."
+  (if-let ((identifier current-app-identifier)
+           (id current-simulator-id))
+      (async-shell-command
+       (format "open . %s"
+               (shell-command-to-string (format "xcrun simctl get_app_container %s %s data" id identifier))))))
 
 (defun ios-simulator:fetch-available-simulators ()
   "List available simulators."
