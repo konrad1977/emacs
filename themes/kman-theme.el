@@ -475,7 +475,7 @@
   (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
   (tree-sitter-hl-face:method.call               (:inherit 'tree-sitter-hl-face:method :italic nil))
 
-  (tree-sitter-hl-face:type                      (:inherit 'font-lock-type-face))
+  (tree-sitter-hl-face:type                      (:foreground peach))
   (tree-sitter-hl-face:type.parameter            (:foreground sapphire :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground subtext0 :background peach))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))

@@ -147,7 +147,7 @@
            (choice (completing-read title choices)))
       (car (cdr (assoc choice choices))))))
 
-(cl-defun ios-simulator-build-selection-menu (&key title &key list)
+(cl-defun ios-simulator:build-selection-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
   (interactive)
   (if (<= (length list) 1)
@@ -208,6 +208,7 @@
       (format "xcrun simctl terminate booted %s" appIdentifier)))))
 
 (defun ios-simulator:appcontainer ()
+  (interactive)
   "Get the app container of the current app (as SIMULATORID, APPIDENTIFIER)."
   (if-let ((identifier current-app-identifier)
            (id current-simulator-id))
