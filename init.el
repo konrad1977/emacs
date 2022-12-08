@@ -59,10 +59,10 @@
 ;; (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 ;; (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
-(setq use-package-verbose nil
+(setq use-package-verbose t
       use-package-expand-minimally nil
-      use-package-compute-statistics nil
-      use-package-minimum-reported-time nil
+      use-package-compute-statistics t
+      use-package-minimum-reported-time 0.1
       debug-on-error nil)
 
 (setq-default display-line-numbers-width    5            ;; Set so we can display thousands of lines
@@ -399,9 +399,9 @@
   :init
   (evil-commentary-mode 1))
 
-(use-package evil-lion
-  :after evil
-  :hook (prog-mode . evil-lion-mode))
+;; (use-package evil-lion
+;;   :after evil
+;;   :hook (prog-mode . evil-lion-mode))
 
 (use-package evil-numbers
   :after evil
@@ -480,6 +480,7 @@
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
+  :bind ("M-s" . dimmer-mode)
   :config
   (dimmer-configure-org)
   (dimmer-configure-magit)
@@ -487,7 +488,7 @@
   (dimmer-configure-posframe)
   (dimmer-configure-hydra)
   (setq dimmer-watch-frame-focus-events t
-        dimmer-fraction 0.1)
+        dimmer-fraction 0.4)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 (use-package rainbow-delimiters
@@ -507,8 +508,8 @@
         show-paren-when-point-in-periphery t))
 
 (use-package tree-sitter
-  :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
-  :init
+  :config
+  (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; ------------------ SEARCHING -------------------
@@ -584,6 +585,8 @@
   (corfu-auto-prefix 1)
   (corfu-cycle t)
   (corfu-scroll-margin 5)
+  (corfu-preview-current t)
+  (corfu-preselect-first t)
   (corfu-min-width 50)
   (completion-styles '(basic))
   :init
@@ -736,12 +739,14 @@
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.2)
+      (window-width . 0.3)
       (side . bottom)
       (slot . 0))
      ("\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.3)
+      (window-width . 0.7)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -795,7 +800,7 @@
   :hook (magit-mode . magit-todos-mode)
   :config
   (setq magit-todos-recursive t
-        magit-todos-depth 4
+        magit-todos-depth 10
         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME" "HACK"))))
@@ -923,6 +928,7 @@
         org-hide-emphasis-markers t
         org-startup-with-inline-images t
         org-hide-leading-stars t
+        org-src-edit-src-content-indentation 0
         org-log-into-drawer t
         org-log-done 'time))
 
@@ -967,10 +973,11 @@
   :config
   (add-to-list 'org-babel-tangle-lang-exts
                '("swiftui" . "swift"))
-  (add-to-list 'org-babel-load-languages
-	             '((swiftui . t)))
+  ;; (add-to-list 'org-babel-load-languages
+  ;;                '((swiftui . t)))
   (add-to-list 'org-src-lang-modes
-               '("swiftui" . swift)))
+               '("swiftui" . swift))
+  )
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -1021,6 +1028,7 @@
   (setq dumb-jump-prefer-searcher 'rg))
 
 (use-package localizeable-mode
+  :after swift-mode
   :mode "\\.strings\\'"
   :ensure nil
   :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
@@ -1080,7 +1088,8 @@
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-
+  
+  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-ag)
   (setq tree-sitter-hl-use-font-lock-keywords t)
 
   (use-package flycheck-swift3
@@ -1091,10 +1100,10 @@
     :after flycheck
     :custom (flycheck-swiftlint-setup))
 
-  ;; (add-to-list 'flycheck-checkers 'swift3)
+  (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
-
-  (flycheck-add-next-checker 'swiftlint 'swift3)  
+  (flycheck-add-next-checker 'swiftlint 'swift3)
+  
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point #'cape-dabbrev #'cape-line ;(cape-company-to-capf #'company-yasnippet)
