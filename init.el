@@ -51,6 +51,7 @@
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
+      truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
@@ -58,10 +59,10 @@
 ;; (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
 ;; (run-with-idle-timer 4 t (lambda () (garbage-collect)))
 
-(setq use-package-verbose nil
+(setq use-package-verbose t
       use-package-expand-minimally nil
-      use-package-compute-statistics nil
-      use-package-minimum-reported-time nil
+      use-package-compute-statistics t
+      use-package-minimum-reported-time 0.1
       debug-on-error nil)
 
 (setq-default display-line-numbers-width    5            ;; Set so we can display thousands of lines
@@ -133,7 +134,8 @@
   :config
   (setq vertico-resize t
         vertico-count 9
-        vertico-scroll-margin 2  
+        vertico-multiline t
+        vertico-scroll-margin 4
         vertico-cycle t))
 
 (use-package vertico-posframe
@@ -152,8 +154,8 @@
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
    ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
    vertico-posframe-truncate-lines nil
-   vertico-posframe-width 180
-   vertico-posframe-height nil
+   vertico-posframe-width 220
+   ;; vertico-posframe-height nil
    vertico-posframe-min-height 2
    vertico-posframe-border-width 1))
 
@@ -182,7 +184,10 @@
          :map minibuffer-local-map
          ("M-A" . marginalia-cycle))
   :init
-  (marginalia-mode))
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  (marginalia-mode)
+  (with-eval-after-load 'projectile
+    (add-to-list 'marginalia-command-categories '(projectile-find-file . file))))
 
 (use-package all-the-icons-completion
   :after (marginalia all-the-icons)
@@ -244,11 +249,12 @@
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
-        doom-modeline-major-mode-icon nil
+        doom-modeline-major-mode-icon t
+        doom-modeline-project-detection 'projectile
         doom-modeline-icon t
         doom-modeline-modal-icon nil
         doom-modeline-lsp nil
-        doom-modeline-buffer-state-icon t
+        doom-modeline-buffer-state-icon nil
         doom-modeline-time-icon nil)
   (custom-set-faces
    '(mode-line ((t (:family "Iosevka Aile" :height 0.95))))
@@ -332,10 +338,12 @@
         evil-want-C-u-scroll t
         evil-undo-system 'undo-fu
         evil-search-module 'evil-search
+        evil-vsplit-window-right t
+        evil-split-window-below t
         evil-want-C-i-jump nil)
   :config
 
-  (define-key evil-visual-state-map (kbd "u") 'undo)
+  (define-key evil-visual-state-map (kbd "C-u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
@@ -386,9 +394,9 @@
   :init
   (evil-commentary-mode 1))
 
-(use-package evil-lion
-  :after evil
-  :hook (prog-mode . evil-lion-mode))
+;; (use-package evil-lion
+;;   :after evil
+;;   :hook (prog-mode . evil-lion-mode))
 
 (use-package evil-numbers
   :after evil
@@ -406,7 +414,8 @@
 (use-package evil-goggles
   :after evil
   :config
-  (setq evil-goggles-pulse t)
+  (setq evil-goggles-pulse t
+        evil-goggles-duration 0.3)
   (evil-goggles-use-diff-faces)
   :init
   (evil-goggles-mode))
@@ -441,7 +450,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook ((prog-mode . svg-tag-mode))
+  :hook ((org-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags
         '(
@@ -466,6 +475,7 @@
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
+  :bind ("M-s" . dimmer-mode)
   :config
   (dimmer-configure-org)
   (dimmer-configure-magit)
@@ -473,7 +483,7 @@
   (dimmer-configure-posframe)
   (dimmer-configure-hydra)
   (setq dimmer-watch-frame-focus-events t
-        dimmer-fraction 0.1)
+        dimmer-fraction 0.4)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 (use-package rainbow-delimiters
@@ -493,14 +503,17 @@
         show-paren-when-point-in-periphery t))
 
 (use-package tree-sitter
-  :hook ((json-mode swift-mode sh-mode) . tree-sitter-hl-mode)
-  :init
+  :config
+  (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; ------------------ SEARCHING -------------------
 ;; the silver searcher
 (use-package ag
-  :defer t)
+  :defer t
+  :config
+  (setq ag-project-root-function
+        (lambda (d) (let ((default-directory d)) (projectile-project-root)))))
 
 (use-package rg
   :defer t)
@@ -553,6 +566,7 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
+  :ensure corfu-doc
   :bind
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
@@ -566,9 +580,15 @@
   (corfu-auto-prefix 1)
   (corfu-cycle t)
   (corfu-scroll-margin 5)
+  (corfu-preview-current t)
+  (corfu-preselect-first t)
   (corfu-min-width 50)
   (completion-styles '(basic))
   :init
+  (setq corfu-popupinfo-delay 0.5
+        corfu-quit-no-match 'separator)
+  (corfu-popupinfo-mode)
+  (corfu-indexed-mode)
   (global-corfu-mode))
 
 (use-package corfu-history
@@ -611,26 +631,9 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
-(use-package corfu-doc
-  :after corfu
-  :hook (corfu-mode . corfu-doc-mode)
-  :custom
-  (corfu-doc-display-within-parent-frame nil)
-  (corfu-doc-auto t)
-  (corfu-doc-delay 0.5)
-  (corfu-doc-max-width 50)
-  (corfu-doc-max-height 50)
-  (corfu-echo-documentation nil))
-
 (use-package ace-jump-mode
-  :commands (ace-jump-mode)
+  :commands (ace-jump-mode) 
   :bind ("M-g" . ace-jump-mode))
-
-(use-package yasnippet
-  :hook (company-mode . yas-minor-mode))
-
-(use-package consult-yasnippet
-  :after company)
 
 ;; ------------------ FILES -----------------------
 (use-package treemacs
@@ -666,7 +669,7 @@
   :hook (prog-mode . flycheck-mode)
   :diminish t
   :custom
-  (flycheck-indication-mode 'left-fringe)
+  (flycheck-indication-mode 'right-fringe)
   (flycheck-display-errors-delay 2)
   (flycheck-check-syntax-automatically '(save idle-change))
   (flycheck-idle-change-delay 2))
@@ -684,13 +687,17 @@
   :hook (prog-mode . projectile-mode)
   :bind 
   ("M-O" . projectile-find-file-dwim)
-  ;; ("<backtab>" . ibuffer)
+  :init
+  (when (file-directory-p "~/git")
+    (setq projectile-project-search-path '("~/git")))
   :custom                               
   (setq projectile-completion-system 'default
         projectile-enable-caching nil
         projectile-sort-order 'access-time
-        projectile-indexing-method 'alien
-        projectile-switch-project-action #'projectile-find-file-dwim
+        projectile-indexing-method 'default
+        projectile-project-root-files '(".xcworkspace" ".projectile" ".xcodeproj")
+        ;; projectile-switch-project-action #'projectile-find-file-dwim
+        projectile-switch-project-action #'projectile-commander
         projectile-ignored-files '(".orig$" ".yml$"))
   (add-to-list 'projectile-globally-ignored-directories '(("^\\.build$")
                                                           ("^\\.swiftpm$") 
@@ -698,6 +705,10 @@
                                                           ("^\\elpa$")
                                                           ("^\\xcodeproj$")
                                                           ("^\\pods$"))))
+(use-package gcmh
+  :config
+  (gcmh-mode 1))
+
 ;; Restart emacs
 (use-package restart-emacs
   :commands restart-emacs)
@@ -723,12 +734,14 @@
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.2)
+      (window-width . 0.3)
       (side . bottom)
       (slot . 0))
      ("\\*Periphery\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.3)
+      (window-width . 0.7)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -782,7 +795,7 @@
   :hook (magit-mode . magit-todos-mode)
   :config
   (setq magit-todos-recursive t
-        magit-todos-depth 4
+        magit-todos-depth 10
         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
   (custom-set-variables
    '(magit-todos-keywords (list "TODO" "FIXME" "HACK"))))
@@ -910,6 +923,7 @@
         org-hide-emphasis-markers t
         org-startup-with-inline-images t
         org-hide-leading-stars t
+        org-src-edit-src-content-indentation 0
         org-log-into-drawer t
         org-log-done 'time))
 
@@ -954,10 +968,11 @@
   :config
   (add-to-list 'org-babel-tangle-lang-exts
                '("swiftui" . "swift"))
-  (add-to-list 'org-babel-load-languages
-	             '((swiftui . t)))
+  ;; (add-to-list 'org-babel-load-languages
+  ;;                '((swiftui . t)))
   (add-to-list 'org-src-lang-modes
-               '("swiftui" . swift)))
+               '("swiftui" . swift))
+  )
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -1008,6 +1023,7 @@
   (setq dumb-jump-prefer-searcher 'rg))
 
 (use-package localizeable-mode
+  :after swift-mode
   :mode "\\.strings\\'"
   :ensure nil
   :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
@@ -1044,6 +1060,13 @@
   ("C-c C-x" . #'swift-additions:reset-settings)
   :load-path "~/.emacs.d/localpackages/swift-additions.el")
 
+(use-package periphery-search
+  :ensure nil
+  :after prog-mode
+  :bind
+  ("C-c C-f" . #'periphery-search-dwiw-rg)
+  :load-path "~/.emacs.d/localpackages/periphery-search.el")
+
 (use-package periphery-loco
   :ensure nil
   :after swift-mode
@@ -1060,8 +1083,8 @@
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-
-  (message "swetup-swift-programming")
+  
+  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-ag)
   (setq tree-sitter-hl-use-font-lock-keywords t)
 
   (use-package flycheck-swift3
@@ -1072,13 +1095,15 @@
     :after flycheck
     :custom (flycheck-swiftlint-setup))
 
-  ;; (add-to-list 'flycheck-checkers 'swift3)
+  (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
-
-  (flycheck-add-next-checker 'swiftlint 'swift3)  
+  (flycheck-add-next-checker 'swiftlint 'swift3)
+  
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
-                (list (cape-super-capf #'eglot-completion-at-point #'cape-dabbrev #'cape-line (cape-company-to-capf #'company-yasnippet)))))
+                (list (cape-super-capf #'eglot-completion-at-point #'cape-dabbrev #'cape-line ;(cape-company-to-capf #'company-yasnippet)
+                                       ))))
+
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
 (defun mk/org-mode-setup()
@@ -1101,10 +1126,6 @@
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
 
-  (load "periphery-search")
-
-  (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
-  (local-set-key (kbd "C-c C-e") #'periphery-search-rg)
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
@@ -1113,7 +1134,6 @@
   (hs-minor-mode)       ; Add support for folding code blocks
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
   (global-hl-todo-mode t)
-  (yas-global-mode t)
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
         indicate-empty-lines t            ;; Show empty lines

@@ -59,6 +59,6 @@
   "Search using (as SEARCHER)."
   (periphery-run-query searcher (read-regexp "Query: ")))
 
-(provide 'perihery-search)
+(provide 'periphery-search)
 ;;; periphery-search.el ends here.
 

@@ -5,7 +5,7 @@
 (require 'periphery-helper)
 
 (defgroup ios-simulator nil
-  "ios-simulator."
+  "IOS-SIMULATOR."
   :tag "ios-simulator"
   :group 'ios-simulator)
 
@@ -147,7 +147,7 @@
            (choice (completing-read title choices)))
       (car (cdr (assoc choice choices))))))
 
-(cl-defun ios-simulator-build-selection-menu (&key title &key list)
+(cl-defun ios-simulator:build-selection-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
   (interactive)
   (if (<= (length list) 1)
@@ -206,6 +206,15 @@
     (if simulatorID
         (format "xcrun simctl terminate %s %s" simulatorID appIdentifier)
       (format "xcrun simctl terminate booted %s" appIdentifier)))))
+
+(defun ios-simulator:appcontainer ()
+  (interactive)
+  "Get the app container of the current app (as SIMULATORID, APPIDENTIFIER)."
+  (if-let ((identifier current-app-identifier)
+           (id current-simulator-id))
+      (async-shell-command
+       (format "open . %s"
+               (shell-command-to-string (format "xcrun simctl get_app_container %s %s data" id identifier))))))
 
 (defun ios-simulator:fetch-available-simulators ()
   "List available simulators."
