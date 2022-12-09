@@ -193,16 +193,11 @@
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
-  ("C-s" . consult-line-symbol-at-point)
+  ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("M-l" . consult-goto-line)
   ("<backtab>" . consult-buffer)
   ("C-c C-a" . consult-apropos)
   ("M-f" . consult-line))
-
-(defun consult-line-symbol-at-point ()
-  "Search consult - thing at point."
-  (interactive)
-  (consult-line (thing-at-point 'symbol)))
 
 (use-package consult-ag
   :after consult)
