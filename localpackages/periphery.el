@@ -410,5 +410,5 @@
       (periphery-listing-command periphery-errorList))))
 
 (provide 'periphery)
-;;; periphery.el ends here
 
+;;; periphery.el ends here

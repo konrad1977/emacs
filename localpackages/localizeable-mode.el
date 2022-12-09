@@ -4,7 +4,6 @@
 
 (require 'periphery)
 (require 'swift-additions)
-(load "swift-additions")
 
 (defface localizeable-variable-face
   '((t (:inherit font-lock-variable-name-face :italic t)))

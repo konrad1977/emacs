@@ -6,12 +6,10 @@
 
 ;;; Code:
 
-(require 'dash)
-(require 'cl-lib)
+;; (require 'dash)
+;; (require 'cl-lib)
 (require 'flycheck)
 (require 'projectile)
-(require 'swift-mode)
-(require 'evil-states)
 (require 'periphery-helper)
 (require 'periphery)
 (require 'ios-simulator)
@@ -112,6 +110,7 @@
    (if simulatorId
        (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId)
      (format "-destination 'generic/platform=iOS' \\" ))
+   "-UseModernBuildSystem=NO \\"
    "-destination-timeout 1 \\"
    "-skipPackageUpdates \\"
    "-scmProvider system \\"
@@ -344,7 +343,7 @@
   (let ((word (thing-at-point 'word)))
     (end-of-line)
     (newline-and-indent)
-    (insert (format "print(\"%s:\ \\(%s\)\")" word word))))
+    (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
 
 (defun insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."

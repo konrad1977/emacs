@@ -11,7 +11,6 @@
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
-(savehist-mode 1)                 ;; Save history
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
 (blink-cursor-mode 1)               ;; Blink cursor
 
@@ -46,7 +45,7 @@
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       line-number-mode                  nil
       load-prefer-newer                 t
-      read-process-output-max           (* 8 1024 1024)
+      ;; read-process-output-max           (* 8 1024 1024)
       scroll-margin                     4   ;; scroll N to screen edge
       use-dialog-box                    nil
       visible-bell                      nil
@@ -56,14 +55,6 @@
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-;; (setq gc-cons-threshold (eval-when-compile (* 20 1024 1024)))
-;; (run-with-idle-timer 4 t (lambda () (garbage-collect)))
-
-(setq use-package-verbose t
-      use-package-expand-minimally nil
-      use-package-compute-statistics t
-      use-package-minimum-reported-time 0.1
-      debug-on-error nil)
 
 (setq-default display-line-numbers-width    5            ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -77,8 +68,19 @@
 
 (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
-(eval-when-compile (defvar savehist-additional-variables))
-(add-to-list 'savehist-additional-variables 'kill-ring)
+
+; On macos use our custom settings ---------------------
+(when (eq system-type 'darwin)
+  (setq mac-option-key-is-meta nil
+        mac-command-key-is-meta t
+        mac-command-modifier 'meta
+        mac-option-modifier 'none
+        dired-use-ls-dired nil
+        frame-title-format ""
+        browse-url-browser-function #'mk/browser-split-window)
+
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -101,23 +103,18 @@
   (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
 
-;; Clean up all those temporary files
+(use-package use-package
+  :ensure nil
+  :config
+  (setq use-package-verbose t
+        use-package-expand-minimally t
+        use-package-always-ensure t
+        use-package-compute-statistics t
+        use-package-minimum-reported-time 0.1
+        debug-on-error nil))
+
 (use-package no-littering)
-
-; On macos use our custom settings ---------------------
-(when (eq system-type 'darwin)
-  (setq mac-option-key-is-meta nil
-        mac-command-key-is-meta t
-        mac-command-modifier 'meta
-        mac-option-modifier 'none
-        dired-use-ls-dired nil
-        frame-title-format ""
-        browse-url-browser-function #'mk/browser-split-window)
-
-  (add-to-list 'default-frame-alist '(ns-appearance . dark))
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 (use-package autothemer
   :config
@@ -134,7 +131,7 @@
   :config
   (setq vertico-resize t
         vertico-count 9
-        vertico-multiline t
+        vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t))
 
@@ -144,20 +141,19 @@
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
-        '((left-fringe . 0)
-          (right-fringe . 0)))
-  (setq vertico-posframe-font "Iosevka Aile")
+        '((left-fringe . 1)
+          (right-fringe . 1)))
   :config
-  (setq
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
-   vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-   ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-   vertico-posframe-truncate-lines nil
-   vertico-posframe-width 220
-   ;; vertico-posframe-height nil
-   vertico-posframe-min-height 2
-   vertico-posframe-border-width 1))
+  (setq vertico-posframe-font "Iosevka Aile"
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
+        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+        vertico-posframe-truncate-lines nil
+        vertico-posframe-width 220
+        ;; vertico-posframe-height nil
+        vertico-posframe-min-height 2
+        vertico-posframe-border-width 2))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -480,7 +476,7 @@
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
-  :bind ("M-s" . dimmer-mode)
+  ;; :bind ("M-s" . dimmer-mode)
   :config
   (dimmer-configure-org)
   (dimmer-configure-magit)
@@ -601,8 +597,12 @@
   :after (corfu savehist)
   :config
   (corfu-history-mode 1)
-  (savehist-mode t)
   (add-to-list 'savehist-additional-variables 'corfu-history))
+
+(use-package savehist
+  :ensure nil
+  :config
+  (savehist-mode t))
 
 (use-package dabbrev
   :ensure nil
@@ -1028,10 +1028,8 @@
   (setq dumb-jump-prefer-searcher 'rg))
 
 (use-package localizeable-mode
-  :after swift-mode
   :mode "\\.strings\\'"
-  :ensure nil
-  :load-path "~/.emacs.d/localpackages/localizeable-mode.el")
+  :ensure nil)
 
 (use-package smartparens
   :defer t
@@ -1062,29 +1060,25 @@
   ("M-s" . #'ios-simulator:terminate-current-app)
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
   ("M-r" . #'swift-additions:run-without-compiling)
-  ("C-c C-x" . #'swift-additions:reset-settings)
-  :load-path "~/.emacs.d/localpackages/swift-additions.el")
+  ("C-c C-x" . #'swift-additions:reset-settings))
 
 (use-package periphery-search
   :ensure nil
   :after prog-mode
   :bind
-  ("C-c C-f" . #'periphery-search-dwiw-rg)
-  :load-path "~/.emacs.d/localpackages/periphery-search.el")
+  ("C-c C-f" . #'periphery-search-dwiw-rg))
 
 (use-package periphery-loco
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c C-k" . #'periphery-run-loco)
-  :load-path "~/.emacs.d/localpackages/periphery-loco.el")
+  ("C-c C-k" . #'periphery-run-loco))
 
 (use-package periphery-swiftlint
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c C-l" . #'periphery-run-swiftlint)
-  :load-path "~/.emacs.d/localpackages/periphery-swiftlint.el")
+  ("C-c C-l" . #'periphery-run-swiftlint))
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
@@ -1178,6 +1172,14 @@
   (interactive)
   (split-window-right)
   (other-window 1))
+
+(defun mk/recompile (&optional force)
+  "Recompile files (as FORCE) force compilation."
+  (interactive "p")
+  (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
+  (byte-recompile-directory (locate-user-emacs-file "themes") 0)
+  (when custom-file
+    (byte-recompile-file (> force 1) 0)))
 
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
