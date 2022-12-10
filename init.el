@@ -1057,6 +1057,13 @@
   ("M-r" . #'swift-additions:run-without-compiling)
   ("C-c C-x" . #'swift-additions:reset-settings))
 
+(use-package apple-docs-query
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("C-c C-a" . #'apple-docs/query)
+  ("C-c C-A" . #'apple-docs/query-thing-at-point))
+
 (use-package hacking-with-swift
   :ensure nil
   :after swift-mode
