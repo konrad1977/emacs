@@ -1057,6 +1057,13 @@
   ("M-r" . #'swift-additions:run-without-compiling)
   ("C-c C-x" . #'swift-additions:reset-settings))
 
+(use-package hacking-with-swift
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("C-c C-h" . #'hacking-ws/query)
+  ("C-c C-H" . #'hacking-ws/query-thing-at-point))
+
 (use-package periphery-search
   :ensure nil
   :after prog-mode

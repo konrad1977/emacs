@@ -1,10 +1,10 @@
-;;; swift-additions.el --- Package for compiling and running swift apps in Emacs -*- lexical-binding: t; -*-
+;;; swift-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
 
-;;; Commentary:
+;;; commentary:
 
-;; Package for building and runnning iOS/macos apps from Emacs
+;; package for building and runnning ios/macos apps from emacs
 
-;;; Code:
+;;; code:
 
 ;; (require 'dash)
 ;; (require 'cl-lib)
