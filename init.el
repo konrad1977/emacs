@@ -50,6 +50,9 @@
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
+      max-lisp-eval-depth 10000
+      max-specpdl-size 10000
+      auto-mode-case-fold nil
       truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
@@ -144,13 +147,14 @@
         '((left-fringe . 1)
           (right-fringe . 1)))
   :config
-  (setq vertico-posframe-font "Iosevka Aile"
+  (setq
+        ;; vertico-posframe-font "Iosevka Aile"
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
-        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+        vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines nil
-        vertico-posframe-width 220
+        vertico-posframe-width 160
         ;; vertico-posframe-height nil
         vertico-posframe-min-height 2
         vertico-posframe-border-width 2))
@@ -245,10 +249,10 @@
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
-        doom-modeline-major-mode-icon t
+        doom-modeline-major-mode-icon nil
         doom-modeline-project-detection 'projectile
         doom-modeline-icon t
-        doom-modeline-modal-icon nil
+        doom-modeline-modal-icon t
         doom-modeline-lsp nil
         doom-modeline-buffer-state-icon nil
         doom-modeline-time-icon nil)
@@ -344,6 +348,8 @@
 
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
+  
+  (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
   ;; searching
   (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
@@ -499,9 +505,12 @@
         show-paren-when-point-in-periphery t))
 
 (use-package tree-sitter
+  :after swift-mode
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+
 
 ;; ------------------ SEARCHING -------------------
 ;; the silver searcher
@@ -539,7 +548,6 @@
 
 (use-package eglot
   :hook (swift-mode . eglot-ensure)
-  :diminish
   :commands (eglot eglot-ensure)
   :config
   (setq eglot-stay-out-of '(corfu company)
@@ -670,12 +678,20 @@
   :diminish t
   :custom
   (flycheck-indication-mode 'right-fringe)
-  (flycheck-display-errors-delay 2)
+  (flycheck-display-errors-delay 0.2)
   (flycheck-check-syntax-automatically '(save idle-change))
-  (flycheck-idle-change-delay 2))
+  (flycheck-idle-change-delay 1.0))
 
-(use-package flycheck-inline
-  :hook (flycheck-mode . turn-on-flycheck-inline))
+(use-package flycheck-posframe
+  :after flycheck
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode)
+  (setq flycheck-posframe-warning-prefix "⚠️ "
+        flycheck-posframe-error-prefix "🚫️ "
+        flycheck-posframe-info-prefix "‼️️"))
+
+;; (use-package flycheck-inline
+;;   :hook (flycheck-mode . turn-on-flycheck-inline))
 
 (use-package markdown-mode
   :defer t)
@@ -724,7 +740,7 @@
       (body-function . select-window)
       (window-width . 0.3)
       (side . right))
-     ("\\*occur\\*"
+     ("\\*occur\\|evil-marks\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.18)
@@ -916,12 +932,15 @@
     "qr" '(restart-emacs :which-key "Restart emacs")))
 
 (use-package org
-  :hook (org-mode . mk/org-mode-setup)
+  :hook ((org-mode . visual-line-mode)
+         (org-mode . org-display-inline-images))
+  :defer t
   :config
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
         org-startup-with-inline-images t
+        org-startup-folded t
         org-hide-leading-stars t
         org-src-edit-src-content-indentation 0
         org-log-into-drawer t
@@ -990,6 +1009,8 @@
   :config
   (setq elfeed-feeds '(
                        ("https://news.ycombinator.com/rss")
+                       ("http://nullprogram.com/feed/")
+                       ("https://planet.emacslife.com/atom.xml")
                        ("https://www.reddit.com/r/emacs.rss")
                        ("https://xenodium.com/rss")
                        ("https://swiftbysundell.com/rss"))
@@ -1033,8 +1054,9 @@
   (sp-local-pair 'swift-mode "\\(" ")")
   (sp-local-pair 'swift-mode "<" ">"))
 
-(use-package company-tabnine
-  :defer t)
+(use-package yasnippet
+  :init
+  (yas-global-mode))
 
 (use-package swift-mode
   :config
@@ -1106,10 +1128,14 @@
   (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
   (flycheck-add-next-checker 'swiftlint 'swift3)
-  
+
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
-                (list (cape-super-capf #'eglot-completion-at-point #'cape-dabbrev #'cape-line ;(cape-company-to-capf #'company-yasnippet)
+                (list (cape-super-capf #'eglot-completion-at-point
+                                       #'cape-dabbrev
+                                       #'cape-line
+                                       #'cape-file
+                                       (cape-company-to-capf #'company-yasnippet)
                                        ))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
@@ -1186,9 +1212,7 @@
   "Recompile files (as FORCE) force compilation."
   (interactive "p")
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
-  (byte-recompile-directory (locate-user-emacs-file "themes") 0)
-  (when custom-file
-    (byte-recompile-file (> force 1) 0)))
+  (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 
 (add-hook 'org-mode-hook #'mk/setupOrgMode)
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)

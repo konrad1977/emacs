@@ -113,19 +113,26 @@
   (periphery--open-current-line-with (tabulated-list-get-id)))
 
 (defun periphery-listing-command (errorList)
- "Create a ERRORLIST for current mode."
-  (pop-to-buffer periphery-buffer-name nil)
-  (periphery-mode)
-  (setq tabulated-list-entries (nreverse (-non-nil errorList)))
-  (periphery--go-to-first-error tabulated-list-entries)
-  (tabulated-list-print t)
+  "Create a ERRORLIST for current mode."
+  (save-selected-window
+    (let* ((buffer (get-buffer-create periphery-buffer-name))
+           (window (get-buffer-window buffer)))
+      (pop-to-buffer buffer nil)
+      (periphery-mode)
+      
+      (unless (equal (current-buffer) buffer)
+        (select-window window))
 
-  (if (proper-list-p tabulated-list-entries)
-      (periphery-message-with-count
-       :tag "[Done]"
-       :text "Containts errors or warnings."
-       :attributes 'error)))
+      (setq tabulated-list-entries (nreverse (-non-nil errorList)))
+      (periphery--go-to-first-error tabulated-list-entries)
+      (tabulated-list-print t)
 
+      (if (proper-list-p tabulated-list-entries)
+          (periphery-message-with-count
+           :tag "[Done]"
+           :text "Containts errors or warnings."
+           :attributes 'error)))
+      ))
 
 (defun mark-all-symbols (input regex)
   "Highlight all quoted symbols (as INPUT) and REGEX."

@@ -8,6 +8,21 @@
 (require 'url-http)
 (require 'cl)
 
+(defgroup apple-docs-query nil
+  "Apple Docs Query Group."
+  :tag "apple-docs-query"
+  :group 'apple-docs-query)
+
+(defface apple-docs-title-face
+  '((t (:inherit font-lock-keyword-face :bold t)))
+  "Title face."
+  :group 'apple-docs-query)
+
+(defface apple-docs-description-face
+  '((t (:inherit completions-annotations)))
+  "Description face."
+  :group 'apple-docs-query)
+
 (defconst apple-developer-url "https://developer.apple.com"
   "Developer apple site.")
 
@@ -27,10 +42,14 @@
                                      (cons
                                       (propertize
                                        (format "%s %s"
-                                               (propertize (or (assoc-default 'title item) "")
-                                                           'face '(:foreground "dark cyan"))
-                                               (truncate-string-to-width (propertize (or (assoc-default 'description item) "")
-                                                                                     'face '(:foreground "dark gray")) c2-width nil 32)))
+                                               (propertize
+                                                (or
+                                                 (assoc-default 'title item) "") 'face 'apple-docs-title-face)
+                                               (truncate-string-to-width
+                                                (propertize
+                                                 (or
+                                                  (assoc-default 'description item) "")
+                                                 'face 'apple-docs-description-face) c2-width nil 32)))
                                       (assoc-default 'url item)))) (cdr (car data))))
                 (selected (completing-read "Apple docs: " choices))
                 (url (cdr (assoc selected choices))))
@@ -45,7 +64,7 @@
 (defun apple-docs/query (query)
   "Query Hacking with swift (as QUERY)."
   (interactive "sQuery:")
-  (when-let ((url (url-encode-url (format "%s/search/search_data.php?q=%s" apple-developer-url query))))
+  (when-let ((url (url-encode-url (format "%s/search/search_data.php?q=%s&type=Documentation" apple-developer-url query))))
     (request-data-from-apple-docs :url url)))
 
 (defun apple-docs/query-thing-at-point ()
