@@ -22,7 +22,7 @@
 (defconst xcodebuild-buffer "*xcodebuild*")
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
-(defconst build-warning-command "xcrun xcodebuild -list -json")
+(defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list devices iPhone available -j")
 
 (defvar current-language-selection "en-EN")
@@ -103,7 +103,7 @@
   (concat
    (xcodebuild-command)
    (get-workspace-or-project)
-   (format "-scheme %s \\" (fetch-or-load-xcode-scheme))
+   (format "-scheme '%s' \\" (fetch-or-load-xcode-scheme))
    (format "-configuration %s \\" (fetch-or-load-build-configuration))
    (format "-jobs %s \\" (get-number-of-cores))
    (format "-sdk %s \\" (get-current-sdk))
@@ -112,7 +112,6 @@
      (format "-destination 'generic/platform=iOS' \\" ))
    "-UseModernBuildSystem=NO \\"
    "-destination-timeout 1 \\"
-   "-skipPackageUpdates \\"
    "-scmProvider system \\"
    "-parallelizeTargets \\"
    "-hideShellScriptEnvironment \\"
@@ -273,12 +272,13 @@
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
-  (setq device-or-simulator "[Building device target]")
-  (setq local-device-id (get-connected-device-id))
+  ;; (setq device-or-simulator "[Building device target]")
+  ;; (setq local-device-id (get-connected-device-id))
+  (ios-simulator:load-simulator-id)
+  (setq device-or-simulator "[Building simulator target]")
 
-  (when (not local-device-id)
-    (ios-simulator:load-simulator-id)
-    (setq device-or-simulator "[Building simulator target]"))
+  ;; (when (not local-device-id)
+  ;;   )
 
   (if (is-xcodeproject)
       (progn
@@ -383,7 +383,7 @@
 (defun swift-additions:get-buildconfiguration-json ()
   "Return a cached version or load the build configuration."
   (unless current-buildconfiguration-json-data
-    (setq current-buildconfiguration-json-data (call-process-to-json build-warning-command)))
+    (setq current-buildconfiguration-json-data (call-process-to-json xcodebuild-list-config-command)))
   current-buildconfiguration-json-data)
 
 (defun swift-additions:get-target-list ()
