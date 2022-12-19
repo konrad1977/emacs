@@ -87,13 +87,13 @@
   (window-divider                       (:foreground surface0))
 
   ;; ;; Font lock
-  (font-lock-keyword-face               (:foreground sapphire :weight 'semi-bold))
-  (font-lock-type-face                  (:foreground peach))
+  (font-lock-keyword-face               (:foreground peach :bold t))
+  (font-lock-type-face                  (:foreground maroon))
   (font-lock-regexp-grouping-backslash  (:foreground text))
   (font-lock-warning-face               (:inherit 'warning))
-  (font-lock-constant-face              (:foreground yellow))
-  (font-lock-string-face                (:foreground green :italic t))
-  (font-lock-builtin-face               (:foreground red))
+  (font-lock-constant-face              (:foreground red))
+  (font-lock-string-face                (:foreground sapphire :italic t))
+  (font-lock-builtin-face               (:foreground maroon))
   (font-lock-reference-face				(:foreground text))
   (font-lock-function-name-face         (:foreground teal))
   (font-lock-variable-name-face         (:foreground subtext1 :italic t))
