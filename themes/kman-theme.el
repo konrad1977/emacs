@@ -483,10 +483,10 @@
   (tree-sitter-hl-face:constructor               (:foreground teal :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
-  (tree-sitter-hl-face:variable.parameter        (:foreground flamingo))
+  (tree-sitter-hl-face:variable.parameter        (:foreground lavender :italic t))
   (tree-sitter-hl-face:variable.builtin          (:foreground mauve :weight 'semi-bold))
   (tree-sitter-hl-face:variable.special          (:foreground mauve))
-  (tree-sitter-hl-face:property                  (:foreground sky))
+  (tree-sitter-hl-face:property                  (:foreground blue))
   (tree-sitter-hl-face:property.definition       (:foreground sky :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
@@ -497,7 +497,7 @@
   (tree-sitter-hl-face:embedded                  (:foreground teal))
 
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
-  (tree-sitter-hl-face:operator                  (:foreground blue :bold t))
+  (tree-sitter-hl-face:operator                  (:foreground red :bold t))
   (tree-sitter-hl-face:label                     (:inherit 'tree-sitter-hl-face:keyword :italic t))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:constant.builtin          (:foreground yellow :weight 'semi-bold))
