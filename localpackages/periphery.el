@@ -11,37 +11,37 @@
 
 (defface periphery-info-face
   '((t (:inherit compilation-info :bold t)))
-  "Warning."
+  "Info face."
   :group 'periphery)
 
 (defface periphery-warning-face
   '((t (:inherit warning :bold t)))
-  "Warning."
+  "Warning face."
   :group 'periphery)
 
 (defface periphery-error-face
   '((t (:inherit error :bold t)))
-  "Warning."
+  "Error face."
   :group 'periphery)
 
 (defface periphery-filename-face
   '((t (:inherit link)))
-  "Warning."
+  "Filename face."
   :group 'periphery)
 
 (defface periphery-linenumber-face
   '((t (:inherit line-number)))
-  "Warning."
+  "Line number face."
   :group 'periphery)
 
 (defface periphery-identifier-face
   '((t (:inherit font-lock-constant-face :italic t :weight semi-bold)))
-  "Warning."
+  "Identifier face."
   :group 'periphery)
 
 (defface periphery-message-face
   '((t (:inherit font-lock-comment-face :italic nil)))
-  "Warning."
+  "Message face."
   :group 'periphery)
 
 (defconst periphery-buffer-name "*Periphery*")
@@ -53,15 +53,23 @@
 (define-key periphery-mode-map (kbd "<return>") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") #'periphery--open-current-line)
 
-(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)")
-(defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?")
+(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
+  "Parse vimgrep like strings (compilation).")
+
+(defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
+  "Parse linenumber and columns.")
+
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
 
 (defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.+\\)$"
   "When we fail because of other errors than compilation errors.")
 
-(defconst periphery-regex-mark-quotes "\\('[^']+'\\)")
+(defconst periphery-regex-mark-quotes "\\('[^']+'\\)"
+  "Mark quotes in text.")
+
+(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
+(defconst todos-clean-regex "\\(TODO\\|FIXME\\)\s?:\s?\\(.*\\)")
 
 (defvar periphery-errorList '())
 (defvar periphery-directory-root nil "DirectoryRoot for localizeable.")
@@ -321,18 +329,14 @@
   (periphery-listing-command periphery-errorList))
 
 ;;; - Bartycrouch parsing
-(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
-(defconst todos-clean-regex "\\(\\w+\\)\s?:\s?\\(.*\\)")
 
 (defun periphery--clean-up-comments (text)
   "Cleanup comments from (as TEXT) fixmes and todos."
   (save-match-data
     (and (string-match todos-clean-regex text)
-         (let* ((keyword (match-string 1 text))
+         (if-let* ((keyword (match-string 1 text))
                 (comment (match-string 2 text)))
-           ;; (format "%s%s" keyword comment)
-          comment 
-           ))))
+             (list keyword comment)))))
 
 (defun periphery--parse-bartycrouch-line (line)
   "Run regex over curent LINE."
@@ -404,16 +408,36 @@
          (let* ((file (match-string 1 text))
                 (line (match-string 2 text))
                 (column (match-string 3 text))
-                (message (periphery--clean-up-comments (match-string 4 text)))
+                (message (match-string 4 text))
                 (fileWithLine (format "%s:%s:%s" file line column)))
-           
-             (list fileWithLine (vector
-                                 (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
-                                 (propertize line 'face 'periphery-linenumber-face)
-                                 (propertize "match" 'face 'periphery-info-face)
-                                 (mark-all-symbols
-                                    (propertize (string-trim-left message) 'face 'periphery-message-face)
-                                  (format "\\(%s\\)" query))))))))
+
+           (if-let ((todo (periphery--clean-up-comments message)))
+                 (build-list
+                  :path fileWithLine
+                  :file file
+                  :line line
+                  :keyword (nth 0 todo)
+                  :result (nth 1 todo)
+                  :query query)
+
+             (build-list
+              :path fileWithLine
+              :file file
+              :line line
+              :keyword "Match"
+              :result message
+              :query query))))))
+
+
+(cl-defun build-list (&key path &key file &key line &key keyword &key result &key query)
+  "Build list."
+  (list path (vector
+              (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
+              (propertize line 'face 'periphery-linenumber-face)
+              (propertize keyword 'face 'periphery-info-face)
+              (mark-all-symbols
+               (propertize (string-trim-left result) 'face 'periphery-message-face)
+               (format "\\(%s\\)" query)))))
 
 (cl-defun periphery-parse-search-result (&key title &key text &key query)
   "Parse search result (as TEXT) and QUERY."
