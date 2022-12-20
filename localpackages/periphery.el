@@ -126,13 +126,12 @@
       (setq tabulated-list-entries (nreverse (-non-nil errorList)))
       (periphery--go-to-first-error tabulated-list-entries)
       (tabulated-list-print t)
-
+      
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
            :tag "[Done]"
-           :text "Containts errors or warnings."
-           :attributes 'error)))
-      ))
+           :text "Contains errors or warnings."
+           :attributes 'error)))))
 
 (defun mark-all-symbols (input regex)
   "Highlight all quoted symbols (as INPUT) and REGEX."
@@ -161,7 +160,7 @@
                                    (propertize linenumber 'face 'periphery-linenumber-face)
                                    (propertize-severity type (string-trim-left type))
                                    (mark-all-symbols
-                                    (propertize (string-trim-left message) 'face 'periphery-message-face)
+                                    (propertize (string-trim-left  message) 'face 'periphery-message-face)
                                     periphery-regex-mark-quotes)
                                    ))
                                  ))))
@@ -323,6 +322,17 @@
 
 ;;; - Bartycrouch parsing
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
+(defconst todos-clean-regex "\\(\\w+\\)\s?:\s?\\(.*\\)")
+
+(defun periphery--clean-up-comments (text)
+  "Cleanup comments from (as TEXT) fixmes and todos."
+  (save-match-data
+    (and (string-match todos-clean-regex text)
+         (let* ((keyword (match-string 1 text))
+                (comment (match-string 2 text)))
+           ;; (format "%s%s" keyword comment)
+          comment 
+           ))))
 
 (defun periphery--parse-bartycrouch-line (line)
   "Run regex over curent LINE."
@@ -394,7 +404,7 @@
          (let* ((file (match-string 1 text))
                 (line (match-string 2 text))
                 (column (match-string 3 text))
-                (message (match-string 4 text))
+                (message (periphery--clean-up-comments (match-string 4 text)))
                 (fileWithLine (format "%s:%s:%s" file line column)))
            
              (list fileWithLine (vector
@@ -405,7 +415,7 @@
                                     (propertize (string-trim-left message) 'face 'periphery-message-face)
                                   (format "\\(%s\\)" query))))))))
 
-(defun periphery-parse-search-result (text query)
+(cl-defun periphery-parse-search-result (&key title &key text &key query)
   "Parse search result (as TEXT) and QUERY."
   (setq periphery-errorList '())
   (dolist (line (split-string text "\n"))
@@ -413,8 +423,9 @@
       (push entry periphery-errorList)))
   (when periphery-errorList
     (progn
-      (message-with-color :tag "[Search result]:" :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
-      (periphery-listing-command periphery-errorList))))
+      (periphery-listing-command periphery-errorList)
+      (message-with-color :tag (format "[%s]:" title) :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
+      )))
 
 (provide 'periphery)
 
