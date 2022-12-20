@@ -87,7 +87,7 @@
   (window-divider                       (:foreground surface0))
 
   ;; ;; Font lock
-  (font-lock-keyword-face               (:foreground peach :bold t))
+  (font-lock-keyword-face               (:foreground peach :weight 'semi-bold))
   (font-lock-type-face                  (:foreground maroon))
   (font-lock-regexp-grouping-backslash  (:foreground text))
   (font-lock-warning-face               (:inherit 'warning))
@@ -468,14 +468,14 @@
   ;; Tree sitter highlightning
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function :italic nil))
-  (tree-sitter-hl-face:function.builtin          (:foreground sky))
+  (tree-sitter-hl-face:function.builtin          (:foreground lavender))
   (tree-sitter-hl-face:function.special          (:foreground text :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground sapphire))
 
   (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
   (tree-sitter-hl-face:method.call               (:inherit 'tree-sitter-hl-face:method :italic nil))
 
-  (tree-sitter-hl-face:type                      (:foreground peach))
+  (tree-sitter-hl-face:type                      (:foreground green))
   (tree-sitter-hl-face:type.parameter            (:foreground sapphire :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground subtext0 :background peach))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
@@ -487,7 +487,7 @@
   (tree-sitter-hl-face:variable.builtin          (:foreground mauve :weight 'semi-bold))
   (tree-sitter-hl-face:variable.special          (:foreground mauve))
   (tree-sitter-hl-face:property                  (:foreground blue))
-  (tree-sitter-hl-face:property.definition       (:foreground sky :italic t))
+  (tree-sitter-hl-face:property.definition       (:foreground subtext1 :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
@@ -501,7 +501,7 @@
   (tree-sitter-hl-face:label                     (:inherit 'tree-sitter-hl-face:keyword :italic t))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:constant.builtin          (:foreground yellow :weight 'semi-bold))
-  (tree-sitter-hl-face:number                    (:foreground peach))
+  (tree-sitter-hl-face:number                    (:foreground maroon))
 
   (tree-sitter-hl-face:punctuation               (:foreground maroon))
   (tree-sitter-hl-face:punctuation.bracket       (:foreground text :weight 'semi-bold))

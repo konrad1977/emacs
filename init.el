@@ -510,8 +510,6 @@
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-
-
 ;; ------------------ SEARCHING -------------------
 ;; the silver searcher
 (use-package ag
@@ -934,7 +932,6 @@
 (use-package org
   :hook ((org-mode . visual-line-mode)
          (org-mode . org-display-inline-images))
-  :defer t
   :config
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-ellipsis " ▾"
@@ -1047,12 +1044,12 @@
   :mode "\\.strings\\'"
   :ensure nil)
 
-(use-package smartparens
-  :defer t
-  :config
-  (sp-local-pair 'swift-mode "\\(" nil :actions nil)
-  (sp-local-pair 'swift-mode "\\(" ")")
-  (sp-local-pair 'swift-mode "<" ">"))
+;; (use-package smartparens
+;;   :defer t
+;;   :config
+;;   (sp-local-pair 'swift-mode "\\(" nil :actions nil)
+;;   (sp-local-pair 'swift-mode "\\(" ")")
+;;   (sp-local-pair 'swift-mode "<" ">"))
 
 (use-package yasnippet
   :init
@@ -1097,7 +1094,8 @@
   :ensure nil
   :after prog-mode
   :bind
-  ("C-c C-f" . #'periphery-search-dwiw-rg))
+  ("C-c C-f" . #'periphery-search-dwiw-rg)
+  ("C-x C-t" . #'periphery-query-todos-and-fixmes))
 
 (use-package periphery-loco
   :ensure nil
