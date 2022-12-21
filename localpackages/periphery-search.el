@@ -73,7 +73,7 @@
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
-  (periphery-run-query "rg" "\'FIXME:|TODO:\' --sort path"))
+  (periphery-run-query "rg" "\'FIXME:|TODO:|FIX:|HACK:\' --sort path"))
 
 (provide 'periphery-search)
 ;;; periphery-search.el ends here.

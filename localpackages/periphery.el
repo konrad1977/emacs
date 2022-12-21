@@ -69,7 +69,7 @@
   "Mark quotes in text.")
 
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
-(defconst todos-clean-regex "\\(TODO\\|FIXME\\)\s?:\s?\\(.*\\)")
+(defconst todos-clean-regex "\\(TODO\\|FIXME\\|FIX\\|HACK\\)\s?:\s?\\(.*\\)")
 
 (defvar periphery-errorList '())
 (defvar periphery-directory-root nil "DirectoryRoot for localizeable.")
@@ -150,7 +150,7 @@
         (let* ((ref (match-string 1 normalizedInput))
                (startPosition (string-match regex normalizedInput position)))
           (setq position (match-end 1))
-          (put-text-property startPosition position 'face 'periphery-identifier-face normalizedInput)))
+          (put-text-property startPosition position  'face 'periphery-identifier-face normalizedInput)))
   normalizedInput)))
 
 (defun parse-periphery-output-line (line)
@@ -163,16 +163,14 @@
                 (type (match-string 4 line))
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
-               (list fileWithLine (vector
-                                   (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
-                                   (propertize linenumber 'face 'periphery-linenumber-face)
-                                   (propertize-severity type (string-trim-left type))
-                                   (mark-all-symbols
-                                    (propertize (string-trim-left  message) 'face 'periphery-message-face)
-                                    periphery-regex-mark-quotes)
-                                   ))
-                                 ))))
 
+           (build-list
+            :path fileWithLine
+            :file file
+            :line linenumber
+            :keyword type
+            :result message
+            :regex periphery-regex-mark-quotes)))))
 
 (defun propertize-message (text)
   "Colorize TEXT based on type."
@@ -198,16 +196,18 @@
 
 (defun propertize-severity (severity text)
   "Colorize TEXT using SEVERITY."
-  (let ((type (string-trim-left severity)))
+  (let ((type (upcase (string-trim-left severity))))
     (cond
-     ((string= type "info")
-      (propertize text 'face 'compilation-info-face))
-     ((string= type "note")
-      (propertize text 'face 'periphery-info-face))
-     ((string= type "warning")
-      (propertize text 'face 'periphery-warning-face))
-     ((string= type "error")
-      (propertize text 'face 'periphery-error-face))
+     ((string= type "INFO")
+      (propertize type 'face 'compilation-info-face))
+     ((string= type "NOTE")
+      (propertize type 'face 'periphery-info-face))
+     ((string= type "WARNING")
+      (propertize type 'face 'periphery-warning-face))
+     ((or (string= type "ERROR") (string= type "HACK"))
+      (propertize type 'face 'periphery-error-face))
+     ((string= type "TODO")
+      (propertize type 'face 'periphery-warning-face))
      (t (propertize text 'face 'periphery-info-face)))))
 
 ;;;###autoload
@@ -382,18 +382,20 @@
     (and (string-match periphery-note-and-errors-regex line)
          (let* ((note (match-string 1 line))
                 (message (match-string 2 line)))
-           (list "" (vector
-                     (propertize "Buildinfo" 'face 'periphery-filename-face)
-                     (propertize "" 'face 'periphery-message-face)
-                     (propertize-severity (if note note "error") (string-trim-left note))
-                     (propertize message 'face 'periphery-message-face)))))))
+           (build-list
+            :path ""
+            :file ""
+            :line ""
+            :keyword note
+            :result message
+            :regex periphery-regex-mark-quotes)))))
 
 (cl-defun periphery-message-with-count (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count"
   (interactive)
   (setq-local inhibit-message nil)
   (message
-    "%s %s - %s occurances found."
+    "%s %s - %s occurrences found."
     (propertize tag 'face attributes) text
     (propertize (format "%d" (length periphery-errorList)) 'face 'periphery-warning-face))
 
@@ -418,7 +420,7 @@
                   :line line
                   :keyword (nth 0 todo)
                   :result (nth 1 todo)
-                  :query query)
+                  :regex (format "\\(%s\\)" query))
 
              (build-list
               :path fileWithLine
@@ -426,18 +428,16 @@
               :line line
               :keyword "Match"
               :result message
-              :query query))))))
+              :regex (format "\\(%s\\)" query)))))))
 
 
-(cl-defun build-list (&key path &key file &key line &key keyword &key result &key query)
+(cl-defun build-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list."
   (list path (vector
               (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
-              (propertize keyword 'face 'periphery-info-face)
-              (mark-all-symbols
-               (propertize (string-trim-left result) 'face 'periphery-message-face)
-               (format "\\(%s\\)" query)))))
+              (propertize-severity keyword (string-trim-left keyword))
+              (mark-all-symbols (propertize (string-trim-left result) 'face 'periphery-message-face) regex))))
 
 (cl-defun periphery-parse-search-result (&key title &key text &key query)
   "Parse search result (as TEXT) and QUERY."

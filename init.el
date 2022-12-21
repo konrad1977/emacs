@@ -132,7 +132,7 @@
 (use-package vertico
   :hook (after-init . vertico-mode)
   :config
-  (setq vertico-resize t
+  (setq vertico-resize nil
         vertico-count 9
         vertico-multiline nil
         vertico-scroll-margin 4
@@ -153,7 +153,7 @@
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-        vertico-posframe-truncate-lines nil
+        vertico-posframe-truncate-lines t
         vertico-posframe-width 160
         ;; vertico-posframe-height nil
         vertico-posframe-min-height 2
@@ -179,15 +179,8 @@
                                         (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
-  :after vertico
-  :bind (("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
-  :init
-  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  (marginalia-mode)
-  (with-eval-after-load 'projectile
-    (add-to-list 'marginalia-command-categories '(projectile-find-file . file))))
+  :after (vertico)
+  :config (marginalia-mode))
 
 (use-package all-the-icons-completion
   :after (marginalia all-the-icons)
@@ -262,7 +255,6 @@
    '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.90))))))
 
 (use-package dashboard
-  :after (consult projectile)
   :config
   (dashboard-setup-startup-hook)
   (setq
@@ -279,9 +271,9 @@
    dashboard-set-navigator t
    dashboard-projects-item-format "%s"
    dashboard-recentf-item-format "%s"
-   dashboard-set-heading-icons t
-   dashboard-items '((projects . 2)
-                     (recents . 7))
+   dashboard-set-heading-icons nil
+   dashboard-items '((projects . 4)
+                     (recents . 4))
    dashboard-navigator-buttons
    `(;; line1
      ;; Keybindings
@@ -473,7 +465,6 @@
           ("\\/\\/\\W?FIXME\\b:\\|FIXME\\b:" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0 :crop-right t))))
           ("FIXME\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
           )))
-
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -941,7 +932,15 @@
         org-hide-leading-stars t
         org-src-edit-src-content-indentation 0
         org-log-into-drawer t
+        org-clock-sound "~/.emacs.d/etc/sound/bell.mp3"
         org-log-done 'time))
+
+(defun mk/play-sound (orgin-fn sound)
+  (cl-destructuring-bind (_ _ file) sound
+    (make-process :name (concat "play-sound-" file)
+                  :connection-type 'pipe
+                  :command `("afplay" ,file))))
+(advice-add 'play-sound :around 'mk/play-sound)
 
 (with-eval-after-load 'org
   (setq org-confirm-babel-evaluate nil)
