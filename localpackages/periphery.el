@@ -35,7 +35,7 @@
   :group 'periphery)
 
 (defface periphery-identifier-face
-  '((t (:inherit font-lock-constant-face :italic t :weight semi-bold)))
+  '((t (:inherit font-lock-constant-face :weight semi-bold :background "#221111")))
   "Identifier face."
   :group 'periphery)
 
@@ -65,11 +65,22 @@
 (defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.+\\)$"
   "When we fail because of other errors than compilation errors.")
 
+(defconst mark-inside-parenteses "\\(\(.+?\)\\)"
+  "Mark parenteses.")
+
+(defconst mark-strings-regex "\\(\"[^\"]+\"\\)"
+  "Mark all string.")
+
 (defconst periphery-regex-mark-quotes "\\('[^']+'\\)"
   "Mark quotes in text.")
 
-(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)")
-(defconst todos-clean-regex "\\(TODO\\|FIXME\\|FIX\\|HACK\\)\s?:\s?\\(.*\\)")
+(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)"
+  "Parse bartycrouch regex.")
+
+(defconst todos-clean-regex "\\(TODO\\|FIXME\\|FIX\\|HACK\\)\s?:\s?\\(.*\\)"
+  "Parse Todos and hacks.")
+
+(defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
 (defvar periphery-errorList '())
 (defvar periphery-directory-root nil "DirectoryRoot for localizeable.")
@@ -77,7 +88,7 @@
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
   (setq tabulated-list-format [
-                               ("File" 30 t)
+                               ("File" 32 t)
                                ("Line" 5 nil)
                                ("Type" 8 nil)
                                ("Message" 80 nil)
@@ -93,9 +104,9 @@
   (--filter (string-match-p (regexp-quote "error") (aref (car (cdr it)) 2)) list))
 
 (defun periphery--go-to-first-error (list)
-    "Go to first error in LIST."
-    (defvar errors-with-reference (--filter (> (length (aref (car(cdr it)) 1)) 0) (periphery--get-all-errors list)))
-    (periphery--open-current-line-with (car (car errors-with-reference))))
+  "Go to first error in LIST."
+  (defvar errors-with-reference (--filter (> (length (aref (car(cdr it)) 1)) 0) (periphery--get-all-errors list)))
+  (periphery--open-current-line-with (car (car errors-with-reference))))
 
 (defun periphery--open-current-line-with (data)
   "Open current line with DATA."
@@ -120,7 +131,7 @@
   (interactive)
   (periphery--open-current-line-with (tabulated-list-get-id)))
 
-(defun periphery-listing-command (errorList)
+(defun periphery--listing-command (errorList)
   "Create a ERRORLIST for current mode."
   (save-selected-window
     (let* ((buffer (get-buffer-create periphery-buffer-name))
@@ -141,8 +152,8 @@
            :text "Contains errors or warnings."
            :attributes 'error)))))
 
-(defun mark-all-symbols (input regex)
-  "Highlight all quoted symbols (as INPUT) and REGEX."
+(cl-defun periphery--mark-all-symbols (&key input &key regex &key property)
+  "Highlight all quoted symbols (as INPUT REGEX PROPERTY)."
   (save-match-data
     (let* ((position 0)
            (normalizedInput (replace-regexp-in-string "’" "'"  input)))
@@ -150,10 +161,11 @@
         (let* ((ref (match-string 1 normalizedInput))
                (startPosition (string-match regex normalizedInput position)))
           (setq position (match-end 1))
-          (put-text-property startPosition position  'face 'periphery-identifier-face normalizedInput)))
+          ;; (put-text-property startPosition position 'face 'periphery-identifier-face normalizedInput)
+          (add-text-properties startPosition position property normalizedInput)))
   normalizedInput)))
 
-(defun parse-periphery-output-line (line)
+(defun periphery--parse-output-line (line)
   "Run regex over curent LINE."
   (save-match-data
     (and (string-match periphery-regex-parser line)
@@ -164,7 +176,7 @@
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
 
-           (build-list
+           (periphery--build-list
             :path fileWithLine
             :file file
             :line linenumber
@@ -194,7 +206,7 @@
   (t (propertize text 'face 'periphery-message-face))))
   
 
-(defun propertize-severity (severity text)
+(defun periphery--propertize-severity (severity text)
   "Colorize TEXT using SEVERITY."
   (let ((type (upcase (string-trim-left severity))))
     (cond
@@ -213,9 +225,10 @@
 ;;;###autoload
 (defun periphery-run-parser (input)
   "Run parser (as INPUT)."
+  (message input)
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
-    (let* ((entry (parse-periphery-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
+    (let* ((entry (periphery--parse-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
           (secondEntry (parse-xcodebuild-notes-and-errors (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
       (if entry
           (push entry periphery-errorList))
@@ -223,7 +236,7 @@
           (push secondEntry periphery-errorList))
       )))
   (if periphery-errorList
-      (periphery-listing-command periphery-errorList)
+      (periphery--listing-command periphery-errorList)
     (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
 
 (defun periphery-mode-all ()
@@ -326,7 +339,7 @@
 (defun periphery-show-buffer ()
   "Show current periphery buffer."
   (interactive)
-  (periphery-listing-command periphery-errorList))
+  (periphery--listing-command periphery-errorList))
 
 ;;; - Bartycrouch parsing
 
@@ -374,7 +387,7 @@
     (when-let ((entry (parse-bartycrouch-output-line (string-trim-left line))))
       (push entry periphery-errorList)))
   (when periphery-errorList
-      (periphery-listing-command periphery-errorList)))
+      (periphery--listing-command periphery-errorList)))
   
 (defun parse-xcodebuild-notes-and-errors (line)
   "Parse error and notes (as LINE)."
@@ -382,7 +395,7 @@
     (and (string-match periphery-note-and-errors-regex line)
          (let* ((note (match-string 1 line))
                 (message (match-string 2 line)))
-           (build-list
+           (periphery--build-list
             :path ""
             :file ""
             :line ""
@@ -401,7 +414,6 @@
 
   (setq-local inhibit-message t))
 
-(defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
 (defun parse--search-query (text query)
   "Parse error and notes (as TEXT) and QUERY."
@@ -414,7 +426,7 @@
                 (fileWithLine (format "%s:%s:%s" file line column)))
 
            (if-let ((todo (periphery--clean-up-comments message)))
-                 (build-list
+                 (periphery--build-list
                   :path fileWithLine
                   :file file
                   :line line
@@ -422,7 +434,7 @@
                   :result (nth 1 todo)
                   :regex (format "\\(%s\\)" query))
 
-             (build-list
+             (periphery--build-list
               :path fileWithLine
               :file file
               :line line
@@ -431,23 +443,33 @@
               :regex (format "\\(%s\\)" query)))))))
 
 
-(cl-defun build-list (&key path &key file &key line &key keyword &key result &key regex)
-  "Build list."
+(cl-defun periphery--build-list (&key path &key file &key line &key keyword &key result &key regex)
+  "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
               (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
-              (propertize-severity keyword (string-trim-left keyword))
-              (mark-all-symbols (propertize (string-trim-left result) 'face 'periphery-message-face) regex))))
+              (periphery--propertize-severity keyword (string-trim-left keyword))
+
+              (periphery--mark-all-symbols
+               :input (periphery--mark-all-symbols
+                       :input (periphery--mark-all-symbols
+                               :input (propertize (string-trim-left result) 'face 'periphery-message-face)
+                               :regex regex
+                               :property '(face periphery-identifier-face))
+                       :regex mark-inside-parenteses
+                       :property '(face periphery-filename-face))
+               :regex mark-strings-regex
+               :property '(face highlight)))))
 
 (cl-defun periphery-parse-search-result (&key title &key text &key query)
-  "Parse search result (as TEXT) and QUERY."
+  "Parse search result (as TITLE TEXT QUERY)."
   (setq periphery-errorList '())
   (dolist (line (split-string text "\n"))
     (when-let ((entry (parse--search-query (string-trim-left line) query)))
       (push entry periphery-errorList)))
   (when periphery-errorList
     (progn
-      (periphery-listing-command periphery-errorList)
+      (periphery--listing-command periphery-errorList)
       (message-with-color :tag (format "[%s]:" title) :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
       )))
 
