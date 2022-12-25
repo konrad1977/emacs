@@ -10,17 +10,17 @@
 (require 'periphery-helper)
 
 (defface periphery-info-face
-  '((t (:inherit compilation-info :bold t)))
+  '((t (:inherit compilation-info :bold t :background "#1E2E2D" )))
   "Info face."
   :group 'periphery)
 
 (defface periphery-warning-face
-  '((t (:inherit warning :bold t)))
+  '((t (:inherit warning :bold t :background "#2E2A1E")))
   "Warning face."
   :group 'periphery)
 
 (defface periphery-error-face
-  '((t (:inherit error :bold t)))
+  '((t (:inherit error :bold t :background "#2D1E28")))
   "Error face."
   :group 'periphery)
 
@@ -35,7 +35,7 @@
   :group 'periphery)
 
 (defface periphery-identifier-face
-  '((t (:inherit font-lock-constant-face :weight semi-bold :background "#221111")))
+  '((t (:inherit error :weight semi-bold :background "#2D1E28")))
   "Identifier face."
   :group 'periphery)
 
@@ -454,12 +454,12 @@
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols
                                :input (propertize (string-trim-left result) 'face 'periphery-message-face)
-                               :regex regex
-                               :property '(face periphery-identifier-face))
+                               :regex mark-strings-regex
+                               :property '(face highlight))
                        :regex mark-inside-parenteses
-                       :property '(face periphery-filename-face))
-               :regex mark-strings-regex
-               :property '(face highlight)))))
+                       :property '(face periphery-warning-face))
+               :regex regex
+               :property '(face periphery-identifier-face)))))
 
 (cl-defun periphery-parse-search-result (&key title &key text &key query)
   "Parse search result (as TITLE TEXT QUERY)."
