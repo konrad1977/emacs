@@ -144,8 +144,8 @@
 
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
-  (setq tabulated-list-format [("File" 32 t) ("Line" 5 nil) (" Type" 9 nil) ("Message" 80 nil)]
-        tabulated-list-padding 2
+  (setq tabulated-list-format [("File" 32 t) ("Line" 5 nil) ("Type" 9 nil) ("Message" 80 nil)]
+        tabulated-list-padding 1
         tabulated-list-sort-key (cons "Line" nil))
   (turn-off-evil-mode)
   (use-local-map periphery-mode-map)
@@ -559,13 +559,6 @@
 
 (cl-defun periphery-parse-search-result (&key title &key text &key query)
   "Parse search result (as TITLE TEXT QUERY)."
-  (setq tabulated-list-format [
-                               ("File" 32 t)
-                               ("Line" 5 nil)
-                               ("Type" 6 nil)
-                               ("Message" 80 nil)
-                               ])
-
   (setq default-length 7)
   (setq periphery-errorList '())
   (dolist (line (split-string text "\n"))
