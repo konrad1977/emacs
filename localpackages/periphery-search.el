@@ -58,11 +58,12 @@
       (progn
         (let ((default-directory (vc-root-dir)))
           (setq current-query text)
+          (message-with-color :tag "[SEARCHING]" :text (format "for %s" text) :attributes 'warning)
           (async-shell-command-to-string
            :process-name searcher
            :command (format "%s --vimgrep -w %s" searcher text)
            :callback #'send-search-result-to-periphery)))
-    (message-with-color :tag "[Failed]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
+    (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."
@@ -73,7 +74,7 @@
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
-  (periphery-run-query "rg" "\'FIXME:|TODO:|FIX:|HACK:\' --sort path"))
+  (periphery-run-query "rg" "\'FIX|FIXME|TODO|NOTE|HACK|PERF' --sort path"))
 
 (provide 'periphery-search)
 ;;; periphery-search.el ends here.
