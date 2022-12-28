@@ -25,7 +25,7 @@
   :group 'periphery)
 
 (defface periphery-warning-face-full
-  '((t (:foreground "#3E3A28" :background "#f9e2af" :bold t)))
+  '((t (:foreground "#3E3A28" :background "#f9e2af" :bold t :distant-foreground "#f9e2af" )))
   "Warning face."
   :group 'periphery)
 
@@ -35,7 +35,7 @@
   :group 'periphery)
 
 (defface periphery-error-face-full
-  '((t (:foreground "#2D1E28" :bold t :background "#f38ba8")))
+  '((t (:foreground "#2D1E28" :bold t :background "#f38ba8" :distant-foreground "#f38ba8")))
   "Error face."
   :group 'periphery)
 
@@ -55,7 +55,7 @@
   :group 'periphery)
 
 (defface periphery-fix-face-full
-  '((t (:foreground "#28333E" :bold t :background "#89b4fa")))
+  '((t (:foreground "#28333E" :bold t :background "#89b4fa" :distant-foreground "#89b4fa")))
   "FIX with background."
   :group 'periphery)
 
@@ -65,7 +65,7 @@
   :group 'periphery)
 
 (defface periphery-note-face-full
-  '((t (:foreground "#1E2E24" :bold t :background "#a6e3a1" )))
+  '((t (:foreground "#1E2E24" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
   "Info face."
   :group 'periphery)
 
@@ -85,7 +85,7 @@
   :group 'periphery)
 
 (defface periphery-performance-face-full
-  '((t (:background "#cba6f7" :bold t :foreground "#2B1E2E")))
+  '((t (:background "#cba6f7" :bold t :foreground "#2B1E2E" :distant-foreground "#cba6f7" )))
   "Performance face."
   :group 'periphery)
 
@@ -95,7 +95,7 @@
   :group 'periphery)
 
 (defface periphery-todo-face-full
-  '((t (:foreground "#1E2C2E" :bold t :background "#74c7ec")))
+  '((t (:foreground "#1E2C2E" :bold t :background "#74c7ec" :distant-foreground  "#74c7ec")))
   "Performance face."
   :group 'periphery)
 
