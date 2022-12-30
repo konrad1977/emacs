@@ -335,7 +335,7 @@
   "Show swift file compressed functions and pragmas."
   (interactive)
   (let ((list-matching-lines-face nil))
-    (occur "\\(func\\)\\|\\(#pragma mark\\)\\|\\(MARK:\\)")))
+    (occur "\\(#pragma mark\\)\\|\\(MARK:\\)")))
 
 (defun swift-additions:print-thing-at-point ()
   "Print thing at point."

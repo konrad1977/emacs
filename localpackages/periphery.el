@@ -25,7 +25,7 @@
   :group 'periphery)
 
 (defface periphery-warning-face-full
-  '((t (:foreground "#3E3A28" :background "#f9e2af" :bold t :distant-foreground "#f9e2af" )))
+  '((t (:foreground "#f9e2af" :background "#3E3A28" :bold t :distant-foreground "#f9e2af" )))
   "Warning face."
   :group 'periphery)
 
@@ -35,7 +35,7 @@
   :group 'periphery)
 
 (defface periphery-error-face-full
-  '((t (:foreground "#2D1E28" :bold t :background "#f38ba8" :distant-foreground "#f38ba8")))
+  '((t (:foreground "#f38ba8" :bold t :background "#2D1E28" :distant-foreground "#f38ba8")))
   "Error face."
   :group 'periphery)
 
@@ -65,7 +65,7 @@
   :group 'periphery)
 
 (defface periphery-note-face-full
-  '((t (:foreground "#1E2E24" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
+  '((t (:foreground "#a6e3a1" :bold t :background "#1E2B2E" :distant-foreground "#a6e3a1")))
   "Info face."
   :group 'periphery)
 
@@ -89,6 +89,11 @@
   "Performance face."
   :group 'periphery)
 
+(defface periphery-hack-face-full
+  '((t (:foreground "#1E2C2E" :bold t :background "#f38ba8" :distant-foreground  "#74c7ec")))
+  "Performance face."
+  :group 'periphery)
+
 (defface periphery-todo-face
   '((t (:foreground "#74c7ec")))
   "Performance face."
@@ -108,7 +113,7 @@
 (define-key periphery-mode-map (kbd "<return>") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") #'periphery--open-current-line)
 
-(setq default-length 10)
+(defconst default-length 9)
 
 (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
   "Parse vimgrep like strings (compilation).")
@@ -134,7 +139,7 @@
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)"
   "Parse bartycrouch regex.")
 
-(defconst todos-clean-regex "\\(TODO\\|PERF\\|NOTE\\|FIX\\|FIXME\\|HACK\\)\s?:?\s?\\(.*\\)"
+(defconst todos-clean-regex "\\(TODO\\|PERF\\|NOTE\\|FIX\\|FIXME\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)"
   "Parse Todos and hacks.")
 
 (defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
@@ -144,8 +149,8 @@
 
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
-  (setq tabulated-list-format [("File" 32 t) ("Line" 5 nil) ("Type" 9 nil) ("Message" 80 nil)]
-        tabulated-list-padding 1
+  (setq tabulated-list-format [("File" 32 t)("Line" 5 nil)("Type" 9 nil)("Message" 100 nil)]
+        tabulated-list-padding 0
         tabulated-list-sort-key (cons "Line" nil))
   (turn-off-evil-mode)
   (use-local-map periphery-mode-map)
@@ -276,11 +281,12 @@
   (let ((type (upcase (string-trim-left keyword))))
     (cond
      ((string= type "WARNING") 'periphery-warning-face-full)
-     ((or (string= type "ERROR") (string= type "HACK")) 'periphery-error-face-full)
+     ((string= type "ERROR") 'periphery-error-face-full)
      ((string= type "NOTE") 'periphery-note-face-full)
      ((or (string= type "FIX") (string= type "FIXME")) 'periphery-fix-face-full)
      ((or (string= type "PERF") (string= type "PERFORMANCE")) 'periphery-performance-face-full)
      ((string= type "TODO") 'periphery-todo-face-full)
+     ((string= type "HACK") 'periphery-hack-face-full)
      (t 'periphery-info-face-full))))
 
 (cl-defun periphery--color-from-keyword (keyword)
@@ -325,79 +331,27 @@
           (--filter
            (string-match-p (regexp-quote filter)
                            (aref (car( cdr it)) index)) (-non-nil periphery-errorList)))
-    (tabulated-list-print t)))
-
-(defun periphery-mode-list-errors ()
-  "Filter on errors."
-  (interactive)
-  (periphery-mode-build-filter "error" 2))
-
-(defun periphery-mode-list-warnings ()
-  "Filter on warnings."
-  (interactive)
-  (periphery-mode-build-filter "warning" 2))
-
-(defun periphery-mode-list-functions ()
-  "Filter on fucntions."
-  (interactive)
-  (periphery-mode-build-filter "Function" 3))
-
-(defun periphery-mode-list-unused ()
-  "Filter on fucntions."
-  (interactive)
-  (periphery-mode-build-filter "unused" 3))
-
-(defun periphery-mode-list-initializer ()
-  "Filter on fucntions."
-  (interactive)
-  (periphery-mode-build-filter "Initializer" 3))
-
-(defun periphery-mode-list-protocol ()
-  "Filter on protocol."
-  (interactive)
-  (periphery-mode-build-filter "Protocol" 3))
-
-(defun periphery-mode-list-parameter ()
-  "Filter on parameter."
-  (interactive)
-  (periphery-mode-build-filter "Parameter" 3))
-
-(defun periphery-mode-list-property ()
-  "Filter on property."
-  (interactive)
-  (periphery-mode-build-filter "Property" 3))
+    (tabulated-list-print t))
+  (message-with-color :tag "[Active filter]" :text "Hello" :attributes '(:inherit success)))
 
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
 
 (setq periphery-mode-map (make-sparse-keymap))
-(define-key periphery-mode-map (kbd "?") 'periphery-mode-help)
 (define-key periphery-mode-map (kbd "a") 'periphery-mode-all)
-(define-key periphery-mode-map (kbd "e") 'periphery-mode-list-errors)
-(define-key periphery-mode-map (kbd "w") 'periphery-mode-list-warnings)
-(define-key periphery-mode-map (kbd "f") 'periphery-mode-list-functions)
-(define-key periphery-mode-map (kbd "u") 'periphery-mode-list-unused)
-(define-key periphery-mode-map (kbd "i") 'periphery-mode-list-initializer)
-(define-key periphery-mode-map (kbd "I") 'periphery-mode-list-protocol)
-(define-key periphery-mode-map (kbd "P") 'periphery-mode-list-parameter)
-(define-key periphery-mode-map (kbd "p") 'periphery-mode-list-property)
+(define-key periphery-mode-map (kbd "e") #'(lambda () (interactive) (periphery-mode-build-filter "error" 2)))
+(define-key periphery-mode-map (kbd "t") #'(lambda () (interactive) (periphery-mode-build-filter "todo" 2)))
+(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "perf" 2)))
+(define-key periphery-mode-map (kbd "h") #'(lambda () (interactive) (periphery-mode-build-filter "hack" 2)))
+(define-key periphery-mode-map (kbd "w") #'(lambda () (interactive) (periphery-mode-build-filter "warning" 2)))
+(define-key periphery-mode-map (kbd "f") #'(lambda () (interactive) (periphery-mode-build-filter "Function" 3)))
+(define-key periphery-mode-map (kbd "u") #'(lambda () (interactive) (periphery-mode-build-filter "Unused" 3)))
+(define-key periphery-mode-map (kbd "i") #'(lambda () (interactive) (periphery-mode-build-filter "Initializer" 3)))
+(define-key periphery-mode-map (kbd "I") #'(lambda () (interactive) (periphery-mode-build-filter "Protocol" 3)))
+(define-key periphery-mode-map (kbd "P") #'(lambda () (interactive) (periphery-mode-build-filter "Parameter" 3)))
+(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "Property|perf" 2)))
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
-
-(transient-define-prefix periphery-mode-help ()
-"Help for periphery mode."
-["Periphery mode help"
-    ("a" "All" periphery-mode-all)
-    ("e" "Errors" periphery-mode-list-errors)
-    ("w" "Warnings" periphery-mode-list-warnings)
-    ("f" "Functions" periphery-mode-list-functions)
-    ("u" "Unused" periphery-mode-list-unused)
-    ("i" "Initializer" periphery-mode-list-initializer)
-    ("I" "Protocol" periphery-mode-list-protocol)
-    ("P" "Parameter" periphery-mode-list-parameter)
-    ("p" "Property" periphery-mode-list-property)
-    ("o" "Open" periphery--open-current-line)
- ])
 
 ;;;###autoload
 (defun periphery-kill-buffer ()
@@ -487,7 +441,7 @@
 
 (defun parse--search-query (text query)
   "Parse error and notes (as TEXT) and QUERY."
-  (setq default-length 4)
+  (setq default-length 6)
   (save-match-data
     (and (string-match periphery-parse-search text)
          (let* ((file (match-string 1 text))
@@ -520,7 +474,6 @@
               (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
               (periphery--propertize-severity keyword (string-trim-left keyword))
-
               (periphery--mark-all-symbols
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols
@@ -541,7 +494,6 @@
               (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
               (periphery--propertize-severity keyword (string-trim-left keyword))
-
               (periphery--mark-all-symbols
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols
@@ -567,8 +519,9 @@
   (when periphery-errorList
     (progn
       (periphery--listing-command periphery-errorList)
-      (message-with-color :tag (format "[%s]:" title) :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face)
-      )))
+      (view-mode t)
+      (switch-to-buffer-other-window periphery-buffer-name)
+      (message-with-color :tag (format "[%s]:" title) :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face))))
 
 (provide 'periphery)
 

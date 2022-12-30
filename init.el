@@ -622,7 +622,7 @@
          ("C-c p r" . cape-rfc1345))
   :custom
   (setq cape-dabbrev-check-other-buffers t
-        cape-dabbrev-min-length 2)
+        cape-dabbrev-min-length 3)
   :init
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
@@ -944,6 +944,7 @@
 (advice-add 'play-sound :around 'mk/play-sound)
 
 (with-eval-after-load 'org
+  (mk/org-mode-setup)
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -984,11 +985,8 @@
   :config
   (add-to-list 'org-babel-tangle-lang-exts
                '("swiftui" . "swift"))
-  ;; (add-to-list 'org-babel-load-languages
-  ;;                '((swiftui . t)))
   (add-to-list 'org-src-lang-modes
-               '("swiftui" . swift))
-  )
+               '("swiftui" . swift)))
 
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
@@ -1095,7 +1093,8 @@
   :after prog-mode
   :bind
   ("C-c C-f" . #'periphery-search-dwiw-rg)
-  ("C-x C-t" . #'periphery-query-todos-and-fixmes))
+  ("C-x C-t" . #'periphery-query-todos-and-fixmes)
+  ("C-x C-m" . #'periphery-query-marks))
 
 (use-package periphery-loco
   :ensure nil
@@ -1139,6 +1138,12 @@
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
 (defun mk/org-mode-setup()
+  "Setup 'org-mode'."
+  (setq-local completion-at-point-functions
+              (list (cape-super-capf #'cape-ispell
+                                     #'cape-file
+                                     (cape-company-to-capf #'company-yasnippet)
+                                     )))
   (org-indent-mode 1)
   (variable-pitch-mode 1)
   (visual-line-mode t))
@@ -1212,7 +1217,6 @@
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 
-(add-hook 'org-mode-hook #'mk/setupOrgMode)
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
 (with-eval-after-load 'swift-mode

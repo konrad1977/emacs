@@ -18,18 +18,6 @@
   "Default search title."
   (setq current-title "Search"))
 
-(defun periphery-search-dwiw-ag ()
-  "Search using ag (Silver searcher)."
-  (interactive)
-  (setup-search-title)
-  (periphery--search-thing-at-point "ag"))
-
-(defun periphery-search-dwiw-rg ()
-  "Search using rg (ripgrep)."
-  (interactive)
-  (setup-search-title)
-  (periphery--search-thing-at-point "rg"))
-
 (defun periphery--search-thing-at-point (searcher)
   "Search thing at point using (SEARCHER)."
   (if (use-region-p)
@@ -39,17 +27,6 @@
           (periphery-run-query searcher text)))
     (periphery-run-query searcher (thing-at-point 'symbol))))
  
-(defun periphery-search-rg ()
-  "Search using RG (Ripgrep)."
-  (interactive)
-  (setup-search-title)
-  (periphery--search-for "rg"))
-
-(defun periphery-search-ag ()
-  "Search using AG (The Silver Searcher)."
-  (interactive)
-  (setup-search-title)
-  (periphery--search-for "ag"))
 
 (defun periphery-run-query (searcher text &optional args)
   "Search using (SEARCHER) with (TEXT)."
@@ -70,11 +47,47 @@
   (setup-search-title)
   (periphery-run-query searcher (read-regexp "Query: ")))
 
+;;;###autoload
+(defun periphery-search-rg ()
+  "Search using RG (Ripgrep)."
+  (interactive)
+  (setup-search-title)
+  (periphery--search-for "rg"))
+
+;;;###autoload
+(defun periphery-search-ag ()
+  "Search using AG (The Silver Searcher)."
+  (interactive)
+  (setup-search-title)
+  (periphery--search-for "ag"))
+
+;;;###autoload
 (defun periphery-query-todos-and-fixmes ()
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
   (periphery-run-query "rg" "\'FIX|FIXME|TODO|NOTE|HACK|PERF' --sort path"))
+
+;;;###autoload
+(defun periphery-query-marks ()
+  "Query marks in the project."
+  (interactive)
+  (setq current-title "Marks")
+  (periphery-run-query "rg" "\'MARK' --sort path"))
+
+;;;###autoload
+(defun periphery-search-dwiw-ag ()
+  "Search using ag (Silver searcher)."
+  (interactive)
+  (setup-search-title)
+  (periphery--search-thing-at-point "ag"))
+
+;;;###autoload
+(defun periphery-search-dwiw-rg ()
+  "Search using rg (ripgrep)."
+  (interactive)
+  (setup-search-title)
+  (periphery--search-thing-at-point "rg"))
 
 (provide 'periphery-search)
 ;;; periphery-search.el ends here.
