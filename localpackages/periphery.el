@@ -90,7 +90,7 @@
   :group 'periphery)
 
 (defface periphery-hack-face-full
-  '((t (:foreground "#1E2C2E" :bold t :background "#f38ba8" :distant-foreground  "#74c7ec")))
+  '((t (:foreground "#1E2C2E" :bold t :background "#f38ba8" :distant-foreground  "#f38ba8")))
   "Performance face."
   :group 'periphery)
 
@@ -107,11 +107,6 @@
 (defconst periphery-buffer-name "*Periphery*")
 
 (defvar periphery-mode-map nil "Keymap for periphery.")
-(setq periphery-mode-map (make-sparse-keymap))
-
-(define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
-(define-key periphery-mode-map (kbd "<return>") #'periphery--open-current-line)
-(define-key periphery-mode-map (kbd "o") #'periphery--open-current-line)
 
 (defconst default-length 9)
 
@@ -207,6 +202,7 @@
           (periphery-message-with-count
            :tag "[Done]"
            :text "Contains errors or warnings."
+           :count (format "%d" (length tabulated-list-entries))
            :attributes 'error)))))
 
 (cl-defun periphery--mark-all-symbols (&key input &key regex &key property)
@@ -329,10 +325,16 @@
   (progn
     (setq tabulated-list-entries
           (--filter
-           (string-match-p (regexp-quote filter)
+           (string-match-p filter
                            (aref (car( cdr it)) index)) (-non-nil periphery-errorList)))
-    (tabulated-list-print t))
-  (message-with-color :tag "[Active filter]" :text "Hello" :attributes '(:inherit success)))
+
+      (tabulated-list-print t)
+      (if (proper-list-p tabulated-list-entries)
+          (periphery-message-with-count
+           :tag "[Matching]"
+           :text filter
+           :count (format "%d" (length tabulated-list-entries))
+           :attributes 'success))))
 
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
@@ -341,15 +343,16 @@
 (define-key periphery-mode-map (kbd "a") 'periphery-mode-all)
 (define-key periphery-mode-map (kbd "e") #'(lambda () (interactive) (periphery-mode-build-filter "error" 2)))
 (define-key periphery-mode-map (kbd "t") #'(lambda () (interactive) (periphery-mode-build-filter "todo" 2)))
-(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "perf" 2)))
 (define-key periphery-mode-map (kbd "h") #'(lambda () (interactive) (periphery-mode-build-filter "hack" 2)))
+(define-key periphery-mode-map (kbd "n") #'(lambda () (interactive) (periphery-mode-build-filter "note" 2)))
 (define-key periphery-mode-map (kbd "w") #'(lambda () (interactive) (periphery-mode-build-filter "warning" 2)))
-(define-key periphery-mode-map (kbd "f") #'(lambda () (interactive) (periphery-mode-build-filter "Function" 3)))
+(define-key periphery-mode-map (kbd "f") #'(lambda () (interactive) (periphery-mode-build-filter "Function\\|fix" 3)))
 (define-key periphery-mode-map (kbd "u") #'(lambda () (interactive) (periphery-mode-build-filter "Unused" 3)))
 (define-key periphery-mode-map (kbd "i") #'(lambda () (interactive) (periphery-mode-build-filter "Initializer" 3)))
 (define-key periphery-mode-map (kbd "I") #'(lambda () (interactive) (periphery-mode-build-filter "Protocol" 3)))
 (define-key periphery-mode-map (kbd "P") #'(lambda () (interactive) (periphery-mode-build-filter "Parameter" 3)))
-(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "Property|perf" 2)))
+(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "Property\\|perf" 2)))
+(define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
 
@@ -367,7 +370,6 @@
   (periphery--listing-command periphery-errorList))
 
 ;;; - Bartycrouch parsing
-
 (defun periphery--clean-up-comments (text)
   "Cleanup comments from (as TEXT) fixmes and todos."
   (save-match-data
@@ -429,14 +431,15 @@
             :result message
             :regex periphery-regex-mark-quotes)))))
 
-(cl-defun periphery-message-with-count (&key tag &key text &key attributes)
+(cl-defun periphery-message-with-count (&key tag &key text &key count &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count"
   (interactive)
   (setq-local inhibit-message nil)
   (message
-    "%s %s - %s occurrences found."
-    (propertize tag 'face attributes) text
-    (propertize (format "%d" (length periphery-errorList)) 'face 'periphery-warning-face))
+    "%s %s occurences found %s"
+    (propertize tag 'face attributes)
+    (propertize count 'face 'periphery-warning-face)
+    (propertize text 'face 'periphery-identifier-face))
   (setq-local inhibit-message t))
 
 (defun parse--search-query (text query)
@@ -516,12 +519,17 @@
   (dolist (line (split-string text "\n"))
     (when-let ((entry (parse--search-query (string-trim-left line) query)))
       (push entry periphery-errorList)))
+
   (when periphery-errorList
     (progn
       (periphery--listing-command periphery-errorList)
-      (view-mode t)
-      (switch-to-buffer-other-window periphery-buffer-name)
-      (message-with-color :tag (format "[%s]:" title) :text (format "%d occurrences found for '%s'" (length periphery-errorList) query) :attributes 'periphery-info-face))))
+      (if (proper-list-p tabulated-list-entries)
+          (periphery-message-with-count
+           :tag "[Matches]"
+           :text query
+           :count (format "%d" (length periphery-errorList))
+           :attributes 'success))
+      (switch-to-buffer-other-window periphery-buffer-name))))
 
 (provide 'periphery)
 

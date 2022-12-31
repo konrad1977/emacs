@@ -11,10 +11,12 @@
   (string-trim-left
    (replace-regexp-in-string "\n$" "" text)))
 
+;;;###autoload
 (cl-defun message-with-color (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES."
   (message "%s %s" (propertize tag 'face attributes) text))
 
+;;;###autoload
 (cl-defun animate-message-with-color (&key tag &key text &key attributes &key times)
   "Print a TAG and TEXT with ATTRIBUTES nr of TIMES."
   (dotimes (x times)

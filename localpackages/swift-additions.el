@@ -189,19 +189,19 @@
               (cond
                ((not (string-match-p exclude (expand-file-name x directory)))
                 (push x result))))
-            (directory-files-recursively directory (format "\\%s$" extension) 't))
+            (directory-files-recursively directory (format "\\%s$" extension) t))
     result))
 
 (cl-defun find-project-root-folder-with (&key extension)
   "Find project folder where it has its project files EXTENSION."
-  (if-let* ((project-root (expand-file-name (projectile-project-root)))
-            (root (directory-files project-root nil (format "\\%s$" extension)))
-            (subroot (get-files-from :directory project-root :extension extension :exclude "build"))
+  (let* ((project-root (expand-file-name (projectile-project-root)))
+         (root (directory-files project-root nil (format "\\%s$" extension) 1))
+            (subroot (get-files-from :directory project-root :extension extension :exclude ".build"))
             (workroot (or root subroot))
             (path (file-name-directory (car-safe workroot))))
-      (if (and path (string-match-p (regexp-quote ".xcodeproj") path))
-          (file-name-directory (directory-file-name path))
-        path)))
+    (if (and path (string-match-p (regexp-quote ".xcodeproj") path))
+        (file-name-directory (directory-file-name path))
+      path)))
 
 (defun get-ios-project-root ()
   "Get the current root of the project."
@@ -272,14 +272,8 @@
   (save-some-buffers t)
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
-  ;; (setq device-or-simulator "[Building device target]")
-  ;; (setq local-device-id (get-connected-device-id))
   (ios-simulator:load-simulator-id)
   (setq device-or-simulator "[Building simulator target]")
-
-  ;; (when (not local-device-id)
-  ;;   )
-
   (if (is-xcodeproject)
       (progn
         (setup-current-project (get-ios-project-root))
@@ -295,8 +289,7 @@
          :times 5))
     (if (is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
-      (messsage "Not xcodeproject nor swift package")
-      )))
+      (message "Not xcodeproject nor swift package"))))
 
 (defun swift-additions:test-module-silent ()
   "Test module."
@@ -442,8 +435,9 @@
 (defun is-xcodeproject ()
   "Check if its an xcode-project."
   (if-let ((default-directory (get-ios-project-root)))
-      (or (directory-files default-directory t "\\xcworkspace$")
-          (directory-files default-directory t "\\xcodeproj$"))))
+      (or
+       (directory-files-recursively default-directory "\\xcworkspace$" t)
+       (directory-files-recursively default-directory "\\xcodeproj$" t))))
 
 (defun is-a-swift-package-base-project ()
   "Check if project is a swift package based."
