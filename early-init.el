@@ -18,7 +18,7 @@
 
 (setq-default frame-inhibit-implied-resize t
               frame-resize-pixelwise t
-              frame-title-format "\""
+              frame-title-format nil
               inhibit-startup-screen t
               inhibit-startup-buffer-menu t
               inhibit-startup-message t
@@ -58,10 +58,9 @@
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))
 
-(push '(fullscreen . maximized) default-frame-alist)
-(push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
+;; (push '(menu-bar-lines . 0) default-frame-alist)
+;; (push '(tool-bar-lines . 0) default-frame-alist)
+;; (push '(vertical-scroll-bars) default-frame-alist)
 
 (provide 'early-init)
 ;;; early-init.el ends here

@@ -20,9 +20,9 @@
 (cl-defun animate-message-with-color (&key tag &key text &key attributes &key times)
   "Print a TAG and TEXT with ATTRIBUTES nr of TIMES."
   (dotimes (x times)
-    (dotimes (current 4)
+    (dotimes (current 2)
       (message "%s %s%s" (propertize tag 'face attributes) text (make-string current ?.))
-      (sit-for 0.3)))
+      (sit-for 0.2)))
   (message "%s %s" (propertize tag 'face attributes) text))
 
 ;;; Processes

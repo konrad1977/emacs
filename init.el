@@ -79,10 +79,12 @@
         mac-command-modifier 'meta
         mac-option-modifier 'none
         dired-use-ls-dired nil
-        frame-title-format ""
+        ns-use-native-fullscreen nil
         browse-url-browser-function #'mk/browser-split-window)
-
+  
+  (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  ;; (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . nil))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 ;; Dont leave #file autosaves everywhere I go
@@ -106,6 +108,32 @@
   (package-install 'use-package))
 
 (require 'use-package)
+
+(defconst jetbrains-ligature-mode--ligatures
+   '("-->" "//" "/**" "/*" "*/" "<!--" ":=" "->>" "<<-" "->" "<-"
+     "<=>" "==" "!=" "<=" ">=" "=:=" "!==" "&&" "||" "..." ".."
+     "|||" "///" "&&&" "===" "++" "--" "=>" "|>" "<|" "||>" "<||"
+     "|||>" "<|||" ">>" "<<" "::=" "|]" "[|" "{|" "|}"
+     "[<" ">]" ":?>" ":?" "/=" "[||]" "!!" "?:" "?." "::"
+     "+++" "??" "###" "##" ":::" "####" ".?" "?=" "=!=" "<|>"
+     "<:" ":<" ":>" ">:" "<>" "***" ";;" "/==" ".=" ".-" "__"
+     "=/=" "<-<" "<<<" ">>>" "<=<" "<<=" "<==" "<==>" "==>" "=>>"
+     ">=>" ">>=" ">>-" ">-" "<~>" "-<" "-<<" "=<<" "---" "<-|"
+     "<=|" "/\\" "\\/" "|=>" "|~>" "<~~" "<~" "~~" "~~>" "~>"
+     "<$>" "<$" "$>" "<+>" "<+" "+>" "<*>" "<*" "*>" "</>" "</" "/>"
+     "<->" "..<" "~=" "~-" "-~" "~@" "^=" "-|" "_|_" "|-" "||-"
+     "|=" "||=" "#{" "#[" "]#" "#(" "#?" "#_" "#_(" "#:" "#!" "#="
+     "&="))
+
+(sort jetbrains-ligature-mode--ligatures (lambda (x y) (> (length x) (length y))))
+
+(dolist (pat jetbrains-ligature-mode--ligatures)
+  (set-char-table-range composition-function-table
+                      (aref pat 0)
+                      (nconc (char-table-range composition-function-table (aref pat 0))
+                             (list (vector (regexp-quote pat)
+                                           0
+                                    'compose-gstring-for-graphic)))))
 
 (use-package use-package
   :ensure nil
@@ -270,46 +298,46 @@
    dashboard-image-banner-max-height 250
    dashboard-set-init-info t
    dashboard-set-navigator t
-   dashboard-projects-item-format "%s"
-   dashboard-recentf-item-format "%s"
+   ;; dashboard-projects-item-format "%s"
+   ;; dashboard-recentf-item-format "%s"
    dashboard-set-heading-icons nil
-   dashboard-items '((projects . 4)
-                     (recents . 4))
-   dashboard-navigator-buttons
-   `(;; line1
-     ;; Keybindings
-     ((,(all-the-icons-octicon "settings" :height 1.2 :v-adjust -0.1)
-       "\tSettings     " nil
-       (lambda (&rest _) (open-config-file)) nil "" "\tSPC f e"))
+   dashboard-items '((recents . 8))
+   ;; dashboard-navigator-buttons
+   ;; `(;; line1
+   ;;   ;; Keybindings
+   ;;   ((,(all-the-icons-octicon "settings" :height 1.2 :v-adjust -0.1)
+   ;;     "\tSettings     " nil
+   ;;     (lambda (&rest _) (open-config-file)) nil "" "\tSPC f e"))
 
-     ((,(all-the-icons-octicon "search" :height 1.2 :v-adjust -0.1)
-       "\tFind files  " nil
-       (lambda (&rest _) (find-file)) nil "" "\tSPC f f"))
+   ;;   ((,(all-the-icons-octicon "search" :height 1.2 :v-adjust -0.1)
+   ;;     "\tFind files  " nil
+   ;;     (lambda (&rest _) (find-file)) nil "" "\tSPC f f"))
      
-     ((,(all-the-icons-octicon "file-binary" :height 1.2 :v-adjust -0.1)
-       "\tRecent files " nil
-       (lambda (&rest _) (consult-recent-files)) nil "" "\tSPC f r"))
+   ;;   ((,(all-the-icons-octicon "file-binary" :height 1.2 :v-adjust -0.1)
+   ;;     "\tRecent files " nil
+   ;;     (lambda (&rest _) (consult-recent-files)) nil "" "\tSPC f r"))
      
-     ((,(all-the-icons-octicon "package" :height 1.2 :v-adjust -0.1)
-       "\tSelect project" nil
-       (lambda (&rest _) (projectile-switch-project)) nil " " "\tSPC p s"))
+   ;;   ((,(all-the-icons-octicon "package" :height 1.2 :v-adjust -0.1)
+   ;;     "\tSelect project" nil
+   ;;     (lambda (&rest _) (projectile-switch-project)) nil " " "\tSPC p s"))
 
-     ((,(all-the-icons-octicon "file-text" :height 1.2 :v-adjust -0.1)
-       "\tScratch buffer" nil
-       (lambda (&rest _) (switch-to-buffer "*scratch*")) nil " " "\tSPC b s"))
+   ;;   ((,(all-the-icons-octicon "file-text" :height 1.2 :v-adjust -0.1)
+   ;;     "\tScratch buffer" nil
+   ;;     (lambda (&rest _) (switch-to-buffer "*scratch*")) nil " " "\tSPC b s"))
 
-     ((,(all-the-icons-octicon "bug" :height 1.2 :v-adjust -0.1)
-       "\tElfeed        " nil
-       (lambda (&rest _) (elfeed)) nil " " "\tSPC a a"))
+   ;;   ((,(all-the-icons-octicon "bug" :height 1.2 :v-adjust -0.1)
+   ;;     "\tElfeed        " nil
+   ;;     (lambda (&rest _) (elfeed)) nil " " "\tSPC a a"))
 
-     ((,(all-the-icons-octicon "dashboard" :height 1.2 :v-adjust -0.1)
-       "\tGoogle        " nil
-       (lambda (&rest _) (google-this)) nil " " "\tSPC g g"))
+   ;;   ((,(all-the-icons-octicon "dashboard" :height 1.2 :v-adjust -0.1)
+   ;;     "\tGoogle        " nil
+   ;;     (lambda (&rest _) (google-this)) nil " " "\tSPC g g"))
 
-     ((,(all-the-icons-octicon "calendar" :height 1.2 :v-adjust -0.1)
-       "\tCalendar      " nil
-       (lambda (&rest _) (calendar)) nil " " "\tSPC c c"))
-     )))
+   ;;   ((,(all-the-icons-octicon "calendar" :height 1.2 :v-adjust -0.1)
+   ;;     "\tCalendar      " nil
+   ;;     (lambda (&rest _) (calendar)) nil " " "\tSPC c c"))
+   ;;   )
+   ))
 
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
@@ -573,7 +601,7 @@
   (corfu-auto-delay 0.25)
   (corfu-auto-prefix 1)
   (corfu-cycle t)
-  (corfu-scroll-margin 5)
+  (corfu-scroll-margin 0)
   (corfu-preview-current t)
   (corfu-preselect-first t)
   (corfu-min-width 50)
@@ -582,7 +610,7 @@
   (setq corfu-popupinfo-delay 0.5
         corfu-quit-no-match 'separator)
   (corfu-popupinfo-mode)
-  (corfu-indexed-mode)
+  ;; (corfu-indexed-mode)
   (global-corfu-mode))
 
 (use-package corfu-history
@@ -678,7 +706,9 @@
   (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode)
   (setq flycheck-posframe-warning-prefix "⚠️ "
         flycheck-posframe-error-prefix "🚫️ "
-        flycheck-posframe-info-prefix "‼️️"))
+        flycheck-posframe-info-prefix "‼️️"
+        flycheck-posframe-position 'posframe-poshandler-frame-top-left-corner
+        ))
 
 ;; (use-package flycheck-inline
 ;;   :hook (flycheck-mode . turn-on-flycheck-inline))
@@ -697,20 +727,22 @@
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   :custom                               
-  (setq projectile-completion-system 'default
+  (setq projectile-completion-system 'auto
         projectile-enable-caching nil
         projectile-sort-order 'access-time
-        projectile-indexing-method 'default
+        projectile-indexing-method 'hybrid
         projectile-project-root-files '(".xcworkspace" ".projectile" ".xcodeproj")
-        ;; projectile-switch-project-action #'projectile-find-file-dwim
         projectile-switch-project-action #'projectile-commander
         projectile-ignored-files '(".orig$" ".yml$"))
-  (add-to-list 'projectile-globally-ignored-directories '(("^\\.build$")
-                                                          ("^\\.swiftpm$") 
-                                                          ("^\\.swiftpm$")
-                                                          ("^\\elpa$")
-                                                          ("^\\xcodeproj$")
-                                                          ("^\\pods$"))))
+  :config
+  (add-to-list 'projectile-globally-ignored-directories "build")
+  (setq projectile-globally-ignored-directories
+        '(".git"
+          "swiftpm"
+          "pods"
+          "xcodeproj"
+          ".build")))
+
 (use-package gcmh
   :config
   (gcmh-mode 1))
@@ -1067,7 +1099,7 @@
   ("C-c C-s" .  #'swift-additions:split-func-list)
   ("M-L" .  #'swift-additions:clean-build-folder)
   ("M-P" .  #'swift-additions:print-thing-at-point)
-  ("C-M-t" . #'swift-additions:insert-todo)
+  ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
   ("M-s" . #'ios-simulator:terminate-current-app)
   ("C-c C-c" . #'swift-additions:compile-and-run-silent)
@@ -1165,7 +1197,6 @@
 
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
-  (local-set-key (kbd "M-B") #'consult-projectile-switch-to-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
   (hs-minor-mode)       ; Add support for folding code blocks

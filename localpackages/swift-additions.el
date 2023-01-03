@@ -113,6 +113,7 @@
    "-UseModernBuildSystem=NO \\"
    "-destination-timeout 1 \\"
    "-scmProvider system \\"
+   "-skipUnavailableActions \\"
    "-parallelizeTargets \\"
    "-hideShellScriptEnvironment \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
@@ -269,8 +270,10 @@
 (defun swift-additions:compile-and-run-silent ()
   "Build project using xcodebuild."
   (interactive)
+
   (save-some-buffers t)
   (periphery-kill-buffer)
+  
   (swift-additions:kill-xcode-buffer)
   (ios-simulator:load-simulator-id)
   (setq device-or-simulator "[Building simulator target]")
@@ -286,7 +289,7 @@
          :tag device-or-simulator
          :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
          :attributes 'warning
-         :times 5))
+         :times 2))
     (if (is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
       (message "Not xcodeproject nor swift package"))))
