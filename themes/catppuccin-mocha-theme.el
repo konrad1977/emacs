@@ -75,7 +75,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground subtext0 :bold t))
   (numbers                              (:background green :foreground base))
-  (region                               (:background text :distant-foreground base))
+  (region                               (:background mauve :distant-foreground base))
   (separator-line                       (:background base))
   (shadow                               (:background nil))
   (success                              (:foreground green))
@@ -107,7 +107,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background mantle :foreground green :weight 'semi-bold))
+  (highlight-symbol-face                (:background maroon :foreground crust :distant-foreground maroon :weight 'semi-bold))
   (info-xref                            (:foreground yellow))
 
   (minibuffer-prompt-end                (:foreground red))
@@ -174,9 +174,9 @@
   (org-done                             (:foreground overlay2))
   (org-code                             (:background crust))
   (org-meta-line                        (:background surface1 :foreground blue))
-  (org-block                            (:background base))
-  (org-block-begin-line                 (:background base :foreground overlay2))
-  (org-block-end-line	                (:background base :foreground overlay2))
+  (org-block                            (:background crust))
+  (org-block-begin-line                 (:background crust :foreground overlay2))
+  (org-block-end-line	                (:background crust :foreground overlay2))
   (org-headline-done                    (:foreground overlay2 :strike-through t))
   (org-todo                             (:foreground green :bold t))
   (org-headline-todo                    (:foreground base))
@@ -264,8 +264,8 @@
   (corfu-default                            (:background crust :foreground text))
   
   ;; Eldoc
-  (eldoc-box-body                       (:background surface0 :foreground peach))
-  (eldoc-box-border                     (:background nil :foreground nil))
+  (eldoc-box-body                       (:background peach :foreground peach))
+  (eldoc-box-border                     (:background red :foreground red))
 
   (markdown-hr-face                     (:background nil :foreground surface0))
 
@@ -470,6 +470,7 @@
   (tree-sitter-hl-face:function.builtin          (:foreground sky))
   (tree-sitter-hl-face:function.special          (:foreground text :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground sapphire))
+  (tree-sitter-hl-face:function.label            (:foreground sapphire :background red))
 
   (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
   (tree-sitter-hl-face:method.call               (:inherit 'tree-sitter-hl-face:method :italic nil))
@@ -526,6 +527,10 @@
   (swift-mode:builtin-enum-case-face (:foreground teal))
   (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
   (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
+  
+  ;; (localizeable-variable-face (:inherit font-lock-string-face))
+  ;; (localizeable-value-face (:inherit font-lock-keyword-face))
+
  ))
 
 ;;;###autoload

@@ -65,7 +65,7 @@
   :group 'periphery)
 
 (defface periphery-note-face-full
-  '((t (:foreground "#a6e3a1" :bold t :background "#1E2B2E" :distant-foreground "#a6e3a1")))
+  '((t (:foreground "#1E2B2E" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
   "Info face."
   :group 'periphery)
 
@@ -134,7 +134,7 @@
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)"
   "Parse bartycrouch regex.")
 
-(defconst todos-clean-regex "\\(TODO\\|PERF\\|NOTE\\|FIX\\|FIXME\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)"
+(defconst todos-clean-regex "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)"
   "Parse Todos and hacks.")
 
 (defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")

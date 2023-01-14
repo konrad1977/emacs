@@ -6,12 +6,12 @@
 (require 'swift-additions)
 
 (defface localizeable-variable-face
-  '((t (:inherit font-lock-variable-name-face :italic t)))
+  '((t (:inherit font-lock-keyword-face)))
   "The key in strings file."
   :group 'localizeable-font)
 
 (defface localizeable-value-face
-  '((t (:inherit font-lock-builtin-face :bold t)))
+  '((t (:inherit font-lock-string-face)))
   "The value in strings file."
   :group 'localizeable-font)
 
@@ -51,11 +51,11 @@
 (font-lock-add-keywords
  'localizeable-mode '(
                  ("^\\(\"[^\"]+\"\\)\s+=\s+\\(\"[^\"]+\"\\)\\(;\\)"
-                  (1 'localizeable-value-face t)
-                  (2 'localizeable-variable-face t)
+                  (1 'localizeable-variable-face t)
+                  (2 'localizeable-value-face t)
                   (3 'localizeable-delimiter-face t)
                   )
-                 ("\/\\*[^*]*\\*+\\(?:[^/*][^*]*\\*+\\)*/" 0 'localizeable-comment-face t)
+                 ("\\(\\/\\/.*\\)" 0 'localizeable-comment-face t)
                  ("\\(=\\)" 0 'localizeable-equals-face t)))
 
 (defun parse-localizeable (text)

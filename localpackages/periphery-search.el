@@ -23,10 +23,13 @@
   (if (use-region-p)
       (let ((text (buffer-substring-no-properties (region-beginning) (region-end))))
         (when (> (length text) 1)
-          (message text)
-          (periphery-run-query searcher text)))
-    (periphery-run-query searcher (thing-at-point 'symbol))))
- 
+          (periphery-run-query searcher (escape-string text))))
+    (periphery-run-query searcher (escape-string (thing-at-point 'symbol)))))
+
+(defun escape-string (text)
+  "Escape string."
+  (setq str (replace-regexp-in-string "\(" "\\\\(" (replace-regexp-in-string "\)" "\\\\)" text)))
+  (replace-regexp-in-string "\\." "\\." str))
 
 (defun periphery-run-query (searcher text &optional args)
   "Search using (SEARCHER) with (TEXT)."
@@ -34,18 +37,18 @@
   (if (executable-find searcher)
       (progn
         (let ((default-directory (vc-root-dir)))
-          (setq current-query text)
-          (message-with-color :tag "[SEARCHING]" :text (format "for %s" text) :attributes 'warning)
+          (setq current-query (regexp-quote text))
+          (message-with-color :tag "[SEARCHING]" :text (format "for %s" current-query) :attributes 'warning)
           (async-shell-command-to-string
            :process-name searcher
-           :command (format "%s --vimgrep -w %s" searcher text)
+           :command (format "%s --vimgrep -e '%s'" searcher current-query)
            :callback #'send-search-result-to-periphery)))
     (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."
   (setup-search-title)
-  (periphery-run-query searcher (read-regexp "Query: ")))
+  (periphery-run-query searcher (read-string "Query: ")))
 
 ;;;###autoload
 (defun periphery-search-rg ()
@@ -66,7 +69,7 @@
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
-  (periphery-run-query "rg" "\'FIX|FIXME|TODO|NOTE|HACK|PERF' --sort path"))
+  (periphery-run-query "rg" "(FIX|FIXME|TODO|NOTE|HACK|PERF)" "--sort path"))
 
 ;;;###autoload
 (defun periphery-query-marks ()

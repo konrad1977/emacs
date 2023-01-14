@@ -15,9 +15,9 @@
 (blink-cursor-mode 1)               ;; Blink cursor
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 165)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 165)
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -26,6 +26,7 @@
 
 (setq ad-redefinition-action            'accept
       auto-mode-case-fold               nil
+      auto-revert-check-vc-info         t
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
       bidi-display-reordering           nil
@@ -58,16 +59,15 @@
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-
-(setq-default display-line-numbers-width    5            ;; Set so we can display thousands of lines
-              c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
-              tab-width                     4            ;: Use four tabs
-              line-spacing                  0.0         ;; Increase linespacing a bit
-              truncate-lines                1			 ;; Truncate lines
-              indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-              completion-ignore-case        t            ;; Ignore case when completing
-              indent-line-function          'insert-tab  ;; Use function to insert tabs
-              history-length                100)
+(setq-default display-line-numbers-width	    4       ;; Set so we can display thousands of lines
+            c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
+            tab-width                     4            ;: Use four tabs
+            line-spacing                  0.0         ;; Increase linespacing a bit
+	        truncate-lines		  t
+            indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
+            completion-ignore-case        t            ;; Ignore case when completing
+            indent-line-function          'insert-tab  ;; Use function to insert tabs
+            history-length                100)
 
 (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
@@ -86,6 +86,7 @@
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
   ;; (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . nil))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
+(put 'narrow-to-page 'disabled nil)
 
 ;; Dont leave #file autosaves everywhere I go
 (defvar my-auto-save-folder (concat user-emacs-directory "var/auto-save/"))
@@ -274,8 +275,9 @@
         doom-modeline-major-mode-icon nil
         doom-modeline-project-detection 'projectile
         doom-modeline-icon t
-        doom-modeline-modal-icon t
-        doom-modeline-lsp nil
+        doom-modeline-modal-icon nil
+        doom-modeline-lsp t
+        doom-modeline-hud nil
         doom-modeline-buffer-state-icon nil
         doom-modeline-time-icon nil)
   (custom-set-faces
@@ -292,50 +294,53 @@
    dashboard-center-content t
    dashboard-path-style 'truncate-beginning
    dashboard-set-file-icons t
-   dashboard-projects-show-base nil
-   dashboard-recentf-show-base nil
+   dashboard-projects-show-base 'align
+   dashboard-recentf-show-base t
    dashboard-show-shortcuts nil
-   dashboard-image-banner-max-height 250
+   dashboard-image-banner-max-height 300
    dashboard-set-init-info t
    dashboard-set-navigator t
-   ;; dashboard-projects-item-format "%s"
-   ;; dashboard-recentf-item-format "%s"
+   dashboard-projects-item-format "%s"
+   dashboard-recentf-item-format "%s"
    dashboard-set-heading-icons nil
-   dashboard-items '((recents . 8))
+   dashboard-items '(
+                     (recents . 8)
+                     (projects . 2)
+                     )
    ;; dashboard-navigator-buttons
    ;; `(;; line1
    ;;   ;; Keybindings
    ;;   ((,(all-the-icons-octicon "settings" :height 1.2 :v-adjust -0.1)
-   ;;     "\tSettings     " nil
+   ;;     "Settings\t" nil
    ;;     (lambda (&rest _) (open-config-file)) nil "" "\tSPC f e"))
 
    ;;   ((,(all-the-icons-octicon "search" :height 1.2 :v-adjust -0.1)
-   ;;     "\tFind files  " nil
+   ;;     "Find files" nil
    ;;     (lambda (&rest _) (find-file)) nil "" "\tSPC f f"))
      
    ;;   ((,(all-the-icons-octicon "file-binary" :height 1.2 :v-adjust -0.1)
-   ;;     "\tRecent files " nil
+   ;;     "Recent \t" nil
    ;;     (lambda (&rest _) (consult-recent-files)) nil "" "\tSPC f r"))
      
    ;;   ((,(all-the-icons-octicon "package" :height 1.2 :v-adjust -0.1)
-   ;;     "\tSelect project" nil
-   ;;     (lambda (&rest _) (projectile-switch-project)) nil " " "\tSPC p s"))
+   ;;     "Open project" nil
+   ;;     (lambda (&rest _) (projectile-switch-project)) nil "" "\tSPC p s"))
 
    ;;   ((,(all-the-icons-octicon "file-text" :height 1.2 :v-adjust -0.1)
-   ;;     "\tScratch buffer" nil
-   ;;     (lambda (&rest _) (switch-to-buffer "*scratch*")) nil " " "\tSPC b s"))
+   ;;     "Scratch\t" nil
+   ;;     (lambda (&rest _) (switch-to-buffer "*scratch*")) nil "" "\tSPC b s"))
 
    ;;   ((,(all-the-icons-octicon "bug" :height 1.2 :v-adjust -0.1)
-   ;;     "\tElfeed        " nil
-   ;;     (lambda (&rest _) (elfeed)) nil " " "\tSPC a a"))
+   ;;     "Elfeed\t" nil
+   ;;     (lambda (&rest _) (elfeed)) nil "" "\tSPC a a"))
 
    ;;   ((,(all-the-icons-octicon "dashboard" :height 1.2 :v-adjust -0.1)
-   ;;     "\tGoogle        " nil
-   ;;     (lambda (&rest _) (google-this)) nil " " "\tSPC g g"))
+   ;;     "Google\t" nil
+   ;;     (lambda (&rest _) (google-this)) nil "" "\tSPC g g"))
 
    ;;   ((,(all-the-icons-octicon "calendar" :height 1.2 :v-adjust -0.1)
-   ;;     "\tCalendar      " nil
-   ;;     (lambda (&rest _) (calendar)) nil " " "\tSPC c c"))
+   ;;     "Calendar\t" nil
+   ;;     (lambda (&rest _) (calendar)) nil "" "\tSPC c c"))
    ;;   )
    ))
 
@@ -467,7 +472,7 @@
 (use-package all-the-icons
   :after doom-modeline
   :custom
-  (setq all-the-icons-scale-factor 0.9))
+  (setq all-the-icons-scale-factor 1.1))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -479,21 +484,45 @@
         '(
           ("DONE\\b" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
 
-          ("\\/\\/\\W?TODO\\b:" . ((lambda (tag) (svg-tag-make "TODO" :face 'font-lock-constant-face :inverse t :margin 0 :crop-right t))))
-          ("TODO\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-constant-face :crop-left t))))
+          ("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (remove-leading-keyword tag)
+                                                                       :face (color-from-tag tag)
+                                                                       :crop-left t))))
+          ("\\(\\/\\/\\W?\\w+\\b:\\)" . ((lambda (tag)
+                                           (svg-tag-make (replace-comments-in-string tag)
+                                                         :face (color-from-tag tag)
+                                                         :inverse t
+                                                         :margin 0
+                                                         :crop-right t))))
 
-          ("\\/\\/\\W?MARK\\b:\\|MARK\\b:" . ((lambda (tag) (svg-tag-make "MARK" :face 'font-lock-doc-face :inverse t :margin 0 :crop-right t))))
-          ("MARK\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-doc-face :crop-left t))))
+          ("\\/\\/\\W?MARK\\b:" . ((lambda (tag) (svg-tag-make "MARK:" :face 'font-lock-doc-face :inverse nil :margin 0 :crop-right t))))
+          ("MARK\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-doc-face :inverse t :crop-left t))))
 
           ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-level-1 :inverse t :margin 0 :crop-right t))))
           ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-1 :crop-left t))))
 
           ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "swiftlint:enabled" :face 'org-level-2 :inverse t :margin 0 :crop-right t))))
           ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-2 :crop-left t))))
-
-          ("\\/\\/\\W?FIXME\\b:\\|FIXME\\b:" . ((lambda (tag) (svg-tag-make "FIXME" :face 'org-todo :inverse t :margin 0 :crop-right t))))
-          ("FIXME\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-todo :crop-left t))))
           )))
+
+(defun remove-leading-keyword (tag)
+  "Remove leading keyword and C style -comment."
+  (replace-regexp-in-string "\\/\\/\\W?\\w+\\b:" "" tag))
+
+(defun replace-comments-in-string (text)
+  "Remove comments from string."
+  (string-trim-left (replace-regexp-in-string "\\/" "" text)))
+
+(defun color-from-tag (tag)
+  (require 'periphery)
+  (cond
+   ((string-match-p "TODO" tag) 'periphery-todo-face-full)
+   ((string-match-p "NOTE" tag) 'periphery-note-face-full)
+   ((string-match-p "HACK" tag) 'periphery-hack-face-full)
+   ((string-match-p "PERF" tag) 'periphery-performance-face-full)
+   ((string-match-p "FIXME" tag) 'periphery-fix-face-full)
+   ((string-match-p "FIX" tag) 'periphery-fix-face-full)
+   (t 'warning)
+   ))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
@@ -661,7 +690,6 @@
   :commands (ace-jump-mode) 
   :bind ("M-g" . ace-jump-mode))
 
-;; ------------------ FILES -----------------------
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
   :bind ("M-J" . treemacs-find-file)
@@ -669,19 +697,30 @@
   :config
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
+        treemacs-directory-name-transformer #'identity
+        treemacs-file-name-transformer #'identity
+        treemacs-file-follow-delay 0.2
         treemacs-display-current-project-exclusively t
         treemacs-filewatch-mode t
         treemacs-follow-mode t
+        treemacs-hide-dot-git-directory t
         treemacs-git-integration t
         treemacs-git-mode 'extended
         treemacs-indentation 1
         treemacs-is-never-other-window nil
         treemacs-silent-refresh	t
-        treemacs-sorting 'alphabetic-case-insensitive-desc
-        treemacs-width 40))
+        treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
+        treemacs-width 35)
+    
+  )
 
 (use-package treemacs-magit
   :after treemacs magit)
+(use-package treemacs-evil
+  :after (treemacs evil))
+
+(use-package treemacs-projectile
+  :after (treemacs projectile))
 
 (use-package treemacs-all-the-icons
   :after (treemacs all-the-icons)
@@ -826,7 +865,8 @@
 (use-package magit
   :commands (magit-status magit-ediff-show-working-tree)
   :bind ("C-c C-d" . magit-ediff-show-working-tree)
-  :custom (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package magit-todos
   :commands (magit-todos-mode)
@@ -975,8 +1015,19 @@
                   :command `("afplay" ,file))))
 (advice-add 'play-sound :around 'mk/play-sound)
 
+(defun mk/org-timer-update-mode-line ()
+  "Update the timer time in the mode line."
+  (if org-timer-pause-time
+      nil
+    (setq org-timer-mode-line-string
+	  (concat "🍅 " (substring (org-timer-value-string) 0 -1) ""))
+    (force-mode-line-update)))
+
 (with-eval-after-load 'org
   (mk/org-mode-setup)
+
+  (advice-add 'org-timer-update-mode-line :override #'mk/org-timer-update-mode-line)
+  
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -993,7 +1044,6 @@
   (set-face-attribute 'line-number nil              :inherit 'fixed-pitch)
   (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
 
-
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp t)
                                  (swift t)
@@ -1001,12 +1051,8 @@
 
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("sw" . "src swift"))
-  (add-to-list 'org-structure-template-alist '("swui" . "src swiftui"))
+  (add-to-list 'org-structure-template-alist '("swiftui" . "src swiftui :view CustomView"))
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
-  
-  (add-hook 'org-babel-after-execute-hook (lambda ()
-                                            (when org-inline-image-overlays
-                                              (org-redisplay-inline-images))))
   (add-to-list 'org-modules 'org-tempo t))
 
 (use-package ob-swift
@@ -1015,6 +1061,9 @@
 (use-package ob-swiftui
   :defer t
   :config
+  (add-hook 'org-babel-after-execute-hook (lambda ()
+                                            (when org-inline-image-overlays
+                                              (org-redisplay-inline-images))))
   (add-to-list 'org-babel-tangle-lang-exts
                '("swiftui" . "swift"))
   (add-to-list 'org-src-lang-modes
@@ -1087,8 +1136,10 @@
 
 (use-package swift-mode
   :config
-  (setq swift-mode:basic-offset 4
-        swift-mode:parenthesized-expression-offset 4)
+  ;; (setq swift-mode:basic-offset 4
+  ;;       swift-mode:parenthesized-expression-offset 4
+  ;; 	swift-mode:multiline-statement-offset 4
+  ;; 	)
   (setq-local indent-tabs-mode t))
 
 (use-package swift-additions
@@ -1143,7 +1194,7 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   
-  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-ag)
+  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
   (setq tree-sitter-hl-use-font-lock-keywords t)
 
   (use-package flycheck-swift3
@@ -1178,7 +1229,9 @@
                                      )))
   (org-indent-mode 1)
   (variable-pitch-mode 1)
-  (visual-line-mode t))
+  (auto-fill-mode 0)
+  (visual-line-mode t)
+  (setq evil-auto-indent nil))
 
 ;;; esc quits
 (defun mk/browser-split-window (url &optional new-window)
@@ -1280,3 +1333,4 @@
 (provide 'init)
 
 ;;; init.el ends here
+(put 'narrow-to-region 'disabled nil)
