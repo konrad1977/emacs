@@ -531,6 +531,43 @@
            :attributes 'success))
       (switch-to-buffer-other-window periphery-buffer-name))))
 
+(defun periphery--remove-leading-keyword (tag)
+  "Remove leading keyword and C style -comment from (as TAG)."
+  (string-trim-left
+  (replace-regexp-in-string "\\/\\/\\W?\\w+\\b:" "" tag)))
+
+(defun periphery--remove-comments-in-string (text)
+  "Remove comments from (as TEXT)."
+  (replace-regexp-in-string ":" "" (replace-regexp-in-string "\\/" "" text)))
+
+(defun svg-color-from-tag (tag)
+  "Get color from (as TAG)."
+  (cond
+   ((string-match-p "TODO" tag) 'periphery-todo-face-full)
+   ((string-match-p "NOTE" tag) 'periphery-note-face-full)
+   ((string-match-p "HACK" tag) 'periphery-hack-face-full)
+   ((string-match-p "PERF" tag) 'periphery-performance-face-full)
+   ((string-match-p "FIXME" tag) 'periphery-fix-face-full)
+   ((string-match-p "FIX" tag) 'periphery-fix-face-full)
+   ((string-match-p "MARK" tag) 'periphery-note-face-full)
+   (t 'warning)))
+
+(defun periphery-svg-tags ()
+  "Get svg tags."
+  '(
+    ("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
+                                                                 :face (svg-color-from-tag tag)
+                                                                 :inverse t
+                                                                 :crop-left t))))
+    
+    ("\\(\\/\\/\\W?\\w+\\b:\\)" . ((lambda (tag)
+                                     (svg-tag-make (periphery--remove-comments-in-string tag)
+                                                   :face (svg-color-from-tag tag)
+                                                   :inverse nil
+                                                   :margin 0
+                                                   :crop-right nil))))
+    ))
+
 (provide 'periphery)
 
 ;;; periphery.el ends here

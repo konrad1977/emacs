@@ -478,51 +478,21 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook ((org-mode . svg-tag-mode))
+  :hook ((org-mode . svg-tag-mode)
+         (swift-mode . svg-tag-mode))
   :config
-  (setq svg-tag-tags
-        '(
-          ("DONE\\b" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
+  (setq svg-tag-tags (periphery-svg-tags)))
 
-          ("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (remove-leading-keyword tag)
-                                                                       :face (color-from-tag tag)
-                                                                       :crop-left t))))
-          ("\\(\\/\\/\\W?\\w+\\b:\\)" . ((lambda (tag)
-                                           (svg-tag-make (replace-comments-in-string tag)
-                                                         :face (color-from-tag tag)
-                                                         :inverse t
-                                                         :margin 0
-                                                         :crop-right t))))
+        ;; '(
+        ;;   ("DONE\\b" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
 
-          ("\\/\\/\\W?MARK\\b:" . ((lambda (tag) (svg-tag-make "MARK:" :face 'font-lock-doc-face :inverse nil :margin 0 :crop-right t))))
-          ("MARK\\b:\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'font-lock-doc-face :inverse t :crop-left t))))
+        ;;   ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-level-1 :inverse t :margin 0 :crop-right t))))
+        ;;   ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-1 :crop-left t))))
 
-          ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-level-1 :inverse t :margin 0 :crop-right t))))
-          ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-1 :crop-left t))))
+        ;;   ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "swiftlint:enabled" :face 'org-level-2 :inverse t :margin 0 :crop-right t))))
+        ;;   ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-2 :crop-left t))))
+        ;;   )))
 
-          ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "swiftlint:enabled" :face 'org-level-2 :inverse t :margin 0 :crop-right t))))
-          ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-2 :crop-left t))))
-          )))
-
-(defun remove-leading-keyword (tag)
-  "Remove leading keyword and C style -comment."
-  (replace-regexp-in-string "\\/\\/\\W?\\w+\\b:" "" tag))
-
-(defun replace-comments-in-string (text)
-  "Remove comments from string."
-  (string-trim-left (replace-regexp-in-string "\\/" "" text)))
-
-(defun color-from-tag (tag)
-  (require 'periphery)
-  (cond
-   ((string-match-p "TODO" tag) 'periphery-todo-face-full)
-   ((string-match-p "NOTE" tag) 'periphery-note-face-full)
-   ((string-match-p "HACK" tag) 'periphery-hack-face-full)
-   ((string-match-p "PERF" tag) 'periphery-performance-face-full)
-   ((string-match-p "FIXME" tag) 'periphery-fix-face-full)
-   ((string-match-p "FIX" tag) 'periphery-fix-face-full)
-   (t 'warning)
-   ))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
