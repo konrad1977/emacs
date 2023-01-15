@@ -11,11 +11,7 @@
 
 (defun send-loco-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
-  (periphery-run-parser text)
-  (periphery-message-with-count
-   :tag "[Done]"
-   :text "Result"
-   :attributes 'success))
+  (periphery-run-parser text))
 
 (defun periphery-run-loco()
   "Run LOCO linter."

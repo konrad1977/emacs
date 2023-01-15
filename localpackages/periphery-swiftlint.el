@@ -18,11 +18,7 @@
 
 (defun periphery--swiftlint:analyze-result (result)
   "Analyze RESULT."
-  (periphery-run-parser result)
-  (periphery-message-with-count
-   :tag "[Done]"
-   :text "Result"
-   :attributes 'success))
+  (periphery-run-parser result))
 
 (defun periphery-run-swiftlint ()
   "Lint the whole project not just current file."

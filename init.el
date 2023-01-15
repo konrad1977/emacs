@@ -13,6 +13,7 @@
 (global-hl-line-mode 1)           ;; Highlight current line
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
 (blink-cursor-mode 1)               ;; Blink cursor
+(pixel-scroll-precision-mode 1)
 
 ;; Setup fonts
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 165)
@@ -60,14 +61,14 @@
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
 (setq-default display-line-numbers-width	    4       ;; Set so we can display thousands of lines
-            c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
-            tab-width                     4            ;: Use four tabs
-            line-spacing                  0.0         ;; Increase linespacing a bit
-	        truncate-lines		  t
-            indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-            completion-ignore-case        t            ;; Ignore case when completing
-            indent-line-function          'insert-tab  ;; Use function to insert tabs
-            history-length                100)
+              c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
+              tab-width                     4            ;: Use four tabs
+              line-spacing                  0.0         ;; Increase linespacing a bit
+              truncate-lines		  t
+              indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
+              completion-ignore-case        t            ;; Ignore case when completing
+              indent-line-function          'insert-tab  ;; Use function to insert tabs
+              history-length                100)
 
 (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
@@ -1185,7 +1186,7 @@
                                        #'cape-dabbrev
                                        #'cape-line
                                        #'cape-file
-                                       (cape-company-to-capf #'company-yasnippet)
+                                       ;; (cape-company-to-capf #'company-yasnippet)
                                        ))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
@@ -1195,7 +1196,8 @@
   (setq-local completion-at-point-functions
               (list (cape-super-capf #'cape-ispell
                                      #'cape-file
-                                     (cape-company-to-capf #'company-yasnippet)
+                                     #'cape-dabbrev
+                                     ;; (cape-company-to-capf #'company-yasnippet)
                                      )))
   (org-indent-mode 1)
   (variable-pitch-mode 1)

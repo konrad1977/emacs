@@ -55,7 +55,7 @@
   :group 'periphery)
 
 (defface periphery-fix-face-full
-  '((t (:foreground "#28333E" :bold t :background "#89b4fa" :distant-foreground "#89b4fa")))
+  '((t (:foreground "#1B2431" :bold t :background "#89b4fa" :distant-foreground "#89b4fa")))
   "FIX with background."
   :group 'periphery)
 
@@ -65,7 +65,7 @@
   :group 'periphery)
 
 (defface periphery-note-face-full
-  '((t (:foreground "#1E2B2E" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
+  '((t (:foreground "#a6e3a1" :bold t :background "#1E2B2E" :distant-foreground "#a6e3a1")))
   "Info face."
   :group 'periphery)
 
@@ -85,12 +85,12 @@
   :group 'periphery)
 
 (defface periphery-performance-face-full
-  '((t (:background "#cba6f7" :bold t :foreground "#2B1E2E" :distant-foreground "#cba6f7" )))
+  '((t (:foreground "#2B1E2E" :bold t :background "#cba6f7" :distant-foreground "#cba6f7" )))
   "Performance face."
   :group 'periphery)
 
 (defface periphery-hack-face-full
-  '((t (:foreground "#1E2C2E" :bold t :background "#f38ba8" :distant-foreground  "#f38ba8")))
+  '((t (:foreground "#28181C" :bold t :background "#f38ba8" :distant-foreground  "#f38ba8")))
   "Performance face."
   :group 'periphery)
 
@@ -100,7 +100,12 @@
   :group 'periphery)
 
 (defface periphery-todo-face-full
-  '((t (:foreground "#1E2C2E" :bold t :background "#74c7ec" :distant-foreground  "#74c7ec")))
+  '((t (:foreground "#182A32" :bold t :background "#74c7ec" :distant-foreground  "#74c7ec")))
+  "Performance face."
+  :group 'periphery)
+
+(defface periphery-mark-face-full
+  '((t (:foreground "#252538" :bold t :background "#7373B5" :distant-foreground  "#575787")))
   "Performance face."
   :group 'periphery)
 
@@ -432,13 +437,13 @@
             :regex periphery-regex-mark-quotes)))))
 
 (cl-defun periphery-message-with-count (&key tag &key text &key count &key attributes)
-  "Print a TAG and TEXT with ATTRIBUTES with Count"
+  "Print a TAG and TEXT with ATTRIBUTES with Count."
   (interactive)
   (setq-local inhibit-message nil)
   (message
     "%s %s occurences found %s"
     (propertize tag 'face attributes)
-    (propertize count 'face 'periphery-warning-face)
+    (propertize count 'face 'periphery-warning-face-full)
     (propertize text 'face 'periphery-identifier-face))
   (setq-local inhibit-message t))
 
@@ -549,8 +554,8 @@
    ((string-match-p "PERF" tag) 'periphery-performance-face-full)
    ((string-match-p "FIXME" tag) 'periphery-fix-face-full)
    ((string-match-p "FIX" tag) 'periphery-fix-face-full)
-   ((string-match-p "MARK" tag) 'periphery-note-face-full)
-   (t 'warning)))
+   ((string-match-p "MARK" tag) 'periphery-mark-face-full)
+   (t 'periphery-hack-face-full)))
 
 (defun periphery-svg-tags ()
   "Get svg tags."
@@ -566,6 +571,12 @@
                                                    :inverse nil
                                                    :margin 0
                                                    :crop-right nil))))
+
+    ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE" :face 'periphery-hack-face-full :margin 0))))
+    ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-hack-face-full :crop-left t :inverse t))))
+
+    ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE" :face 'periphery-note-face-full :margin 0))))
+    ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-note-face-full :crop-left t :inverse t))))
     ))
 
 (provide 'periphery)
