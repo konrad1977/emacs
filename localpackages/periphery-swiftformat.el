@@ -10,12 +10,13 @@
 (defvar swiftformat-command "swiftformat")
 (defvar swift-version "5.7.2")
 (defvar disabled-rules-list '(
-                              "wrapArguments"
                               "blankLinesAroundMark"
                               "blankLinesAtStartOfScope"
+                              "trailingCommas"
                               "unusedArguments"
-                              "trailingCommas")
-  )
+                              "wrapArguments"
+                              "wrapMultilineStatementBraces"
+                              ))
 
 (defun send-swiftformat-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
@@ -68,7 +69,7 @@
         (let ((default-directory (vc-root-dir)))
           (async-shell-command-to-string
            :process-name "swiftformat"
-           :command (concat swiftformat-command " . -lint --swiftversion " swift-version (periphery--create-disable-rules-list disabled-rules-list))
+           :command (concat swiftformat-command " . --lint " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
            :callback #'send-swiftformat-result-to-periphery))
         (message-with-color
          :tag "[Linting|swiftformat]"

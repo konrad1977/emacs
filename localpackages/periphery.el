@@ -25,7 +25,7 @@
   :group 'periphery)
 
 (defface periphery-warning-face-full
-  '((t (:foreground "#f9e2af" :background "#3E3A28" :bold t :distant-foreground "#f9e2af" )))
+  '((t (:foreground "#f9e2af" :background "#2E2A1E" :bold t :distant-foreground "#f9e2af" )))
   "Warning face."
   :group 'periphery)
 
@@ -115,7 +115,7 @@
 
 (defconst default-length 9)
 
-(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
+(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=a-zA-Z\(\)\s\'\"\.\&\|]*\\)"
   "Parse vimgrep like strings (compilation).")
 
 (defconst periphery-parse-line-regex "\\(\/[^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
@@ -124,7 +124,9 @@
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
 
-(defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.+\\)$"
+;; (.[\w\(\)\s\'\"]*)
+
+(defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.*\\)$"
   "When we fail because of other errors than compilation errors.")
 
 (defconst mark-inside-parenteses "\\(\(.+?\)\\)"
@@ -315,7 +317,10 @@
       )))
   (if periphery-errorList
       (periphery--listing-command periphery-errorList)
-    (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))))
+    (progn
+      (periphery-kill-buffer)
+      (setq periphery-errorList '())
+      (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success)))))
 
 (defun periphery-mode-all ()
   "Show all."
