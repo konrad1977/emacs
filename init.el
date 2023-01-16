@@ -61,8 +61,8 @@
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
 (setq-default display-line-numbers-width	4       ;; Set so we can display thousands of lines
-              c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
-              tab-width                     4            ;: Use four tabs
+              c-basic-offset                2            ;; Set tab indent for c/c++ to 4 tabs
+              tab-width                     2            ;: Use four tabs
               line-spacing                  0.05         ;; Increase linespacing a bit
               truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
@@ -1097,24 +1097,15 @@
   :mode "\\.strings\\'"
   :ensure nil)
 
-;; (use-package smartparens
-;;   :defer t
-;;   :config
-;;   (sp-local-pair 'swift-mode "\\(" nil :actions nil)
-;;   (sp-local-pair 'swift-mode "\\(" ")")
-;;   (sp-local-pair 'swift-mode "<" ">"))
-
 (use-package yasnippet
   :init
   (yas-global-mode))
 
 (use-package swift-mode
   :config
-  ;; (setq swift-mode:basic-offset 4
-  ;;       swift-mode:parenthesized-expression-offset 4
-  ;; 	swift-mode:multiline-statement-offset 4
-  ;; 	)
-  (setq-local indent-tabs-mode t))
+  (setq swift-mode:basic-offset 2
+        swift-mode:parenthesized-expression-offset 2
+	    swift-mode:multiline-statement-offset 2))
 
 (use-package swift-additions
   :ensure nil
@@ -1157,8 +1148,9 @@
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c C-o" . #'periphery-run-swiftformat-buffer)
-  ("M-o" . #'periphery-run-swiftformat))
+  ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
+  ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
+  ("C-c C-p" . #'periphery-run-swiftformat-for-project))
 
 (use-package periphery-loco
   :ensure nil
