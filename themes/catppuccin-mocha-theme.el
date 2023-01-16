@@ -84,6 +84,10 @@
   (window-border                        (:foreground peach))
   (window-divider                       (:foreground surface0))
 
+  (whitespace-newline                   (:foreground surface2))
+  (whitespace-space                     (:foreground surface2))
+  (whitespace-trailing                  (:foreground mantle :background red))
+
   ;; ;; Font lock
   (font-lock-keyword-face               (:foreground pink :weight 'semi-bold))
   (font-lock-type-face                  (:foreground mauve))

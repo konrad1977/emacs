@@ -7,7 +7,7 @@
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
-(set-fringe-mode 1)               ;; Give us some space.
+(set-fringe-mode 0)               ;; Give us some space.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
@@ -16,9 +16,9 @@
 (pixel-scroll-precision-mode 1)
 
 ;; Setup fonts
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 165)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono")
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 165)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160)
 
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -60,11 +60,11 @@
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-(setq-default display-line-numbers-width	    4       ;; Set so we can display thousands of lines
+(setq-default display-line-numbers-width	4       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0.0         ;; Increase linespacing a bit
-              truncate-lines		  t
+              line-spacing                  0.05         ;; Increase linespacing a bit
+              truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
@@ -567,6 +567,7 @@
 (use-package eglot
   :hook (swift-mode . eglot-ensure)
   :commands (eglot eglot-ensure)
+  :ensure nil
   :config
   (setq eglot-stay-out-of '(corfu company)
         eglot-autoshutdown t
@@ -574,8 +575,7 @@
         eglot-autoreconnect t
         eglot-send-changes-idle-time 0.5
         eglot-ignored-server-capabilities '(:hoverProvider))
-  (add-to-list 'eglot-server-programs
-               '(swift-mode . my-swift-mode:eglot-server-contact)))
+        (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package kind-icon
   :after corfu
@@ -1059,8 +1059,11 @@
                        ("http://nullprogram.com/feed/")
                        ("https://planet.emacslife.com/atom.xml")
                        ("https://www.reddit.com/r/emacs.rss")
+                       ("https://www.reddit.com/r/swift.rss")
+                       ("https://www.reddit.com/r/swiftui.rss")
                        ("https://xenodium.com/rss")
-                       ("https://swiftbysundell.com/rss"))
+                       ("https://swiftbysundell.com/rss")
+                       )
         elfeed-search-filter "@7-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
@@ -1150,6 +1153,13 @@
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
 
+(use-package periphery-swiftformat
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("C-c C-o" . #'periphery-run-swiftformat-buffer)
+  ("M-o" . #'periphery-run-swiftformat))
+
 (use-package periphery-loco
   :ensure nil
   :after swift-mode
@@ -1226,7 +1236,7 @@
 
   (hs-minor-mode)       ; Add support for folding code blocks
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
-  (global-hl-todo-mode t)
+  ;; (global-hl-todo-mode t)
 
   (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
         indicate-empty-lines t            ;; Show empty lines

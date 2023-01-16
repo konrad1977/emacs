@@ -85,6 +85,8 @@
   (warning                              (:foreground yellow))
   (window-border                        (:foreground peach))
   (window-divider                       (:foreground surface0))
+  
+  (whitespace-newline                   (:foreground surface0 :background crust))
 
   ;; ;; Font lock
   (font-lock-keyword-face               (:foreground pink :weight 'semi-bold))

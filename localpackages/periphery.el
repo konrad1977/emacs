@@ -115,10 +115,10 @@
 
 (defconst default-length 9)
 
-(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
+(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
   "Parse vimgrep like strings (compilation).")
 
-(defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
+(defconst periphery-parse-line-regex "\\(\/[^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
   "Parse linenumber and columns.")
 
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
@@ -559,8 +559,7 @@
 
 (defun periphery-svg-tags ()
   "Get svg tags."
-  '(
-    ("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
+  '(("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
                                                                  :face (svg-color-from-tag tag)
                                                                  :inverse t
                                                                  :crop-left t))))
