@@ -115,16 +115,14 @@
 
 (defconst default-length 9)
 
-(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=a-zA-Z\(\)\s\'\"\.\&\|]*\\)"
+(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:,a-zA-Z\(\)\s\'\"\.\&\|]*\\)"
   "Parse vimgrep like strings (compilation).")
 
-(defconst periphery-parse-line-regex "\\(\/[^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
-  "Parse linenumber and columns.")
+(defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
+   "Parse linenumber and columns.")
 
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
-
-;; (.[\w\(\)\s\'\"]*)
 
 (defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.*\\)$"
   "When we fail because of other errors than compilation errors.")
