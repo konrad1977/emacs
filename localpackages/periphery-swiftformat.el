@@ -20,7 +20,12 @@
 
 (defun send-swiftformat-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
-  (periphery-run-parser text))
+  (periphery-run-parser text (lambda ()
+                               (message-with-color
+                                :tag "[Success]"
+                                :text "All code looks good now."
+                                :attributes 'success)
+                               )))
 
 (defun periphery--create-disable-rules-list (list)
   "Create disable block for swift format (as LIST)."
@@ -55,11 +60,11 @@
             (message-with-color
              :tag "[Linting|swiftformat]"
              :text (file-name-nondirectory file)
-             :attributes 'success)))
-  (message-with-color
-   :tag "[Failed]"
-   :text (format "Install %s to use this command." swiftformat-command)
-   :attributes 'warning))
+             :attributes 'success))
+    (message-with-color
+     :tag "[Failed]"
+     :text (format "Install %s to use this command." swiftformat-command)
+     :attributes 'warning)))
 
 (defun periphery-run-swiftformat-for-project()
   "Run LOCO linter."

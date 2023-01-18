@@ -115,7 +115,7 @@
 
 (defconst default-length 9)
 
-(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:,a-zA-Z\(\)\s\'\"\.\&\|]*\\)"
+(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:+-_,a-zA-Z0-9\(\)\?\\\s\'\"\.\&\|]*\\)"
   "Parse vimgrep like strings (compilation).")
 
 (defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
@@ -302,8 +302,8 @@
      (t 'periphery-info-face))))
 
 ;;;###autoload
-(defun periphery-run-parser (input)
-  "Run parser (as INPUT)."
+(cl-defun periphery-run-parser (input &optional succesCallback)
+  "Run parser (as INPUT, optional SUCCESSCALLBACK)."
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
     (let* ((entry (periphery--parse-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
@@ -318,7 +318,9 @@
     (progn
       (periphery-kill-buffer)
       (setq periphery-errorList '())
-      (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success)))))
+      (funcall succesCallback)
+      ;; (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))
+      )))
 
 (defun periphery-mode-all ()
   "Show all."

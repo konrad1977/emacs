@@ -484,17 +484,6 @@
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
 
-        ;; '(
-        ;;   ("DONE\\b" . ((lambda (tag) (svg-tag-make "DONE" :face 'org-done :margin 0))))
-
-        ;;   ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "swiftlint:disable" :face 'org-level-1 :inverse t :margin 0 :crop-right t))))
-        ;;   ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-1 :crop-left t))))
-
-        ;;   ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "swiftlint:enabled" :face 'org-level-2 :inverse t :margin 0 :crop-right t))))
-        ;;   ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'org-level-2 :crop-left t))))
-        ;;   )))
-
-
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
   ;; :bind ("M-s" . dimmer-mode)
@@ -852,17 +841,18 @@
 (use-package blamer
   :commands (blamer-mode)
   :config
-  (setq blamer-view 'overlay
-        blamer-type 'posframe-popup
+  (setq blamer-view 'overlay-right
+        blamer-type 'visual
         blamer-max-commit-message-length 70
         blamer-force-truncate-long-line nil
-        blamer-author-formatter " ✎ [%s] - "
-        blamer-commit-formatter "● %s ● ")
+        blamer-author-formatter " ✎ %s "
+        blamer-commit-formatter "● \'%s\' ● ")
   :custom
   (blamer-idle-time 1.0)
   :custom-face
   (blamer-face ((t :foreground "#E46876"
-                   :height 140
+                   :height 130
+                   :bold t
                    :italic t))))
 
 (use-package git-gutter
@@ -1070,7 +1060,7 @@
 
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
-  :custom (highlight-indent-guides-method #'bitmap))
+  :config (highlight-indent-guides-method #'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
@@ -1141,6 +1131,7 @@
   :after prog-mode
   :bind
   ("C-c C-f" . #'periphery-search-dwiw-rg)
+  ("M-f" . #'periphery-search-dwiw-rg)
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
 

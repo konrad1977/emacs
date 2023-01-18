@@ -274,14 +274,14 @@
   (markdown-hr-face                     (:background nil :foreground surface0))
 
   ;; Flycheck
-  (flycheck-posframe-background-face	(:background crust))
-  (flycheck-posframe-face				(:background crust))
-  (flycheck-posframe-info-face  		(:background crust :inherit 'info))
-  (flycheck-posframe-warning-face  		(:background crust :inherit 'warning))
-  (flycheck-posframe-error-face  		(:background crust :inherit 'error))
-  (flycheck-fringe-warning				(:inherit 'warning))
-  (flycheck-fringe-error				(:inherit 'error))
-  (flycheck-fringe-info					(:inherit 'info ))
+  (flycheck-posframe-background-face    (:background crust))
+  (flycheck-posframe-face               (:background crust))
+  (flycheck-posframe-info-face          (:inherit 'info :background "#1B2431" :height 140 :italic t))
+  (flycheck-posframe-warning-face       (:inherit 'warning :background "#2E2A1E" :height 140 :italic t))
+  (flycheck-posframe-error-face         (:inherit 'error :background "#2D1E28" :height 140 :italic t))
+  (flycheck-fringe-warning              (:inherit 'warning :height 140 :italic t))
+  (flycheck-fringe-error                (:inherit 'error))
+  (flycheck-fringe-info                 (:inherit 'info ))
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:inherit 'info :bold t))
@@ -290,12 +290,12 @@
   (flycheck-inline-warning              (:foreground "black" :background yellow :height 128))
 
   ;; indent dots
-  (highlight-indent-guides-character-face       (:foreground surface0))
-  (highlight-indent-guides-stack-character-face (:foreground surface0))
-  (highlight-indent-guides-stack-odd-face       (:foreground surface0))
-  (highlight-indent-guides-stack-even-face      (:foreground surface1))
-  (highlight-indent-guides-stack-character-face (:foreground surface0))
-  (highlight-indent-guides-even-face            (:foreground surface0))
+  (highlight-indent-guides-character-face       (:foreground surface1))
+  (highlight-indent-guides-stack-character-face (:foreground surface1))
+  (highlight-indent-guides-stack-odd-face       (:foreground surface2))
+  (highlight-indent-guides-stack-even-face      (:foreground surface2))
+  (highlight-indent-guides-stack-character-face (:foreground surface1))
+  (highlight-indent-guides-even-face            (:foreground surface2))
   (highlight-indent-guides-odd-face             (:foreground surface1))
 
    ;;;; ivy
