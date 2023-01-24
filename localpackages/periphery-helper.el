@@ -50,7 +50,6 @@
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
-  (message command)
   (let ((output-buffer (generate-new-buffer process-name))
         (callback-fun callback))
     (set-process-sentinel

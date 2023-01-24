@@ -5,32 +5,26 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(display-battery-mode t)		  ;; Show battery.
-(display-time-mode t)			  ;; Show time.
-(set-fringe-mode 0)               ;; Give us some space.
-(fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
-(global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
-(global-hl-line-mode 1)           ;; Highlight current line
-(save-place-mode 1)               ;; when buffer is closed, save the cursor position
-(blink-cursor-mode 1)               ;; Blink cursor
-(pixel-scroll-precision-mode 1)
-
-;; Setup fonts
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160)
 
-(prefer-coding-system 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
+(display-battery-mode t)		  ;; Show battery.
+(display-time-mode t)			  ;; Show time.
+;; ;(set-fringe-mode 0)               ;; Give us some space.
+(fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
+(global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
+(global-hl-line-mode 1)           ;; Highlight current line
+(save-place-mode 1)               ;; when buffer is closed, save the cursor position
+;; (blink-cursor-mode 1)               ;; Blink cursor
+(pixel-scroll-precision-mode 1)
+
+;; ;; Setup fonts
 
 (setq ad-redefinition-action            'accept
-      auto-mode-case-fold               nil
       auto-revert-check-vc-info         t
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
-      bidi-display-reordering           nil
       blink-cursor-interval             0.6       ;; Little slower cursor blinking . default is 0.5
       cursor-in-non-selected-windows    nil
       byte-compile-warnings             '(ck-functions)
@@ -48,7 +42,7 @@
       line-number-mode                  nil
       load-prefer-newer                 t
       ;; read-process-output-max           (* 8 1024 1024)
-      scroll-margin                     4   ;; scroll N to screen edge
+      scroll-margin                     1   ;; scroll N to screen edge
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
@@ -60,10 +54,10 @@
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-(setq-default display-line-numbers-width	4       ;; Set so we can display thousands of lines
-              c-basic-offset                2            ;; Set tab indent for c/c++ to 4 tabs
-              tab-width                     2            ;: Use four tabs
-              line-spacing                  0.05         ;; Increase linespacing a bit
+(setq-default display-line-numbers-width    4       ;; Set so we can display thousands of lines
+              c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
+              tab-width                     4            ;: Use four tabs
+              line-spacing                  0.1         ;; Increase linespacing a bit
               truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
@@ -80,7 +74,7 @@
         mac-command-modifier 'meta
         mac-option-modifier 'none
         dired-use-ls-dired nil
-        ns-use-native-fullscreen nil
+        ns-use-native-fullscreen t
         browse-url-browser-function #'mk/browser-split-window)
   
   (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
@@ -154,7 +148,7 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-   (load-theme 'catppuccin-mocha t)
+  (load-theme 'catppuccin-mocha t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'doom-old-hope t)
@@ -164,7 +158,7 @@
   :hook (after-init . vertico-mode)
   :config
   (setq vertico-resize nil
-        vertico-count 9
+        vertico-count 15
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t))
@@ -269,22 +263,26 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :config
-  (setq doom-modeline-buffer-encoding nil
+  (setq doom-modeline-buffer-encoding t
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
         doom-modeline-project-detection 'projectile
         doom-modeline-icon t
+        doom-modeline-modal t
         doom-modeline-modal-icon nil
         doom-modeline-lsp t
-        doom-modeline-hud nil
-        doom-modeline-buffer-state-icon nil
+        doom-modeline-workspace-name t
+        doom-modeline-persp-name t
+        doom-modeline-bar-width 10
+        doom-modeline-hud t
+        doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
   (custom-set-faces
-   '(mode-line ((t (:family "Iosevka Aile" :height 0.95))))
-   '(mode-line-active ((t (:family "Iosevka Aile" :height 0.95)))) ; For 29+
-   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.90))))))
+   '(mode-line ((t (:family "Iosevka Aile" :height 0.99))))
+   '(mode-line-active ((t (:family "Iosevka Aile" :height 0.99)))) ; For 29+
+   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.99))))))
 
 (use-package dashboard
   :config
@@ -423,10 +421,6 @@
   :init
   (evil-commentary-mode 1))
 
-;; (use-package evil-lion
-;;   :after evil
-;;   :hook (prog-mode . evil-lion-mode))
-
 (use-package evil-numbers
   :after evil
   :config
@@ -473,28 +467,47 @@
 (use-package all-the-icons
   :after doom-modeline
   :custom
-  (setq all-the-icons-scale-factor 1.1))
+  (setq all-the-icons-scale-factor 1.5))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook ((org-mode . svg-tag-mode)
-         (swift-mode . svg-tag-mode))
+  :hook (prog-mode . svg-tag-mode)
   :config
+  (require 'periphery)
   (setq svg-tag-tags (periphery-svg-tags)))
+
+(defun advise-dimmer-config-change-handler ()
+  "Advise to only force process if no predicate is truthy."
+  (let ((ignore (cl-some (lambda (f) (and (fboundp f) (funcall f)))
+                         dimmer-prevent-dimming-predicates)))
+    (unless ignore
+      (when (fboundp 'dimmer-process-all)
+        (dimmer-process-all t)))))
+
+(defun corfu-frame-p ()
+  "Check if the buffer is a corfu frame buffer."
+  (string-match-p "\\` \\*corfu" (buffer-name)))
+
+(defun dimmer-configure-corfu ()
+  "Convenience settings for corfu users."
+  (add-to-list 'dimmer-prevent-dimming-predicates #'corfu-frame-p))
 
 (use-package dimmer
   :hook (prog-mode . dimmer-mode)
-  ;; :bind ("M-s" . dimmer-mode)
   :config
+  (advice-add
+   'dimmer-config-change-handler
+   :override 'advise-dimmer-config-change-handler)
+  (dimmer-configure-corfu)
   (dimmer-configure-org)
   (dimmer-configure-magit)
   (dimmer-configure-company-box)
   (dimmer-configure-posframe)
   (dimmer-configure-hydra)
   (setq dimmer-watch-frame-focus-events t
-        dimmer-fraction 0.4)
+        dimmer-fraction 0.1)
   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 (use-package rainbow-delimiters
@@ -516,6 +529,7 @@
 (use-package tree-sitter
   :after swift-mode
   :config
+  (setq tree-sitter-hl-use-font-lock-keywords nil)
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
@@ -572,7 +586,7 @@
   (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   (kind-icon-use-icons nil)
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.15)
+  ;; (kind-icon-blend-frac 0.15)
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
@@ -700,17 +714,7 @@
   (flycheck-idle-change-delay 1.0))
 
 (use-package flycheck-posframe
-  :after flycheck
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode)
-  (setq flycheck-posframe-warning-prefix "⚠️ "
-        flycheck-posframe-error-prefix "🚫️ "
-        flycheck-posframe-info-prefix "‼️️"
-        flycheck-posframe-position 'posframe-poshandler-frame-top-left-corner
-        ))
-
-;; (use-package flycheck-inline
-;;   :hook (flycheck-mode . turn-on-flycheck-inline))
+  :hook (flycheck-mode . flycheck-posframe-mode))
 
 (use-package markdown-mode
   :defer t)
@@ -818,8 +822,8 @@
 (use-package darkroom
   :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
-  (setq darkroom-text-scale-increase 2.5
-        darkroom-margins 0.1))
+  (setq darkroom-text-scale-increase 1.5
+        darkroom-margins 0.2))
 
 ;; Use git
 (use-package magit
@@ -1018,7 +1022,7 @@
 
 (use-package ob-swift
   :defer t)
-  
+
 (use-package ob-swiftui
   :defer t
   :config
@@ -1036,9 +1040,9 @@
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 (use-package visual-fill-column
-  :hook (org-mode . visual-fill-column-mode)
+  :hook ((org-mode . visual-fill-column-mode))
   :config
-  (setq visual-fill-column-width 130
+  (setq visual-fill-column-width 120
         visual-fill-column-center-text t))
 
 (use-package elfeed
@@ -1058,9 +1062,11 @@
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
 
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :config (highlight-indent-guides-method #'bitmap))
+;; (use-package highlight-indent-guides
+;;   :hook (prog-mode . highlight-indent-guides-mode)
+;;   :custom (highlight-indent-guides-method 'bitmap)
+;;           (highlight-indent-guides-responsive 'top)
+;;           (highlight-indent-guides-auto-enabled t))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
@@ -1088,13 +1094,14 @@
   :ensure nil)
 
 (use-package yasnippet
-  :init
-  (yas-global-mode))
+  :hook (prog-mode . yas-global-mode))
 
 (use-package swift-mode
   :config
-  (setq swift-mode:basic-offset 2
-        swift-mode:parenthesized-expression-offset 2
+  (setq swift-mode:basic-offset 4
+        swift-mode:parenthesized-expression-offset 4
+        swift-mode:multiline-statement-offset 4
+        swift-mode:highlight-anchor t
 	    swift-mode:multiline-statement-offset 2))
 
 (use-package swift-additions
@@ -1108,8 +1115,10 @@
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
   ("M-s" . #'ios-simulator:terminate-current-app)
-  ("C-c C-c" . #'swift-additions:compile-and-run-silent)
-  ("M-r" . #'swift-additions:run-without-compiling)
+  ("C-c C-c" . #'swift-additions:compile-and-run-app)
+  ("M-b" . #'swift-additions:compile-app)
+  ("M-r" . #'swift-additions:compile-and-run-app)
+  ("M-B" . #'swift-additions:run-without-compiling)
   ("C-c C-x" . #'swift-additions:reset-settings))
 
 (use-package apple-docs-query
@@ -1157,9 +1166,7 @@
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-  
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
-  (setq tree-sitter-hl-use-font-lock-keywords t)
 
   (use-package flycheck-swift3
     :after flycheck
@@ -1172,14 +1179,13 @@
   (add-to-list 'flycheck-checkers 'swift3)
   (add-to-list 'flycheck-checkers 'swiftlint)
   (flycheck-add-next-checker 'swiftlint 'swift3)
-
+  
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
+                                       (cape-company-to-capf #'company-tabnine)
                                        #'cape-dabbrev
-                                       #'cape-line
-                                       #'cape-file
-                                       ;; (cape-company-to-capf #'company-yasnippet)
+                                       (cape-company-to-capf #'company-yasnippet)
                                        ))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
@@ -1212,21 +1218,19 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
-
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
-  (hs-minor-mode)       ; Add support for folding code blocks
+  ;;(hs-minor-mode)       ; Add support for folding code blocks
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
-  ;; (global-hl-todo-mode t)
 
-  (setq highlight-indent-guides-mode t    ;; Turn on indent-guides
-        indicate-empty-lines t            ;; Show empty lines
+  (setq indicate-empty-lines t            ;; Show empty lines
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
-        display-line-numbers 'relative))  ;; Show line numbers
+        display-line-numbers 'relative)   ;; Show line numbers
+  )
 
 (defun mk/setup-flycheck ()
   "Setup margins for flycheck."
@@ -1263,6 +1267,7 @@
 (defun mk/recompile (&optional force)
   "Recompile files (as FORCE) force compilation."
   (interactive "p")
+  (byte-recompile-directory (locate-user-emacs-file "") 0)
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 

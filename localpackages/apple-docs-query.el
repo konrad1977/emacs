@@ -28,7 +28,6 @@
 
 (cl-defun request-data-from-apple-docs (&key url)
   "Request data (as URL)."
-  (message url)
   (let* ((request-curl-options (list "-H" (string-trim (url-http-user-agent-string)))))
     (request url
       :type "GET"

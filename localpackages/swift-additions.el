@@ -152,17 +152,19 @@
      :buffer xcodebuild-buffer
     )))
 
-(defun swift-additions:check-for-errors (text)
+(defun swift-additions:check-for-errors (text &optional callback)
   "Run periphery parser on TEXT."
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error: ") text)
        (string-match-p (regexp-quote "warning: ") text))
       (progn
-        (parse-errors-from :text text)
+        (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "error: ") text))
-          (swift-additions:run-app)))
-    (swift-additions:run-app)))
+          (if-let ((callback callback))
+              (funcall callback))))
+    (if-let ((callback callback))
+        (funcall callback))))
 
 (cl-defun run-async-command-in-buffer (&key command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
@@ -239,6 +241,7 @@
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
     (run-async-command-in-buffer :command (format "ios-deploy -b %s.app -d" app-name))))
 
+;;;###autoload
 (defun build-using-compilation-mode ()
   "Build using builtin compile and 'compilation-mode'."
   (interactive)
@@ -246,6 +249,7 @@
          (compile-command (build-app-command :simulatorId (ios-simulator:load-simulator-id))))
     (compile compile-command)))
 
+;;;###autoload
 (defun swift-additions:reset-settings ()
   "Reset current settings.  Change current configuration."
   (interactive)
@@ -260,6 +264,11 @@
   (setq local-device-id nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
+(defun swift-additions:successful-build ()
+  "Show that the build was successful."
+  (message-with-color :tag "[Building]" :text "successful" :attributes 'success))
+
+;;;###autoload
 (defun swift-additions:run-without-compiling ()
   "Run app in simulator/device without compiling."
   (interactive)
@@ -267,13 +276,22 @@
   (swift-additions:kill-xcode-buffer)
   (swift-additions:run-app))
 
-(defun swift-additions:compile-and-run-silent ()
-  "Build project using xcodebuild."
+;;;###autoload
+(defun swift-additions:compile-and-run-app ()
+  "Compile and run app."
   (interactive)
+  (swift-additions:compile-and-run-silent t))
 
+;;;###autoload
+(defun swift-additions:compile-app ()
+  "Compile app."
+  (interactive)
+  (swift-additions:compile-and-run-silent nil))
+
+(defun swift-additions:compile-and-run-silent (runApp)
+  "Build project using xcodebuild (as RUNAPP)."
   (save-some-buffers t)
   (periphery-kill-buffer)
-  
   (swift-additions:kill-xcode-buffer)
   (ios-simulator:load-simulator-id)
   (setq device-or-simulator "[Building simulator target]")
@@ -284,7 +302,11 @@
           (async-shell-command-to-string
            :process-name "periphery"
            :command (build-app-command :simulatorId: current-simulator-id)
-           :callback #'swift-additions:check-for-errors))
+           :callback
+           (lambda (text)
+             (if runApp
+                 (swift-additions:check-for-errors text #'swift-additions:run-app)
+               (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
         (animate-message-with-color
          :tag device-or-simulator
          :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
@@ -294,6 +316,7 @@
         (swift-additions:build-swift-package)
       (message "Not xcodeproject nor swift package"))))
 
+;;;###autoload
 (defun swift-additions:test-module-silent ()
   "Test module."
   (interactive)
@@ -302,6 +325,7 @@
   (swift-additions:kill-xcode-buffer)
   (swift-additions:test-swift-package))
 
+;;;###autoload
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
@@ -327,12 +351,14 @@
       (goto-char (point-max))
       (search-backward string nil t))))
 
+;;;###autoload
 (defun swift-additions:functions-and-pragmas ()
   "Show swift file compressed functions and pragmas."
   (interactive)
   (let ((list-matching-lines-face nil))
     (occur "\\(#pragma mark\\)\\|\\(MARK:\\)")))
 
+;;;###autoload
 (defun swift-additions:print-thing-at-point ()
   "Print thing at point."
   (interactive)
@@ -341,6 +367,7 @@
     (newline-and-indent)
     (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
 
+;;;###autoload
 (defun insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."
   (save-excursion
@@ -350,16 +377,19 @@
   (goto-char (point-at-eol))
   (evil-insert-state t))
 
+;;;###autoload
 (defun swift-additions:insert-mark ()
   "Insert a mark at line."
   (interactive)
   (insert-text-and-go-to-eol "// MARK: - "))
 
+;;;###autoload
 (defun swift-additions:insert-todo ()
   "Insert a Todo."
   (interactive)
   (insert-text-and-go-to-eol "// TODO: "))
 
+;;;###autoload
 (defun swift-additions:toggle-xcodebuild-buffer ()
   "Function to toggle xcodebuild-buffer."
   (interactive)
@@ -422,7 +452,6 @@
 
 (cl-defun build-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
-  (interactive)
   (if (<= (length list) 1)
       (elt list 0)
     (progn
@@ -455,11 +484,13 @@
        (string-match-p (regexp-quote "error:") text)
        (string-match-p (regexp-quote "warning:") text))
       (progn
-        (parse-errors-from :text text)
+        (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "error:") text))
           (shell-command "swift run" xcodebuild-buffer)))
     (shell-command "swift run" xcodebuild-buffer)))
 
+
+;;;###autoload
 (defun swift-additions:build-swift-package ()
   "Build swift package module."
   (interactive)
@@ -467,6 +498,7 @@
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (animate-message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning :times 5)))
 
+;;;###autoload
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
   (interactive)
@@ -484,13 +516,15 @@
      "-Xswiftc" "-target"
      "-Xswiftc" target)))
 
+;;;###autoload
 (defun my-swift-mode:eglot-server-contact (_ignored)
   "Construct the list that eglot needs to start sourcekit-lsp."
   (setq arglist (swift-additions:lsp-arguments))
   (add-to-list 'arglist
                (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
- ; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
+;; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
+;;;###autoload
 (defun swift-additions:split-func-list ()
   "While on either the header of a function-like declaration or a call to a function, split each parameter/argument to its own line."
   (interactive)
@@ -589,64 +623,64 @@
 
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match"
+  "Face for enum case names in a pattern match."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:comment.special
   '((t :inherit tree-sitter-hl-face:comment
        :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK"
+  "Face for comments with some markup-like meaning, like MARK."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:operator.special
   '((t :inherit font-lock-negation-char-face
        :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation"
+  "Face for operators that need to stand out, like unary negation."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:punctuation.type
   '((t :inherit tree-sitter-hl-face:type
        :weight normal))
-  "Face for punctuation in type names (?, [], etc.)"
+  "Face for punctuation in type names (?, [], etc.)."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.compiler
   '((t :inherit tree-sitter-hl-face:keyword
        :weight semi-bold))
-  "Face for compile-time keywords"
+  "Face for compile-time keywords."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:variable.synthesized
   '((t :inherit tree-sitter-hl-face:variable))
-  "Face for compiler-synthesized identifiers (prefixed with '$')"
+  "Face for compiler-synthesized identifiers (prefixed with '$')."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:default
   '((t :inherit default))
-  "Face to override other faces"
+  "Face to override other faces."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match"
+  "Face for enum case names in a pattern match."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:comment.special
   '((t :inherit tree-sitter-hl-face:comment
        :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK"
+  "Face for comments with some markup-like meaning, like MARK."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:operator.special
   '((t :inherit font-lock-negation-char-face
        :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation"
+  "Face for operators that need to stand out, like unary negation."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:punctuation.type
   '((t :inherit tree-sitter-hl-face:type
        :weight normal))
-  "Face for punctuation in type names (?, [], etc.)"
+  "Face for punctuation in type names (?, [], etc.)."
   :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)

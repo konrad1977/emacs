@@ -44,6 +44,7 @@
 (defun periphery-swiftformat-autocorrect-buffer()
   "Autocorrect current buffer using swiftsyntax."
   (interactive)
+  (save-some-buffers t)
   (if-let ((file (buffer-file-name)))
       (periphery-run-swiftformat-buffer
        :command (concat swiftformat-command " " file " " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
