@@ -6,7 +6,6 @@
 ;;; Code:
 (require 'dash)
 (require 'transient)
-(require 'evil)
 (require 'periphery-helper)
 
 (defface periphery-filename-face
@@ -109,6 +108,15 @@
   "Performance face."
   :group 'periphery)
 
+(defface periphery-background-face
+  '((t (:inherit default)))
+  "Buffer background color."
+  :group 'periphery)
+
+(defun periphery--buffer-setup-background ()
+  (setq buffer-face-mode-face 'periphery-background-face)
+  (buffer-face-mode 1))
+
 (defconst periphery-buffer-name "*Periphery*")
 
 (defvar periphery-mode-map nil "Keymap for periphery.")
@@ -150,9 +158,8 @@
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
   (setq tabulated-list-format [("File" 32 t)("Line" 5 nil)("Type" 9 nil)("Message" 100 nil)]
-        tabulated-list-padding 0
+        tabulated-list-padding 2
         tabulated-list-sort-key (cons "Line" nil))
-  (turn-off-evil-mode)
   (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
 
@@ -195,7 +202,8 @@
            (window (get-buffer-window buffer)))
       (pop-to-buffer buffer nil)
       (periphery-mode)
-      
+      (periphery--buffer-setup-background)
+
       (unless (equal (current-buffer) buffer)
         (select-window window))
 
@@ -562,6 +570,7 @@
    ((string-match-p "MARK" tag) 'periphery-mark-face-full)
    (t 'periphery-hack-face-full)))
 
+;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
   '(("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)

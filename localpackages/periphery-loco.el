@@ -11,7 +11,11 @@
 
 (defun send-loco-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
-  (periphery-run-parser text))
+  (periphery-run-parser text (lambda ()
+                                 (message-with-color
+                                  :tag "[Success]"
+                                  :text "No warning or errors."
+                                  :attributes 'success))))
 
 (defun periphery-run-loco()
   "Run LOCO linter."

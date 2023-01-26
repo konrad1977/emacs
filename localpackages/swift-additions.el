@@ -130,7 +130,7 @@
 (cl-defun parse-errors-from (&key text)
   "Parse errors from TEXT."
   (when DEBUG (message (concat "Errors:" text)))
-  (periphery-run-parser text))
+  (periphery-run-parser text (lambda () )))
 
 (defun format-device-id (id)
   "Format device id (as ID)."

@@ -4,6 +4,7 @@
 ;;; code:
 
 (require 'request)
+(require 'browse-url)
 (require 'json)
 (require 'url-http)
 (require 'cl)
@@ -16,7 +17,7 @@
   (let ((request-curl-options (list "-H" (string-trim (url-http-user-agent-string)))))
     (request url
       :type "GET"
-      :params (list (cons "search" query))
+      :params (list (cons "search" (url-encode-url query)))
       :parser 'json-read
       :success
       (cl-function
@@ -27,13 +28,11 @@
                                       (assoc-default 'url item)))) data))
                 (selected (completing-read "Choices: " choices))
                 (url (cdr (assoc selected choices))))
-           (browse url)))))
-    nil))
+           (browse url)))))))
 
 (cl-defun browse (url)
   "Browse URL."
-  (if-let ((url url))
-      (browse-url (concat hackingWithSwiftUrl url))))
+  (browse-url (concat hackingWithSwiftUrl url)))
 
 (defun hacking-ws/query (query)
   "Query Hacking with swift (as QUERY)."
@@ -41,7 +40,7 @@
   (request-data
    :url (concat hackingWithSwiftUrl "/example-code/search")
    :query query))
-
+  
 (defun hacking-ws/query-thing-at-point ()
   "Query thing at point."
   (interactive)

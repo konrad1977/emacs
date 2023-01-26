@@ -18,7 +18,11 @@
 
 (defun periphery--swiftlint:analyze-result (result)
   "Analyze RESULT."
-  (periphery-run-parser result))
+  (periphery-run-parser result (lambda ()
+                                 (message-with-color
+                                  :tag "[Success]"
+                                  :text "No lint warning or errors."
+                                  :attributes 'success))))
 
 (defun periphery-run-swiftlint ()
   "Lint the whole project not just current file."

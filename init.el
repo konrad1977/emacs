@@ -5,21 +5,18 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160)
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
-;; ;(set-fringe-mode 0)               ;; Give us some space.
+(set-fringe-mode 1)               ;; Give us some space.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
-;; (blink-cursor-mode 1)               ;; Blink cursor
 (pixel-scroll-precision-mode 1)
-
-;; ;; Setup fonts
 
 (setq ad-redefinition-action            'accept
       auto-revert-check-vc-info         t
@@ -79,7 +76,7 @@
   
   (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
-  ;; (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . nil))
+  (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . t))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 (put 'narrow-to-page 'disabled nil)
 
@@ -139,7 +136,7 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error nil))
+        debug-on-error t))
 
 (use-package no-littering)
 
@@ -175,14 +172,14 @@
   (setq
         ;; vertico-posframe-font "Iosevka Aile"
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-        vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
+        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines t
         vertico-posframe-width 160
         ;; vertico-posframe-height nil
-        vertico-posframe-min-height 2
-        vertico-posframe-border-width 2))
+        vertico-posframe-min-height 1
+        vertico-posframe-border-width 1))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -478,37 +475,37 @@
   (require 'periphery)
   (setq svg-tag-tags (periphery-svg-tags)))
 
-(defun advise-dimmer-config-change-handler ()
-  "Advise to only force process if no predicate is truthy."
-  (let ((ignore (cl-some (lambda (f) (and (fboundp f) (funcall f)))
-                         dimmer-prevent-dimming-predicates)))
-    (unless ignore
-      (when (fboundp 'dimmer-process-all)
-        (dimmer-process-all t)))))
+;; (defun advise-dimmer-config-change-handler ()
+;;   "Advise to only force process if no predicate is truthy."
+;;   (let ((ignore (cl-some (lambda (f) (and (fboundp f) (funcall f)))
+;;                          dimmer-prevent-dimming-predicates)))
+;;     (unless ignore
+;;       (when (fboundp 'dimmer-process-all)
+;;         (dimmer-process-all t)))))
 
-(defun corfu-frame-p ()
-  "Check if the buffer is a corfu frame buffer."
-  (string-match-p "\\` \\*corfu" (buffer-name)))
+;; (defun corfu-frame-p ()
+;;   "Check if the buffer is a corfu frame buffer."
+;;   (string-match-p "\\` \\*corfu" (buffer-name)))
 
-(defun dimmer-configure-corfu ()
-  "Convenience settings for corfu users."
-  (add-to-list 'dimmer-prevent-dimming-predicates #'corfu-frame-p))
+;; (defun dimmer-configure-corfu ()
+;;   "Convenience settings for corfu users."
+;;   (add-to-list 'dimmer-prevent-dimming-predicates #'corfu-frame-p))
 
-(use-package dimmer
-  :hook (prog-mode . dimmer-mode)
-  :config
-  (advice-add
-   'dimmer-config-change-handler
-   :override 'advise-dimmer-config-change-handler)
-  (dimmer-configure-corfu)
-  (dimmer-configure-org)
-  (dimmer-configure-magit)
-  (dimmer-configure-company-box)
-  (dimmer-configure-posframe)
-  (dimmer-configure-hydra)
-  (setq dimmer-watch-frame-focus-events t
-        dimmer-fraction 0.1)
-  (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
+;; (use-package dimmer
+;;   :hook (prog-mode . dimmer-mode)
+;;   :config
+;;   (advice-add
+;;    'dimmer-config-change-handler
+;;    :override 'advise-dimmer-config-change-handler)
+;;   (dimmer-configure-corfu)
+;;   (dimmer-configure-org)
+;;   (dimmer-configure-magit)
+;;   (dimmer-configure-company-box)
+;;   (dimmer-configure-posframe)
+;;   (dimmer-configure-hydra)
+;;   (setq dimmer-watch-frame-focus-events t
+;;         dimmer-fraction 0.1)
+;;   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -527,10 +524,9 @@
         show-paren-when-point-in-periphery t))
 
 (use-package tree-sitter
-  :after swift-mode
+  :hook (swift-mode . tree-sitter-mode)
   :config
-  (setq tree-sitter-hl-use-font-lock-keywords nil)
-  (global-tree-sitter-mode)
+  (setq tree-sitter-hl-use-font-lock-keywords t)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; ------------------ SEARCHING -------------------
@@ -556,12 +552,12 @@
 (use-package dash-docs
   :defer t)
 
- (use-package consult-dash
-    :bind ("C-c C-i" . consult-dash)
-    :config
-    (setq consult-dash-docsets '("swift"))
-    ;; Use the symbol at point as initial search term
-    (consult-customize consult-dash :initial (thing-at-point 'symbol)))
+(use-package consult-dash
+  :bind ("C-c C-i" . consult-dash)
+  :config
+  (setq consult-dash-docsets '("swift"))
+  ;; Use the symbol at point as initial search term
+  (consult-customize consult-dash :initial (thing-at-point 'symbol)))
 
 (use-package google-this
   :commands (google-this)
@@ -669,6 +665,7 @@
   :bind ("M-J" . treemacs-find-file)
   :init (treemacs-project-follow-mode)
   :config
+  (setf treemacs-window-background-color (cons "#181825" "#313244"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
@@ -684,9 +681,7 @@
         treemacs-is-never-other-window nil
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 35)
-    
-  )
+        treemacs-width 35))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -1267,7 +1262,7 @@
 (defun mk/recompile (&optional force)
   "Recompile files (as FORCE) force compilation."
   (interactive "p")
-  (byte-recompile-directory (locate-user-emacs-file "") 0)
+  ;; (byte-recompile-directory (locate-user-emacs-file "") 0)
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 
@@ -1303,4 +1298,4 @@
 (provide 'init)
 
 ;;; init.el ends here
-(put 'narrow-to-region 'disabled nil)
+;; (put 'narrow-to-region 'disabled nil)
