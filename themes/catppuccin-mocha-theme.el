@@ -59,12 +59,12 @@
   (glyph-face                           (:background red))
   (glyphless-char                       (:foreground overlay2))
   (header-line                          (:background base))
-  (highlight                            (:background surface1 :foreground lavender))
-  (hl-line                              (:background crust))
+  (highlight                            (:background red :foreground lavender))
+  (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background base :foreground base))
   (line-number                          (:foreground surface1))
-  (line-number-current-line             (:foreground mauve :background crust :bold t))
+  (line-number-current-line             (:foreground mauve :background surface0 :bold t))
   (lv-separator                         (:foreground overlay2 :background base))
   (match                                (:background yellow :foreground crust))
   (menu                                 (:background base :foreground rosewater))
@@ -75,7 +75,7 @@
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground subtext0 :bold t))
   (numbers                              (:background green :foreground base))
-  (region                               (:background mauve :distant-foreground base))
+  (region                               (:background crust))
   (separator-line                       (:background base))
   (shadow                               (:background crust))
   (success                              (:foreground green))
@@ -240,15 +240,15 @@
   (rainbow-delimiters-depth-9-face      (:foreground teal))
 
   ;; show-paren
-  (show-paren-match						(:background pink :bold t))
-  (show-paren-match-expression			(:background pink :bold t))
+  (show-paren-match						(:background maroon  :foreground crust :bold t))
+  (show-paren-match-expression			(:background maroon  :foreground crust :bold t))
   (show-paren-mismatch					(:background red))
 
   (company-tooltip                          (:background surface0 :foreground text))
   (company-tooltip-common                   (:foreground peach :distant-foreground crust :bold t))
   (company-tooltip-search                   (:foreground yellow))
   (company-tooltip-selection                (:background surface1 :bold t :underline t))
-  (company-tooltip-mouse                    (:background nil :foreground crust :distant-foreground text))
+  (company-tooltip-mouse                    (:foreground crust :distant-foreground text))
   (company-tooltip-annotation               (:foreground overlay0 :distant-foreground yellow))
   (company-tooltip-scrollbar-track          (:background peach))
   (company-tooltip-scrollbar-thumb          (:background flamingo))
@@ -271,7 +271,7 @@
   (eldoc-box-body                       (:background peach :foreground peach))
   (eldoc-box-border                     (:background red :foreground red))
 
-  (markdown-hr-face                     (:background nil :foreground surface0))
+  (markdown-hr-face                     (:foreground surface0))
 
   ;; Flycheck
   (flycheck-posframe-background-face    (:background crust))
@@ -300,10 +300,10 @@
 
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground crust :bold t))
-  (ivy-action                                   (:background nil :foreground lavender))
-  (ivy-grep-line-number                         (:background nil :foreground peach))
-  (ivy-minibuffer-match-face-1                  (:background nil :foreground blue :bold t))
-  (ivy-minibuffer-match-face-2                  (:background nil :foreground green))
+  (ivy-action                                   (:background crust :foreground lavender))
+  (ivy-grep-line-number                         (:background crust :foreground peach))
+  (ivy-minibuffer-match-face-1                  (:background crust :foreground blue :bold t))
+  (ivy-minibuffer-match-face-2                  (:background crust :foreground green))
   (ivy-minibuffer-match-highlight               (:foreground blue))
   (ivy-grep-info                                (:foreground blue))
   (ivy-grep-line-number                         (:foreground mauve))
@@ -318,8 +318,8 @@
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
   (vertico-current                              (:background surface0 :foreground text :bold t :distant-foreground text))
 
-  (vertico-posframe-border                      (:background mantle))
-  (vertico-posframe                             (:background crust :foreground subtext0 :bold nil))
+  (vertico-posframe-border                      (:background crust))
+  (vertico-posframe                             (:background mantle :foreground subtext0 :bold nil))
 
   (orderless-match-face-0                       (:foreground peach :bold t))
   (orderless-match-face-1                       (:foreground pink :bold t))
@@ -360,7 +360,6 @@
 
   (lsp-ui-doc-background							(:background crust :foreground red))
   (lsp-ui-doc-header								(:background crust :foreground red))
-  (lsp-ui-doc-border								(:background nil :foreground nil))
   (lsp-ui-peek-filename								(:foreground teal))
   (lsp-ui-sideline-code-action			   			(:foreground yellow))
   (lsp-ui-sideline-current-symbol					(:foreground sky))
@@ -368,7 +367,7 @@
 
   ;; dashboard
   (dashboard-heading								(:foreground mauve :bold t))
-  (dashboard-items-face								(:bold nil :foreground text))
+  (dashboard-items-face								(:foreground text))
   (dashboard-banner-logo-title						(:bold t :height 200))
   (dashboard-no-items-face							(:foreground overlay2))
 
@@ -460,7 +459,7 @@
   (centaur-tabs-modified-marker-unselected	(:background mantle :foreground overlay2))
   (centaur-tabs-close-unselected			(:background mantle :foreground overlay2))
 
-  (centaur-tabs-close-mouse-face			(:background nil :foreground red))
+  (centaur-tabs-close-mouse-face			(:foreground red))
   (centaur-tabs-default						(:background mantle))
   (centaur-tabs-name-mouse-face				(:foreground blue :bold t))
 

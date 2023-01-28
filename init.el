@@ -5,9 +5,13 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 168)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 168)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 168)
+
+;; (set-face-attribute 'default nil :font "RobotoMono Nerd Font" :height 170)
+;; (set-face-attribute 'fixed-pitch nil :font "RobotoMono Nerd Font" :height 170)
+;; (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160)
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
@@ -136,7 +140,11 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error t))
+        debug-on-error nil))
+
+(use-package benchmark-init
+  :config
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -166,8 +174,8 @@
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
-        '((left-fringe . 1)
-          (right-fringe . 1)))
+        '((left-fringe . 0)
+          (right-fringe . 0)))
   :config
   (setq
         ;; vertico-posframe-font "Iosevka Aile"
@@ -177,9 +185,8 @@
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines t
         vertico-posframe-width 160
-        ;; vertico-posframe-height nil
         vertico-posframe-min-height 1
-        vertico-posframe-border-width 1))
+        vertico-posframe-border-width 3))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -277,9 +284,9 @@
         doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
   (custom-set-faces
-   '(mode-line ((t (:family "Iosevka Aile" :height 0.99))))
-   '(mode-line-active ((t (:family "Iosevka Aile" :height 0.99)))) ; For 29+
-   '(mode-line-inactive ((t (:family "Iosevka Aile" :height 0.99))))))
+   '(mode-line ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95))))))
+   ;; '(mode-line-active ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95)))) ; For 29+
+   ;; '(mode-line-inactive ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95))))))
 
 (use-package dashboard
   :config
@@ -398,8 +405,8 @@
 (use-package evil-multiedit
   :after evil
   :config
-  (setq evil-multiedit-follow-matches t)
-  (evil-multiedit-default-keybinds))
+  (evil-multiedit-default-keybinds)
+  (setq evil-multiedit-follow-matches t))
 
 (use-package evil-collection
   :after evil
@@ -1092,6 +1099,7 @@
   :hook (prog-mode . yas-global-mode))
 
 (use-package swift-mode
+  :defer t
   :config
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
