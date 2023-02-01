@@ -322,13 +322,11 @@
           (push secondEntry periphery-errorList))
       )))
   (if periphery-errorList
-      (periphery--listing-command periphery-errorList)
+      (periphery--listing-command (delete-dups periphery-errorList))
     (progn
       (periphery-kill-buffer)
       (setq periphery-errorList '())
-      (funcall succesCallback)
-      ;; (message-with-color :tag "[Complete]" :text "No errors or warnings found" :attributes '(:inherit success))
-      )))
+      (funcall succesCallback))))
 
 (defun periphery-mode-all ()
   "Show all."

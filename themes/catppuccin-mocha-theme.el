@@ -59,7 +59,7 @@
   (glyph-face                           (:background red))
   (glyphless-char                       (:foreground overlay2))
   (header-line                          (:background base))
-  (highlight                            (:background red :foreground lavender))
+  (highlight                            (:background mantle :foreground blue))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
   (internal-border                      (:background base :foreground base))
@@ -256,16 +256,17 @@
   (company-tooltip-quick-access-selection   (:foreground peach))
   (company-scrollbar-bg                     (:inherit 'tooltip))
   (company-scrollbar-fg                     (:background red))
-  (company-preview                          (:foreground blue))
+  (company-preview                          (:foreground red))
   (company-preview-common                   (:background red :foreground crust))
   (company-preview-search                   (:inherit 'company-tooltip-search))
   (company-template-field                   (:inherit 'match))
 
   (corfu-annotations                        (:foreground overlay0))
-  (corfu-current                            (:background surface1 :foreground mauve :distant-foreground text :bold t :foreground base))
-  (corfu-border                             (:background surface0))
+  (corfu-current                            (:background surface1 :foreground yellow :distant-foreground text :bold t :foreground base))
+  (corfu-border                             (:background crust))
   (corfu-bar                                (:background yellow))
-  (corfu-default                            (:background crust :foreground text))
+  (corfu-default                            (:background mantle :foreground subtext1))
+  (corfu-popupinfo                          (:background surface0 :foreground mauve :italic t))
   
   ;; Eldoc
   (eldoc-box-body                       (:background peach :foreground peach))
@@ -318,12 +319,12 @@
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
   (vertico-current                              (:background surface0 :foreground text :bold t :distant-foreground text))
 
-  (vertico-posframe-border                      (:background crust))
-  (vertico-posframe                             (:background mantle :foreground subtext0 :bold nil))
+  (vertico-posframe-border                      (:background overlay1))
+  (vertico-posframe                             (:background mantle :foreground subtext0))
 
-  (orderless-match-face-0                       (:foreground peach :bold t))
-  (orderless-match-face-1                       (:foreground pink :bold t))
-  (orderless-match-face-2                       (:foreground green :bold t))
+  (orderless-match-face-0                       (:foreground blue :bold t))
+  (orderless-match-face-1                       (:foreground mauve :bold t))
+  (orderless-match-face-2                       (:foreground sapphire :bold t))
   (orderless-match-face-4                       (:foreground yellow :bold t))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))

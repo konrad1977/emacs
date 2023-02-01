@@ -32,6 +32,7 @@
       confirm-kill-processes            nil
       create-lockfiles                  nil
       echo-keystrokes                   0.2
+      confirm-kill-emacs                'y-or-n-p
       ediff-split-window-function       'split-window-horizontally
       fast-but-imprecise-scrolling      t
       find-file-visit-truename          t
@@ -57,6 +58,7 @@
 
 (setq-default display-line-numbers-width    4       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
+              ediff-forward-word-function   'forward-char
               tab-width                     4            ;: Use four tabs
               line-spacing                  0.1         ;; Increase linespacing a bit
               truncate-lines                t
@@ -161,8 +163,12 @@
 
 (use-package vertico
   :hook (after-init . vertico-mode)
+  :custom
+  (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
-  (setq vertico-resize nil
+  (vertico-multiform-mode)
+  (vertico-indexed-mode)
+  (setq vertico-resize t
         vertico-count 15
         vertico-multiline nil
         vertico-scroll-margin 4
@@ -174,11 +180,11 @@
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
-        '((left-fringe . 0)
-          (right-fringe . 0)))
+        '((left-fringe . 2)
+          (right-fringe . 2)))
   :config
   (setq
-        ;; vertico-posframe-font "Iosevka Aile"
+        ;; vertico-posframe-font "Hack Nerd Font"
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
@@ -186,7 +192,7 @@
         vertico-posframe-truncate-lines t
         vertico-posframe-width 160
         vertico-posframe-min-height 1
-        vertico-posframe-border-width 3))
+        vertico-posframe-border-width 1))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -202,9 +208,9 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(substring orderless basic)
+  (setq completion-styles '(orderless)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion flex))
+        completion-category-overrides '((file (styles  . (orderless flex)))
                                         (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
@@ -586,10 +592,10 @@
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  ;;(kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   (kind-icon-use-icons nil)
   (kind-icon-blend-background t)
-  ;; (kind-icon-blend-frac 0.15)
+  (kind-icon-blend-frac 0.2)
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
@@ -604,14 +610,16 @@
   :custom
   (completion-cycle-threshold nil)
   (corfu-auto t)
-  (corfu-auto-delay 0.25)
-  (corfu-auto-prefix 1)
-  (corfu-cycle t)
-  (corfu-scroll-margin 0)
-  (corfu-preview-current t)
+  (corfu-auto-delay 0.35)
+  (corfu-auto-prefix 2)
+  (corfu-cycle nil)
+  (corfu-scroll-margin 4)
+  (corfu-preview-current 'insert)
   (corfu-preselect-first t)
-  (corfu-min-width 50)
-  (completion-styles '(basic))
+  (corfu-min-width 80)
+  (corfu-max-width corfu-min-width)
+  (corfu-count 15)
+  (completion-styles '(orderless))
   :init
   (setq corfu-popupinfo-delay 0.5
         corfu-quit-no-match 'separator)
@@ -1107,6 +1115,13 @@
         swift-mode:highlight-anchor t
 	    swift-mode:multiline-statement-offset 2))
 
+(use-package ios-simulator
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("M-s" . #'ios-simulator:terminate-current-app)
+  ("M-p" . #'ios-simulator:appcontainer))
+
 (use-package swift-additions
   :ensure nil
   :after swift-mode
@@ -1117,7 +1132,6 @@
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
-  ("M-s" . #'ios-simulator:terminate-current-app)
   ("C-c C-c" . #'swift-additions:compile-and-run-app)
   ("M-b" . #'swift-additions:compile-app)
   ("M-r" . #'swift-additions:compile-and-run-app)
@@ -1166,6 +1180,12 @@
   :after swift-mode
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
+
+(use-package company-tabnine
+  :after corfu
+  :custom
+  (setq company-tabnine-wait 0.5
+        company-tabnine-max-num-results 5))
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
@@ -1225,7 +1245,7 @@
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
-  ;;(hs-minor-mode)       ; Add support for folding code blocks
+  (hs-minor-mode)       ; Add support for folding code blocks
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
 
   (setq indicate-empty-lines t            ;; Show empty lines
