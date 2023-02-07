@@ -55,6 +55,7 @@
   (child-frame-border                   (:background base :foreground mantle))
   (cursor                               (:background mauve :foreground base))
   (error                                (:foreground red))
+  (link                                 (:foreground blue))
   (fringe                               (:background base :foreground overlay2))
   (glyph-face                           (:background red))
   (glyphless-char                       (:foreground overlay2))
@@ -111,7 +112,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background crust :foreground peach :distant-foreground peach :weight 'semi-bold))
+  (highlight-symbol-face                (:background mantle :foreground text :distant-background crust :italic t))
   (info-xref                            (:foreground yellow))
 
   (minibuffer-prompt-end                (:foreground red))
@@ -171,9 +172,8 @@
   (message-header-to                    (:foreground rosewater))
   (message-header-cc                    (:foreground green))
   (message-header-xheader               (:foreground rosewater))
-  (custom-link                          (:foreground blue))
-  (link                                 (:foreground blue))
-
+  (custom-link                          (:foreground blue :underline t))
+  
   ;; org-mode
   (org-done                             (:foreground overlay2))
   (org-code                             (:background crust))
@@ -262,16 +262,12 @@
   (company-template-field                   (:inherit 'match))
 
   (corfu-annotations                        (:foreground overlay0))
-  (corfu-current                            (:background surface1 :foreground yellow :distant-foreground text :bold t :foreground base))
-  (corfu-border                             (:background crust))
+  (corfu-current                            (:background surface1 :distant-foreground text :bold t :foreground base))
+  (corfu-border                             (:background overlay1))
   (corfu-bar                                (:background yellow))
-  (corfu-default                            (:background mantle :foreground subtext1))
-  (corfu-popupinfo                          (:background surface0 :foreground mauve :italic t))
+  (corfu-default                            (:background crust :foreground subtext1))
+  (corfu-popupinfo                          (:background surface0 :foreground text))
   
-  ;; Eldoc
-  (eldoc-box-body                       (:background peach :foreground peach))
-  (eldoc-box-border                     (:background red :foreground red))
-
   (markdown-hr-face                     (:foreground surface0))
 
   ;; Flycheck
@@ -322,16 +318,16 @@
   (vertico-posframe-border                      (:background overlay1))
   (vertico-posframe                             (:background mantle :foreground subtext0))
 
-  (orderless-match-face-0                       (:foreground blue :bold t))
-  (orderless-match-face-1                       (:foreground mauve :bold t))
-  (orderless-match-face-2                       (:foreground sapphire :bold t))
-  (orderless-match-face-4                       (:foreground yellow :bold t))
+  (orderless-match-face-0                       (:foreground yellow :italic t :bold t :underline t))
+  (orderless-match-face-1                       (:foreground peach :italic t :bold t))
+  (orderless-match-face-2                       (:foreground green :italic t :bold t))
+  (orderless-match-face-4                       (:foreground sapphire :italic t))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
   (completions-annotations                      (:foreground subtext0 :italic t))
   (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
-  (completions-first-difference                 (:foreground subtext1))
+  (completions-first-difference                 (:foreground red))
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))
 
   (treemacs-directory-collapsed-face			(:foreground text))

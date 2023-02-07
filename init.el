@@ -41,15 +41,12 @@
       idle-update-delay                 1.1    ;; Speed things up by not updating so often
       jit-lock-defer-time               0.0
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
-      line-number-mode                  nil
-      load-prefer-newer                 t
-      ;; read-process-output-max           (* 8 1024 1024)
       scroll-margin                     1   ;; scroll N to screen edge
+      load-prefer-newer                 t
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
       max-lisp-eval-depth 10000
-      max-specpdl-size 10000
       auto-mode-case-fold nil
       truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
@@ -60,7 +57,7 @@
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               ediff-forward-word-function   'forward-char
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0.1         ;; Increase linespacing a bit
+              line-spacing                  0.0         ;; Increase linespacing a bit
               truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
@@ -190,7 +187,7 @@
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines t
-        vertico-posframe-width 160
+        vertico-posframe-width 150
         vertico-posframe-min-height 1
         vertico-posframe-border-width 1))
 
@@ -278,19 +275,20 @@
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
+        doom-modeline-height 20
         doom-modeline-project-detection 'projectile
         doom-modeline-icon t
         doom-modeline-modal t
         doom-modeline-modal-icon nil
         doom-modeline-lsp t
-        doom-modeline-workspace-name t
+        doom-modeline-workspace-name nil
         doom-modeline-persp-name t
-        doom-modeline-bar-width 10
+        doom-modeline-bar-width 20
         doom-modeline-hud t
         doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
   (custom-set-faces
-   '(mode-line ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95))))))
+   '(mode-line ((t (:family "Menlo" :height 0.85))))))
    ;; '(mode-line-active ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95)))) ; For 29+
    ;; '(mode-line-inactive ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95))))))
 
@@ -381,7 +379,7 @@
   (define-key evil-visual-state-map (kbd "C-u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
-  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-pop-marker-stack)))
+  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-go-back)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
   
   (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
@@ -488,38 +486,6 @@
   (require 'periphery)
   (setq svg-tag-tags (periphery-svg-tags)))
 
-;; (defun advise-dimmer-config-change-handler ()
-;;   "Advise to only force process if no predicate is truthy."
-;;   (let ((ignore (cl-some (lambda (f) (and (fboundp f) (funcall f)))
-;;                          dimmer-prevent-dimming-predicates)))
-;;     (unless ignore
-;;       (when (fboundp 'dimmer-process-all)
-;;         (dimmer-process-all t)))))
-
-;; (defun corfu-frame-p ()
-;;   "Check if the buffer is a corfu frame buffer."
-;;   (string-match-p "\\` \\*corfu" (buffer-name)))
-
-;; (defun dimmer-configure-corfu ()
-;;   "Convenience settings for corfu users."
-;;   (add-to-list 'dimmer-prevent-dimming-predicates #'corfu-frame-p))
-
-;; (use-package dimmer
-;;   :hook (prog-mode . dimmer-mode)
-;;   :config
-;;   (advice-add
-;;    'dimmer-config-change-handler
-;;    :override 'advise-dimmer-config-change-handler)
-;;   (dimmer-configure-corfu)
-;;   (dimmer-configure-org)
-;;   (dimmer-configure-magit)
-;;   (dimmer-configure-company-box)
-;;   (dimmer-configure-posframe)
-;;   (dimmer-configure-hydra)
-;;   (setq dimmer-watch-frame-focus-events t
-;;         dimmer-fraction 0.1)
-;;   (add-to-list 'dimmer-exclusion-regexp-list "^\\**.*\\*$"))
-
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
@@ -539,17 +505,11 @@
 (use-package tree-sitter
   :hook (swift-mode . tree-sitter-mode)
   :config
-  (setq tree-sitter-hl-use-font-lock-keywords t)
+  (setq tree-sitter-hl-use-font-lock-keywords t
+        tree-sitter-hl-enable-query-region-extension t)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; ------------------ SEARCHING -------------------
-;; the silver searcher
-(use-package ag
-  :defer t
-  :config
-  (setq ag-project-root-function
-        (lambda (d) (let ((default-directory d)) (projectile-project-root)))))
-
 (use-package rg
   :defer t)
 
@@ -577,29 +537,33 @@
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
-  :hook (swift-mode . eglot-ensure)
+  :hook (prog-mode . eglot-ensure)
   :commands (eglot eglot-ensure)
   :ensure nil
   :config
   (setq eglot-stay-out-of '(corfu company)
         eglot-autoshutdown t
-        eglot-events-buffer-size nil
         eglot-autoreconnect t
+        eglot-extend-to-xref t
+        eglot-events-buffer-size nil
         eglot-send-changes-idle-time 0.5
         eglot-ignored-server-capabilities '(:hoverProvider))
-        (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
+  (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
+
+(use-package flycheck-eglot
+  :hook (prog-mode . flycheck-eglot-mode))
 
 (use-package kind-icon
   :after corfu
   :custom
-  ;;(kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   (kind-icon-use-icons nil)
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.2)
+  (kind-icon-blend-frac 0.15)
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
+  :hook (prog-mode . corfu-mode)
   :ensure corfu-doc
   :bind
   (:map corfu-map
@@ -608,24 +572,24 @@
         ("C-n" . corfu-next)
         ("C-p" . corfu-previous))
   :custom
-  (completion-cycle-threshold nil)
   (corfu-auto t)
-  (corfu-auto-delay 0.35)
-  (corfu-auto-prefix 2)
-  (corfu-cycle nil)
-  (corfu-scroll-margin 4)
-  (corfu-preview-current 'insert)
-  (corfu-preselect-first t)
-  (corfu-min-width 80)
-  (corfu-max-width corfu-min-width)
-  (corfu-count 15)
   (completion-styles '(orderless))
   :init
   (setq corfu-popupinfo-delay 0.5
+        corfu-bar-width 1
+        corfu-scroll-margin 2
+        corfu-min-width 70
+        corfu-max-width 130
+        corfu-popupinfo-resize t
+        corfu-count 12
+        corfu-preview-current nil
+        corfu-popupinfo-hide nil
+        corfu-popupinfo-direction '(force-horizontal)
+        corfu-popupinfo-resize t
+        corfu-popupinfo-min-width corfu-min-width
+        corfu-popupinfo-max-width corfu-max-width
         corfu-quit-no-match 'separator)
-  (corfu-popupinfo-mode)
-  ;; (corfu-indexed-mode)
-  (global-corfu-mode))
+  (corfu-popupinfo-mode))
 
 (use-package corfu-history
   :ensure nil
@@ -647,7 +611,6 @@
 ;; Add extensions
 (use-package cape
   :bind (("C-c p p" . completion-at-point) ;; capf
-         ("C-c p t" . complete-tag)        ;; etags
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
          ("C-c p f" . cape-file)
@@ -657,14 +620,10 @@
          ("C-c p i" . cape-ispell)
          ("C-c p l" . cape-line)
          ("C-c p w" . cape-dict)
-         ("C-c p \\" . cape-tex)
-         ("C-c p _" . cape-tex)
-         ("C-c p ^" . cape-tex)
-         ("C-c p &" . cape-sgml)
          ("C-c p r" . cape-rfc1345))
   :custom
   (setq cape-dabbrev-check-other-buffers t
-        cape-dabbrev-min-length 3)
+        cape-dabbrev-min-length 4)
   :init
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
@@ -672,7 +631,7 @@
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
 (use-package ace-jump-mode
-  :commands (ace-jump-mode) 
+  :commands (ace-jump-mode)
   :bind ("M-g" . ace-jump-mode))
 
 (use-package treemacs
@@ -718,10 +677,12 @@
   :hook (prog-mode . flycheck-mode)
   :diminish t
   :custom
-  (flycheck-indication-mode 'right-fringe)
+  (flycheck-indication-mode 'left-fringe)
   (flycheck-display-errors-delay 0.2)
   (flycheck-check-syntax-automatically '(save idle-change))
   (flycheck-idle-change-delay 1.0))
+
+
 
 (use-package flycheck-posframe
   :hook (flycheck-mode . flycheck-posframe-mode))
@@ -873,11 +834,12 @@
   :hook (prog-mode . git-gutter-mode)
   :diminish git-gutter-mode
   :config
-  (setq git-gutter:update-interval 0.5))
+  (setq git-gutter:update-interval 1))
 
 (use-package git-gutter-fringe
   :after git-gutter
   :config
+  (setq git-gutter-fr:side 'right-fringe)
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
@@ -1128,7 +1090,7 @@
   :bind
   ("C-c C-t" .  #'swift-additions:test-module-silent)
   ("C-c C-s" .  #'swift-additions:split-func-list)
-  ("M-L" .  #'swift-additions:clean-build-folder)
+  ("M-K" .  #'swift-additions:clean-build-folder)
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
@@ -1207,8 +1169,8 @@
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
                                        (cape-company-to-capf #'company-tabnine)
-                                       #'cape-dabbrev
-                                       (cape-company-to-capf #'company-yasnippet)
+                                       ;; #'cape-dabbrev
+                                       ;; (cape-company-to-capf #'company-yasnippet)
                                        ))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
@@ -1229,7 +1191,7 @@
 
 ;;; esc quits
 (defun mk/browser-split-window (url &optional new-window)
-  "Create a new browser window to the right of the current one."
+  "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
   (interactive)
   (let* ((ignore-window-parameters t)
          (dedicated-p (window-dedicated-p)))
@@ -1257,7 +1219,7 @@
 
 (defun mk/setup-flycheck ()
   "Setup margins for flycheck."
-  (setq left-fringe-width 12 right-fringe-width 12
+  (setq left-fringe-width 12 right-fringe-width 0
         left-margin-width 1 right-margin-width 0)
   (flycheck-refresh-fringes-and-margins))
 
