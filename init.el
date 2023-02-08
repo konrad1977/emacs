@@ -9,9 +9,9 @@
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 168)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 168)
 
-;; (set-face-attribute 'default nil :font "RobotoMono Nerd Font" :height 170)
-;; (set-face-attribute 'fixed-pitch nil :font "RobotoMono Nerd Font" :height 170)
-;; (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160)
+;; (set-face-attribute 'default nil :font "Fira Code" :height 168)
+;; (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 168)
+;; (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 168)
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
@@ -266,16 +266,18 @@
         auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
 
-; Config and install modeline
+                                        ; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :config
+  (custom-set-faces
+   '(mode-line ((t (:family "Menlo" :height 0.85)))))
   (setq doom-modeline-buffer-encoding t
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
-        doom-modeline-height 20
+        doom-modeline-height 33
         doom-modeline-project-detection 'projectile
         doom-modeline-icon t
         doom-modeline-modal t
@@ -283,14 +285,16 @@
         doom-modeline-lsp t
         doom-modeline-workspace-name nil
         doom-modeline-persp-name t
-        doom-modeline-bar-width 20
+        doom-modeline-bar-width 10
         doom-modeline-hud t
         doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
-  (custom-set-faces
-   '(mode-line ((t (:family "Menlo" :height 0.85))))))
-   ;; '(mode-line-active ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95)))) ; For 29+
-   ;; '(mode-line-inactive ((t (:family "JetBrainsMono Nerd Font Mono" :height 0.95))))))
+  (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
+        evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
+        evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
+        evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
+        evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
+        evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple")))))
 
 (use-package dashboard
   :config
@@ -537,7 +541,7 @@
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
-  :hook (prog-mode . eglot-ensure)
+  :hook (swift-mode . eglot-ensure)
   :commands (eglot eglot-ensure)
   :ensure nil
   :config

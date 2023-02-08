@@ -140,6 +140,17 @@
           (concat (substring id 0 8) "-" (substring id 6))
         id)))
 
+(defun swift-additions:copy-symbols-for-lsp ()
+  "Copy symbols for LSP to work."
+  (let* ((folder (get-build-folder))
+         (default-directory (concat current-project-root folder))
+         (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
+    (async-shell-command-to-string
+           :process-name "Copying symbols"
+           :command command
+           :callback
+           (lambda (txt)))))
+
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
   (if local-device-id
@@ -166,7 +177,7 @@
     (if-let ((callback callback))
         (funcall callback))))
 
-(cl-defun run-async-command-in-buffer (&key command)
+(cl-defun run-sync-command-in-buffer (&key command)
   "Run async-command in xcodebuild buffer (as COMMAND)."
   (inhibit-sentinel-messages #'async-shell-command command xcodebuild-buffer))
 
@@ -266,6 +277,7 @@
 
 (defun swift-additions:successful-build ()
   "Show that the build was successful."
+  (swift-additions:copy-symbols-for-lsp) 
   (message-with-color :tag "[Building]" :text "successful" :attributes 'success))
 
 ;;;###autoload
@@ -304,6 +316,7 @@
            :command (build-app-command :simulatorId: current-simulator-id)
            :callback
            (lambda (text)
+             (swift-additions:copy-symbols-for-lsp)
              (if runApp
                  (swift-additions:check-for-errors text #'swift-additions:run-app)
                (swift-additions:check-for-errors text #'swift-additions:successful-build)))))

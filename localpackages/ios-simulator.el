@@ -135,10 +135,10 @@
   "Build language menu (as TITLE)."
   (interactive)
   (defconst languageList '(
-                           ("🏴󠁧󠁢󠁥󠁮󠁧󠁿 English (UK)" "en-EN")
+                           ("🏴󠁧󠁢󠁥󠁮󠁧󠁿 English (UK)" "en-UK")
                            ("🇸🇪 Swedish (Sweden)" "sv-SE")
                            ("🇦🇪 Arabic (United Arab Emirates)" "ar-AE")
-                           ("🇸🇦 Arabic (Saudi Arabia)" "ar-SA")
+                           ("🇸🇦 Arabic (Saudi Arabia)" "ar-EG")
                            ("🇫🇷 French (France)" "fr-FR")
                            ("🇳🇱 Dutch (Netherlands)" "nl-NL")
                            ("🇳🇴 Norwegian (Bokmål)" "nb-NO")
