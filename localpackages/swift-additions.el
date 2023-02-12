@@ -92,8 +92,8 @@
 
 (defun get-workspace-or-project ()
   "Check if there is workspace or project."
-  (let ((workspace (workspace-name))
-        (projectname (project-name)))
+  (let ((workspace (swift-additions:workspace-name))
+        (projectname (swift-additions:project-name)))
     (if workspace
         (format "-workspace %s.xcworkspace \\" workspace)
       (format "-project %s.xcodeproj \\" projectname))))
@@ -160,11 +160,10 @@
      :build-folder (get-build-folder)
      :simulatorId (ios-simulator:load-simulator-id)
      :appIdentifier (fetch-or-load-app-identifier)
-     :buffer xcodebuild-buffer
-    )))
+     :buffer xcodebuild-buffer)))
 
 (defun swift-additions:check-for-errors (text &optional callback)
-  "Run periphery parser on TEXT."
+  "Run periphery parser on TEXT (optional CALLBACK)."
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error: ") text)
@@ -181,20 +180,18 @@
   "Run async-command in xcodebuild buffer (as COMMAND)."
   (inhibit-sentinel-messages #'async-shell-command command xcodebuild-buffer))
 
-(defun filename-by-extension (extension)
+(defun swift-additions:filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
-  (let ((name (directory-files current-project-root t extension)))
-    (if name
-        (file-name-sans-extension (file-name-nondirectory (car name)))
-      nil)))
+  (let* ((name (directory-files current-project-root t extension)))
+    (file-name-sans-extension (file-name-nondirectory (car name)))))
 
-(defun project-name ()
+(defun swift-additions:project-name ()
   "Get project name."
-  (filename-by-extension ".xcodeproj"))
+  (swift-additions:filename-by-extension ".xcodeproj"))
 
-(defun workspace-name ()
+(defun swift-additions:workspace-name ()
   "Get workspace name."
-  (filename-by-extension ".xcworkspace"))
+  (swift-additions:filename-by-extension ".xcworkspace"))
 
 (cl-defun get-files-from (&key directory &key extension &key exclude)
   "Get files from DIRECTORY by EXTENSION and EXCLUDE."
@@ -277,8 +274,8 @@
 
 (defun swift-additions:successful-build ()
   "Show that the build was successful."
-  (swift-additions:copy-symbols-for-lsp) 
-  (message-with-color :tag "[Building]" :text "successful" :attributes 'success))
+  (swift-additions:copy-symbols-for-lsp)
+  (message-with-color :tag "[Build]" :text "Successful" :attributes 'success))
 
 ;;;###autoload
 (defun swift-additions:run-without-compiling ()
@@ -380,7 +377,6 @@
     (newline-and-indent)
     (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
 
-;;;###autoload
 (defun insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."
   (save-excursion
@@ -414,6 +410,7 @@
   "Get bundle identifier (as CONFIG)."
   (unless current-project-root
     (setq current-project-root (get-ios-project-root)))
+  
   (let* ((default-directory current-project-root)
          (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
     (let-alist (seq-elt json 0)
@@ -428,9 +425,8 @@
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root)))
-
-  (message-with-color :tag "[Fetching]" :text "app targets.." :attributes '(:inherit warning))
+    (setq current-project-root (get-ios-project-root))
+    (message-with-color :tag "[Fetching]" :text "app targets.." :attributes '(:inherit warning)))
 
   (let* ((default-directory current-project-root)
          (json (swift-additions:get-buildconfiguration-json))
@@ -441,9 +437,8 @@
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root)))
-
-  (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning))
+    (setq current-project-root (get-ios-project-root))
+    (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning)))
 
   (let* ((default-directory current-project-root)
          (json (swift-additions:get-buildconfiguration-json))
@@ -453,10 +448,11 @@
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
-  (message-with-color :tag "[Fetching]" :text "build configurations.." :attributes '(:inherit warning))
 
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root)))
+    (setq current-project-root (get-ios-project-root))
+    (message-with-color :tag "[Fetching]" :text "build configurations.." :attributes '(:inherit warning)))
+  
   (let* ((default-directory current-project-root)
          (json (swift-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
@@ -493,7 +489,6 @@
   "Check for Swift package build erros in TEXT."
   (when DEBUG (message text))
   (if (or
-       (string-match-p (regexp-quote "BUILD FAILED") text)
        (string-match-p (regexp-quote "error:") text)
        (string-match-p (regexp-quote "warning:") text))
       (progn
@@ -501,7 +496,6 @@
         (when (not (string-match-p (regexp-quote "error:") text))
           (shell-command "swift run" xcodebuild-buffer)))
     (shell-command "swift run" xcodebuild-buffer)))
-
 
 ;;;###autoload
 (defun swift-additions:build-swift-package ()

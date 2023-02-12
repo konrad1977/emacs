@@ -4,8 +4,6 @@
 
 ;;; Code:
 
-;;; Text and animations
-
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
   (string-trim-left
@@ -102,4 +100,5 @@ ARGS are rest arguments, appended to the argument list."
     (json-read)))
 
 (provide 'periphery-helper)
+
 ;;; periphery-helper.el ends here

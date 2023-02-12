@@ -20,7 +20,8 @@
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
-(pixel-scroll-precision-mode 1)
+;;  (pixel-scroll-precision-mode 1)
+;; (pixel-scroll-mode)
 
 (setq ad-redefinition-action            'accept
       auto-revert-check-vc-info         t
@@ -74,10 +75,10 @@
         mac-command-modifier 'meta
         mac-option-modifier 'none
         dired-use-ls-dired nil
-        ns-use-native-fullscreen t
+        pixel-scroll-precision-use-momentum t
         browse-url-browser-function #'mk/browser-split-window)
   
-  (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
+  ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . t))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
@@ -139,7 +140,12 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error nil))
+        debug-on-error t))
+
+;; (use-package gcmh
+;;   :config
+;;   (gcmh-mode 1))
+
 
 (use-package benchmark-init
   :config
@@ -166,7 +172,7 @@
   (vertico-multiform-mode)
   (vertico-indexed-mode)
   (setq vertico-resize t
-        vertico-count 15
+        vertico-count 10
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t))
@@ -497,15 +503,6 @@
 (use-package rainbow-mode
   :hook (emacs-lisp-mode . rainbow-mode))
 
-(use-package paren
-  :hook (prog-mode . show-paren-mode)
-  :config
-  (setq show-paren-delay 0.2
-        show-paren-highlight-openparen t
-        show-paren-when-point-inside-paren t
-        show-paren-ring-bell-on-mismatch t
-        show-paren-when-point-in-periphery t))
-
 (use-package tree-sitter
   :hook (swift-mode . tree-sitter-mode)
   :config
@@ -555,7 +552,9 @@
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package flycheck-eglot
-  :hook (prog-mode . flycheck-eglot-mode))
+  :hook (prog-mode . global-flycheck-eglot-mode)
+  :config
+  (setq flycheck-eglot-exclusive nil))
 
 (use-package kind-icon
   :after corfu
@@ -582,6 +581,7 @@
   (setq corfu-popupinfo-delay 0.5
         corfu-bar-width 1
         corfu-scroll-margin 2
+        corfu-auto-prefix 2
         corfu-min-width 70
         corfu-max-width 130
         corfu-popupinfo-resize t
@@ -663,6 +663,7 @@
 
 (use-package treemacs-magit
   :after treemacs magit)
+
 (use-package treemacs-evil
   :after (treemacs evil))
 
@@ -686,10 +687,12 @@
   (flycheck-check-syntax-automatically '(save idle-change))
   (flycheck-idle-change-delay 1.0))
 
-
-
 (use-package flycheck-posframe
-  :hook (flycheck-mode . flycheck-posframe-mode))
+  :hook (flycheck-mode . flycheck-posframe-mode)
+  :config
+  (setq flycheck-posframe-warning-prefix "● "
+        flycheck-posframe-error-prefix "● "
+        flycheck-posframe-info-prefix "● "))
 
 (use-package markdown-mode
   :defer t)
@@ -720,10 +723,6 @@
           "pods"
           "xcodeproj"
           ".build")))
-
-(use-package gcmh
-  :config
-  (gcmh-mode 1))
 
 ;; Restart emacs
 (use-package restart-emacs
@@ -1099,9 +1098,9 @@
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
   ("C-c C-c" . #'swift-additions:compile-and-run-app)
+  ("M-B" . #'swift-additions:run-without-compiling)
   ("M-b" . #'swift-additions:compile-app)
   ("M-r" . #'swift-additions:compile-and-run-app)
-  ("M-B" . #'swift-additions:run-without-compiling)
   ("C-c C-x" . #'swift-additions:reset-settings))
 
 (use-package apple-docs-query
@@ -1157,17 +1156,16 @@
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
 
-  (use-package flycheck-swift3
-    :after flycheck
-    :custom (flycheck-swift3-setup))
+  ;; (use-package flycheck-swift3
+  ;;   :after flycheck
+  ;;   :custom (flycheck-swift3-setup))
   
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
 
-  (add-to-list 'flycheck-checkers 'swift3)
-  (add-to-list 'flycheck-checkers 'swiftlint)
-  (flycheck-add-next-checker 'swiftlint 'swift3)
+   ;; (add-to-list 'flycheck-checkers 'eglot-check)
+    (add-to-list 'flycheck-checkers 'swiftlint)
   
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
