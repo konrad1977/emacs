@@ -6,8 +6,6 @@
 
 ;;; code:
 
-;; (require 'dash)
-;; (require 'cl-lib)
 (require 'flycheck)
 (require 'projectile)
 (require 'periphery-helper)
@@ -35,33 +33,28 @@
 (defvar secondary-simulator-id nil)
 (defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
-(defvar asked-to-use-secondary-simulator t)
 (defvar local-device-id nil)
-(defvar DEBUG nil)
+(defvar DEBUG t)
 
-(defun fetch-targets ()
-  "Select the target."
-  (build-menu :title "Choose target" :list (swift-additions:get-target-list)))
-
-(defun fetch-or-load-xcode-scheme ()
+(defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
   (unless current-xcode-scheme
-    (setq current-xcode-scheme (build-menu :title "Choose a scheme" :list (swift-additions:get-scheme-list))))
+    (setq current-xcode-scheme (swift-additions:build-menu :title "Choose a scheme" :list (swift-additions:get-scheme-list))))
   current-xcode-scheme)
 
-(defun fetch-or-load-build-configuration ()
+(defun swift-additions:fetch-or-load-build-configuration ()
   "Get the build configuration or promp user."
   (unless current-build-configuration
-    (setq current-build-configuration (build-menu :title "Choose a configuration" :list (swift-additions:get-configuration-list))))
+    (setq current-build-configuration (swift-additions:build-menu :title "Choose a configuration" :list (swift-additions:get-configuration-list))))
   current-build-configuration)
 
-(defun fetch-or-load-app-identifier ()
+(defun swift-additions:fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."
   (unless current-app-identifier
-    (setq current-app-identifier (swift-additions:get-bundle-identifier (fetch-or-load-build-configuration))))
+    (setq current-app-identifier (swift-additions:get-bundle-identifier (swift-additions:fetch-or-load-build-configuration))))
   current-app-identifier)
 
-(defun setup-current-project (project)
+(defun swift-additions:setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
   (unless current-project-root
     (setq current-project-root project))
@@ -71,26 +64,26 @@
         (swift-additions:reset-settings)
         (setq current-project-root project))))
 
-(defun xcodebuild-command ()
+(defun swift-additions:xcodebuild-command ()
   "Use x86 environement."
   (if current-environment-x86
       "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
     "xcrun xcodebuild build\\"))
 
-(defun get-build-folder ()
+(defun swift-additions:get-build-folder ()
   "Fetch build folder."
-  (let ((config (fetch-or-load-build-configuration)))
+  (let ((config (swift-additions:fetch-or-load-build-configuration)))
     (if local-device-id
         (format "build/Build/Products/%s-iphoneos/" config)
       (format "build/Build/Products/%s-iphonesimulator/" config))))
 
-(defun get-number-of-cores ()
+(defun swift-additions:get-number-of-cores ()
   "Fetch number of available cores."
   (if-let ((cores (replace-regexp-in-string "\n$" "" (shell-command-to-string "sysctl -n hw.ncpu"))))
       cores
     2))
 
-(defun get-workspace-or-project ()
+(defun swift-additions:get-workspace-or-project ()
   "Check if there is workspace or project."
   (let ((workspace (swift-additions:workspace-name))
         (projectname (swift-additions:project-name)))
@@ -99,18 +92,18 @@
       (format "-project %s.xcodeproj \\" projectname))))
 
 (cl-defun build-app-command (&simulatorId simulatorId)
-  "Xcodebuild with (as SIMULATORID as DEVICEID)."
+  "Xcodebuild with (as SIMULATORID)."
   (concat
-   (xcodebuild-command)
-   (get-workspace-or-project)
-   (format "-scheme '%s' \\" (fetch-or-load-xcode-scheme))
-   (format "-configuration %s \\" (fetch-or-load-build-configuration))
-   (format "-jobs %s \\" (get-number-of-cores))
-   (format "-sdk %s \\" (get-current-sdk))
+   (swift-additions:xcodebuild-command)
+   (swift-additions:get-workspace-or-project)
+   (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
+   (format "-configuration %s \\" (swift-additions:fetch-or-load-build-configuration))
+   (format "-jobs %s \\" (swift-additions:get-number-of-cores))
+   (format "-sdk %s \\" (swift-additions:get-current-sdk))
    (if simulatorId
        (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId)
      (format "-destination 'generic/platform=iOS' \\" ))
-   "-UseModernBuildSystem=NO \\"
+   "-UseModernBuildSystem=YES \\"
    "-destination-timeout 1 \\"
    "-scmProvider system \\"
    "-skipUnavailableActions \\"
@@ -118,21 +111,11 @@
    "-hideShellScriptEnvironment \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
    "-quiet \\"
-   "-derivedDataPath build"))
+   ;; (format "-derivedDataPath %s \\" (swift-additions:full-build-folder))
+   "-derivedDataPath \\"
+   "build"))
 
-(defun get-index-store-path ()
-  "Get the index store path."
-  (let ((index-store-path (concat current-project-root "build/Index/DataStore")))
-    (if (file-directory-p index-store-path)
-        index-store-path
-      nil)))
-
-(cl-defun parse-errors-from (&key text)
-  "Parse errors from TEXT."
-  (when DEBUG (message (concat "Errors:" text)))
-  (periphery-run-parser text (lambda () )))
-
-(defun format-device-id (id)
+(defun swift-additions:format-device-id (id)
   "Format device id (as ID)."
   (if id
       (if (not
@@ -140,10 +123,15 @@
           (concat (substring id 0 8) "-" (substring id 6))
         id)))
 
+(defun swift-additions:full-build-folder ()
+  "Full path to to the build folder."
+  (let* ((folder (swift-additions:get-build-folder))
+         (default-directory (concat current-project-root folder)))
+    default-directory))
+
 (defun swift-additions:copy-symbols-for-lsp ()
   "Copy symbols for LSP to work."
-  (let* ((folder (get-build-folder))
-         (default-directory (concat current-project-root folder))
+  (let* ((default-directory (swift-additions:full-build-folder))
          (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
     (async-shell-command-to-string
            :process-name "Copying symbols"
@@ -157,9 +145,9 @@
       (swift-additions:install-app-on-device)
     (ios-simulator:install-and-run-app
      :rootfolder current-project-root
-     :build-folder (get-build-folder)
+     :build-folder (swift-additions:get-build-folder)
      :simulatorId (ios-simulator:load-simulator-id)
-     :appIdentifier (fetch-or-load-app-identifier)
+     :appIdentifier (swift-additions:fetch-or-load-app-identifier)
      :buffer xcodebuild-buffer)))
 
 (defun swift-additions:check-for-errors (text &optional callback)
@@ -214,7 +202,7 @@
         (file-name-directory (directory-file-name path))
       path)))
 
-(defun get-ios-project-root ()
+(defun swift-additions:get-ios-project-root ()
   "Get the current root of the project."
   (let* ((workspace (find-project-root-folder-with :extension ".xcworkspace"))
          (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
@@ -227,13 +215,9 @@
           (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
     (if (= (length device-id) 0)
         nil
-      (format-device-id device-id))))
+      (swift-additions:format-device-id device-id))))
 
-(cl-defun show-notification (&key title &key message)
-  "Show notification (as TITLE as MESSAGE)."
-  (shell-command (format "%s -title \"%s\" -message \"%s\"" notifier-command title message)))
-
-(defun get-current-sdk ()
+(defun swift-additions:get-current-sdk ()
   "Return the current SDK."
   (if local-device-id
       "iphoneos"
@@ -241,9 +225,9 @@
 
 (defun swift-additions:install-app-on-device ()
   "Install an app on device."
-  (when DEBUG (message (concat "Buildpath:" (get-build-folder))))
+  (when DEBUG (message (concat "Buildpath:" (swift-additions:get-build-folder))))
 
-  (let* ((folder (get-build-folder))
+  (let* ((folder (swift-additions:get-build-folder))
          (app-name (ios-simulator:app-name-from :folder folder))
          (default-directory (concat current-project-root folder)))
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
@@ -304,9 +288,10 @@
   (swift-additions:kill-xcode-buffer)
   (ios-simulator:load-simulator-id)
   (setq device-or-simulator "[Building simulator target]")
-  (if (is-xcodeproject)
+
+  (if (swift-additions:is-xcodeproject)
       (progn
-        (setup-current-project (get-ios-project-root))
+        (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
         (let ((default-directory current-project-root))
           (async-shell-command-to-string
            :process-name "periphery"
@@ -322,7 +307,7 @@
          :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
          :attributes 'warning
          :times 2))
-    (if (is-a-swift-package-base-project)
+    (if (swift-additions:is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
       (message "Not xcodeproject nor swift package"))))
 
@@ -339,9 +324,9 @@
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (if (is-a-swift-package-base-project)
+  (if (swift-additions:is-a-swift-package-base-project)
       (swift-additions:clean-build-folder-with (projectile-project-root) ".build" "swift package")
-    (swift-additions:clean-build-folder-with (get-ios-project-root) "build" current-xcode-scheme)))
+    (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "build" current-xcode-scheme)))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
   "Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
@@ -361,6 +346,15 @@
       (goto-char (point-max))
       (search-backward string nil t))))
 
+(defun swift-additions:insert-text-and-go-to-eol (text)
+  "Function that that insert (as TEXT) and go to end of line."
+  (save-excursion
+    (indent-for-tab-command)
+    (insert text)
+    (move-end-of-line nil))
+  (goto-char (point-at-eol))
+  (evil-insert-state t))
+
 ;;;###autoload
 (defun swift-additions:functions-and-pragmas ()
   "Show swift file compressed functions and pragmas."
@@ -377,26 +371,18 @@
     (newline-and-indent)
     (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
 
-(defun insert-text-and-go-to-eol (text)
-  "Function that that insert (as TEXT) and go to end of line."
-  (save-excursion
-    (indent-for-tab-command)
-    (insert text)
-    (move-end-of-line nil))
-  (goto-char (point-at-eol))
-  (evil-insert-state t))
 
 ;;;###autoload
 (defun swift-additions:insert-mark ()
   "Insert a mark at line."
   (interactive)
-  (insert-text-and-go-to-eol "// MARK: - "))
+  (swift-additions:insert-text-and-go-to-eol "// MARK: - "))
 
 ;;;###autoload
 (defun swift-additions:insert-todo ()
   "Insert a Todo."
   (interactive)
-  (insert-text-and-go-to-eol "// TODO: "))
+  (swift-additions:insert-text-and-go-to-eol "// TODO: "))
 
 ;;;###autoload
 (defun swift-additions:toggle-xcodebuild-buffer ()
@@ -409,7 +395,7 @@
 (defun swift-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root)))
+    (setq current-project-root (swift-additions:get-ios-project-root)))
   
   (let* ((default-directory current-project-root)
          (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
@@ -425,7 +411,7 @@
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root))
+    (setq current-project-root (swift-additions:get-ios-project-root))
     (message-with-color :tag "[Fetching]" :text "app targets.." :attributes '(:inherit warning)))
 
   (let* ((default-directory current-project-root)
@@ -437,7 +423,7 @@
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root))
+    (setq current-project-root (swift-additions:get-ios-project-root))
     (message-with-color :tag "[Fetching]" :text "build schemes.." :attributes '(:inherit warning)))
 
   (let* ((default-directory current-project-root)
@@ -450,7 +436,7 @@
   "Get list of project configurations."
 
   (unless current-project-root
-    (setq current-project-root (get-ios-project-root))
+    (setq current-project-root (swift-additions:get-ios-project-root))
     (message-with-color :tag "[Fetching]" :text "build configurations.." :attributes '(:inherit warning)))
   
   (let* ((default-directory current-project-root)
@@ -459,7 +445,7 @@
          (result (cdr (assoc 'configurations project))))
     result))
 
-(cl-defun build-menu (&key title &key list)
+(cl-defun swift-additions:build-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
   (if (<= (length list) 1)
       (elt list 0)
@@ -473,14 +459,14 @@
   (when (get-buffer xcodebuild-buffer)
     (kill-buffer xcodebuild-buffer)))
 
-(defun is-xcodeproject ()
+(defun swift-additions:is-xcodeproject ()
   "Check if its an xcode-project."
-  (if-let ((default-directory (get-ios-project-root)))
+  (if-let ((default-directory (swift-additions:get-ios-project-root)))
       (or
        (directory-files-recursively default-directory "\\xcworkspace$" t)
        (directory-files-recursively default-directory "\\xcodeproj$" t))))
 
-(defun is-a-swift-package-base-project ()
+(defun swift-additions:is-a-swift-package-base-project ()
   "Check if project is a swift package based."
   (let ((default-directory (projectile-project-root)))
     (file-exists-p "Package.swift")))
@@ -578,7 +564,6 @@
                                     (zerop squares) (zerop curlies))
                            (setq comma t)))))))))
       (error (user-error "Cannot parse function decl or call here")))))
-
 
 (defface tree-sitter-hl-face:repeat
   '((t :inherit tree-sitter-hl-face:keyword

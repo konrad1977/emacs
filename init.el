@@ -5,9 +5,9 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 168)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 168)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 168)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 164)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 164)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 164)
 
 ;; (set-face-attribute 'default nil :font "Fira Code" :height 168)
 ;; (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 168)
@@ -20,7 +20,7 @@
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
-;;  (pixel-scroll-precision-mode 1)
+;; (pixel-scroll-precision-mode 1)
 ;; (pixel-scroll-mode)
 
 (setq ad-redefinition-action            'accept
@@ -35,20 +35,18 @@
       echo-keystrokes                   0.2
       confirm-kill-emacs                'y-or-n-p
       ediff-split-window-function       'split-window-horizontally
-      fast-but-imprecise-scrolling      t
       find-file-visit-truename          t
       font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
-      idle-update-delay                 1.1    ;; Speed things up by not updating so often
-      jit-lock-defer-time               0.0
+      jit-lock-defer-time               nil
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       scroll-margin                     1   ;; scroll N to screen edge
       load-prefer-newer                 t
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
-      max-lisp-eval-depth 10000
-      auto-mode-case-fold nil
+      max-lisp-eval-depth               5400
+      auto-mode-case-fold               t
       truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
@@ -77,9 +75,9 @@
         dired-use-ls-dired nil
         pixel-scroll-precision-use-momentum t
         browse-url-browser-function #'mk/browser-split-window)
-  
+
   ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
-  (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  ;; (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . t))
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 (put 'narrow-to-page 'disabled nil)
@@ -89,7 +87,7 @@
 (setq auto-save-list-file-prefix (concat my-auto-save-folder ".saves-")
       auto-save-file-name-transforms `((".*", my-auto-save-folder t))
       custom-file (concat user-emacs-directory "var/custom.el"))
-      
+
 ;; Initialize package sources
 (require 'package)
 ;; (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -104,6 +102,10 @@
     (package-refresh-contents))
   (package-install 'use-package))
 
+;; (setq quelpa-update-melpa-p nil)
+;; (package-install 'quelpa-use-package)
+;; (require 'quelpa-use-package)
+
 (require 'use-package)
 
 (defconst jetbrains-ligature-mode--ligatures
@@ -111,8 +113,8 @@
      "<=>" "==" "!=" "<=" ">=" "=:=" "!==" "&&" "||" "..." ".."
      "|||" "///" "&&&" "===" "++" "--" "=>" "|>" "<|" "||>" "<||"
      "|||>" "<|||" ">>" "<<" "::=" "|]" "[|" "{|" "|}"
-     "[<" ">]" ":?>" ":?" "/=" "[||]" "!!" "?:" "?." "::"
-     "+++" "??" "###" "##" ":::" "####" ".?" "?=" "=!=" "<|>"
+     "[<" ">]" ":?>" ":?" "/=" "[||]" "!!" "?:" "::"
+     "+++" "###" "##" ":::" "####" "?=" "=!=" "<|>"
      "<:" ":<" ":>" ">:" "<>" "***" ";;" "/==" ".=" ".-" "__"
      "=/=" "<-<" "<<<" ">>>" "<=<" "<<=" "<==" "<==>" "==>" "=>>"
      ">=>" ">>=" ">>-" ">-" "<~>" "-<" "-<<" "=<<" "---" "<-|"
@@ -140,16 +142,26 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error t))
+        debug-on-error nil))
 
-;; (use-package gcmh
-;;   :config
-;;   (gcmh-mode 1))
+;; (use-package treesit
+;;   :ensure nil
+;;   :hook (prog-mode . treesit-hl-toggle))
 
-
-(use-package benchmark-init
+;; (use-package treesit-langs
+;;   :ensure nil
+;;   :unless (version< emacs-version "29")
+;;   :quelpa (treesit-langs :fetcher github :repo "kiennq/treesit-langs"
+;;                          :files ("tree-sitter-langs-build.el"
+;;                                  "treesit-*.el"
+;;                                  "queries")))
+(use-package gcmh
   :config
-  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+  (gcmh-mode 1))
+
+;; (use-package benchmark-init
+;;   :config
+;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -195,7 +207,7 @@
         vertico-posframe-truncate-lines t
         vertico-posframe-width 150
         vertico-posframe-min-height 1
-        vertico-posframe-border-width 1))
+        vertico-posframe-border-width 2))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -320,50 +332,13 @@
    dashboard-projects-item-format "%s"
    dashboard-recentf-item-format "%s"
    dashboard-set-heading-icons nil
-   dashboard-items '(
-                     (recents . 8)
-                     (projects . 2)
-                     )
-   ;; dashboard-navigator-buttons
-   ;; `(;; line1
-   ;;   ;; Keybindings
-   ;;   ((,(all-the-icons-octicon "settings" :height 1.2 :v-adjust -0.1)
-   ;;     "Settings\t" nil
-   ;;     (lambda (&rest _) (open-config-file)) nil "" "\tSPC f e"))
-
-   ;;   ((,(all-the-icons-octicon "search" :height 1.2 :v-adjust -0.1)
-   ;;     "Find files" nil
-   ;;     (lambda (&rest _) (find-file)) nil "" "\tSPC f f"))
-     
-   ;;   ((,(all-the-icons-octicon "file-binary" :height 1.2 :v-adjust -0.1)
-   ;;     "Recent \t" nil
-   ;;     (lambda (&rest _) (consult-recent-files)) nil "" "\tSPC f r"))
-     
-   ;;   ((,(all-the-icons-octicon "package" :height 1.2 :v-adjust -0.1)
-   ;;     "Open project" nil
-   ;;     (lambda (&rest _) (projectile-switch-project)) nil "" "\tSPC p s"))
-
-   ;;   ((,(all-the-icons-octicon "file-text" :height 1.2 :v-adjust -0.1)
-   ;;     "Scratch\t" nil
-   ;;     (lambda (&rest _) (switch-to-buffer "*scratch*")) nil "" "\tSPC b s"))
-
-   ;;   ((,(all-the-icons-octicon "bug" :height 1.2 :v-adjust -0.1)
-   ;;     "Elfeed\t" nil
-   ;;     (lambda (&rest _) (elfeed)) nil "" "\tSPC a a"))
-
-   ;;   ((,(all-the-icons-octicon "dashboard" :height 1.2 :v-adjust -0.1)
-   ;;     "Google\t" nil
-   ;;     (lambda (&rest _) (google-this)) nil "" "\tSPC g g"))
-
-   ;;   ((,(all-the-icons-octicon "calendar" :height 1.2 :v-adjust -0.1)
-   ;;     "Calendar\t" nil
-   ;;     (lambda (&rest _) (calendar)) nil "" "\tSPC c c"))
-   ;;   )
-   ))
+   dashboard-items '((recents . 8)
+                     (projects . 2))))
 
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :bind
+  ("C-x C-c" . describe-char)
   ([remap describe-command] . helpful-command)
   ([remap describe-key] . helpful-key))
 
@@ -391,7 +366,7 @@
 
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-go-back)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
-  
+
   (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
   ;; searching
@@ -414,6 +389,8 @@
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
+  ;; (define-key evil-normal-state-map (kbd "C-+") #'text-scale-increase)
+  ;; (define-key evil-normal-state-map (kbd "C--") #'text-scale-decrease)
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
 
 (use-package evil-multiedit
@@ -491,7 +468,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook (prog-mode . svg-tag-mode)
+  :hook (prog-mode . global-svg-tag-mode)
   :config
   (require 'periphery)
   (setq svg-tag-tags (periphery-svg-tags)))
@@ -548,7 +525,7 @@
         eglot-extend-to-xref t
         eglot-events-buffer-size nil
         eglot-send-changes-idle-time 0.5
-        eglot-ignored-server-capabilities '(:hoverProvider))
+       eglot-ignored-server-capabilities '(:hoverProvider))
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package flycheck-eglot
@@ -561,8 +538,10 @@
   :custom
   (kind-icon-use-icons nil)
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.15)
+  (kind-icon-blend-frac 0.05)
   :config
+  (defconst kind-icon--unknown
+    (propertize " ✪ " 'face '(:weight bold :background "#000")))
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
@@ -579,14 +558,15 @@
   (completion-styles '(orderless))
   :init
   (setq corfu-popupinfo-delay 0.5
-        corfu-bar-width 1
+        corfu-bar-width 2
         corfu-scroll-margin 2
         corfu-auto-prefix 2
         corfu-min-width 70
         corfu-max-width 130
         corfu-popupinfo-resize t
-        corfu-count 12
-        corfu-preview-current nil
+        corfu-count 10
+        corfu-auto-delay 0.5
+        corfu-preview-current t
         corfu-popupinfo-hide nil
         corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-resize t
@@ -683,14 +663,13 @@
   :diminish t
   :custom
   (flycheck-indication-mode 'left-fringe)
-  (flycheck-display-errors-delay 0.2)
-  (flycheck-check-syntax-automatically '(save idle-change))
-  (flycheck-idle-change-delay 1.0))
+  (flycheck-check-syntax-automatically '(save idle-change)))
 
 (use-package flycheck-posframe
   :hook (flycheck-mode . flycheck-posframe-mode)
   :config
-  (setq flycheck-posframe-warning-prefix "● "
+  (setq flycheck-posframe-position 'frame-top-center
+        flycheck-posframe-warning-prefix "● "
         flycheck-posframe-error-prefix "● "
         flycheck-posframe-info-prefix "● "))
 
@@ -702,12 +681,12 @@
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
-  :bind 
+  :bind
   ("M-O" . projectile-find-file-dwim)
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
-  :custom                               
+  :custom
   (setq projectile-completion-system 'auto
         projectile-enable-caching nil
         projectile-sort-order 'access-time
@@ -787,7 +766,7 @@
   ("M-4" . winum-select-window-4)
   ("M-5" . winum-select-window-5)
   ("M-6" . winum-select-window-6)
-  :config 
+  :config
   (setq winum-auto-setup-mode-line t)
   :init
   (winum-mode 1))
@@ -874,13 +853,13 @@
 
   (mk/leader-keys
     "aa" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
-  
+
   (mk/leader-keys
     "gg" '(google-this :which-key "Google this"))
-  
+
   (mk/leader-keys
     "cc" '(calendar :which-key "Calendar"))
-  
+
   (mk/leader-keys
     "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer")
     "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer"))
@@ -960,14 +939,14 @@
   (if org-timer-pause-time
       nil
     (setq org-timer-mode-line-string
-	  (concat "🍅 " (substring (org-timer-value-string) 0 -1) ""))
+      (concat "🍅 " (substring (org-timer-value-string) 0 -1) ""))
     (force-mode-line-update)))
 
 (with-eval-after-load 'org
   (mk/org-mode-setup)
 
   (advice-add 'org-timer-update-mode-line :override #'mk/org-timer-update-mode-line)
-  
+
   (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
 
@@ -1014,11 +993,11 @@
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-(use-package visual-fill-column
-  :hook ((org-mode . visual-fill-column-mode))
-  :config
-  (setq visual-fill-column-width 120
-        visual-fill-column-center-text t))
+;; (use-package visual-fill-column
+;;   :hook ((org-mode . visual-fill-column-mode))
+;;   :config
+;;   (setq visual-fill-column-width 120
+;;         visual-fill-column-center-text t))
 
 (use-package elfeed
   :commands elfeed
@@ -1037,11 +1016,13 @@
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
 
-;; (use-package highlight-indent-guides
-;;   :hook (prog-mode . highlight-indent-guides-mode)
-;;   :custom (highlight-indent-guides-method 'bitmap)
-;;           (highlight-indent-guides-responsive 'top)
-;;           (highlight-indent-guides-auto-enabled t))
+(use-package highlight-indent-guides
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'bitmap)
+  (setq highlight-indent-guides-responsive 'stack)
+ ;; (setq highlight-indent-guides-method 'bitmap)
+  )
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
@@ -1078,7 +1059,7 @@
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
         swift-mode:highlight-anchor t
-	    swift-mode:multiline-statement-offset 2))
+        swift-mode:multiline-statement-offset 2))
 
 (use-package ios-simulator
   :ensure nil
@@ -1159,20 +1140,20 @@
   ;; (use-package flycheck-swift3
   ;;   :after flycheck
   ;;   :custom (flycheck-swift3-setup))
-  
+
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
 
    ;; (add-to-list 'flycheck-checkers 'eglot-check)
     (add-to-list 'flycheck-checkers 'swiftlint)
-  
+
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
                                        (cape-company-to-capf #'company-tabnine)
                                        ;; #'cape-dabbrev
-                                       ;; (cape-company-to-capf #'company-yasnippet)
+                                       (cape-company-to-capf #'company-yasnippet)
                                        ))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
@@ -1286,6 +1267,45 @@
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot+dumb)) pattern)
   (xref-backend-apropos 'eglot pattern))
+
+(defface tree-sitter-hl-face:case-pattern
+  '((t :inherit tree-sitter-hl-face:property))
+  "Face for enum case names in a pattern match"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:comment.special
+  '((t :inherit tree-sitter-hl-face:comment
+       :weight semi-bold))
+  "Face for comments with some markup-like meaning, like MARK"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:operator.special
+  '((t :inherit font-lock-negation-char-face
+       :weight semi-bold))
+  "Face for operators that need to stand out, like unary negation"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:punctuation.type
+  '((t :inherit tree-sitter-hl-face:type
+       :weight normal))
+  "Face for punctuation in type names (?, [], etc.)"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:keyword.compiler
+  '((t :inherit tree-sitter-hl-face:keyword
+       :weight semi-bold))
+  "Face for compile-time keywords"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:variable.synthesized
+  '((t :inherit tree-sitter-hl-face:variable))
+  "Face for compiler-synthesized identifiers (prefixed with '$')"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:default
+  '((t :inherit default))
+  "Face to override other faces"
+  :group 'tree-sitter-hl-faces)
 
 (provide 'init)
 
