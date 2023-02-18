@@ -45,8 +45,8 @@
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
-      max-lisp-eval-depth               5400
-      auto-mode-case-fold               t
+      max-lisp-eval-depth               10000
+      auto-mode-case-fold               nil
       truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
@@ -57,6 +57,7 @@
               ediff-forward-word-function   'forward-char
               tab-width                     4            ;: Use four tabs
               line-spacing                  0.0         ;; Increase linespacing a bit
+              inhibit-compacting-font-caches t
               truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
@@ -468,7 +469,7 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook (prog-mode . global-svg-tag-mode)
+  :hook (prog-mode . svg-tag-mode)
   :config
   (require 'periphery)
   (setq svg-tag-tags (periphery-svg-tags)))
@@ -1197,8 +1198,7 @@
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
-        display-line-numbers 'relative)   ;; Show line numbers
-  )
+        display-line-numbers 'relative))   ;; Show line numbers
 
 (defun mk/setup-flycheck ()
   "Setup margins for flycheck."
@@ -1235,7 +1235,6 @@
 (defun mk/recompile (&optional force)
   "Recompile files (as FORCE) force compilation."
   (interactive "p")
-  ;; (byte-recompile-directory (locate-user-emacs-file "") 0)
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 

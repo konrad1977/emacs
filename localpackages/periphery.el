@@ -461,6 +461,7 @@
 (defun parse--search-query (text query)
   "Parse error and notes (as TEXT) and QUERY."
   (setq default-length 6)
+  (setq-local case-fold-search nil) ;; Make regex case sensitive
   (save-match-data
     (and (string-match periphery-parse-search text)
          (let* ((file (match-string 1 text))

@@ -8,6 +8,11 @@
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
+(prefer-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+
 (setq-default frame-inhibit-implied-resize t
               frame-resize-pixelwise nil
               frame-title-format nil

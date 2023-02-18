@@ -94,7 +94,7 @@
   "Search using rg (ripgrep)."
   (interactive)
   (setup-search-title)
-  (periphery--search-thing-at-point "rg -e"))
+  (periphery--search-thing-at-point "rg -w -s -e"))
 
 (provide 'periphery-search)
 ;;; periphery-search.el ends here.
