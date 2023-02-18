@@ -164,10 +164,6 @@
     (if-let ((callback callback))
         (funcall callback))))
 
-(cl-defun run-sync-command-in-buffer (&key command)
-  "Run async-command in xcodebuild buffer (as COMMAND)."
-  (inhibit-sentinel-messages #'async-shell-command command xcodebuild-buffer))
-
 (defun swift-additions:filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
   (let* ((name (directory-files current-project-root t extension)))
@@ -181,7 +177,7 @@
   "Get workspace name."
   (swift-additions:filename-by-extension ".xcworkspace"))
 
-(cl-defun get-files-from (&key directory &key extension &key exclude)
+(cl-defun swift-additions:get-files-from (&key directory &key extension &key exclude)
   "Get files from DIRECTORY by EXTENSION and EXCLUDE."
   (let ((result '()))
     (mapcar (lambda (x)
@@ -195,7 +191,7 @@
   "Find project folder where it has its project files EXTENSION."
   (let* ((project-root (expand-file-name (projectile-project-root)))
          (root (directory-files project-root nil (format "\\%s$" extension) 1))
-            (subroot (get-files-from :directory project-root :extension extension :exclude ".build"))
+            (subroot (swift-additions:get-files-from :directory project-root :extension extension :exclude ".build"))
             (workroot (or root subroot))
             (path (file-name-directory (car-safe workroot))))
     (if (and path (string-match-p (regexp-quote ".xcodeproj") path))
