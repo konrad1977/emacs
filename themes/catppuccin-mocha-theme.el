@@ -111,7 +111,7 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground maroon))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background mantle :foreground text :distant-background crust :italic t))
+  (highlight-symbol-face                (:background surface2 :foreground text))
   (info-xref                            (:foreground yellow))
 
   (minibuffer-prompt-end                (:foreground red))
