@@ -367,7 +367,6 @@
     (newline-and-indent)
     (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
 
-
 ;;;###autoload
 (defun swift-additions:insert-mark ()
   "Insert a mark at line."

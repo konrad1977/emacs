@@ -4,6 +4,26 @@
 
 ;;; Code:
 
+(require 'async)
+(require 'json)
+
+;;;###autoload
+(cl-defun async-start-shell-command-to-json (&key command &key callback)
+  "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
+  (async-start-command-to-string
+   :command command
+   :callback (lambda (result)
+               (let* ((json-object (json-read-from-string result)))
+                 (funcall ,callback json-object)))))
+
+(cl-defun async-start-command-to-string (&key command &key callback)
+  "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
+  (async-start
+   `(lambda ()
+      (shell-command-to-string ,command))
+   `(lambda (result)
+        (funcall ,callback result))))
+
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
   (string-trim-left
