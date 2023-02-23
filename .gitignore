@@ -1,0 +1,11 @@
+/var/
+/transient/
+/themes/.DS_Store
+/recentf
+/quelpa/
+/projectile-bookmarks.eld
+/places
+*.DS_Store
+/Not used/
+/elpa/
+/history
