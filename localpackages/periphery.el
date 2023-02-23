@@ -104,7 +104,7 @@
   :group 'periphery)
 
 (defface periphery-mark-face-full
-  '((t (:foreground "#252538" :bold t :background "#7373B5" :distant-foreground  "#575787")))
+  '((t (:foreground "#313244" :bold t :background "#9399b2" :distant-foreground "#9399b2")))
   "Performance face."
   :group 'periphery)
 

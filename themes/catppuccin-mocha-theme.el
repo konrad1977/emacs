@@ -70,12 +70,12 @@
   (match                                (:background yellow :foreground crust))
   (menu                                 (:background base :foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
-  (mode-line                            (:background mantle))
+  (mode-line                            (:background crust))
   (mode-line-inactive                   (:background surface0))
-  (mode-line-active                     (:foreground subtext0 :background mantle))
+  (mode-line-active                     (:foreground subtext0 :background crust))
   (mode-line-highlight                  (:foreground flamingo))
-  (mode-line-buffer-id                  (:foreground subtext0 :bold t))
-  (numbers                              (:background green))
+  (mode-line-buffer-id                  (:foreground text :bold t))
+  (numbers                              (:background peach))
   (region                               (:background overlay0))
   (separator-line                       (:background base))
   (shadow                               (:background crust))
@@ -91,15 +91,15 @@
 
   ;; ;; Font lock
   (font-lock-keyword-face               (:foreground mauve :weight 'semi-bold))
-  (font-lock-type-face                  (:foreground red))
+  (font-lock-type-face                  (:foreground red :weight 'semi-bold))
   (font-lock-regexp-grouping-backslash  (:foreground red))
   (font-lock-warning-face               (:inherit 'warning))
   (font-lock-string-face                (:foreground green :italic t))
   (font-lock-builtin-face               (:foreground pink))
   (font-lock-reference-face				(:foreground sky))
-  (font-lock-constant-face              (:foreground yellow))
+  (font-lock-constant-face              (:foreground yellow :bold t))
   (font-lock-function-name-face         (:foreground red))
-  (font-lock-variable-name-face         (:foreground maroon :italic t))
+  (font-lock-variable-name-face         (:foreground maroon))
   (font-lock-negation-char-face         (:foreground red))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
@@ -120,6 +120,9 @@
   (dired-mark                           (:foreground pink))
   (dired-ignored                        (:background peach))
 
+  (iedit-occurrence                     (:background blue :foreground crust))
+  (iedit-read-only-occurrence           (:background green :foreground crust))
+  
   (trailing-rosewaterspace              (:background surface1))
 
   ;; ;; Battery colors
@@ -141,15 +144,16 @@
 
   (doom-modeline-project-dir            (:foreground overlay2))
   (doom-modeline-buffer-path            (:foreground overlay2))
-  (doom-modeline-buffer-file            (:foreground pink :bold t))
-  (doom-modeline-buffer-major-mode      (:foreground peach :bold t))
-  (doom-modeline-buffer-modified        (:foreground overlay2 :italic t :bold t))
+  (doom-modeline-buffer-file            (:foreground text :bold t))
+  (doom-modeline-buffer-major-mode      (:foreground maroon :bold t))
+  (doom-modeline-buffer-modified        (:foreground text :italic t :bold t))
   (doom-modeline-error                  (:background red))
-  (doom-modeline-info                   (:foreground overlay2))
-  (doom-modeline-project-dir            (:foreground peach))
-  (doom-modeline-bar                    (:background lavender :foreground crust))
+  (doom-modeline-info                   (:foreground subtext1 :bold t))
+  (doom-modeline-time                   (:foreground overlay2 :weight 'semi-bold))
+  (doom-modeline-project-dir            (:foreground blue))
+  (doom-modeline-bar                    (:background yellow))
   (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive))
-  (doom-modeline-panel                  (:inherit 'bold :background flamingo :foreground mantle))
+  (doom-modeline-panel                  (:background blue :foreground crust :bold t))
   (doom-modeline                        (:foreground overlay1))
   (doom-themes-visual-bell              (:background red))
 
@@ -225,9 +229,9 @@
   (xref-match		                    (:foreground peach))
 
   ;; rainbow delimiter
-  (rainbow-delimiters-mismatched-face   (:foreground crust))
-  (rainbow-delimiters-unmatched-face    (:foreground crust))
-  (rainbow-delimiters-base-error-face   (:foreground crust))
+  (rainbow-delimiters-mismatched-face   (:foreground crust :background red))
+  (rainbow-delimiters-unmatched-face    (:foreground crust :background red))
+  (rainbow-delimiters-base-error-face   (:foreground crust :background red))
 
   (rainbow-delimiters-base-face         (:foreground overlay2))
 
@@ -282,15 +286,15 @@
   (flycheck-inline-warning              (:background yellow :foreground yellow :height 128))
 
   ;; indent dots
-  (highlight-indent-guides-character-face       (:foreground overlay0))
-  (highlight-indent-guides-stack-character-face (:foreground overlay0))
-  (highlight-indent-guides-stack-odd-face       (:foreground overlay1))
-  (highlight-indent-guides-stack-even-face      (:foreground overlay0))
-  (highlight-indent-guides-stack-character-face (:foreground overlay2))
-  (highlight-indent-guides-even-face            (:foreground overlay0))
-  (highlight-indent-guides-odd-face             (:foreground overlay1))
-  (highlight-indent-guides-top-odd-face         (:foreground overlay1))
-  (highlight-indent-guides-top-even-face        (:foreground overlay0))
+  (highlight-indent-guides-character-face       (:foreground red :background red))
+  (highlight-indent-guides-stack-character-face (:foreground red :background red))
+  (highlight-indent-guides-top-character-face   (:foreground red :background red))
+  (highlight-indent-guides-stack-odd-face       (:foreground red :background red))
+  (highlight-indent-guides-stack-even-face      (:foreground red :background red))
+  (highlight-indent-guides-even-face            (:foreground red :background red))
+  (highlight-indent-guides-odd-face             (:foreground red :background red))
+  (highlight-indent-guides-top-odd-face         (:foreground red :background red))
+  (highlight-indent-guides-top-even-face        (:foreground red :background red))
 
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground crust :bold t))
@@ -371,9 +375,9 @@
   (lsp-ui-sideline-symbol							(:foreground overlay1))
 
   ;; dashboard
-  (dashboard-heading								(:foreground mauve :bold t))
-  (dashboard-items-face								(:foreground text))
-  (dashboard-banner-logo-title						(:bold t :height 200))
+  (dashboard-items-face								(:weight 'light :height 150))
+  (dashboard-banner-logo-title						(:weight 'thin :height 320))
+  (dashboard-heading								(:foreground subtext1 :weight 'thin :height 170))
   (dashboard-no-items-face							(:foreground overlay2))
 
   ;; all-the-icons
@@ -383,7 +387,7 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
-  (evil-ex-lazy-highlight           (:foreground yellow :bold t))
+  (evil-ex-lazy-highlight           (:foreground crust :background yellow :bold t))
   (evil-ex-substitute-matches       (:foreground red :strike-through t))
   (evil-ex-substitute-replacement   (:foreground blue :bold t))
   (evil-search-highlight-persist-highlight-face (:background yellow))
@@ -492,7 +496,7 @@
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:foreground maroon :italic t))
-  (tree-sitter-hl-face:variable.builtin          (:foreground blue :weight 'semi-bold))
+  (tree-sitter-hl-face:variable.builtin          (:foreground blue))
   (tree-sitter-hl-face:variable.special          (:foreground mauve))
   (tree-sitter-hl-face:variable.synthesized      (:foreground pink))
   (tree-sitter-hl-face:property                  (:foreground rosewater))
@@ -509,7 +513,7 @@
   (tree-sitter-hl-face:operator                  (:foreground sapphire :bold t))
   (tree-sitter-hl-face:label                     (:foreground overlay2))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
-  (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'semi-bold))
+  (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:number                    (:foreground peach))
 
   (tree-sitter-hl-face:punctuation               (:foreground red))

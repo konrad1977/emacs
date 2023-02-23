@@ -5,9 +5,9 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 164)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 164)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 164)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'light)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'normal)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150 :weight 'light)
 
 ;; (set-face-attribute 'default nil :font "Fira Code" :height 168)
 ;; (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 168)
@@ -15,7 +15,7 @@
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
-(set-fringe-mode 1)               ;; Give us some space.
+(set-fringe-mode 14)               ;; Give us some space.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
@@ -179,16 +179,22 @@
 
 (use-package vertico
   :hook (after-init . vertico-mode)
+  :bind (:map vertico-map
+              ("C-S-n" . vertico-next)
+              ("C-S-p" . vertico-previous))
   :custom
   (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
   (vertico-multiform-mode)
-  (vertico-indexed-mode)
   (setq vertico-resize t
         vertico-count 10
         vertico-multiline nil
         vertico-scroll-margin 4
-        vertico-cycle t))
+        vertico-cycle t
+        ;; read-file-name-completion-ignore-case t
+        ;; read-buffer-completion-ignore-case t
+        ;; completion-ignore-case t
+        ))
 
 (use-package vertico-posframe
   :after vertico
@@ -200,7 +206,6 @@
           (right-fringe . 2)))
   :config
   (setq
-        ;; vertico-posframe-font "Hack Nerd Font"
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
@@ -246,6 +251,8 @@
   ("M-l" . consult-goto-line)
   ("<backtab>" . consult-buffer)
   ("C-c C-a" . consult-apropos)
+  ("C-c m m" . consult-imenu-multi)
+  ("M-O" . consult-ls-git)
   ("M-f" . consult-line))
 
 (use-package consult-ag
@@ -285,18 +292,22 @@
         auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
 
-                                        ; Config and install modeline
+;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
+  :custom
+  (doom-modeline-height (floor (* (line-pixel-height) 1.8)))
   :config
   (custom-set-faces
    '(mode-line ((t (:family "Menlo" :height 0.85)))))
+  (custom-set-faces
+   '(mode-line-inactive ((t (:family "Menlo" :height 0.85)))))
+
   (setq doom-modeline-buffer-encoding t
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
         doom-modeline-major-mode-icon nil
-        doom-modeline-height 33
         doom-modeline-project-detection 'projectile
         doom-modeline-icon t
         doom-modeline-modal t
@@ -304,7 +315,7 @@
         doom-modeline-lsp t
         doom-modeline-workspace-name nil
         doom-modeline-persp-name t
-        doom-modeline-bar-width 10
+        doom-modeline-bar-width 5
         doom-modeline-hud t
         doom-modeline-buffer-state-icon t
         doom-modeline-time-icon nil)
@@ -319,7 +330,7 @@
   :config
   (dashboard-setup-startup-hook)
   (setq
-   dashboard-banner-logo-title "Mikaels dashboard!"
+   dashboard-banner-logo-title "● Mikael's dashboard ●"
    dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
    dashboard-center-content t
    dashboard-path-style 'truncate-beginning
@@ -327,12 +338,12 @@
    dashboard-projects-show-base 'align
    dashboard-recentf-show-base t
    dashboard-show-shortcuts nil
-   dashboard-image-banner-max-height 300
+   dashboard-image-banner-max-height 200
    dashboard-set-init-info t
-   dashboard-set-navigator t
+   dashboard-set-navigator nil
    dashboard-projects-item-format "%s"
    dashboard-recentf-item-format "%s"
-   dashboard-set-heading-icons nil
+   dashboard-set-heading-icons t
    dashboard-items '((recents . 8)
                      (projects . 2))))
 
@@ -345,6 +356,11 @@
 
 (use-package undo-fu
   :defer t)
+
+(use-package undo-fu-session
+  :hook (after-init . undo-fu-session-global-mode)
+  :config
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
 (use-package evil
   :hook (after-init . evil-mode)
@@ -374,10 +390,10 @@
   (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
 
   ;; window resizing
-  (define-key evil-motion-state-map (kbd "C-+") #'enlarge-window-horizontally)
-  (define-key evil-motion-state-map (kbd "C--") #'shrink-window-horizontally)
-  (define-key evil-motion-state-map (kbd "C-M-+") #'enlarge-window)
-  (define-key evil-motion-state-map (kbd "C-M--") #'shrink-window)
+  (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
+  (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
+  (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
+  (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
 
   (define-key evil-motion-state-map (kbd "C-w C-s") #'mk/split-window-below)
   (define-key evil-motion-state-map (kbd "C-w C-v") #'mk/split-window-right)
@@ -386,19 +402,15 @@
   (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
   (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
   (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
+  (define-key evil-normal-state-map (kbd "<escape>") #'evil-ex-nohighlight)
+  
   ;; (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-
+  
   ;; (define-key evil-normal-state-map (kbd "C-+") #'text-scale-increase)
   ;; (define-key evil-normal-state-map (kbd "C--") #'text-scale-decrease)
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
-
-(use-package evil-multiedit
-  :after evil
-  :config
-  (evil-multiedit-default-keybinds)
-  (setq evil-multiedit-follow-matches t))
 
 (use-package evil-collection
   :after evil
@@ -406,6 +418,15 @@
   (setq evil-collection-setup-minibuffer t)
   :init
   (evil-collection-init))
+
+(use-package evil-iedit-state
+  :after evil
+  :config
+  (setq iedit-only-at-symbol-boundaries t)
+  :bind
+  ("C-M-e" . evil-iedit-state/iedit-mode)
+  (:map evil-normal-state-map
+        ("ge" . evil-iedit-state/iedit-mode)))
 
 (use-package evil-surround
   :after evil
@@ -441,7 +462,6 @@
 
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-(global-set-key (kbd "M-/") #'comment-dwim)
 
 ;; Theming
 (use-package doom-themes
@@ -459,6 +479,7 @@
   (doom-themes-treemacs-config)
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
+
 
 (use-package all-the-icons
   :after doom-modeline
@@ -484,8 +505,10 @@
 (use-package tree-sitter
   :hook (swift-mode . tree-sitter-mode)
   :config
+  (setq tsc-dyn-get-from nil)
   (setq tree-sitter-hl-use-font-lock-keywords t
         tree-sitter-hl-enable-query-region-extension t)
+  :config
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 ;; ------------------ SEARCHING -------------------
@@ -529,10 +552,6 @@
        eglot-ignored-server-capabilities '(:hoverProvider))
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
-(use-package flycheck-eglot
-  :hook (prog-mode . global-flycheck-eglot-mode)
-  :config
-  (setq flycheck-eglot-exclusive nil))
 
 (use-package kind-icon
   :after corfu
@@ -546,7 +565,9 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
-  :hook (prog-mode . corfu-mode)
+  :hook
+  (prog-mode . corfu-mode)
+  (localizeable-mode . corfu-mode)
   :ensure corfu-doc
   :bind
   (:map corfu-map
@@ -558,22 +579,22 @@
   (corfu-auto t)
   (completion-styles '(orderless))
   :init
-  (setq corfu-popupinfo-delay 0.5
-        corfu-bar-width 2
+  (setq corfu-bar-width 2
         corfu-scroll-margin 2
         corfu-auto-prefix 2
         corfu-min-width 70
         corfu-max-width 130
+        corfu-count 7
+        corfu-auto-delay 0.25
+        corfu-quit-no-match 'separator
+        corfu-preselect 'prompt
+        corfu-preview-current 'insert
         corfu-popupinfo-resize t
-        corfu-count 10
-        corfu-auto-delay 0.5
-        corfu-preview-current t
         corfu-popupinfo-hide nil
         corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-resize t
         corfu-popupinfo-min-width corfu-min-width
-        corfu-popupinfo-max-width corfu-max-width
-        corfu-quit-no-match 'separator)
+        corfu-popupinfo-max-width corfu-max-width)
   (corfu-popupinfo-mode))
 
 (use-package corfu-history
@@ -640,7 +661,7 @@
         treemacs-is-never-other-window nil
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 35))
+        treemacs-width 40))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -653,6 +674,7 @@
 
 (use-package treemacs-all-the-icons
   :after (treemacs all-the-icons)
+  :defer t
   :config
   (treemacs-load-theme "all-the-icons"))
 
@@ -669,30 +691,36 @@
 (use-package flycheck-posframe
   :hook (flycheck-mode . flycheck-posframe-mode)
   :config
-  (setq flycheck-posframe-position 'frame-top-center
+  (setq flycheck-posframe-position 'point-bottom-left-corner
         flycheck-posframe-warning-prefix "● "
         flycheck-posframe-error-prefix "● "
         flycheck-posframe-info-prefix "● "))
+
+(use-package flycheck-eglot
+  :hook (swift-mode . global-flycheck-eglot-mode)
+  :config
+  (setq flycheck-eglot-exclusive nil))
 
 (use-package markdown-mode
   :defer t)
 
 (use-package yaml-mode
-  :defer t)
 
+  :defer t)
 (use-package projectile
   :hook (prog-mode . projectile-mode)
-  :bind
-  ("M-O" . projectile-find-file-dwim)
+  ;; :bind
+  ;; ("M-O" . projectile-find-file-dwim)
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
   :custom
   (setq projectile-completion-system 'auto
-        projectile-enable-caching nil
-        projectile-sort-order 'access-time
+        projectile-enable-caching t
+        projectile-sort-order 'default
         projectile-indexing-method 'hybrid
-        projectile-project-root-files '(".xcworkspace" ".projectile" ".xcodeproj")
+        projectile-verbose nil
+        ;; projectile-project-root-files '(".xcworkspace" ".projectile" ".xcodeproj")
         projectile-switch-project-action #'projectile-commander
         projectile-ignored-files '(".orig$" ".yml$"))
   :config
@@ -822,10 +850,10 @@
 (use-package git-gutter-fringe
   :after git-gutter
   :config
-  (setq git-gutter-fr:side 'right-fringe)
+  (setq git-gutter-fr:side 'left-fringe)
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 (use-package vterm
   :commands vterm)
@@ -1020,10 +1048,7 @@
 (use-package highlight-indent-guides
   :hook (prog-mode . highlight-indent-guides-mode)
   :config
-  (setq highlight-indent-guides-method 'bitmap)
-  (setq highlight-indent-guides-responsive 'stack)
- ;; (setq highlight-indent-guides-method 'bitmap)
-  )
+  (setq highlight-indent-guides-method 'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
@@ -1152,10 +1177,9 @@
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
+                                       #'cape-dabbrev
                                        (cape-company-to-capf #'company-tabnine)
-                                       ;; #'cape-dabbrev
-                                       (cape-company-to-capf #'company-yasnippet)
-                                       ))))
+                                       (cape-company-to-capf #'company-yasnippet)))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
@@ -1200,14 +1224,12 @@
         column-number-mode nil            ;; Show current line number highlighted
         display-line-numbers 'relative))   ;; Show line numbers
 
-(defun mk/setup-flycheck ()
-  "Setup margins for flycheck."
-  (setq left-fringe-width 12 right-fringe-width 0
-        left-margin-width 1 right-margin-width 0)
-  (flycheck-refresh-fringes-and-margins))
+;; (defun correct-fringe (&optional ignore)
+;;   (unless (eq fringe-mode '12)
+;;     (fringe-mode '12)))
 
-(add-hook 'flycheck-mode-hook #'mk/setup-flycheck)
-;; (add-hook 'before-save-hook #'delete-trailing-whitespace)
+;; (add-hook 'after-init-hook #'correct-fringe)
+;; (add-hook 'buffer-list-update-hook #'correct-fringe)
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."

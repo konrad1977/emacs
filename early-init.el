@@ -51,7 +51,7 @@
       redisplay-skip-fontification-on-input t)
 
 (when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 50 1024 1024)))
+  (setq read-process-output-max (* 5 1024 1024)))
 
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))

@@ -45,7 +45,7 @@
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier &key buffer)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
-
+  
   (let* ((default-directory rootfolder)
          (simulator-id simulatorId))
 
