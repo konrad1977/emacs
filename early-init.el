@@ -14,7 +14,7 @@
 (set-keyboard-coding-system 'utf-8)
 
 (setq-default frame-inhibit-implied-resize t
-              frame-resize-pixelwise nil
+              frame-resize-pixelwise t
               frame-title-format nil
               inhibit-startup-screen t
               inhibit-startup-buffer-menu t
@@ -25,19 +25,27 @@
               mode-line-format nil
               package-native-compile t
               package-enable-at-startup nil
+              indicate-buffer-boundaries '((bottom . left))
               default-frame-alist
-              '((background-color . "#16161D")       ; Default background color
+              '((background-color . "#1e1e2e")       ; Default background color
                 (bottom-divider-width . 1)           ; Thin horizontal window divider
-                (foreground-color . "#16161D")       ; Default foreground color
+                (foreground-color . "#cdd6f4")       ; Default foreground color
                 (fullscreen . maximized)             ; Maximize the window by default
                 (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
                 (menu-bar-lines . 0)                 ; No menu bar
                 (right-divider-width . 1)            ; Thin vertical window divider
                 (tool-bar-lines . 0)                 ; No tool bar
+                (left-fringe . 16)
+                (right-fringe . 0)
+                (height . 27)
+                (width . 101)
                 (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
 
 (setq gc-cons-threshold-original gc-cons-threshold)
 (setq gc-cons-threshold (* 1024 1024 100))
+
+(when (boundp 'read-process-output-max)
+  (setq read-process-output-max (* 5 1024 1024)))
 
 (setq file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil)
@@ -61,10 +69,26 @@
       scroll-bar-mode nil
       load-prefer-newer noninteractive
       garbage-collect-maybe t
+      fringes-outside-margins t
+      left-margin-width 1
+      display-line-numbers-widen t
       redisplay-skip-fontification-on-input t)
 
-(when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 5 1024 1024)))
+;; (global-display-fill-column-indicator-mode)
+
+(dolist (face '(mode-line mode-line-inactive))
+  (set-face-attribute face nil :height 151))
+
+(set-face-attribute 'fill-column-indicator nil
+                    :family "SF Mono")
+
+;; Make sure SF Symbols and Octicons will be displayed.
+(when (display-graphic-p)
+  (dolist (font-pua-points '(("SF Pro Text" . (#x100000 . #x102000))
+                             ("github-octicons" . (#xf000 . #xf27c))))
+    (let ((family (car font-pua-points))
+          (range (cdr font-pua-points)))
+      (set-fontset-font t range family nil 'prepend))))
 
 (when (fboundp 'set-scroll-bar-mode)
   (set-scroll-bar-mode nil))

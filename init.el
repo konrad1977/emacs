@@ -1159,10 +1159,6 @@
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
 
-  ;; (use-package flycheck-swift3
-  ;;   :after flycheck
-  ;;   :custom (flycheck-swift3-setup))
-
   (use-package flycheck-swiftlint
     :after flycheck
     :custom (flycheck-swiftlint-setup))
