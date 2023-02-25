@@ -3,8 +3,8 @@
 ;;; Commentary: Package for showing linting as result in a tabulated list
 
 ;;; Code:
-(require 'periphery-helper)
 (require 'periphery)
+(require 'periphery-helper)
 (require 'cl-lib)
 
 (defvar swiftformat-command "swiftformat")
@@ -22,8 +22,8 @@
   "Let periphery parse the (as TEXT)."
   (periphery-run-parser text (lambda ()
                                (message-with-color
-                                :tag "[Success]"
-                                :text "All code looks good now."
+                                :tag "[Swiftformat succeeded]"
+                                :text "All code will soon look good."
                                 :attributes 'success)
                                )))
 
@@ -83,9 +83,10 @@
                                         (file-name-directory (vc-root-dir))))
          :attributes 'success))
   (message-with-color
-   :tag "[Failed]"
+   :tag "[Swiftformat failed]"
    :text (format "Install %s to use this command." swiftformat-command)
    :attributes 'warning)))
 
 (provide 'periphery-swiftformat)
+
 ;;; periphery-swiftformat.el ends here.

@@ -6,7 +6,7 @@
 (eval-when-compile (defvar display-time-default-load-average nil))
 
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'light)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'normal)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'light)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150 :weight 'light)
 
 ;; (set-face-attribute 'default nil :font "Fira Code" :height 168)
@@ -36,7 +36,7 @@
       confirm-kill-emacs                'y-or-n-p
       ediff-split-window-function       'split-window-horizontally
       find-file-visit-truename          t
-      font-lock-maximum-decoration      t
+      font-lock-maximum-decoration      nil
       highlight-nonselected-windows     t
       jit-lock-defer-time               nil
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
@@ -111,7 +111,7 @@
 
 (defconst jetbrains-ligature-mode--ligatures
    '("-->" "//" "/**" "/*" "*/" "<!--" ":=" "->>" "<<-" "->" "<-"
-     "<=>" "==" "!=" "<=" ">=" "=:=" "!==" "&&" "||" "..." ".."
+     "<=>" "==" "<=" ">=" "=:=" "!==" "&&" "||" "..." ".."
      "|||" "///" "&&&" "===" "++" "--" "=>" "|>" "<|" "||>" "<||"
      "|||>" "<|||" ">>" "<<" "::=" "|]" "[|" "{|" "|}"
      "[<" ">]" ":?>" ":?" "/=" "[||]" "!!" "?:" "::"
@@ -156,9 +156,6 @@
 ;;                          :files ("tree-sitter-langs-build.el"
 ;;                                  "treesit-*.el"
 ;;                                  "queries")))
-(use-package gcmh
-  :config
-  (gcmh-mode 1))
 
 ;; (use-package benchmark-init
 ;;   :config
@@ -191,10 +188,9 @@
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t
-        ;; read-file-name-completion-ignore-case t
-        ;; read-buffer-completion-ignore-case t
-        ;; completion-ignore-case t
-        ))
+        read-file-name-completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        completion-ignore-case t))
 
 (use-package vertico-posframe
   :after vertico
@@ -380,7 +376,7 @@
 
   (define-key evil-visual-state-map (kbd "C-u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
-
+  
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-go-back)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
 
@@ -496,7 +492,7 @@
   (setq svg-tag-tags (periphery-svg-tags)))
 
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (emacs-lisp-mode . rainbow-delimiters-mode))
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode

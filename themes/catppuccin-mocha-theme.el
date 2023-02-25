@@ -496,11 +496,11 @@
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:foreground maroon :italic t))
-  (tree-sitter-hl-face:variable.builtin          (:foreground blue))
-  (tree-sitter-hl-face:variable.special          (:foreground mauve))
-  (tree-sitter-hl-face:variable.synthesized      (:foreground pink))
+  (tree-sitter-hl-face:variable.builtin          (:foreground blue :italic t))
+  (tree-sitter-hl-face:variable.special          (:foreground mauve :italic t))
+  (tree-sitter-hl-face:variable.synthesized      (:foreground pink :italic t))
   (tree-sitter-hl-face:property                  (:foreground rosewater))
-  (tree-sitter-hl-face:property.definition       (:foreground rosewater :italic t))
+  (tree-sitter-hl-face:property.definition       (:inherit 'tree-sitter-hl-face:property :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
@@ -513,13 +513,13 @@
   (tree-sitter-hl-face:operator                  (:foreground sapphire :bold t))
   (tree-sitter-hl-face:label                     (:foreground overlay2))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
-  (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face))
+  (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))
   (tree-sitter-hl-face:number                    (:foreground peach))
 
-  (tree-sitter-hl-face:punctuation               (:foreground red))
+  (tree-sitter-hl-face:punctuation               (:foreground red :weight 'semi-bold))
   (tree-sitter-hl-face:punctuation.bracket       (:foreground blue :weight 'semi-bold))
-  (tree-sitter-hl-face:punctuation.delimiter     (:foreground text :bold t))
-  (tree-sitter-hl-face:punctuation.special       (:foreground yellow :bold t))
+  (tree-sitter-hl-face:punctuation.delimiter     (:foreground text :weight 'semi-bold))
+  (tree-sitter-hl-face:punctuation.special       (:foreground maroon :weight 'semi-bold))
 
   (tree-sitter-hl-face:case-pattern              (:foreground peach))
   (tree-sitter-hl-face:keyword.compiler          (:foreground overlay2 :bold t :italic t))
@@ -532,7 +532,7 @@
   (tree-sitter-hl-face:keyword.return            (:inherit 'tree-sitter-hl-face:keyword :italic t))
   (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
   (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
-  (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword))
+  (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
 
   (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
   (swift-mode:property-access-face (:foreground subtext1))

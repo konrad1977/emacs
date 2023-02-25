@@ -36,10 +36,23 @@
                 (tool-bar-lines . 0)                 ; No tool bar
                 (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
 
+(setq gc-cons-threshold-original gc-cons-threshold)
+(setq gc-cons-threshold (* 1024 1024 100))
+
+(setq file-name-handler-alist-original file-name-handler-alist)
+(setq file-name-handler-alist nil)
+
+(run-with-idle-timer
+ 5 nil
+ (lambda ()
+   (setq gc-cons-threshold gc-cons-threshold-original)
+   (setq file-name-handler-alist file-name-handler-alist-original)
+   (makunbound 'gc-cons-threshold-original)
+   (makunbound 'file-name-handler-alist-original)
+   (message "gc-cons-threshold and file-name-handler-alist restored")))
+
 ;; ;; Defer garbage collection further back in the startup process
-(setq
-      gc-cons-threshold most-positive-fixnum
-      package-enable-at-startup nil
+(setq package-enable-at-startup nil
       ns-pop-up-frames nil
       site-run-file nil
       tool-bar-mode nil
@@ -47,7 +60,7 @@
       menu-bar-mode nil
       scroll-bar-mode nil
       load-prefer-newer noninteractive
-      idle-update-delay 0.6
+      garbage-collect-maybe t
       redisplay-skip-fontification-on-input t)
 
 (when (boundp 'read-process-output-max)
