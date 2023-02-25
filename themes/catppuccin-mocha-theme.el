@@ -70,7 +70,7 @@
   (match                                (:background yellow :foreground crust))
   (menu                                 (:background base :foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
-  (mode-line                            (:background crust))
+  (mode-line                            (:background crust :foreground overlay2))
   (mode-line-inactive                   (:background surface0))
   (mode-line-active                     (:foreground subtext0 :background crust))
   (mode-line-highlight                  (:foreground flamingo))

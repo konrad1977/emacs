@@ -291,13 +291,13 @@
 ;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
-  :custom
-  (doom-modeline-height (floor (* (line-pixel-height) 1.8)))
+  ;; :custom
+  ;; (doom-modeline-height (floor (* (line-pixel-height) 1.8)))
   :config
   (custom-set-faces
-   '(mode-line ((t (:family "Menlo" :height 0.85)))))
+   '(mode-line ((t (:family "SF Mono" :height 0.95)))))
   (custom-set-faces
-   '(mode-line-inactive ((t (:family "Menlo" :height 0.85)))))
+   '(mode-line-inactive ((t (:family "SF Mono" :height 0.95)))))
 
   (setq doom-modeline-buffer-encoding t
         doom-modeline-buffer-file-name-style 'file-name
