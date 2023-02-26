@@ -134,7 +134,7 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error nil))
+        debug-on-error t))
 
 ;; (use-package treesit
 ;;   :ensure nil

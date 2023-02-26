@@ -166,7 +166,7 @@
 
 (defun swift-additions:filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
-  (let* ((name (directory-files current-project-root t extension)))
+  (if-let* ((name (directory-files current-project-root t extension)))
     (file-name-sans-extension (file-name-nondirectory (car name)))))
 
 (defun swift-additions:project-name ()
