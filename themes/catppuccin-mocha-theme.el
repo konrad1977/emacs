@@ -311,7 +311,7 @@
   (corfu-current                                (:background surface0 :distant-foreground text :bold t :foreground base))
   (corfu-border                                 (:background overlay1))
   (corfu-bar                                    (:background yellow))
-  (corfu-default                                (:background mantle :foreground subtext0))
+  (corfu-default                                (:background mantle :foreground text))
   (corfu-popupinfo                              (:background surface0 :foreground text))
   
   ;; posframe's

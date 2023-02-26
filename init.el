@@ -561,9 +561,7 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
-  :hook
-  (prog-mode . corfu-mode)
-  (localizeable-mode . corfu-mode)
+  :hook (prog-mode . corfu-mode)
   :ensure corfu-doc
   :bind
   (:map corfu-map

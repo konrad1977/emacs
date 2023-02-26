@@ -39,7 +39,7 @@
 (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-mode))
 
 ;;;###autoload
-(define-derived-mode localizeable-mode fundamental-mode
+(define-derived-mode localizeable-mode prog-mode
   (setq indicate-empty-lines t            ;; Show empty lines
 		indicate-unused-lines t           ;; Show unused lines
         display-line-numbers t
