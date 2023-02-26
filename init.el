@@ -9,10 +9,6 @@
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'light)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150 :weight 'light)
 
-;; (set-face-attribute 'default nil :font "Fira Code" :height 168)
-;; (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 168)
-;; (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 168)
-
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
 (set-fringe-mode 14)               ;; Give us some space.
@@ -75,12 +71,7 @@
         mac-option-modifier 'none
         dired-use-ls-dired nil
         pixel-scroll-precision-use-momentum t
-        browse-url-browser-function #'mk/browser-split-window)
-
-  ;; (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
-  ;; (add-to-list 'default-frame-alist '(ns-appearance . dark))
-  (add-to-list 'default-frame-alist '(ns-use-native-fullscreen . t))
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
+        browse-url-browser-function #'mk/browser-split-window))
 (put 'narrow-to-page 'disabled nil)
 
 ;; Dont leave #file autosaves everywhere I go
