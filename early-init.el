@@ -4,6 +4,12 @@
 
 ;;; Code:
 
+(setq gc-cons-threshold-original gc-cons-threshold)
+(setq gc-cons-threshold (* 1024 1024 100))
+
+(when (boundp 'read-process-output-max)
+  (setq read-process-output-max (* 50 1024 1024)))
+
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
@@ -39,13 +45,10 @@
                 (right-fringe . 0)
                 (height . 27)
                 (width . 101)
+                (ns-use-native-fullscreen . t)
+                (ns-transparent-titlebar . t)
                 (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
 
-(setq gc-cons-threshold-original gc-cons-threshold)
-(setq gc-cons-threshold (* 1024 1024 100))
-
-(when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 5 1024 1024)))
 
 (setq file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil)
