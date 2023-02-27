@@ -32,7 +32,7 @@
       confirm-kill-emacs                'y-or-n-p
       ediff-split-window-function       'split-window-horizontally
       find-file-visit-truename          t
-      font-lock-maximum-decoration      nil
+      font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
       jit-lock-defer-time               nil
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
@@ -552,7 +552,8 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
-  :hook (prog-mode . corfu-mode)
+  :hook ((prog-mode . corfu-mode)
+         (localizeable-mode . corfu-mode))
   :ensure corfu-doc
   :bind
   (:map corfu-map

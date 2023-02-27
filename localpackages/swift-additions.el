@@ -194,7 +194,7 @@
             (subroot (swift-additions:get-files-from :directory project-root :extension extension :exclude ".build"))
             (workroot (or root subroot))
             (path (file-name-directory (car-safe workroot))))
-    (if (and path (string-match-p (regexp-quote ".xcodeproj") path))
+    (if (and path (string-match-p (regexp-quote extension) path))
         (file-name-directory (directory-file-name path))
       path)))
 
@@ -341,6 +341,15 @@
     (save-match-data
       (goto-char (point-max))
       (search-backward string nil t))))
+
+(defun swift-additions:mark-function-as-renamed ()
+  "Mark current function as obselete."
+  (interactive)
+  (save-excursion
+    (let ((name (thing-at-point 'word)))
+      (previous-line)
+      (indent-for-tab-command)
+      (insert (format "@available(*, renamed: \"%s()\")" name)))))
 
 (defun swift-additions:insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."
