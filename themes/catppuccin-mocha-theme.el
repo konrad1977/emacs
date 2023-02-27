@@ -285,6 +285,14 @@
   (flycheck-inline-info                 (:background blue :foreground blue :height 128))
   (flycheck-inline-warning              (:background yellow :foreground yellow :height 128))
 
+  ;; (periphery-mark-face-full (:foreground mantle :background surface1 :bold t))
+  
+  ;; (periphery-todo-face-full (:foreground mantle :background blue :bold t))
+  ;; (periphery-todo-face (:foreground blue))
+  
+  ;; (periphery-fix-face (:foreground teal))
+  ;; (periphery-fix-face-full (:foreground mantle :background teal :bold t))
+  
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground red :background red))
   (highlight-indent-guides-stack-character-face (:foreground red :background red))

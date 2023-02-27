@@ -134,7 +134,7 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error t))
+        debug-on-error nil))
 
 ;; (use-package treesit
 ;;   :ensure nil
@@ -368,8 +368,8 @@
   (define-key evil-visual-state-map (kbd "C-u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
   
-  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (xref-go-back)))
-  (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (xref-go-forward)))
+  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
+  (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (evil-jump-forward)))
 
   (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
@@ -411,9 +411,7 @@
   :config
   (setq iedit-only-at-symbol-boundaries t)
   :bind
-  ("C-M-e" . evil-iedit-state/iedit-mode)
-  (:map evil-normal-state-map
-        ("ge" . evil-iedit-state/iedit-mode)))
+  ("C-M-e" . evil-iedit-state/iedit-mode))
 
 (use-package evil-surround
   :after evil
