@@ -6,6 +6,7 @@
 (require 'periphery-helper)
 (require 'periphery)
 (require 'thingatpt)
+(require 'projectile)
 
 (defvar current-query "")
 (defvar current-title "Search")
@@ -18,13 +19,13 @@
   "Default search title."
   (setq current-title "Search"))
 
-(defun periphery--search-thing-at-point (searcher)
-  "Search thing at point using (SEARCHER)."
+(defun periphery--search-thing-at-point ()
+  "Search thing at point."
   (if (use-region-p)
       (let ((text (buffer-substring-no-properties (region-beginning) (region-end))))
         (when (> (length text) 1)
-          (periphery-run-query searcher (escape-string text))))
-    (periphery-run-query searcher (thing-at-point 'symbol) "--sort path")))
+          (periphery-run-query "rg -s -e" (escape-string text))))
+    (periphery-run-query "rg -w -s -e" (thing-at-point 'symbol))))
 
 (defun escape-string (text)
   "Escape string."
@@ -35,17 +36,17 @@
   str
   )
 
-(defun periphery-run-query (searcher text &optional args)
+(defun periphery-run-query (searcher text)
   "Search using (SEARCHER) with (TEXT)."
   (setq current-query nil)
   (if (executable-find "rg")
       (progn
-        (let ((default-directory (vc-root-dir)))
+        (let ((default-directory (projectile-project-root)))
           (setq current-query (regexp-quote text))
           (message-with-color :tag "[SEARCHING]" :text (format "for %s" current-query) :attributes 'warning)
           (async-shell-command-to-string
            :process-name searcher
-           :command (format "%s \"%s\" --vimgrep " searcher current-query)
+           :command (format "%s \"%s\" --vimgrep --sort path" searcher current-query)
            :callback #'send-search-result-to-periphery)))
     (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
@@ -73,28 +74,21 @@
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
-  (periphery-run-query "rg -w" "(FIX|FIXME|TODO|NOTE|HACK|PERF)" "--sort path"))
+  (periphery-run-query "rg -w" "(FIX|FIXME|TODO|NOTE|HACK|PERF)"))
 
 ;;;###autoload
 (defun periphery-query-marks ()
-  "Query marks in the project."
+  "Query mark in the project."
   (interactive)
   (setq current-title "Marks")
-  (periphery-run-query "rg -w" "\'MARK' --sort path"))
-
-;;;###autoload
-(defun periphery-search-dwiw-ag ()
-  "Search using ag (Silver searcher)."
-  (interactive)
-  (setup-search-title)
-  (periphery--search-thing-at-point "ag"))
+  (periphery-run-query "rg -w" "\'MARK'"))
 
 ;;;###autoload
 (defun periphery-search-dwiw-rg ()
   "Search using rg (ripgrep)."
   (interactive)
   (setup-search-title)
-  (periphery--search-thing-at-point "rg -w -s -e"))
+  (periphery--search-thing-at-point))
 
 (provide 'periphery-search)
 ;;; periphery-search.el ends here.

@@ -677,6 +677,7 @@
   :hook (flycheck-mode . flycheck-posframe-mode)
   :config
   (setq flycheck-posframe-position 'point-bottom-left-corner
+        flycheck-posframe-border-width 1
         flycheck-posframe-warning-prefix "● "
         flycheck-posframe-error-prefix "● "
         flycheck-posframe-info-prefix "● "))
