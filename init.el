@@ -666,6 +666,9 @@
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :diminish t
+  :bind
+  ("C-c e n" . flycheck-next-error)
+  ("C-c e p" . flycheck-previous-error)
   :custom
   (flycheck-indication-mode 'left-fringe)
   (flycheck-check-syntax-automatically '(save idle-change)))
