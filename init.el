@@ -188,17 +188,16 @@
   :init
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
-  (setq vertico-posframe-parameters
-        '((left-fringe . 2)
-          (right-fringe . 2)))
+  ;; (setq vertico-posframe-parameters
+  ;;       '((left-fringe . 2)
+  ;;         (right-fringe . 2)))
   :config
-  (setq
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
+  (setq ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines t
-        vertico-posframe-width 150
+        vertico-posframe-width 160
         vertico-posframe-min-height 1
         vertico-posframe-border-width 2))
 
@@ -552,7 +551,6 @@
 (use-package corfu
   :hook ((prog-mode . corfu-mode)
          (localizeable-mode . corfu-mode))
-  :ensure corfu-doc
   :bind
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
@@ -689,12 +687,12 @@
   :defer t)
 
 (use-package yaml-mode
-
   :defer t)
+
 (use-package projectile
   :hook (prog-mode . projectile-mode)
-  ;; :bind
-  ;; ("M-O" . projectile-find-file-dwim)
+  :bind
+  ("C-M-r" . projectile-replace)
   :init
   (when (file-directory-p "~/git")
     (setq projectile-project-search-path '("~/git")))
@@ -839,8 +837,13 @@
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
+(use-package json-mode
+  :defer t)
+
 (use-package vterm
-  :commands vterm)
+  :commands vterm
+  :config
+  (setq vterm-timer-delay nil))
 
 ;; general
 (use-package general
@@ -1006,11 +1009,11 @@
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-;; (use-package visual-fill-column
-;;   :hook ((org-mode . visual-fill-column-mode))
-;;   :config
-;;   (setq visual-fill-column-width 120
-;;         visual-fill-column-center-text t))
+(use-package visual-fill-column
+  :hook ((org-mode . visual-fill-column-mode))
+  :config
+  (setq visual-fill-column-width 120
+        visual-fill-column-center-text t))
 
 (use-package elfeed
   :commands elfeed

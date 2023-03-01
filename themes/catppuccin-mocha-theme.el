@@ -327,7 +327,7 @@
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
   (vertico-multiline                            (:background crust))
-  (vertico-group-title                          (:foreground subtext0 :bold t))
+  (vertico-group-title                          (:foreground subtext1 :weight 'semi-bold :height 180))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
   (vertico-current                              (:inherit 'corfu-current))
 
