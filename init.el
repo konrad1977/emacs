@@ -199,7 +199,7 @@
         vertico-posframe-truncate-lines t
         vertico-posframe-width 160
         vertico-posframe-min-height 1
-        vertico-posframe-border-width 2))
+        vertico-posframe-border-width 1))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -539,6 +539,7 @@
 (use-package kind-icon
   :after corfu
   :custom
+  (kind-icon-blend-background nil)
   (kind-icon-default-face 'corfu-default)
   (kind-icon-default-style '(
                              :padding 0
@@ -606,7 +607,7 @@
         corfu-auto-prefix 2
         corfu-min-width 70
         corfu-max-width 130
-        corfu-count 20
+        corfu-count 12
         corfu-auto-delay 0.25
         corfu-quit-no-match 'separator
         corfu-preselect 'prompt
