@@ -508,6 +508,7 @@
   (let* ((sdk (ios-simulator:sdk-path))
          (target (ios-simulator:target)))
     (list
+     "--completion-max-results" "20"
      "-Xswiftc" "-sdk"
      "-Xswiftc" sdk
      "-Xswiftc" "-target"

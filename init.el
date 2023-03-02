@@ -540,12 +540,52 @@
   :after corfu
   :custom
   (kind-icon-default-face 'corfu-default)
-  (kind-icon-use-icons t)
-  (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.05)
+  (kind-icon-default-style '(
+                             :padding 0
+                             :stroke 0
+                             :margin 0
+                             :radius 0.0
+                             :height 1.0
+                             :scale 0.8))
   :config
   (defconst kind-icon--unknown
-    (propertize " ✪ " 'face '(:weight bold :background "#000")))
+    (propertize " ✪ " 'face '(:inherit font-lock-variable-name-face)))
+  (setq kind-icon-use-icons t
+        svg-lib-icons-dir (expand-file-name "svg-lib" no-littering-var-directory)
+        kind-icon-mapping
+        '((variable "va" :icon "virus" :face font-lock-variable-name-face)
+          (numeric "nu" :icon "numeric" :face font-lock-builtin-face)
+          (function "f" :icon "rocket" :face font-lock-function-name-face)
+          (method "m" :icon "rocket" :face font-lock-function-name-face)
+          (property "pr" :icon "virus" :face font-lock-variable-name-face)
+          (constructor "cn" :icon "orbit" :face tree-sitter-hl-face:constructor)
+          (boolean "b" :icon "circle-half-full" :face tree-sitter-hl-face:boolean)
+          (class "c" :icon "molecule" :face font-lock-type-face)
+          (array "a" :icon "code-brackets" :face font-lock-variable-name-face)
+          (color "#" :icon "palette" :face success)
+          (constant "co" :icon "pause-circle" :face font-lock-constant-face)
+          (enum "e" :icon "format-list-bulleted-square" :face font-lock-builtin-face)
+          (enum-member "em" :icon "format-list-checks" :face font-lock-builtin-face)
+          (event "ev" :icon "lightning-bolt-outline" :face font-lock-warning-face)
+          (field "fd" :icon "application-braces-outline" :face font-lock-variable-name-face)
+          (file "f" :icon "file" :face font-lock-string-face)
+          (folder "d" :icon "folder" :face font-lock-doc-face)
+          (interface "if" :icon "video-input-component" :face font-lock-type-face)
+          (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face)
+          (macro "mc" :icon "lambda" :face font-lock-keyword-face)
+          (module "{" :icon "orbit" :face font-lock-preprocessor-face)
+          (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face)
+          (param "pa" :icon "test-tube" :face default)
+          (reference "rf" :icon "hospital" :face font-lock-variable-name-face)
+          (snippet "S" :icon "pill" :face font-lock-string-face)
+          (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
+          (struct "%" :icon "molecule" :face font-lock-variable-name-face)
+          (text "tx" :icon "skull-scan" :face shadow)
+          (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
+          (unit "u" :icon "test-tube" :face shadow)
+          (tabnine "ai" :icon "cloud" :face shadow)
+          (value "v" :icon "pulse" :face font-lock-builtin-face)
+          (t "." :icon "microscope" :face shadow)))
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
