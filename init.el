@@ -5,9 +5,9 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'light)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'light)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 150 :weight 'light)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'light)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'light)
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
@@ -533,14 +533,14 @@
         eglot-extend-to-xref t
         eglot-events-buffer-size nil
         eglot-send-changes-idle-time 0.5
-       eglot-ignored-server-capabilities '(:hoverProvider))
+        eglot-ignored-server-capabilities '(:hoverProvider))
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
-
 
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-use-icons nil)
+  (kind-icon-default-face 'corfu-default)
+  (kind-icon-use-icons t)
   (kind-icon-blend-background t)
   (kind-icon-blend-frac 0.05)
   :config
@@ -566,7 +566,7 @@
         corfu-auto-prefix 2
         corfu-min-width 70
         corfu-max-width 130
-        corfu-count 7
+        corfu-count 20
         corfu-auto-delay 0.25
         corfu-quit-no-match 'separator
         corfu-preselect 'prompt
@@ -1120,7 +1120,7 @@
   :after prog-mode
   :bind
   ("C-c C-f" . #'periphery-search-dwiw-rg)
-  ("M-f" . #'periphery-search-dwiw-rg)
+  ("M-f" . #'periphery-search-rg)
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
 
