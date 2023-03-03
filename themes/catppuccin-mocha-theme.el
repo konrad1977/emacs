@@ -318,7 +318,7 @@
   (corfu-annotations                            (:foreground overlay0))
   (corfu-current                                (:background surface0 :distant-foreground text :bold t :foreground base))
   (corfu-border                                 (:background crust))
-  (corfu-bar                                    (:background yellow))
+  (corfu-bar                                    (:background surface2))
   (corfu-default                                (:background crust :foreground text))
   (corfu-popupinfo                              (:background surface0 :foreground text))
   

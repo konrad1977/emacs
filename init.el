@@ -540,22 +540,23 @@
   :after corfu
   :custom
   (kind-icon-blend-background nil)
+  ;; (kind-icon-blend-frac 0.09)
   (kind-icon-default-face 'corfu-default)
   (kind-icon-default-style '(
-                             :padding 0
+                             :padding -0.2
                              :stroke 0
                              :margin 0
                              :radius 0.0
-                             :height 1.0
-                             :scale 0.8))
+                             :height 0.95
+                             :scale 0.75))
   :config
   (defconst kind-icon--unknown
     (propertize " ✪ " 'face '(:inherit font-lock-variable-name-face)))
   (setq kind-icon-use-icons t
         svg-lib-icons-dir (expand-file-name "svg-lib" no-littering-var-directory)
         kind-icon-mapping
-        '((variable "va" :icon "virus" :face font-lock-variable-name-face)
-          (numeric "nu" :icon "numeric" :face font-lock-builtin-face)
+        '((variable "va" :icon "label-variant" :face font-lock-variable-name-face)
+          (numeric "nu" :icon "numeric" :face tree-sitter-hl-face:number)
           (function "f" :icon "rocket" :face font-lock-function-name-face)
           (method "m" :icon "rocket" :face font-lock-function-name-face)
           (property "pr" :icon "virus" :face font-lock-variable-name-face)
@@ -600,12 +601,13 @@
         ("C-p" . corfu-previous))
   :custom
   (corfu-auto t)
-  (completion-styles '(orderless))
+  (corfu-popupinfo-mode)
+  (completion-styles '(flex orderless))
   :init
   (setq corfu-bar-width 2
         corfu-scroll-margin 2
         corfu-auto-prefix 2
-        corfu-min-width 70
+        corfu-min-width 40
         corfu-max-width 130
         corfu-count 12
         corfu-auto-delay 0.25
@@ -617,8 +619,7 @@
         corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-resize t
         corfu-popupinfo-min-width corfu-min-width
-        corfu-popupinfo-max-width corfu-max-width)
-  (corfu-popupinfo-mode))
+        corfu-popupinfo-max-width corfu-max-width))
 
 (use-package corfu-history
   :ensure nil
