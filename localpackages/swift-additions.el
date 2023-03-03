@@ -320,9 +320,8 @@
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (if (swift-additions:is-a-swift-package-base-project)
-      (swift-additions:clean-build-folder-with (projectile-project-root) ".build" "swift package")
-    (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "build" current-xcode-scheme)))
+  (swift-additions:clean-build-folder-with (projectile-project-root) ".build" "swift package")
+  (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "build" current-xcode-scheme))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
   "Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
