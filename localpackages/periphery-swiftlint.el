@@ -29,7 +29,7 @@
   (interactive)
   (if (executable-find swiftlint)
       (progn
-        (let ((default-directory (get-swiftlint-file-root)))
+        (let* ((default-directory (get-swiftlint-file-root)))
           (async-shell-command-to-string
            :process-name swiftlint
            :command swiftlint

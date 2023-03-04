@@ -23,18 +23,17 @@
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
 (defconst list-simulators-command "xcrun simctl list devices iPhone available -j")
 
-(defvar current-language-selection "en-EN")
 (defvar current-xcode-scheme nil)
 (defvar current-app-identifier nil)
 (defvar current-project-root nil)
 (defvar current-build-configuration nil)
-(defvar current-environment-x86 t)
+(defvar current-environment-x86 nil)
 (defvar current-simulator-id nil)
 (defvar secondary-simulator-id nil)
 (defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
 (defvar local-device-id nil)
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -68,7 +67,7 @@
   "Use x86 environement."
   (if current-environment-x86
       "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
-    "xcrun xcodebuild build\\"))
+    "xcrun xcodebuild build \\"))
 
 (defun swift-additions:get-build-folder ()
   "Fetch build folder."
@@ -85,7 +84,7 @@
 
 (defun swift-additions:get-workspace-or-project ()
   "Check if there is workspace or project."
-  (let ((workspace (swift-additions:workspace-name))
+  (let* ((workspace (swift-additions:workspace-name))
         (projectname (swift-additions:project-name)))
     (if workspace
         (format "-workspace %s.xcworkspace \\" workspace)
@@ -126,11 +125,18 @@
 (defun swift-additions:full-build-folder ()
   "Full path to to the build folder."
   (let* ((folder (swift-additions:get-build-folder))
-         (default-directory (concat current-project-root folder)))
+         (default-directory (concat current-project-root "/" folder)))
     default-directory))
 
 (defun swift-additions:copy-symbols-for-lsp ()
   "Copy symbols for LSP to work."
+
+  ;; Create directory if it doesnt exist
+  (let* ((default-directory (projectile-project-root))
+         (build-folder (format "%s%s" default-directory ".build/arm64-apple-macosx/debug/")))
+    (unless (file-exists-p build-folder)
+      (make-directory build-folder :parents)))
+  
   (let* ((default-directory (swift-additions:full-build-folder))
          (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
     (async-shell-command-to-string
@@ -198,11 +204,22 @@
         (file-name-directory (directory-file-name path))
       path)))
 
+;; (defun swift-additions:get-ios-project-root ()
+;;   "Get the current root of the project."
+;;   (let* ((workspace (find-project-root-folder-with :extension ".xcworkspace"))
+;;          (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
+;;     (or workspace xcodeproj (expand-file-name (projectile-project-root)))))
+
+(defun swift-additions:get-project-files ()
+  "Get project files."
+  (let* ((files (directory-files-recursively (projectile-project-root) "\.xcworkspace$\\|\.xcodeproj$" 2)))
+    (cdr-safe files)))
+
 (defun swift-additions:get-ios-project-root ()
-  "Get the current root of the project."
-  (let* ((workspace (find-project-root-folder-with :extension ".xcworkspace"))
-         (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
-    (or workspace xcodeproj (expand-file-name (projectile-project-root)))))
+  "Get the ios-project root."
+  (let* ((file (car-safe (swift-additions:get-project-files)))
+         (root (directory-file-name (file-name-directory file))))
+    root))
 
 (defun get-connected-device-id ()
   "Get the id of the connected device."
@@ -241,7 +258,6 @@
 (defun swift-additions:reset-settings ()
   "Reset current settings.  Change current configuration."
   (interactive)
-  (setq current-language-selection nil)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
   (setq current-project-root nil)
@@ -321,7 +337,7 @@
   "Clean app build folder."
   (interactive)
   (swift-additions:clean-build-folder-with (projectile-project-root) ".build" "swift package")
-  (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "build" current-xcode-scheme))
+  (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "/build" current-xcode-scheme))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
   "Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."

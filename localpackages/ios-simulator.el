@@ -76,11 +76,8 @@
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder)
   "Install and launch app (as SIMULATORID and BUILD-FOLDER)."
   (let ((folder build-folder))
-    (inhibit-sentinel-messages #'
-     call-process-shell-command
-     (concat
-      "env /usr/bin/arch -x86_64 \\"
-      (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (ios-simulator:app-name-from :folder folder))))))
+    (inhibit-sentinel-messages #'call-process-shell-command
+      (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (ios-simulator:app-name-from :folder folder)))))
 
 (cl-defun ios-simulator:app-name-from (&key folder)
   "Get compiled app name from (FOLDER)."
@@ -179,7 +176,7 @@
              (or (ios-simulator:booted-simulator)
                  (ios-simulator:build-selection-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
         (progn
-          (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))
+          (ios-simulator:setup-language)
           (ios-simulator:setup-simulator-dwim current-simulator-id)
           (setq current-simulator-id device-id)))))
   current-simulator-id)
@@ -197,8 +194,20 @@
   (if current-app-identifier
       (ios-simulator:terminate-app-with :appIdentifier current-app-identifier)))
 
+(defun ios-simulator:change-language ()
+  "Reset current language for simulator."
+  (interactive)
+  (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language")))
+
+(defun ios-simulator:setup-language ()
+  "Setup language if it isnt set."
+  (interactive)
+  (unless current-language-selection
+    (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))))
+
 (cl-defun ios-simulator:launch-app (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
   "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
+  (ios-simulator:setup-language)
 
   (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
   (if-let ((simulatorID simulatorID))
@@ -207,7 +216,6 @@
 
 (cl-defun ios-simulator:terminate-app-with (&key appIdentifier)
   "Terminate runnings apps (as APPIDENTIFIER)."
-  (interactive)
   (setq current-app-identifier appIdentifier)
   (ios-simulator:terminate-app :simulatorID current-simulator-id :appIdentifier appIdentifier)
   (ios-simulator:terminate-app :simulatorID secondary-simulator-id :appIdentifier appIdentifier))

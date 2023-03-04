@@ -1108,8 +1108,8 @@
   :mode "\\.strings\\'"
   :ensure nil)
 
-(use-package yasnippet
-  :hook (prog-mode . yas-global-mode))
+;; (use-package yasnippet
+;;   :hook (prog-mode . yas-global-mode))
 
 (use-package swift-mode
   :defer t
@@ -1125,7 +1125,8 @@
   :after swift-mode
   :bind
   ("M-s" . #'ios-simulator:terminate-current-app)
-  ("M-p" . #'ios-simulator:appcontainer))
+  ("M-p" . #'ios-simulator:appcontainer)
+  ("C-c x l" . #'ios-simulator:change-language))
 
 (use-package swift-additions
   :ensure nil
@@ -1208,7 +1209,8 @@
                 (list (cape-super-capf #'eglot-completion-at-point
                                        #'cape-dabbrev
                                        (cape-company-to-capf #'company-tabnine)
-                                       (cape-company-to-capf #'company-yasnippet)))))
+                                       ;; (cape-company-to-capf #'company-yasnippet)
+                                       ))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
