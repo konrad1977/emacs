@@ -680,6 +680,8 @@
         treemacs-follow-mode t
         treemacs-hide-dot-git-directory t
         treemacs-git-integration t
+        treemacs-space-between-root-nodes t
+        treemacs-hide-gitignored-files-mode t
         treemacs-git-mode 'extended
         treemacs-indentation 1
         treemacs-is-never-other-window nil

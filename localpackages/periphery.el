@@ -269,7 +269,6 @@
    ((string-match-p (regexp-quote "Protocol") text)
     (propertize text 'face 'font-lock-builtin-face))
   (t (propertize text 'face 'periphery-message-face))))
-  
 
 (defun periphery--propertize-severity (severity text)
   "Colorize TEXT using SEVERITY."
@@ -278,23 +277,23 @@
 
 (defun periphery--center-text (word)
   "Center (as WORD)."
-  (setq centeredText word)
-  (if (> (length centeredText) 6)
-    (setq centeredText "ERROR"))
-    
-  (setq padding  (/ (- default-length (string-width centeredText)) 2))
-  (setq copy (concat (make-string padding ?\s) centeredText))
+  (if (<= (length word) default-length)
+      (progn
+        (setq padding  (/ (- default-length (string-width word)) 2))
+        (setq copy (concat (make-string padding ?\s) word))
         
-  (while (< (string-width copy) default-length)
-    (setq copy (concat copy " ")))
-  copy)
+        (while (< (string-width copy) default-length)
+          (setq copy (concat copy " ")))
+        copy
+        )
+    word))
 
 (cl-defun periphery--full-color-from-keyword (keyword)
   "Get color from KEYWORD."
   (let ((type (upcase (string-trim-left keyword))))
     (cond
      ((string= type "WARNING") 'periphery-warning-face-full)
-     ((string= type "INFO") 'periphery-info-face-full)
+     ((or (string= type "INFO") (string= type "MATCH")) 'periphery-info-face-full)
      ((string= type "ERROR") 'periphery-error-face-full)
      ((string= type "NOTE") 'periphery-note-face-full)
      ((or (string= type "FIX") (string= type "FIXME")) 'periphery-fix-face-full)

@@ -96,7 +96,7 @@
    (swift-additions:xcodebuild-command)
    (swift-additions:get-workspace-or-project)
    (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
-   (format "-configuration %s \\" (swift-additions:fetch-or-load-build-configuration))
+   (format "-configuration '%s' \\" (swift-additions:fetch-or-load-build-configuration))
    (format "-jobs %s \\" (swift-additions:get-number-of-cores))
    (format "-sdk %s \\" (swift-additions:get-current-sdk))
    (if simulatorId
@@ -137,13 +137,13 @@
     (unless (file-exists-p build-folder)
       (make-directory build-folder :parents)))
   
-  (let* ((default-directory (swift-additions:full-build-folder))
-         (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
-    (async-shell-command-to-string
-           :process-name "Copying symbols"
-           :command command
-           :callback
-           (lambda (txt)))))
+  (if-let* ((default-directory (swift-additions:full-build-folder))
+            (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
+      (async-shell-command-to-string
+       :process-name "Copying symbols"
+       :command command
+       :callback
+       (lambda (txt)))))
 
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
@@ -164,7 +164,7 @@
        (string-match-p (regexp-quote "warning: ") text))
       (progn
         (periphery-run-parser text)
-        (when (not (string-match-p (regexp-quote "error: ") text))
+        (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
           (if-let ((callback callback))
               (funcall callback))))
     (if-let ((callback callback))
