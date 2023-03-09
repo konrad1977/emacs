@@ -123,7 +123,7 @@
 
 (defconst default-length 9)
 
-(defconst periphery-regex-parser "\\(\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:+-_,a-zA-Z0-9\(\)\?\\\s\'\"\.\&\|]*\\)"
+(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:+-_,a-zA-Z0-9\(\)\?\\\s\'\"\.\&\|]*\\)"
   "Parse vimgrep like strings (compilation).")
 
 (defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
