@@ -75,9 +75,12 @@
 
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder)
   "Install and launch app (as SIMULATORID and BUILD-FOLDER)."
-  (let ((folder build-folder))
-    (inhibit-sentinel-messages #'call-process-shell-command
-      (format "xcrun simctl install %s %s%s.app\n" simulatorID folder (ios-simulator:app-name-from :folder folder)))))
+  (if-let* ((folder build-folder)
+         (install-path (shell-quote-argument folder)))
+    (inhibit-sentinel-messages
+     #'call-process-shell-command
+     (format "xcrun simctl install %s %s%s.app\n" simulatorID install-path (ios-simulator:app-name-from :folder folder)))))
+      
 
 (cl-defun ios-simulator:app-name-from (&key folder)
   "Get compiled app name from (FOLDER)."

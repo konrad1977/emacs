@@ -126,9 +126,6 @@
 (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:+-_,a-zA-Z0-9\(\)\?\\\s\'\"\.\&\|]*\\)"
   "Parse vimgrep like strings (compilation).")
 
-(defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
-   "Parse linenumber and columns.")
-
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
 
@@ -170,30 +167,12 @@
 (defun periphery--go-to-first-error (list)
   "Go to first error in LIST."
   (defvar errors-with-reference (--filter (> (length (aref (car(cdr it)) 1)) 0) (periphery--get-all-errors list)))
-  (periphery--open-current-line-with (car (car errors-with-reference))))
-
-(defun periphery--open-current-line-with (data)
-  "Open current line with DATA."
-  (if data
-      (save-match-data
-        (let* ((matched (string-match periphery-parse-line-regex data))
-               (file (match-string 1 data))
-               (linenumber (string-to-number (match-string 2 data)))
-               (column (match-string 3 data)))
-          (with-current-buffer (find-file file)
-            (when (> linenumber 0)
-              (goto-char (point-min))
-              (forward-line (1- linenumber))
-              (if column
-                  (let ((columnnumber (string-to-number column)))
-                    (when (> columnnumber 0)
-                      (forward-char (1- columnnumber)))))))))))
-
+  (open-current-line-with (car (car errors-with-reference))))
 
 (defun periphery--open-current-line ()
   "Open current current line."
   (interactive)
-  (periphery--open-current-line-with (tabulated-list-get-id)))
+  (open-current-line-with (tabulated-list-get-id)))
 
 (defun periphery--listing-command (errorList)
   "Create a ERRORLIST for current mode."
@@ -495,7 +474,7 @@
 (cl-defun periphery--build-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
-              (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
+              (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
               (periphery--propertize-severity keyword (string-trim-left keyword))
               (periphery--mark-all-symbols
@@ -515,7 +494,7 @@
 (cl-defun periphery--build-todo-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
-              (propertize (file-name-nondirectory file) 'face 'periphery-filename-face)
+              (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
               (periphery--propertize-severity keyword (string-trim-left keyword))
               (periphery--mark-all-symbols

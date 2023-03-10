@@ -1160,12 +1160,18 @@
   ("C-c C-h" . #'hacking-ws/query)
   ("C-c C-H" . #'hacking-ws/query-thing-at-point))
 
+(use-package periphery-quick
+  :ensure nil
+  :after prog-mode
+  :bind
+  ("M-f" . #'periphery-quick:find))
+
 (use-package periphery-search
   :ensure nil
   :after prog-mode
   :bind
   ("C-c C-f" . #'periphery-search-dwiw-rg)
-  ("M-f" . #'periphery-search-rg)
+  ;; ("M-f" . #'periphery-search-rg)
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
 
