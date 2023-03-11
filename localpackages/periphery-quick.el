@@ -19,6 +19,16 @@
     :title "Result "
     :list list)))
 
+(defun add-right-padding-up-to (word max-length)
+  "Add padding to (as WORD) if smaller then (as MAX-LENGTH)."
+  (if (> (length word) max-length)
+      (concat (substring word 0 max-length) "")
+    (progn
+      (setq copy word)
+      (while (< (string-width copy) max-length)
+        (setq copy (concat copy " "))))
+    copy))
+
 (defun periphery-quick:parse-line (line)
   "Parse (as LINE)."
   (save-match-data
@@ -29,27 +39,34 @@
                 (column (match-string 3 line))
                 (text (string-trim-left (match-string 4 line)))
                 (fileWithLine (format "%s:%s:%s" file linenumber column)))
-           (list (format "%s:\t\t %s" 
+           (list (format "%s %s"
                          (propertize
-                          (file-name-sans-extension
-                           (file-name-nondirectory file)) 'face 'periphery-filename-face)
+                          (add-right-padding-up-to
+                           (file-name-sans-extension
+                            (file-name-nondirectory file))
+                            24
+                           )
+                          'face 'periphery-filename-face)
                          text) fileWithLine)))))
 
 (cl-defun periphery-quick:run-query (query)
   "Run query (as QUERY)."
   (let ((default-directory (projectile-project-root)))
-    (async-shell-command-to-string
-     :process-name "periphery quick"
-     :command (format "rg -w %s --vimgrep" query)
-     :callback #'periphery-quick:parse)))
+    (async-start-command-to-string
+     :command (format "rg -w %s --vimgrep --sort path" query)
+     :callback '(lambda (output) (periphery-quick:parse output)))))
 
 (defun periphery-quick:find ()
   "Quick find something in project."
   (interactive)
   (if-let ((query (thing-at-point 'symbol)))
       (periphery-quick:run-query query)
-      (periphery-quick:run-query (read-string "Query: ")))
-      )
+    (periphery-quick:run-query (read-string "Query: "))))
+
+(defun periphery-quick:todos ()
+  "Find the todos in the project."
+  (interactive)
+  (periphery-quick:run-query (regexp-quote "\"(FIXME|FIX|TODO|HACK|PERF):\"")))
 
 (cl-defun periphery-quick:showmenu-with-title (&key title &key list)
   "Build menu with (TITLE LIST)."

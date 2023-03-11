@@ -51,17 +51,17 @@
        :file file)))
 
 (cl-defun periphery-run-swiftformat-buffer (&key command &key file)
-  "Run swiftformat for current buffer."
+  "Run swiftformat for current buffer (as COMMAND FILE)."
   (if (executable-find swiftformat-command)
       (progn
-            (async-shell-command-to-string
-             :process-name "swiftformat"
-             :command command
-             :callback #'send-swiftformat-result-to-periphery)
-            (message-with-color
-             :tag "[Linting|swiftformat]"
-             :text (file-name-nondirectory file)
-             :attributes 'success))
+        (message-with-color
+         :tag "[Linting|swiftformat]"
+         :text (file-name-nondirectory file)
+         :attributes 'success)
+        (async-start-command-to-string
+         :command command
+         :callback '(lambda (result)
+                      (send-swiftformat-result-to-periphery result))))
     (message-with-color
      :tag "[Failed]"
      :text (format "Install %s to use this command." swiftformat-command)
@@ -73,10 +73,10 @@
   (if (executable-find swiftformat-command)
       (progn
         (let ((default-directory (vc-root-dir)))
-          (async-shell-command-to-string
-           :process-name "swiftformat"
+          (async-start-command-to-string
            :command (concat swiftformat-command " . --lint " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
-           :callback #'send-swiftformat-result-to-periphery))
+           :callback (lambda (result)
+                       (send-swiftformat-result-to-periphery result))))
         (message-with-color
          :tag "[Linting|swiftformat]"
          :text (file-name-nondirectory (directory-file-name

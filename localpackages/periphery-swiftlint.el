@@ -30,10 +30,9 @@
   (if (executable-find swiftlint)
       (progn
         (let* ((default-directory (get-swiftlint-file-root)))
-          (async-shell-command-to-string
-           :process-name swiftlint
+          (async-start-command-to-string
            :command swiftlint
-           :callback #'periphery--swiftlint:analyze-result))
+           :callback '(lambda (result) (periphery--swiftlint:analyze-result result))))
         (message-with-color
          :tag "[Linting|Swiftlint]"
          :text (file-name-nondirectory (directory-file-name

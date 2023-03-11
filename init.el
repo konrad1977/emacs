@@ -784,19 +784,20 @@
       (side . bottom)
       (slot . 1))
      ("\\*xcodebuild\\*"
-      (display-buffer-in-side-window)
+      (display-buffer-reuse-window display-buffer-in-side-window)
+      (reusable-frames . nil)
       (body-function . select-window)
       (window-height . 0.2)
-      (window-width . 0.3)
-      (side . bottom)
-      (slot . 0))
-     ("\\*Periphery\\*"
-      (display-buffer-in-side-window)
-      (body-function . select-window)
-      (window-height . 0.3)
-      (window-width . 0.7)
+      ;; (window-parameters . ((mode-line-format . (" " " "))))
       (side . bottom)
       (slot . 1))
+     ("\\*Periphery\\*"
+      (display-buffer-reuse-window display-buffer-in-side-window)
+      (reusable-frames . nil)
+      (body-function . select-window)
+      (window-height . 0.2)
+      (side . bottom)
+      (slot . 0))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
@@ -1164,7 +1165,8 @@
   :ensure nil
   :after prog-mode
   :bind
-  ("M-f" . #'periphery-quick:find))
+  ("M-f" . #'periphery-quick:find)
+  ("C-c s t" . #'periphery-quick:todos))
 
 (use-package periphery-search
   :ensure nil

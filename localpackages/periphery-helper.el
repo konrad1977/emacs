@@ -1,4 +1,4 @@
-;;; periphery-helper.el --- Process and text helping package -*- lexical-binding: t; -*-
+;;; periphery-helper.el --- Process and text helping package ;;; -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;;; Package for building and runnning iOS/macos apps from Emacs
 
@@ -88,8 +88,8 @@
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.
 PROCESS-NAME is the name of the process."
-  (let ((output-buffer (generate-new-buffer process-name))
-        (callback-fun callback))
+  (let* ((output-buffer (generate-new-buffer process-name))
+         (callback-fun callback))
     (set-process-sentinel
      (start-process process-name output-buffer shell-file-name shell-command-switch command)
      (lambda (process signal)

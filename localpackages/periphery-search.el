@@ -44,10 +44,9 @@
         (let ((default-directory (projectile-project-root)))
           (setq current-query (regexp-quote text))
           (message-with-color :tag "[SEARCHING]" :text (format "for %s" current-query) :attributes 'warning)
-          (async-shell-command-to-string
-           :process-name searcher
+          (async-start-command-to-string
            :command (format "%s \"%s\" --vimgrep --sort path" searcher current-query)
-           :callback #'send-search-result-to-periphery)))
+           :callback '(lambda (result) (send-search-result-to-periphery result)))))
     (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
 (defun periphery--search-for (searcher)

@@ -33,6 +33,7 @@
 (defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
 (defvar local-device-id nil)
+(defvar run-app-on-build t)
 (defvar DEBUG nil)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
@@ -299,21 +300,23 @@
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
   (ios-simulator:load-simulator-id)
+
   (setq device-or-simulator "[Building simulator target]")
+  (setq run-app-on-build runApp)
 
   (if (swift-additions:is-xcodeproject)
       (progn
         (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
-        (let ((default-directory current-project-root))
-          (async-shell-command-to-string
-           :process-name "periphery"
+        (let*((default-directory current-project-root))
+          (async-start-command-to-string
            :command (build-app-command :simulatorId: current-simulator-id)
            :callback
-           (lambda (text)
+           '(lambda (text)
              (swift-additions:copy-symbols-for-lsp)
-             (if runApp
+             (if run-app-on-build
                  (swift-additions:check-for-errors text #'swift-additions:run-app)
-               (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
+               (swift-additions:check-for-errors text #'swift-additions:successful-build))
+             )))
         (animate-message-with-color
          :tag device-or-simulator
          :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
