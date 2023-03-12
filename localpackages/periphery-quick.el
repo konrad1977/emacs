@@ -56,6 +56,24 @@
      :command (format "rg -w %s --vimgrep --sort path" query)
      :callback '(lambda (output) (periphery-quick:parse output)))))
 
+(defun periphery-quick:run-query-file (query file)
+  "Run query (as QUERY) on file."
+  (message file)
+  (let ((file file)
+        (query query))
+    (async-start-command-to-string
+     :command (format "rg -w %s %s --vimgrep" query file)
+     :callback '(lambda (output)
+                  (periphery-quick:parse output)))))
+
+(defun periphery-quick:find-in-file ()
+  "Quick find in file."
+  (interactive)
+  (let ((file (buffer-file-name)))
+    (if-let ((query (thing-at-point 'symbol)))
+        (periphery-quick:run-query-file query file)
+      (periphery-quick:run-query-file (read-string "Query: ") file))))
+
 (defun periphery-quick:find ()
   "Quick find something in project."
   (interactive)

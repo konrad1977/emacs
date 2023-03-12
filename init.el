@@ -373,7 +373,7 @@
   (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
   ;; searching
-  (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
+  ;; (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
 
   ;; window resizing
   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
@@ -770,6 +770,7 @@
   :ensure nil
   :bind
   ("C-x C-f" . toggle-frame-fullscreen)
+  ("C-x C-s" . window-toggle-side-windows)
   :custom
   (display-buffer-alist
    '(("*xwidget*"
@@ -1147,6 +1148,13 @@
   ("M-r" . #'swift-additions:compile-and-run-app)
   ("C-c C-x" . #'swift-additions:reset-settings))
 
+(use-package swift-refactor
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("C-c e f" . #'swift-refactor:extract-region)
+  ("C-c e t" . #'swift-refactor:add-try-catch))
+
 (use-package apple-docs-query
   :ensure nil
   :after swift-mode
@@ -1165,7 +1173,8 @@
   :ensure nil
   :after prog-mode
   :bind
-  ("M-f" . #'periphery-quick:find)
+  ("M-f" . #'periphery-quick:find-in-file)
+  ("M-F" . #'periphery-quick:find)
   ("C-c s t" . #'periphery-quick:todos))
 
 (use-package periphery-search
