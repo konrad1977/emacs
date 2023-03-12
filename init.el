@@ -609,6 +609,9 @@
         corfu-auto-prefix 2
         corfu-min-width 40
         corfu-max-width 130
+        corfu-left-margin-width 0.5
+        corfu-right-margin-width 0.8
+        corfu-bar-width 0.1
         corfu-count 12
         corfu-auto-delay 0.25
         corfu-quit-no-match 'separator
@@ -715,16 +718,17 @@
   ("C-c e p" . flycheck-previous-error)
   :custom
   (flycheck-indication-mode 'left-fringe)
-  (flycheck-check-syntax-automatically '(save idle-change)))
+  (flycheck-check-syntax-automatically '(save mode-enabled new-line idle-change)))
 
 (use-package flycheck-posframe
   :hook (flycheck-mode . flycheck-posframe-mode)
   :config
   (setq flycheck-posframe-position 'point-bottom-left-corner
-        flycheck-posframe-border-width 1
-        flycheck-posframe-warning-prefix "● "
-        flycheck-posframe-error-prefix "● "
-        flycheck-posframe-info-prefix "● "))
+        flycheck-posframe-border-width 2
+        flycheck-posframe-warning-prefix " ⚠︎ "
+        flycheck-posframe-error-prefix " ✘ "
+        flycheck-posframe-info-prefix " ● "
+        ))
 
 (use-package flycheck-eglot
   :hook (swift-mode . global-flycheck-eglot-mode)
@@ -1151,9 +1155,9 @@
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c C-s" . #'swift-refactor:split-function-list)
-  ("C-c e f" . #'swift-refactor:extract-function)
-  ("C-c e t" . #'swift-refactor:add-try-catch))
+  ("C-c r s" . #'swift-refactor:split-function-list)
+  ("C-c r f" . #'swift-refactor:extract-function)
+  ("C-c r t" . #'swift-refactor:add-try-catch))
 
 (use-package apple-docs-query
   :ensure nil

@@ -272,10 +272,10 @@
   ;; Flycheck
   (flycheck-posframe-background-face    (:background crust))
   (flycheck-posframe-face               (:background crust))
-  (flycheck-posframe-info-face          (:foreground blue :background "#1B2431" :height 140 :italic t))
-  (flycheck-posframe-warning-face       (:inherit 'warning :background "#2E2A1E" :height 140 :italic t))
-  (flycheck-posframe-error-face         (:inherit 'error :background "#2D1E28" :height 140 :italic t))
-  (flycheck-fringe-warning              (:inherit 'warning :height 140 :italic t))
+  (flycheck-posframe-info-face          (:foreground blue :background "#1B2431" :height 160))
+  (flycheck-posframe-warning-face       (:foreground "#FFF" :background "#2F3E56" :height 160 :weight 'semi-light))
+  (flycheck-posframe-error-face         (:foreground "#FFF" :background "#2D1E28" :height 160 :weight 'semi-light))
+  (flycheck-fringe-warning              (:inherit 'warning))
   (flycheck-fringe-error                (:inherit 'error))
   (flycheck-fringe-info                 (:inherit 'info ))
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
@@ -318,7 +318,7 @@
   (corfu-annotations                            (:foreground overlay0))
   (corfu-current                                (:background surface0 :distant-foreground text :bold t :foreground base))
   (corfu-border                                 (:background crust))
-  (corfu-bar                                    (:background surface2))
+  (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
   (corfu-popupinfo                              (:background surface0 :foreground text))
   
