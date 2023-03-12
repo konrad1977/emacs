@@ -1137,7 +1137,6 @@
   :after swift-mode
   :bind
   ("C-c C-t" .  #'swift-additions:test-module-silent)
-  ("C-c C-s" .  #'swift-additions:split-func-list)
   ("M-K" .  #'swift-additions:clean-build-folder)
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
@@ -1152,7 +1151,8 @@
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c e f" . #'swift-refactor:extract-region)
+  ("C-c C-s" . #'swift-refactor:split-function-list)
+  ("C-c e f" . #'swift-refactor:extract-function)
   ("C-c e t" . #'swift-refactor:add-try-catch))
 
 (use-package apple-docs-query

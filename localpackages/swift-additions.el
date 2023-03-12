@@ -539,54 +539,6 @@
   (add-to-list 'arglist
                (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
-;; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
-;;;###autoload
-(defun swift-additions:split-func-list ()
-  "While on either the header of a function-like declaration or a call to a function, split each parameter/argument to its own line."
-  (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (condition-case nil
-        (atomic-change-group
-          (search-forward "(")
-          (let ((end))
-            (while (not end)
-              (newline-and-indent)
-              (let ((parens 0)
-                    (angles 0)
-                    (squares 0)
-                    (curlies 0)
-                    (comma))
-                (while (not (or comma end))
-                  (re-search-forward
-                   (rx (or ?\( ?\) ?< ?> ?\[ ?\] ?{ ?} ?\" ?,))
-                   (line-end-position))
-                  (pcase (match-string 0)
-                    ("(" (cl-incf parens))
-                    (")" (if (> parens 0)
-                             (cl-decf parens)
-                           (backward-char)
-                           (newline-and-indent)
-                           (setq end t)))
-                    ;; Note; these could be operators in an expression;
-                    ;; there's no obvious way to fully handle that.
-                    ("<" (cl-incf angles))
-                    ;; At a minimum we can skip greater-than and func arrows
-                    (">" (unless (zerop angles)
-                           (cl-decf angles)))
-                    ("[" (cl-incf squares))
-                    ("]" (cl-decf squares))
-                    ("{" (cl-incf curlies))
-                    ("}" (cl-decf curlies))
-                    ("\"" (let ((string-end))
-                            (while (not string-end)
-                              (re-search-forward (rx (or ?\" (seq ?\\ ?\")))
-                                                 (line-end-position))
-                              (setq string-end (equal (match-string 0) "\"")))))
-                    ("," (when (and (zerop parens) (zerop angles)
-                                    (zerop squares) (zerop curlies))
-                           (setq comma t)))))))))
-      (error (user-error "Cannot parse function decl or call here")))))
 
 (defface tree-sitter-hl-face:repeat
   '((t :inherit tree-sitter-hl-face:keyword

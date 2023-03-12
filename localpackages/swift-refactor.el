@@ -8,10 +8,10 @@
   :group 'tools
   :prefix "swift-refactor-")
 
-(defun swift-refactor:extract-region ()
+(defun swift-refactor:extract-function ()
   "Extract active region to its own function."
   (interactive)
-  (swift-refactor:run-active-region #'swift-refactor:extract-function))
+  (swift-refactor:run-active-region #'swift-refactor:extract-function-with))
 
 (defun swift-refactor:add-try-catch ()
   "Add try catch."
@@ -39,7 +39,7 @@
           (insert "} catch {\n print(error)\n}\n")
           (indent-region (region-beginning) (region-end))))))
 
-(defun swift-refactor:extract-function (start end)
+(defun swift-refactor:extract-function-with (start end)
   "Extract region between START & END."
   (interactive)
   (ignore-errors
@@ -53,6 +53,55 @@
           (insert content)
           (insert "\t}\n\n"))
       (indent-region (region-beginning) (region-end)))))
+
+;; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
+;;;###autoload
+(defun swift-refactor:split-function-list ()
+  "While on either the header of a function-like declaration or a call to a function, split each parameter/argument to its own line."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (condition-case nil
+        (atomic-change-group
+          (search-forward "(")
+          (let ((end))
+            (while (not end)
+              (newline-and-indent)
+              (let ((parens 0)
+                    (angles 0)
+                    (squares 0)
+                    (curlies 0)
+                    (comma))
+                (while (not (or comma end))
+                  (re-search-forward
+                   (rx (or ?\( ?\) ?< ?> ?\[ ?\] ?{ ?} ?\" ?,))
+                   (line-end-position))
+                  (pcase (match-string 0)
+                    ("(" (cl-incf parens))
+                    (")" (if (> parens 0)
+                             (cl-decf parens)
+                           (backward-char)
+                           (newline-and-indent)
+                           (setq end t)))
+                    ;; Note; these could be operators in an expression;
+                    ;; there's no obvious way to fully handle that.
+                    ("<" (cl-incf angles))
+                    ;; At a minimum we can skip greater-than and func arrows
+                    (">" (unless (zerop angles)
+                           (cl-decf angles)))
+                    ("[" (cl-incf squares))
+                    ("]" (cl-decf squares))
+                    ("{" (cl-incf curlies))
+                    ("}" (cl-decf curlies))
+                    ("\"" (let ((string-end))
+                            (while (not string-end)
+                              (re-search-forward (rx (or ?\" (seq ?\\ ?\")))
+                                                 (line-end-position))
+                              (setq string-end (equal (match-string 0) "\"")))))
+                    ("," (when (and (zerop parens) (zerop angles)
+                                    (zerop squares) (zerop curlies))
+                           (setq comma t)))))))))
+      (error (user-error "Cannot parse function decl or call here")))))
 
 (provide 'swift-refactor)
 ;;; swift-refactor.el ends here
