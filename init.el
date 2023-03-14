@@ -148,6 +148,7 @@
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
   (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'doom-gruvbox t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'doom-old-hope t)
@@ -527,19 +528,19 @@
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-blend-background nil)
-  ;; (kind-icon-blend-frac 0.09)
+  (kind-icon-blend-background t)
+  (kind-icon-blend-frac 0.15)
   (kind-icon-default-face 'corfu-default)
   (kind-icon-default-style '(
                              :padding -0.2
                              :stroke 0
                              :margin 0
                              :radius 0.0
-                             :height 0.95
-                             :scale 0.75))
+                             :height 1
+                             :scale 0.76))
   :config
   (defconst kind-icon--unknown
-    (propertize " ✪ " 'face '(:inherit font-lock-variable-name-face)))
+    (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
   (setq kind-icon-use-icons t
         svg-lib-icons-dir (expand-file-name "svg-lib" no-littering-var-directory)
         kind-icon-mapping
@@ -587,12 +588,11 @@
         ("<escape>" . corfu-quit)
         ("C-n" . corfu-next)
         ("C-p" . corfu-previous))
-  :config
-  (corfu-popupinfo-mode)
   :custom
   (corfu-auto t)
   (completion-styles '(flex orderless))
   :init
+  (setq corfu-popupinfo-mode t)
   (setq corfu-bar-width 2
         corfu-scroll-margin 2
         corfu-auto-prefix 2
@@ -659,7 +659,7 @@
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
   :bind ("M-J" . treemacs-find-file)
-  :init (treemacs-project-follow-mode)
+  ;; :init (treemacs-project-follow-mode)
   :config
   (setf treemacs-window-background-color (cons "#181825" "#313244"))
   (setq treemacs-follow-after-init t
@@ -766,10 +766,10 @@
   ("C-x C-s" . window-toggle-side-windows)
   :custom
   (display-buffer-alist
-   '(("*xwidget*"
+   '(("\\*xwidget\\*\\|\\*xref\\*"
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       (body-function . select-window)
-      (window-width . 0.3)
+      (window-width . 0.4)
       (side . right))
      ("\\*occur\\|evil-marks\\*"
       (display-buffer-in-side-window)
@@ -1169,7 +1169,7 @@
   ("M-f" . #'periphery-quick:find-ask)
   ("M-F" . #'periphery-quick:find)
   ("C-c f f" . #'periphery-quick:find-in-file)
-  ("C-c s t" . #'periphery-quick:todos))
+  ("C-c f t" . #'periphery-quick:todos))
 
 (use-package periphery-search
   :ensure nil

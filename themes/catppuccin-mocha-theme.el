@@ -77,6 +77,7 @@
   (mode-line-buffer-id                  (:foreground text :bold t))
   (numbers                              (:background peach))
   (region                               (:background text :foreground crust))
+  (tooltip                              (:background overlay2 :foreground crust))
   (separator-line                       (:background base))
   (shadow                               (:background crust))
   (success                              (:foreground green))
@@ -152,7 +153,7 @@
   (doom-modeline-time                   (:foreground overlay2 :weight 'semi-bold))
   (doom-modeline-project-dir            (:foreground blue))
   (doom-modeline-bar                    (:background yellow))
-  (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive))
+  (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive :background base))
   (doom-modeline-panel                  (:background blue :foreground crust :bold t))
   (doom-modeline                        (:foreground overlay1))
   (doom-themes-visual-bell              (:background red))
@@ -315,9 +316,17 @@
   (ivy-grep-line-number                         (:foreground mauve))
   (ivy-confirm-face                             (:foreground green))
 
+  (vertico-multiline                            (:background crust))
+  (vertico-group-title                          (:foreground subtext1 :weight 'semi-bold :height 180))
+  (vertico-group-separator                      (:foreground overlay1 :strike-through t))
+  (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
+
+  (vertico-posframe-border                      (:background overlay0))
+  (vertico-posframe                             (:background mantle :foreground subtext0))
+
   (corfu-annotations                            (:foreground overlay0))
-  (corfu-current                                (:background surface0 :distant-foreground text :bold t :foreground base))
-  (corfu-border                                 (:background crust))
+  (corfu-current                                (:inherit 'vertico-current))
+  (corfu-border                                 (:background surface1))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
   (corfu-popupinfo                              (:background surface0 :foreground text))
@@ -326,18 +335,11 @@
   (ivy-posframe                                 (:background surface2))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (vertico-multiline                            (:background crust))
-  (vertico-group-title                          (:foreground subtext1 :weight 'semi-bold :height 180))
-  (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:inherit 'corfu-current))
 
-  (vertico-posframe-border                      (:background overlay0))
-  (vertico-posframe                             (:background mantle :foreground subtext0))
-
-  (orderless-match-face-0                       (:foreground yellow :bold t))
-  (orderless-match-face-1                       (:foreground pink :bold t))
-  (orderless-match-face-2                       (:foreground red :bold t))
-  (orderless-match-face-4                       (:foreground mauve :bold t))
+  (orderless-match-face-0                       (:foreground pink :background "#211A1F" :weight 'semi-bold))
+  (orderless-match-face-1                       (:foreground blue :background "#222D3E" :weight 'semi-bold))
+  (orderless-match-face-2                       (:foreground yellow :background "#221F18" :weight 'semi-bold))
+  (orderless-match-face-3                       (:foreground mauve :background "#292233" :weight 'semi-bold))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 

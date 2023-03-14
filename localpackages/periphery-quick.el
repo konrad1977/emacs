@@ -81,7 +81,7 @@
         (query (read-string "Query: ")))
     (when (> (length query) 0)
       (async-start-command-to-string
-       :command (format "rg -S %s --vimgrep --sort path" query)
+       :command (format "rg -S \'%s\' --vimgrep --sort path" query)
        :callback '(lambda (output)
                     (periphery-quick:parse output))))))
 
