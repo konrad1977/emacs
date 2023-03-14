@@ -1,4 +1,4 @@
-;;; swift-refactor --- A small package for refactoring -*- lexical-binding: t -*-
+;;; swift-refactor.el --- A small package for refactoring -*- lexical-binding: t -*-
 ;;; Code:
 
 (require 'eglot)
@@ -22,10 +22,10 @@
   "Run active region with (as FUNCTION)."
   (when (use-region-p)
     (let ((start (region-beginning))
-          (end (region-end))
-          (functionToCall function))
+          (end (region-end)))
       (beginning-of-line)
-      (funcall functionToCall start end))))
+      (when (fboundp 'function)
+        (funcall function start end)))))
 
 (defun swift-refactor:add-try-catch-with (start end)
   "Extract region between START & END."

@@ -314,7 +314,8 @@
     (progn
       (periphery-kill-buffer)
       (setq periphery-errorList '())
-      (funcall succesCallback))))
+      (if (fboundp 'succesCallback)
+          (funcall succesCallback)))))
 
 (defun periphery-mode-all ()
   "Show all."

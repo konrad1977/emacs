@@ -59,7 +59,7 @@
   (fringe                               (:background base :foreground overlay2))
   (glyph-face                           (:background red))
   (glyphless-char                       (:foreground overlay2))
-  (header-line                          (:background base))
+  (header-line                          (:background mantle :foreground maroon :weight 'semi-bold :italic t))
   (highlight                            (:background mantle :foreground blue :distant-foreground crust))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
@@ -518,7 +518,7 @@
   (tree-sitter-hl-face:embedded                  (:foreground teal))
 
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
-  (tree-sitter-hl-face:operator                  (:foreground sapphire :bold t))
+  (tree-sitter-hl-face:operator                  (:foreground sapphire))
   (tree-sitter-hl-face:label                     (:foreground overlay2))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))

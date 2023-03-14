@@ -74,6 +74,17 @@
         (periphery-quick:run-query-file query file)
       (periphery-quick:run-query-file (read-string "Query: ") file))))
 
+(defun periphery-quick:find-ask ()
+  "Quickfind but ask user for input."
+  (interactive)
+  (let ((default-directory (projectile-project-root))
+        (query (read-string "Query: ")))
+    (when (> (length query) 0)
+      (async-start-command-to-string
+       :command (format "rg -S %s --vimgrep --sort path" query)
+       :callback '(lambda (output)
+                    (periphery-quick:parse output))))))
+
 (defun periphery-quick:find ()
   "Quick find something in project."
   (interactive)

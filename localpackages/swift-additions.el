@@ -2,7 +2,7 @@
 
 ;;; commentary:
 
-;; package for building and runnning ios/macos apps from emacs
+;;; package for building and runnning ios/macos apps from emacs
 
 ;;; code:
 
@@ -140,6 +140,8 @@
   
   (if-let* ((default-directory (swift-additions:full-build-folder))
             (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
+      (unless (file-exists-p default-directory)
+        (make-directory build-folder :parents))
       (async-shell-command-to-string
        :process-name "Copying symbols"
        :command command
@@ -157,7 +159,7 @@
      :appIdentifier (swift-additions:fetch-or-load-app-identifier)
      :buffer xcodebuild-buffer)))
 
-(defun swift-additions:check-for-errors (text &optional callback)
+(defun swift-additions:check-for-errors (text callback)
   "Run periphery parser on TEXT (optional CALLBACK)."
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
@@ -166,10 +168,8 @@
       (progn
         (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
-          (if-let ((callback callback))
-              (funcall callback))))
-    (if-let ((callback callback))
-        (funcall callback))))
+          (funcall callback)))
+    (funcall callback)))
 
 (defun swift-additions:filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
@@ -271,7 +271,6 @@
 
 (defun swift-additions:successful-build ()
   "Show that the build was successful."
-  (swift-additions:copy-symbols-for-lsp)
   (message-with-color :tag "[Build]" :text "Successful" :attributes 'success))
 
 ;;;###autoload
@@ -300,23 +299,20 @@
   (periphery-kill-buffer)
   (swift-additions:kill-xcode-buffer)
   (ios-simulator:load-simulator-id)
-
   (setq device-or-simulator "[Building simulator target]")
   (setq run-app-on-build runApp)
 
   (if (swift-additions:is-xcodeproject)
       (progn
         (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
-        (let*((default-directory current-project-root))
+        (let ((default-directory current-project-root))
           (async-start-command-to-string
            :command (build-app-command :simulatorId: current-simulator-id)
-           :callback
-           '(lambda (text)
-             (swift-additions:copy-symbols-for-lsp)
-             (if run-app-on-build
-                 (swift-additions:check-for-errors text #'swift-additions:run-app)
-               (swift-additions:check-for-errors text #'swift-additions:successful-build))
-             )))
+           :callback '(lambda (text)
+                        (swift-additions:copy-symbols-for-lsp)
+                        (if run-app-on-build
+                            (swift-additions:check-for-errors text #'swift-additions:run-app)
+                          (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
         (animate-message-with-color
          :tag device-or-simulator
          :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
@@ -349,9 +345,9 @@
     (if (file-directory-p default-directory)
         (progn
           (message-with-color :tag "[Removing]" :text (format "Folder for %s" default-directory) :attributes '(:inherit warning))
-          (delete-directory default-directory t nil))
-      (message-with-color :tag "[Failed]" :text (format "Build folder %s doesn't exist" default-directory) :attributes '(:inherit error))))
-  (message-with-color :tag "[Done]" :text "Ready to rumble." :attributes '(:inherit success)))
+          (delete-directory default-directory t nil)
+          (message-with-color :tag "[Done]" :text "Ready to rumble." :attributes '(:inherit success)))
+      (message-with-color :tag "[Failed]" :text (format "Build folder %s doesn't exist" default-directory) :attributes '(:inherit error)))))
 
 (defun swift-additions:buffer-contains-substring (string)
   "Check if buffer contain (as STRING)."

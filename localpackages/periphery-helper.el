@@ -19,6 +19,7 @@
                (let* ((json-object (json-read-from-string result)))
                  (funcall ,callback json-object)))))
 
+;;;###autoload
 (cl-defun async-start-command-to-string (&key command &key callback)
   "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
   (async-start

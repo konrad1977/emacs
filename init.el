@@ -136,18 +136,6 @@
         use-package-minimum-reported-time 0.1
         debug-on-error nil))
 
-;; (use-package treesit
-;;   :ensure nil
-;;   :hook (prog-mode . treesit-hl-toggle))
-
-;; (use-package treesit-langs
-;;   :ensure nil
-;;   :unless (version< emacs-version "29")
-;;   :quelpa (treesit-langs :fetcher github :repo "kiennq/treesit-langs"
-;;                          :files ("tree-sitter-langs-build.el"
-;;                                  "treesit-*.el"
-;;                                  "queries")))
-
 ;; (use-package benchmark-init
 ;;   :config
 ;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
@@ -599,9 +587,10 @@
         ("<escape>" . corfu-quit)
         ("C-n" . corfu-next)
         ("C-p" . corfu-previous))
+  :config
+  (corfu-popupinfo-mode)
   :custom
   (corfu-auto t)
-  (corfu-popupinfo-mode)
   (completion-styles '(flex orderless))
   :init
   (setq corfu-bar-width 2
@@ -1177,8 +1166,9 @@
   :ensure nil
   :after prog-mode
   :bind
-  ("M-f" . #'periphery-quick:find-in-file)
+  ("M-f" . #'periphery-quick:find-ask)
   ("M-F" . #'periphery-quick:find)
+  ("C-c f f" . #'periphery-quick:find-in-file)
   ("C-c s t" . #'periphery-quick:todos))
 
 (use-package periphery-search
@@ -1186,7 +1176,6 @@
   :after prog-mode
   :bind
   ("C-c C-f" . #'periphery-search-dwiw-rg)
-  ;; ("M-f" . #'periphery-search-rg)
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
 
@@ -1219,6 +1208,17 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
+  
+  (when (boundp 'consult-imenu-config)
+    (add-to-list
+     'consult-imenu-config
+     '(swift-mode :types ((?f "Function")
+                          (?m "Method")
+                          (?p "Property")
+                          (?e "Enum")
+                          (?c "Class")
+                          (?s "Struct")
+                          (?x "Namespace")))))
 
   (use-package flycheck-swiftlint
     :after flycheck
@@ -1271,7 +1271,11 @@
 
   (hs-minor-mode)       ; Add support for folding code blocks
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
-
+  ;; (which-function-mode)
+  ;; (setq-default header-line-format
+  ;;               '((which-func-mode ("\t\t   " which-func-current "()"))))
+  ;; (setq-default mode-line-misc-info nil)
+  
   (setq indicate-empty-lines t            ;; Show empty lines
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
