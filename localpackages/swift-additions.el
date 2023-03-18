@@ -21,7 +21,6 @@
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
-(defconst list-simulators-command "xcrun simctl list devices iPhone available -j")
 
 (defvar current-xcode-scheme nil)
 (defvar current-app-identifier nil)
@@ -85,7 +84,7 @@
 
 (defun swift-additions:get-workspace-or-project ()
   "Check if there is workspace or project."
-  (let* ((workspace (swift-additions:workspace-name))
+  (let ((workspace (swift-additions:workspace-name))
         (projectname (swift-additions:project-name)))
     (if workspace
         (format "-workspace %s.xcworkspace \\" workspace)
@@ -132,21 +131,19 @@
 (defun swift-additions:copy-symbols-for-lsp ()
   "Copy symbols for LSP to work."
 
-  ;; Create directory if it doesnt exist
+  (message-with-color :tag "[Copying LSP Symbols]" :text "" :attributes 'success)
   (let* ((default-directory (projectile-project-root))
          (build-folder (format "%s%s" default-directory ".build/arm64-apple-macosx/debug/")))
+    ;; Create directory if it doesnt exist
     (unless (file-exists-p build-folder)
       (make-directory build-folder :parents)))
   
   (if-let* ((default-directory (swift-additions:full-build-folder))
-            (command "rsync -avu --delete  . ../../../../.build/arm64-apple-macosx/debug"))
-      (unless (file-exists-p default-directory)
-        (make-directory build-folder :parents))
-      (async-shell-command-to-string
-       :process-name "Copying symbols"
+            (command "rsync -ua --include='*/' --delete --include='*.swiftmodule' --exclude '*'  . ../../../../.build/arm64-apple-macosx/debug"))
+      (async-start-command-to-string
        :command command
-       :callback
-       (lambda (txt)))))
+       :callback '(lambda (txt) ))))
+
 
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
@@ -163,8 +160,8 @@
   "Run periphery parser on TEXT (optional CALLBACK)."
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
-       (string-match-p (regexp-quote "error: ") text)
-       (string-match-p (regexp-quote "warning: ") text))
+       (string-match-p (regexp-quote ":\\s?error: ") text)
+       (string-match-p (regexp-quote ":\\s?warning: ") text))
       (progn
         (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
@@ -173,8 +170,8 @@
 
 (defun swift-additions:filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
-  (if-let* ((name (directory-files current-project-root t extension)))
-    (file-name-sans-extension (file-name-nondirectory (car name)))))
+  (if-let ((name (directory-files current-project-root t extension)))
+      (file-name-sans-extension (file-name-nondirectory (car name)))))
 
 (defun swift-additions:project-name ()
   "Get project name."
@@ -196,11 +193,11 @@
 
 (cl-defun find-project-root-folder-with (&key extension)
   "Find project folder where it has its project files EXTENSION."
-  (let* ((project-root (expand-file-name (projectile-project-root)))
-         (root (directory-files project-root nil (format "\\%s$" extension) 1))
-            (subroot (swift-additions:get-files-from :directory project-root :extension extension :exclude ".build"))
-            (workroot (or root subroot))
-            (path (file-name-directory (car-safe workroot))))
+  (let ((project-root (expand-file-name (projectile-project-root)))
+        (root (directory-files project-root nil (format "\\%s$" extension) 1))
+        (subroot (swift-additions:get-files-from :directory project-root :extension extension :exclude ".build"))
+        (workroot (or root subroot))
+        (path (file-name-directory (car-safe workroot))))
     (if (and path (string-match-p (regexp-quote extension) path))
         (file-name-directory (directory-file-name path))
       path)))
@@ -213,7 +210,7 @@
 
 (defun swift-additions:get-project-files ()
   "Get project files."
-  (let* ((files (directory-files-recursively (projectile-project-root) "\.xcworkspace$\\|\.xcodeproj$" 2)))
+  (let ((files (directory-files-recursively (projectile-project-root) "\.xcworkspace$\\|\.xcodeproj$" 2)))
     (cdr-safe files)))
 
 (defun swift-additions:get-ios-project-root ()
