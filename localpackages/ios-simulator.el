@@ -10,7 +10,7 @@
   :group 'ios-simulator)
 
 (defconst list-simulators-command
-  "xcrun simctl list devices iPhone available -j"
+  "xcrun simctl list devices available -j"
   "List available simulators.")
 
 (defconst get-booted-simulator-command
