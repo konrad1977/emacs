@@ -17,7 +17,6 @@
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
 
-(defconst xcodebuild-buffer "*xcodebuild*")
 (defconst periphery-command "periphery scan")
 (defconst notifier-command "terminal-notifier -sender \"org.gnu.Emacs\" -ignoreDnd")
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
@@ -274,7 +273,7 @@
   "Run app in simulator/device without compiling."
   (interactive)
   (periphery-kill-buffer)
-  (swift-additions:kill-xcode-buffer)
+  (ios-simulator:kill-buffer)
   (swift-additions:run-app))
 
 ;;;###autoload
@@ -293,8 +292,9 @@
   "Build project using xcodebuild (as RUNAPP)."
   (save-some-buffers t)
   (periphery-kill-buffer)
-  (swift-additions:kill-xcode-buffer)
+  (ios-simulator:kill-buffer)
   (ios-simulator:load-simulator-id)
+
   (setq device-or-simulator "[Building simulator target]")
   (setq run-app-on-build runApp)
 
@@ -324,7 +324,7 @@
   (interactive)
   (save-some-buffers t)
   (periphery-kill-buffer)
-  (swift-additions:kill-xcode-buffer)
+  (ios-simulator:kill-buffer)
   (swift-additions:test-swift-package))
 
 ;;;###autoload
@@ -398,14 +398,6 @@
   (interactive)
   (swift-additions:insert-text-and-go-to-eol "// TODO: "))
 
-;;;###autoload
-(defun swift-additions:toggle-xcodebuild-buffer ()
-  "Function to toggle xcodebuild-buffer."
-  (interactive)
-  (if (get-buffer xcodebuild-buffer)
-      (bury-buffer xcodebuild-buffer)
-    (pop-to-buffer xcodebuild-buffer)))
-
 (defun swift-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
   (unless current-project-root
@@ -468,11 +460,6 @@
              (choice (completing-read title choices)))
         (cdr (assoc choice choices))))))
 
-(defun swift-additions:kill-xcode-buffer ()
-  "Kill the xcode buffer."
-  (when (get-buffer xcodebuild-buffer)
-    (kill-buffer xcodebuild-buffer)))
-
 (defun swift-additions:is-xcodeproject ()
   "Check if its an xcode-project."
   (if-let ((default-directory (swift-additions:get-ios-project-root)))
@@ -494,8 +481,8 @@
       (progn
         (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "error:") text))
-          (shell-command "swift run" xcodebuild-buffer)))
-    (shell-command "swift run" xcodebuild-buffer)))
+          (shell-command "swift run" "SPM Buffer")))
+    (shell-command "swift run" "SPM Buffer")))
 
 ;;;###autoload
 (defun swift-additions:build-swift-package ()

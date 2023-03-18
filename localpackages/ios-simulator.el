@@ -49,9 +49,8 @@
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
 
-  (when (get-buffer ios-simulator-buffer-name)
-    (kill-buffer ios-simulator-buffer-name))
-  
+  (ios-simulator:kill-buffer)
+
   (let* ((default-directory rootfolder)
          (simulator-id simulatorId)
          (buffer (get-buffer-create ios-simulator-buffer-name)))
@@ -92,6 +91,11 @@
   "Get compiled app name from (FOLDER)."
   (when-let (binary-name (directory-files folder nil "\\.app$"))
     (file-name-sans-extension (car binary-name))))
+
+(defun ios-simulator:kill-buffer ()
+  "Kill the ios-simulator buffer."
+  (when (get-buffer ios-simulator-buffer-name)
+    (kill-buffer ios-simulator-buffer-name)))
 
 (defun ios-simulator:setup-simulator-dwim (id)
   "Setup simulator dwim (as ID)."
