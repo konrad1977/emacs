@@ -53,7 +53,7 @@
   "Run query (as QUERY)."
   (let ((default-directory (projectile-project-root)))
     (async-start-command-to-string
-     :command (format "rg -w %s --vimgrep --sort path" query)
+     :command (format "rg -e %s --color=never --no-heading --with-filename --line-number --column --sort path" query)
      :callback '(lambda (output) (periphery-quick:parse output)))))
 
 (defun periphery-quick:run-query-file (query file)
@@ -62,7 +62,7 @@
   (let ((file file)
         (query query))
     (async-start-command-to-string
-     :command (format "rg -w %s %s --vimgrep" query file)
+     :command (format "rg -w %s %s --color=never --no-heading --with-filename --line-number --column" query file)
      :callback '(lambda (output)
                   (periphery-quick:parse output)))))
 
@@ -81,7 +81,7 @@
         (query (read-string "Query: ")))
     (when (> (length query) 0)
       (async-start-command-to-string
-       :command (format "rg -S \'%s\' --vimgrep --sort path" query)
+       :command (format "rg -S \'%s\' --color=never --no-heading --with-filename --line-number --column" query)
        :callback '(lambda (output)
                     (periphery-quick:parse output))))))
 

@@ -45,7 +45,7 @@
           (setq current-query (regexp-quote text))
           (message-with-color :tag "[SEARCHING]" :text (format "for %s" current-query) :attributes 'warning)
           (async-start-command-to-string
-           :command (format "%s \"%s\" --vimgrep --sort path" searcher current-query)
+           :command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path" searcher current-query)
            :callback '(lambda (result) (send-search-result-to-periphery result)))))
     (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
 
