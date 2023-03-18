@@ -1,35 +1,70 @@
 ;;; swift-refactor.el --- A small package for refactoring -*- lexical-binding: t -*-
 ;;; Code:
 
-(require 'eglot)
-
 (defgroup swift-refactor nil
   "Provides refactoring tools for Swift."
   :group 'tools
   :prefix "swift-refactor-")
 
-(defun swift-refactor:extract-function ()
+(defun clean-up-region-whitespace (start end)
+  "Delete extra whitespace in the region between START and END."
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region start end)
+    (goto-char (point-min))
+    (while (re-search-forward "[ \t]+" nil t)
+      (replace-match " " nil nil))))
+
+(defun swift-refactor:run-active-region (function &rest args)
+  "Run active region with (as FUNCTION) and pass any additional ARGS to FUNCALL."
+  (when (use-region-p)
+    (let ((start (region-beginning))
+          (end (region-end)))
+      (beginning-of-line)
+      (when (fboundp 'function)
+        (apply #'funcall function start end args)))))
+
+(defun swift-refactor:extract-function (method-name)
   "Extract active region to its own function."
+  (interactive "sEnter method name (optional): ")
+  (let ((method-name (if (string-blank-p (string-trim-right method-name)) "extractedMethod" method-name)))
+    (swift-refactor:run-active-region #'swift-refactor:extract-function-with method-name)))
+
+(defun swift-refactor:tidy-up-constructor ()
   (interactive)
-  (swift-refactor:run-active-region #'swift-refactor:extract-function-with))
+  (swift-refactor:run-active-region #'swift-refactor:tidy-up-constructor-with))
+
+(defun swift-refactor:extract-function-with (start end method-name)
+  "Extracts the Swift code region between START and END into a new function with the given METHOD-NAME."
+  (ignore-errors
+    (let* ((content (buffer-substring-no-properties start end)))
+      (save-excursion
+        ;; (delete-region start end)
+        (kill-region start end)
+        (insert (concat method-name "()\n"))
+        (beginning-of-defun)
+        (insert (concat "\tprivate func " method-name "() {\n"))
+        (insert content)
+        (insert "\t}\n\n"))
+      (indent-region (region-beginning) (region-end))
+      (indent-according-to-mode))))
+
+(defun swift-refactor:tidy-up-constructor-with (start end)
+  "Clean up the constructor and removes .init from code."
+  (ignore-errors
+    (let* ((content (buffer-substring-no-properties start end)))
+      (save-excursion
+        (message content)
+        (kill-region start end)
+        (insert (remove-init-from-string content))))))
 
 (defun swift-refactor:add-try-catch ()
   "Add try catch."
   (interactive)
   (swift-refactor:run-active-region #'swift-refactor:add-try-catch-with))
 
-(defun swift-refactor:run-active-region (function)
-  "Run active region with (as FUNCTION)."
-  (when (use-region-p)
-    (let ((start (region-beginning))
-          (end (region-end)))
-      (beginning-of-line)
-      (when (fboundp 'function)
-        (funcall function start end)))))
-
 (defun swift-refactor:add-try-catch-with (start end)
   "Extract region between START & END."
-  (interactive)
   (ignore-errors
     (let ((content (buffer-substring-no-properties start end)))
       (save-excursion
@@ -37,22 +72,12 @@
           (insert "do {\n")
           (insert content)
           (insert "} catch {\n print(error)\n}\n")
-          (indent-region (region-beginning) (region-end))))))
+          (indent-region (region-beginning) (region-end))
+          (indent-according-to-mode)))))
 
-(defun swift-refactor:extract-function-with (start end)
-  "Extract region between START & END."
-  (interactive)
-  (ignore-errors
-    (let ((content (buffer-substring-no-properties start end)))
-      (save-excursion
-        (delete-region start end)
-        (insert "extractedMethod()\n")
-        (indent-region start end)
-        (beginning-of-thing 'defun)
-          (insert "\tprivate func extractedMethod() {\n")
-          (insert content)
-          (insert "\t}\n\n"))
-      (indent-region (region-beginning) (region-end)))))
+(defun remove-init-from-string (string)
+  "Remove '.init' from the given STRING."
+  (replace-regexp-in-string "\\.init" "" string))
 
 ;; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
 ;;;###autoload
