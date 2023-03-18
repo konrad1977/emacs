@@ -67,6 +67,7 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
+  (set-fontset-font t nil "SF Pro Display" nil 'append)
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
         mac-command-modifier 'meta
@@ -86,8 +87,8 @@
 (require 'package)
 ;; (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
 ;;                          ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
-(setq package-archives '(("elpa" . "https://elpa.gnu.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
 
 ;; Initialize use-package on non-Linux platforms
@@ -813,7 +814,7 @@
       (window-height . 0.18)
       (side . bottom)
       (slot . 1))
-     ("\\*xcodebuild\\*"
+     ("\\*IOS Simulator"
       (display-buffer-reuse-window display-buffer-in-side-window)
       (reusable-frames . nil)
       (body-function . select-window)
@@ -837,7 +838,7 @@
      ("\\*e?shell\\|vterm*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.18)
+      (window-height . 0.25)
       (side . bottom)
       (slot . -1))
      ("simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*\\|Warnings"
@@ -944,7 +945,7 @@
     "5" '(winum-select-window-5 :which-key "Window 5")
     "6" '(winum-select-window-6 :which-key "Window 6")
     "P" 'package-install
-    "'" '((lambda () (interactive) (vterm)) :which-key "Term"))
+    "'" '((lambda () (interactive) (eshell)) :which-key "Term"))
 
   (mk/leader-keys
     "aa" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
@@ -1320,8 +1321,8 @@
         display-line-numbers 'relative))   ;; Show line numbers
 
 (defun correct-fringe (&optional ignore)
-  (unless (eq fringe-mode '16)
-    (fringe-mode '16)))
+  (unless (eq fringe-mode '24)
+    (fringe-mode '24)))
 
 (add-hook 'after-init-hook #'correct-fringe)
 (add-hook 'buffer-list-update-hook #'correct-fringe)

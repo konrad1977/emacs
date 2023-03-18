@@ -153,8 +153,7 @@
      :rootfolder current-project-root
      :build-folder (swift-additions:get-build-folder)
      :simulatorId (ios-simulator:load-simulator-id)
-     :appIdentifier (swift-additions:fetch-or-load-app-identifier)
-     :buffer xcodebuild-buffer)))
+     :appIdentifier (swift-additions:fetch-or-load-app-identifier))))
 
 (defun swift-additions:check-for-errors (text callback)
   "Run periphery parser on TEXT (optional CALLBACK)."

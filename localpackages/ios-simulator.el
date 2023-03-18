@@ -9,6 +9,9 @@
   :tag "ios-simulator"
   :group 'ios-simulator)
 
+(defconst ios-simulator-buffer-name "*iOS Simulator*"
+  "Name of the buffer.")
+
 (defconst list-simulators-command
   "xcrun simctl list devices available -j"
   "List available simulators.")
@@ -43,11 +46,15 @@
          (version (ios-simulator:current-sdk-version)))
     (format "%s-%s-ios%s-simulator" arch vendor version)))
 
-(cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier &key buffer)
+(cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
+
+  (when (get-buffer ios-simulator-buffer-name)
+    (kill-buffer ios-simulator-buffer-name))
   
   (let* ((default-directory rootfolder)
-         (simulator-id simulatorId))
+         (simulator-id simulatorId)
+         (buffer (get-buffer-create ios-simulator-buffer-name)))
 
     (setq applicationName (ios-simulator:app-name-from :folder build-folder))
     (setq simulatorName  (ios-simulator:fetch-simulator-name))
@@ -57,7 +64,6 @@
      :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
      :attributes '(:inherit success)
      :times 3)
-
     (ios-simulator:terminate-app-with
      :appIdentifier appIdentifier)
     
@@ -65,6 +71,7 @@
      :simulatorID simulator-id
      :build-folder build-folder)
 
+    (setq-local term-default-bg-color "#211E1E")
     (inhibit-sentinel-messages #'async-shell-command
                                (ios-simulator:launch-app
                                 :appIdentifier current-app-identifier
@@ -80,7 +87,6 @@
     (inhibit-sentinel-messages
      #'call-process-shell-command
      (format "xcrun simctl install %s %s%s.app\n" simulatorID install-path (ios-simulator:app-name-from :folder folder)))))
-      
 
 (cl-defun ios-simulator:app-name-from (&key folder)
   "Get compiled app name from (FOLDER)."
