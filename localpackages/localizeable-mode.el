@@ -34,7 +34,7 @@
 
 (defvar localizeable-mode-map nil "Keymap for localizeable.")
 (setq localizeable-mode-map (make-sparse-keymap))
-(define-key localizeable-mode-map (kbd "C-c C-c") #'localizeable-mode-analyze)
+;; (define-key localizeable-mode-map (kbd "C-c C-c") #'localizeable-mode-analyze)
 
 (add-to-list 'auto-mode-alist '("\\.strings\\'" . localizeable-mode))
 
