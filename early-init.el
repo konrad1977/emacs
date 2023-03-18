@@ -31,10 +31,10 @@
               mode-line-format nil
               package-native-compile t
               package-enable-at-startup nil
-              indicate-buffer-boundaries '((bottom . left))
+              indicate-buffer-boundaries '((bottom . right))
               default-frame-alist
               '((background-color . "#1e1e2e")       ; Default background color
-                (bottom-divider-width . 1)           ; Thin horizontal window divider
+                (bottom-divider-width . 0)           ; Thin horizontal window divider
                 (foreground-color . "#cdd6f4")       ; Default foreground color
                 (fullscreen . maximized)             ; Maximize the window by default
                 (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
@@ -43,8 +43,6 @@
                 (tool-bar-lines . 0)                 ; No tool bar
                 (left-fringe . 16)
                 (right-fringe . 0)
-                (height . 27)
-                (width . 101)
                 (ns-use-native-fullscreen . t)
                 (ns-transparent-titlebar . t)
                 (vertical-scroll-bars . nil)))       ; No vertical scroll-bars

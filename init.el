@@ -1,17 +1,19 @@
 ;;; init.el --- -*- lexical-binding: t -*-
 ;;; Code:
-;; Window
 
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'light)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'light)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'light)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 165 :weight 'light)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 165 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 165 :weight 'light)
+
+(custom-set-faces
+ `(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0))))
+ `(font-lock-string-face ((t (:italic t :height 1.0)))))
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
-(set-fringe-mode 14)               ;; Give us some space.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
 (global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
@@ -48,7 +50,7 @@
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
 
-(setq-default display-line-numbers-width    4       ;; Set so we can display thousands of lines
+(setq-default display-line-numbers-width    5       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               ediff-forward-word-function   'forward-char
               tab-width                     4            ;: Use four tabs
@@ -149,6 +151,7 @@
    ;; (load-theme 'catppuccin-macchiato t)
   (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'doom-gruvbox t)
+  ;; (load-theme 'doom-tokyo-night)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'doom-old-hope t)
@@ -270,15 +273,14 @@
 ;; Config and install modeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
-  ;; :custom
-  ;; (doom-modeline-height (floor (* (line-pixel-height) 1.8)))
   :config
   (custom-set-faces
    '(mode-line ((t (:family "SF Mono" :height 0.95)))))
   (custom-set-faces
    '(mode-line-inactive ((t (:family "SF Mono" :height 0.95)))))
 
-  (setq doom-modeline-buffer-encoding t
+  (setq doom-modeline-buffer-encoding nil
+        doom-modeline-percent-position nil
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
@@ -289,10 +291,10 @@
         doom-modeline-modal-icon nil
         doom-modeline-lsp t
         doom-modeline-workspace-name nil
-        doom-modeline-persp-name t
+        doom-modeline-persp-name nil
         doom-modeline-bar-width 5
         doom-modeline-hud t
-        doom-modeline-buffer-state-icon t
+        doom-modeline-buffer-state-icon nil
         doom-modeline-time-icon nil)
   (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
         evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
@@ -320,7 +322,7 @@
    dashboard-recentf-item-format "%s"
    dashboard-set-heading-icons t
    dashboard-items '((recents . 8)
-                     (projects . 2))))
+                     (projects . 5))))
 
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
@@ -329,8 +331,33 @@
   ([remap describe-command] . helpful-command)
   ([remap describe-key] . helpful-key))
 
+(use-package vundo
+  :defer t
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols)
+
+(defun mk/vundo-diff ()
+    (interactive)
+    (let* ((orig vundo--orig-buffer)
+           (source (vundo--current-node vundo--prev-mod-list))
+           (dest (vundo-m-parent source)))
+      (if (or (not dest) (eq source dest))
+          (message "vundo diff not available.")
+	(let ((buf (make-temp-name (concat (buffer-name orig) "-vundo-diff"))))
+          (vundo--move-to-node source dest orig vundo--prev-mod-list)
+          (with-current-buffer (get-buffer-create buf)
+	    (insert-buffer orig))
+          (vundo--refresh-buffer orig (current-buffer) 'incremental)
+          (vundo--move-to-node dest source orig vundo--prev-mod-list)
+          (vundo--refresh-buffer orig (current-buffer) 'incremental)
+          (diff-buffers buf orig)
+          (kill-buffer buf)))))
+(define-key vundo-mode-map "d" #'mk/vundo-diff))
+
 (use-package undo-fu
-  :defer t)
+  :defer t
+  :config
+  (setq undo-fu-allow-undo-in-region t))
 
 (use-package undo-fu-session
   :hook (after-init . undo-fu-session-global-mode)
@@ -349,11 +376,12 @@
         evil-undo-system 'undo-fu
         evil-search-module 'evil-search
         evil-vsplit-window-right t
+        ;; evil-normal-state-cursor '(hollow . 2)
         evil-split-window-below t
         evil-want-C-i-jump nil)
   :config
 
-  (define-key evil-visual-state-map (kbd "C-u") 'undo)
+  (define-key evil-visual-state-map (kbd "C-u u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
   
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
@@ -423,6 +451,11 @@
 
 (use-package evil-tutor
   :commands evil-tutor)
+
+;; (use-package goggles
+;;   :hook ((prog-mode text-mode) . goggles-mode)
+;;   :config
+;;   (setq-default goggles-pulse t))
 
 (use-package evil-goggles
   :after evil
@@ -517,27 +550,23 @@
   :ensure nil
   :config
   (setq eglot-stay-out-of '(corfu company)
-        eglot-autoshutdown t
-        eglot-autoreconnect t
         eglot-extend-to-xref t
-        eglot-events-buffer-size nil
-        eglot-send-changes-idle-time 0.5
         eglot-ignored-server-capabilities '(:hoverProvider))
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.15)
+  (kind-icon-blend-background nil)
+  (kind-icon-blend-frac nil)
   (kind-icon-default-face 'corfu-default)
   (kind-icon-default-style '(
-                             :padding -0.2
+                             :padding 0.9
                              :stroke 0
-                             :margin 0
-                             :radius 0.0
-                             :height 1
-                             :scale 0.76))
+                             :margin -0.9
+                             :radius 1.0
+                             :height 0.95
+                             :scale 0.7))
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
@@ -581,7 +610,8 @@
 
 (use-package corfu
   :hook ((prog-mode . corfu-mode)
-         (localizeable-mode . corfu-mode))
+         (localizeable-mode . corfu-mode)
+         (corfu-mode . corfu-popupinfo-mode))
   :bind
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
@@ -592,7 +622,6 @@
   (corfu-auto t)
   (completion-styles '(flex orderless))
   :init
-  (setq corfu-popupinfo-mode t)
   (setq corfu-bar-width 2
         corfu-scroll-margin 2
         corfu-auto-prefix 2
@@ -606,6 +635,7 @@
         corfu-quit-no-match 'separator
         corfu-preselect 'prompt
         corfu-preview-current 'insert
+        corfu-popupinfo-delay 0.5
         corfu-popupinfo-resize t
         corfu-popupinfo-hide nil
         corfu-popupinfo-direction '(force-horizontal)
@@ -659,9 +689,15 @@
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
   :bind ("M-J" . treemacs-find-file)
-  ;; :init (treemacs-project-follow-mode)
+  :init
+  (treemacs-project-follow-mode)
+  :custom-face
+  (font-lock-doc-face ((t (:inherit nil))))
+  (doom-themes-treemacs-file-face ((t (:inherit font-lock-doc-face :slant italic))))
+  (doom-themes-treemacs-root-face ((t (:inherit nil :slant italic))))
+  (treemacs-root-face ((t (:inherit variable-pitch :slant italic))))
   :config
-  (setf treemacs-window-background-color (cons "#181825" "#313244"))
+  (setf treemacs-window-background-color (cons "#242439" "#313244"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
@@ -679,7 +715,7 @@
         treemacs-is-never-other-window nil
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 40))
+        treemacs-width 35))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -878,7 +914,7 @@
   (setq git-gutter-fr:side 'left-fringe)
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package json-mode
   :defer t)
@@ -1061,24 +1097,22 @@
 (use-package elfeed
   :commands elfeed
   :config
-  (setq elfeed-feeds '(
-                       ("https://news.ycombinator.com/rss")
+  (setq elfeed-feeds '(("https://news.ycombinator.com/rss")
                        ("http://nullprogram.com/feed/")
                        ("https://planet.emacslife.com/atom.xml")
                        ("https://www.reddit.com/r/emacs.rss")
                        ("https://www.reddit.com/r/swift.rss")
                        ("https://www.reddit.com/r/swiftui.rss")
                        ("https://xenodium.com/rss")
-                       ("https://swiftbysundell.com/rss")
-                       )
+                       ("https://swiftbysundell.com/rss"))
         elfeed-search-filter "@7-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
 
-(use-package highlight-indent-guides
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'bitmap))
+;; (use-package highlight-indent-guides
+;;   :hook (prog-mode . highlight-indent-guides-mode)
+;;   :config
+;;   (setq highlight-indent-guides-method 'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
@@ -1103,6 +1137,8 @@
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
+  :bind (:map localizeable-mode-map
+         ("C-c C-c" . #'swift-additions:compile-and-run-app))
   :ensure nil)
 
 ;; (use-package yasnippet
@@ -1144,8 +1180,9 @@
   :ensure nil
   :after swift-mode
   :bind
+  ("C-c r i" . #'swift-refactor:tidy-up-constructor)
   ("C-c r s" . #'swift-refactor:split-function-list)
-  ("C-c r f" . #'swift-refactor:extract-function)
+  ("C-c r r" . #'swift-refactor:extract-function)
   ("C-c r t" . #'swift-refactor:add-try-catch))
 
 (use-package apple-docs-query
@@ -1282,12 +1319,12 @@
         column-number-mode nil            ;; Show current line number highlighted
         display-line-numbers 'relative))   ;; Show line numbers
 
-;; (defun correct-fringe (&optional ignore)
-;;   (unless (eq fringe-mode '12)
-;;     (fringe-mode '12)))
+(defun correct-fringe (&optional ignore)
+  (unless (eq fringe-mode '16)
+    (fringe-mode '16)))
 
-;; (add-hook 'after-init-hook #'correct-fringe)
-;; (add-hook 'buffer-list-update-hook #'correct-fringe)
+(add-hook 'after-init-hook #'correct-fringe)
+(add-hook 'buffer-list-update-hook #'correct-fringe)
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."
@@ -1317,6 +1354,17 @@
   (interactive "p")
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
+
+(defun mk/toggle-transparency ()
+  (interactive
+   (let ((alpha (frame-parameter nil 'alpha)))
+     (if (eq
+          (if (numberp alpha)
+              alpha
+            (cdr alpha)) ; may also be nil
+          100)
+         (set-frame-parameter nil 'alpha '(94 . 85))
+       (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
