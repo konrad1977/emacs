@@ -148,7 +148,8 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
+  (load-theme 'rose-pine t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'doom-tokyo-night)
    ;; (load-theme 'kman t)
@@ -692,7 +693,7 @@
   (treemacs-project-follow-mode)
   :custom-face
   (font-lock-doc-face ((t (:inherit nil))))
-  (doom-themes-treemacs-file-face ((t (:inherit font-lock-doc-face :slant italic))))
+  (doom-themes-treemacs-file-face ((t (:inherit font-lock-doc-face :weight semi-bold))))
   (doom-themes-treemacs-root-face ((t (:inherit nil :slant italic))))
   (treemacs-root-face ((t (:inherit variable-pitch :slant italic))))
   :config
