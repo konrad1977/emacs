@@ -4,13 +4,12 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 165 :weight 'light)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'light)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 165 :weight 'light)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 165 :weight 'light)
 
 (custom-set-faces
- `(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0))))
- `(font-lock-string-face ((t (:italic t :height 1.0)))))
+ '(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0)))))
 
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
@@ -25,25 +24,23 @@
       auto-revert-check-vc-info         t
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
-      blink-cursor-interval             0.6       ;; Little slower cursor blinking . default is 0.5
+      blink-cursor-interval             0.3       ;; Little slower cursor blinking . default is 0.5
       cursor-in-non-selected-windows    nil
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
       create-lockfiles                  nil
       echo-keystrokes                   0.2
       confirm-kill-emacs                'y-or-n-p
-      ediff-split-window-function       'split-window-horizontally
       find-file-visit-truename          t
       font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
       jit-lock-defer-time               nil
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
-      scroll-margin                     1   ;; scroll N to screen edge
+      scroll-margin                     0   ;; scroll N to screen edge
       load-prefer-newer                 t
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
-      max-lisp-eval-depth               10000
       auto-mode-case-fold               nil
       truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
@@ -53,9 +50,9 @@
 (setq-default display-line-numbers-width    5       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               ediff-forward-word-function   'forward-char
+              ediff-split-window-function   'split-window-horizontally
               tab-width                     4            ;: Use four tabs
               line-spacing                  0.0         ;; Increase linespacing a bit
-              inhibit-compacting-font-caches t
               truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               completion-ignore-case        t            ;; Ignore case when completing
@@ -68,6 +65,7 @@
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
   (set-fontset-font t nil "SF Pro Display" nil 'append)
+  (set-fontset-font t nil "SF Mono" nil 'append)
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
         mac-command-modifier 'meta
@@ -814,7 +812,7 @@
       (window-height . 0.18)
       (side . bottom)
       (slot . 1))
-     ("\\*IOS Simulator"
+     ("\\*IOS Simulator\\|*swift package"
       (display-buffer-reuse-window display-buffer-in-side-window)
       (reusable-frames . nil)
       (body-function . select-window)
@@ -1139,7 +1137,8 @@
 (use-package localizeable-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
-         ("C-c C-c" . #'swift-additions:compile-and-run-app))
+              ("C-c C-c" . #'swift-additions:compile-and-run-app)
+              ("C-c C-k" . #'periphery-run-loco))
   :ensure nil)
 
 ;; (use-package yasnippet
