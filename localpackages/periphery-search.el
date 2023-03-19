@@ -73,7 +73,7 @@
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
-  (periphery-run-query "rg -w" "(FIX|FIXME|TODO|HACK|PERF)"))
+  (periphery-run-query "rg -w" "(NOTE|FIX|FIXME|TODO|HACK|PERF)"))
 
 ;;;###autoload
 (defun periphery-query-marks ()
