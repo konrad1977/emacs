@@ -565,17 +565,17 @@
 (defun periphery-svg-tags ()
   "Get svg tags."
   ;; TODO: Make it work for elisp
-  '(("\\([\\/\|;]\\{1,3\\}\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
-                                                                 :face (svg-color-from-tag tag)
-                                                                 :inverse t
-                                                                 :crop-left t))))
+  '(("\\([\\/\|;]\\{1,3\\}\\W?[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
+                                                                                                           :face (svg-color-from-tag tag)
+                                                                                                           :inverse t
+                                                                                                           :crop-left t))))
     
-    ("\\([\\/|;]\\{1,3\\}\\W?\\w+\\b:\\)" . ((lambda (tag)
-                                     (svg-tag-make (periphery--remove-comments-in-string tag)
-                                                   :face (svg-color-from-tag tag)
-                                                   :inverse nil
-                                                   :margin 0
-                                                   :crop-right nil))))
+    ("\\([\\/|;]\\{1,3\\}\\W?[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:\\)" . ((lambda (tag)
+                                                                               (svg-tag-make (periphery--remove-comments-in-string tag)
+                                                                                             :face (svg-color-from-tag tag)
+                                                                                             :inverse nil
+                                                                                             :margin 0
+                                                                                             :crop-right nil))))
 
     ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE" :face 'periphery-hack-face-full :margin 0))))
     ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-hack-face-full :crop-left t :inverse t))))
