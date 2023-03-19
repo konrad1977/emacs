@@ -1,4 +1,7 @@
-;;; commentary: rose-pine based theme
+;;; package --- A beutiful theme
+;;; Commentary:
+;;; rose-pine based theme
+
 
 ;;; Code:
 (eval-when-compile
@@ -268,7 +271,7 @@
   (flycheck-fringe-info                 (:inherit 'info ))
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
-  (flycheck-error-list-info             (:background foam :bold t))
+  (flycheck-error-list-info             (:foreground foam :bold t))
   (flycheck-inline-error                (:background love :foreground love :height 128))
   (flycheck-inline-info                 (:background foam :foreground foam :height 128))
   (flycheck-inline-warning              (:background gold :foreground gold :height 128))
@@ -547,5 +550,5 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'rose-pine)
-;;; rose-pine.el ends here
+(provide 'rose-pine-theme)
+;;; rose-pine-theme.el ends here
