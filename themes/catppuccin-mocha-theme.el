@@ -1,4 +1,6 @@
-;;; commentary: catppuccin-mocha based theme
+;;; package --- Catppuccin mocha theme
+;;; Commentary:
+;;; catppuccin-mocha based theme
 
 ;;; Code:
 (eval-when-compile
