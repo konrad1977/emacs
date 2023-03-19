@@ -143,7 +143,6 @@
        :command command
        :callback '(lambda (txt) ))))
 
-
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
   (if local-device-id
@@ -200,22 +199,17 @@
         (file-name-directory (directory-file-name path))
       path)))
 
-;; (defun swift-additions:get-ios-project-root ()
-;;   "Get the current root of the project."
-;;   (let* ((workspace (find-project-root-folder-with :extension ".xcworkspace"))
-;;          (xcodeproj (find-project-root-folder-with :extension ".xcodeproj")))
-;;     (or workspace xcodeproj (expand-file-name (projectile-project-root)))))
-
 (defun swift-additions:get-project-files ()
   "Get project files."
-  (let ((files (directory-files-recursively (projectile-project-root) "\.xcworkspace$\\|\.xcodeproj$" 2)))
-    (cdr-safe files)))
+  (let* ((files (directory-files-recursively (projectile-project-root) "\.xcworkspace$\\|\.xcodeproj$" 2)))
+      (cdr-safe files)))
 
 (defun swift-additions:get-ios-project-root ()
   "Get the ios-project root."
-  (let* ((file (car-safe (swift-additions:get-project-files)))
-         (root (directory-file-name (file-name-directory file))))
-    root))
+  (if-let* ((files (swift-additions:get-project-files))
+            (file (car-safe files))
+            (root (directory-file-name (file-name-directory file))))
+      root))
 
 (defun get-connected-device-id ()
   "Get the id of the connected device."
@@ -254,6 +248,8 @@
 (defun swift-additions:reset-settings ()
   "Reset current settings.  Change current configuration."
   (interactive)
+  (ios-simulator:kill-buffer)
+  (periphery-kill-buffer)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
   (setq current-project-root nil)
@@ -293,13 +289,12 @@
   (save-some-buffers t)
   (periphery-kill-buffer)
   (ios-simulator:kill-buffer)
-  (ios-simulator:load-simulator-id)
-
-  (setq device-or-simulator "[Building simulator target]")
-  (setq run-app-on-build runApp)
 
   (if (swift-additions:is-xcodeproject)
       (progn
+        (setq device-or-simulator "[Building simulator target]")
+        (ios-simulator:load-simulator-id)
+        (setq run-app-on-build runApp)
         (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
         (let ((default-directory current-project-root))
           (async-start-command-to-string
@@ -462,7 +457,7 @@
 
 (defun swift-additions:is-xcodeproject ()
   "Check if its an xcode-project."
-  (if-let ((default-directory (swift-additions:get-ios-project-root)))
+  (if-let* ((default-directory (swift-additions:get-ios-project-root)))
       (or
        (directory-files-recursively default-directory "\\xcworkspace$" t)
        (directory-files-recursively default-directory "\\xcodeproj$" t))))
@@ -481,16 +476,23 @@
       (progn
         (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "error:") text))
-          (shell-command "swift run" "SPM Buffer")))
-    (shell-command "swift run" "SPM Buffer")))
+          (swift-additions:run-async-swift-package)))
+    (swift-additions:run-async-swift-package)))
+
+(defun swift-additions:run-async-swift-package ()
+  "Run async swift package and hide the normal output."
+  (inhibit-sentinel-messages #'async-shell-command
+                             "swift run"
+                             "*Swift Package*"))
 
 ;;;###autoload
 (defun swift-additions:build-swift-package ()
   "Build swift package module."
   (interactive)
   (let ((default-directory (projectile-project-root)))
+    (swift-additions:reset-settings)
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
-    (animate-message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning :times 5)))
+    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
 
 ;;;###autoload
 (defun swift-additions:test-swift-package ()
