@@ -64,7 +64,7 @@
   :group 'periphery)
 
 (defface periphery-note-face-full
-  '((t (:foreground "#a6e3a1" :bold t :background "#1E2B2E" :distant-foreground "#a6e3a1")))
+  '((t (:foreground "#1E2B2E" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
   "Info face."
   :group 'periphery)
 
@@ -104,7 +104,7 @@
   :group 'periphery)
 
 (defface periphery-mark-face-full
-  '((t (:foreground "#313244" :bold t :background "#9399b2" :distant-foreground "#9399b2")))
+  '((t (:font "SF Mono" :foreground "#313244" :background "#9399b2" :distant-foreground "#9399b2" :box "#FF0000" :weight light)))
   "Performance face."
   :group 'periphery)
 
@@ -277,7 +277,8 @@
   (let ((type (upcase (string-trim-left keyword))))
     (cond
      ((string= type "WARNING") 'periphery-warning-face-full)
-     ((or (string= type "INFO") (string= type "MATCH")) 'periphery-info-face-full)
+     ((string= type "MATCH") 'periphery-warning-face-full)
+     ((string= type "INFO") 'periphery-note-face-full)
      ((string= type "ERROR") 'periphery-error-face-full)
      ((string= type "NOTE") 'periphery-note-face-full)
      ((or (string= type "FIX") (string= type "FIXME")) 'periphery-fix-face-full)
@@ -540,11 +541,13 @@
 (defun periphery--remove-leading-keyword (tag)
   "Remove leading keyword and C style -comment from (as TAG)."
   (string-trim-left
-  (replace-regexp-in-string "\\/\\/\\W?\\w+\\b:" "" tag)))
+  (replace-regexp-in-string "[\\/\|;]\\{1,3\\}\\W?\\w+\\b:" "" tag)))
 
 (defun periphery--remove-comments-in-string (text)
   "Remove comments from (as TEXT)."
-  (replace-regexp-in-string ":" "" (replace-regexp-in-string "\\/" "" text)))
+  (replace-regexp-in-string
+   ";" "" (replace-regexp-in-string
+           ":" "" (replace-regexp-in-string "\\/" "" text))))
 
 (defun svg-color-from-tag (tag)
   "Get color from (as TAG)."
@@ -561,12 +564,13 @@
 ;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
-  '(("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
+  ;; TODO: Make it work for elisp
+  '(("\\([\\/\|;]\\{1,3\\}\\W?\\w+\\b:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
                                                                  :face (svg-color-from-tag tag)
                                                                  :inverse t
                                                                  :crop-left t))))
     
-    ("\\(\\/\\/\\W?\\w+\\b:\\)" . ((lambda (tag)
+    ("\\([\\/|;]\\{1,3\\}\\W?\\w+\\b:\\)" . ((lambda (tag)
                                      (svg-tag-make (periphery--remove-comments-in-string tag)
                                                    :face (svg-color-from-tag tag)
                                                    :inverse nil
