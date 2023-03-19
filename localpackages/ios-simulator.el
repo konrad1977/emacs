@@ -9,6 +9,11 @@
   :tag "ios-simulator"
   :group 'ios-simulator)
 
+(defface ios-simulator-background-face
+  '((t (:background "#26263B")))
+  "Buffer background color."
+  :group 'ios-simulator)
+
 (defconst ios-simulator-buffer-name "*iOS Simulator*"
   "Name of the buffer.")
 
@@ -58,26 +63,30 @@
     (setq applicationName (ios-simulator:app-name-from :folder build-folder))
     (setq simulatorName  (ios-simulator:fetch-simulator-name))
     
-    (animate-message-with-color
+    (message-with-color
      :tag "[Installing]"
      :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
-     :attributes '(:inherit success)
-     :times 3)
+     :attributes '(:inherit success))
     (ios-simulator:terminate-app-with
      :appIdentifier appIdentifier)
     
     (ios-simulator:install-app
      :simulatorID simulator-id
      :build-folder build-folder)
-
-    (setq-local term-default-bg-color "#211E1E")
+      
     (inhibit-sentinel-messages #'async-shell-command
                                (ios-simulator:launch-app
                                 :appIdentifier current-app-identifier
                                 :applicationName applicationName
                                 :simulatorName simulatorName
                                 :simulatorID simulator-id)
-                               buffer)))
+                               buffer)
+
+    (with-current-buffer buffer
+      (setq left-fringe-width 0)
+      (setq right-fringe-width 0)
+      (setq buffer-face-mode-face 'ios-simulator-background-face)
+      (buffer-face-mode 1))))
 
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder)
   "Install and launch app (as SIMULATORID and BUILD-FOLDER)."
