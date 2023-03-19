@@ -150,12 +150,18 @@
    ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-mocha t)
   (load-theme 'rose-pine t)
+  ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'doom-tokyo-night)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'doom-old-hope t)
   )
+
+(use-package exec-path-from-shell
+  :after evil
+  :init
+  (exec-path-from-shell-initialize))
 
 (use-package vertico
   :hook (after-init . vertico-mode)
@@ -332,7 +338,7 @@
   ([remap describe-key] . helpful-key))
 
 (use-package vundo
-  :defer t
+  :after evil
   :config
   (setq vundo-glyph-alist vundo-unicode-symbols)
 
@@ -355,7 +361,7 @@
 (define-key vundo-mode-map "d" #'mk/vundo-diff))
 
 (use-package undo-fu
-  :defer t
+  :after evil
   :config
   (setq undo-fu-allow-undo-in-region t))
 
@@ -529,9 +535,6 @@
 
 (use-package consult-ls-git
   :after consult)
-
-(use-package dash-docs
-  :defer t)
 
 (use-package consult-dash
   :bind ("C-c C-i" . consult-dash)
@@ -728,7 +731,6 @@
 
 (use-package treemacs-all-the-icons
   :after (treemacs all-the-icons)
-  :defer t
   :config
   (treemacs-load-theme "all-the-icons"))
 
@@ -761,10 +763,10 @@
   (setq flycheck-eglot-exclusive nil))
 
 (use-package markdown-mode
-  :defer t)
+  :defer 10)
 
 (use-package yaml-mode
-  :defer t)
+  :defer 10)
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -917,7 +919,7 @@
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package json-mode
-  :defer t)
+  :defer 10)
 
 (use-package vterm
   :commands vterm
@@ -1070,10 +1072,10 @@
   (add-to-list 'org-modules 'org-tempo t))
 
 (use-package ob-swift
-  :defer t)
+  :defer 10)
 
 (use-package ob-swiftui
-  :defer t
+  :defer 10
   :config
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
@@ -1146,7 +1148,7 @@
 ;;   :hook (prog-mode . yas-global-mode))
 
 (use-package swift-mode
-  :defer t
+  :mode "\\.swift\\'"
   :config
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
