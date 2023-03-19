@@ -62,13 +62,6 @@
   (periphery--search-for "rg -w"))
 
 ;;;###autoload
-(defun periphery-search-ag ()
-  "Search using AG (The Silver Searcher)."
-  (interactive)
-  (setup-search-title)
-  (periphery--search-for "ag"))
-
-;;;###autoload
 (defun periphery-query-todos-and-fixmes ()
   "Query todos and fixmes in the project."
   (interactive)
