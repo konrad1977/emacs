@@ -95,7 +95,7 @@
 (defun periphery-quick:todos ()
   "Find the todos in the project."
   (interactive)
-  (periphery-quick:run-query (regexp-quote "\"(FIXME|FIX|TODO|HACK|PERF):\"")))
+  (periphery-quick:run-query (regexp-quote "\"(NOTE|FIXME|FIX|TODO|HACK|PERF):\"")))
 
 (cl-defun periphery-quick:showmenu-with-title (&key title &key list)
   "Build menu with (TITLE LIST)."
