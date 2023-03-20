@@ -1153,8 +1153,7 @@
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
-        swift-mode:highlight-anchor t
-        swift-mode:multiline-statement-offset 2))
+        swift-mode:highlight-anchor t))
 
 (use-package ios-simulator
   :ensure nil

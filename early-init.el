@@ -5,11 +5,11 @@
 ;;; Code:
 
 (setq gc-cons-threshold-original gc-cons-threshold
-      gc-cons-percentage 0.6
-      gc-cons-threshold (* 256 1024 1024))
+      ;; gc-cons-percentage 0.6
+      gc-cons-threshold (* 128 1024 1024))
 
 (when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 16 1024 1024)))
+  (setq read-process-output-max (* 2 1024 1024)))
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)

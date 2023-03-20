@@ -102,7 +102,7 @@
   (highlight-operators-face             (:foreground love))
   (highlight-quoted-symbol              (:foreground rose))
   (highlight-numbers-face               (:foreground love))
-  (highlight-symbol-face                (:background muted :foreground text))
+  (highlight-symbol-face                (:background highlight-med :foreground subtle))
   (info-xref                            (:foreground gold))
 
   (minibuffer-prompt-end                (:foreground love))

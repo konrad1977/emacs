@@ -10,7 +10,7 @@
   :group 'ios-simulator)
 
 (defface ios-simulator-background-face
-  '((t (:background "#26263B")))
+  '((t (:inherit default)))
   "Buffer background color."
   :group 'ios-simulator)
 
@@ -53,7 +53,6 @@
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
-
   (ios-simulator:kill-buffer)
 
   (let* ((default-directory rootfolder)
@@ -194,6 +193,10 @@
   (if current-simulator-id
       (ios-simulator:setup-simulator-dwim current-simulator-id)
     (progn
+    (message-with-color
+     :tag "[Setup up simulators]"
+     :text "Please stand by.."
+     :attributes '(:inherit success))
       (let ((device-id
              (or (ios-simulator:booted-simulator)
                  (ios-simulator:build-selection-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
