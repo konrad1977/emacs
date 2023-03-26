@@ -157,8 +157,8 @@
   "Run periphery parser on TEXT (optional CALLBACK)."
   (if (or
        (string-match-p (regexp-quote "BUILD FAILED") text)
-       (string-match-p (regexp-quote ":\\s?error: ") text)
-       (string-match-p (regexp-quote ":\\s?warning: ") text))
+       (string-match-p (regexp-quote ": error:") text)
+       (string-match-p (regexp-quote ": warning:") text))
       (progn
         (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
@@ -292,13 +292,14 @@
 
   (if (swift-additions:is-xcodeproject)
       (progn
-        (setq device-or-simulator "[Building simulator target]")
+        (setq device-or-simulator "[Building for simulator]")
         (ios-simulator:load-simulator-id)
         (setq run-app-on-build runApp)
         (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
-        (let ((default-directory current-project-root))
+        (let* ((default-directory current-project-root)
+               (build-command (build-app-command :simulatorId: current-simulator-id)))
           (async-start-command-to-string
-           :command (build-app-command :simulatorId: current-simulator-id)
+           :command build-command
            :callback '(lambda (text)
                         (swift-additions:copy-symbols-for-lsp)
                         (if run-app-on-build

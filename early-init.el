@@ -5,11 +5,10 @@
 ;;; Code:
 
 (setq gc-cons-threshold-original gc-cons-threshold
-      ;; gc-cons-percentage 0.6
-      gc-cons-threshold (* 128 1024 1024))
+      gc-cons-threshold (* 512 1024 1024))
 
 (when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 2 1024 1024)))
+  (setq read-process-output-max (* 4 1024 1024)))
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
@@ -21,7 +20,6 @@
 (set-keyboard-coding-system 'utf-8)
 
 (setq frame-inhibit-implied-resize t
-      garbage-collect-maybe t
       display-line-numbers-widen t
       frame-resize-pixelwise t
       frame-title-format nil
@@ -62,27 +60,27 @@
         (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
 
 
-(setq file-name-handler-alist-original file-name-handler-alist)
-(setq file-name-handler-alist nil)
+;; (setq file-name-handler-alist-origial file-name-handler-alist)
+;; (setq file-name-handler-alist nil)
 
-(run-with-idle-timer
- 3 nil
- (lambda ()
-   (setq gc-cons-threshold gc-cons-threshold-original)
-   (setq file-name-handler-alist file-name-handler-alist-original)
-   (makunbound 'gc-cons-threshold-original)
-   (makunbound 'file-name-handler-alist-original)))
+;; (run-with-idle-timer
+;;  3 nil
+;;  (lambda ()
+;;    (setq gc-cons-threshold gc-cons-threshold-original)
+;;    (setq file-name-handler-alist file-name-handler-alist-original)
+;;    (makunbound 'gc-cons-threshold-original)
+;;    (makunbound 'file-name-handler-alist-original)))
 
-(set-face-attribute 'fill-column-indicator nil
-                    :family "SF Mono")
+;; (set-face-attribute 'fill-column-indicator nil
+;;                     :family "SF Mono")
 
 ;; ;; Make sure SF Symbols and Octicons will be displayed.
-(when (display-graphic-p)
-  (dolist (font-pua-points '(("SF Pro Text" . (#x100000 . #x102000))
-                             ("github-octicons" . (#xf000 . #xf27c))))
-    (let ((family (car font-pua-points))
-          (range (cdr font-pua-points)))
-      (set-fontset-font t range family nil 'prepend))))
+;; (when (display-graphic-p)
+;;   (dolist (font-pua-points '(("SF Pro Text" . (#x100000 . #x102000))
+;;                              ("github-octicons" . (#xf000 . #xf27c))))
+;;     (let ((family (car font-pua-points))
+;;           (range (cdr font-pua-points)))
+;;       (set-fontset-font t range family nil 'prepend))))
 
 (provide 'early-init)
 ;;; early-init.el ends here

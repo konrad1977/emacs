@@ -137,9 +137,14 @@
         use-package-minimum-reported-time 0.1
         debug-on-error nil))
 
-;; (use-package benchmark-init
-;;   :config
-;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
+;; (use-package exec-path-from-shell
+;;   :after evil
+;;   :init
+;;   (exec-path-from-shell-initialize))
+
+(use-package benchmark-init
+  :config
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -166,8 +171,8 @@
 (use-package vertico
   :hook (after-init . vertico-mode)
   :bind (:map vertico-map
-              ("C-S-n" . vertico-next)
-              ("C-S-p" . vertico-previous))
+              ("C-S-j" . vertico-next)
+              ("C-S-k" . vertico-previous))
   :custom
   (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
@@ -228,6 +233,18 @@
   :init
   (all-the-icons-completion-mode))
 
+(use-package embark
+  :after vertico
+  :bind
+  (("C-," . embark-act)         ;; pick some comfortable binding
+   ("C-x C-x" . kill-buffer-and-window))
+  :config
+  (setq prefix-help-command #'embark-prefix-help-command)
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
@@ -239,32 +256,11 @@
   ("M-O" . consult-ls-git)
   ("M-f" . consult-line))
 
-(use-package consult-ag
-  :after consult)
+(use-package embark-consult
+  :after (embark consult))
 
 (use-package consult-projectile
   :after projectile)
-
-(use-package embark
-  :after vertico
-  :bind
-  (("C-," . embark-act)         ;; pick some comfortable binding
-   ("C-x C-e" . embark-dwim)        ;; good alternative: M-.
-   ("C-x C-x" . kill-buffer-and-window)
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-  :config
-  (setq prefix-help-command #'embark-prefix-help-command)
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-;; Consult users will also want the embark-consult package.
-(use-package embark-consult
-  :after (embark consult)
-  :demand t ; only necessary if you have the hook below
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package recentf
   :hook (after-init . recentf-mode))
@@ -340,25 +336,7 @@
 (use-package vundo
   :after evil
   :config
-  (setq vundo-glyph-alist vundo-unicode-symbols)
-
-(defun mk/vundo-diff ()
-    (interactive)
-    (let* ((orig vundo--orig-buffer)
-           (source (vundo--current-node vundo--prev-mod-list))
-           (dest (vundo-m-parent source)))
-      (if (or (not dest) (eq source dest))
-          (message "vundo diff not available.")
-	(let ((buf (make-temp-name (concat (buffer-name orig) "-vundo-diff"))))
-          (vundo--move-to-node source dest orig vundo--prev-mod-list)
-          (with-current-buffer (get-buffer-create buf)
-	    (insert-buffer orig))
-          (vundo--refresh-buffer orig (current-buffer) 'incremental)
-          (vundo--move-to-node dest source orig vundo--prev-mod-list)
-          (vundo--refresh-buffer orig (current-buffer) 'incremental)
-          (diff-buffers buf orig)
-          (kill-buffer buf)))))
-(define-key vundo-mode-map "d" #'mk/vundo-diff))
+  (setq vundo-glyph-alist vundo-unicode-symbols))
 
 (use-package undo-fu
   :after evil
@@ -382,21 +360,24 @@
         evil-undo-system 'undo-fu
         evil-search-module 'evil-search
         evil-vsplit-window-right t
-        ;; evil-normal-state-cursor '(hollow . 2)
+  ;; evil-normal-state-cursor '(hollow . 2)
         evil-split-window-below t
         evil-want-C-i-jump nil)
   :config
 
   (define-key evil-visual-state-map (kbd "C-u u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
+
   
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (evil-jump-forward)))
 
-  (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
+  (define-key evil-motion-state-map (kbd "<up>") 'ignore)
+  (define-key evil-motion-state-map (kbd "<down>") 'ignore)
+  (define-key evil-motion-state-map (kbd "<left>") 'ignore)
+  (define-key evil-motion-state-map (kbd "<right>") 'ignore)
 
-  ;; searching
-  ;; (define-key evil-motion-state-map (kbd "M-F") #'consult-git-grep)
+  (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
   ;; window resizing
   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
@@ -413,12 +394,9 @@
   (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
   (define-key evil-normal-state-map (kbd "<escape>") #'evil-ex-nohighlight)
   
-  ;; (define-key evil-motion-state-map (kbd "<backtab>") #'consult-buffer)
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  
-  ;; (define-key evil-normal-state-map (kbd "C-+") #'text-scale-increase)
-  ;; (define-key evil-normal-state-map (kbd "C--") #'text-scale-decrease)
+
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
 
 (use-package evil-collection
@@ -502,8 +480,10 @@
   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
-  :hook (prog-mode . svg-tag-mode)
+  :hook (swift-mode . svg-tag-mode)
   :config
+  (plist-put svg-lib-style-default :font-family "Iosevka Aile")
+  (plist-put svg-lib-style-default :font-size 16)
   (require 'periphery)
   (setq svg-tag-tags (periphery-svg-tags)))
 
@@ -535,13 +515,6 @@
 
 (use-package consult-ls-git
   :after consult)
-
-(use-package consult-dash
-  :bind ("C-c C-i" . consult-dash)
-  :config
-  (setq consult-dash-docsets '("swift"))
-  ;; Use the symbol at point as initial search term
-  (consult-customize consult-dash :initial (thing-at-point 'symbol)))
 
 (use-package google-this
   :commands (google-this)
@@ -619,8 +592,8 @@
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
         ("<escape>" . corfu-quit)
-        ("C-n" . corfu-next)
-        ("C-p" . corfu-previous))
+        ("C-j" . corfu-next)
+        ("C-k" . corfu-previous))
   :custom
   (corfu-auto t)
   (completion-styles '(flex orderless))
@@ -685,6 +658,11 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
+(use-package emacs
+  :init
+  (setq completion-cycle-threshold 3)
+  (setq tab-always-indent 'complete))
+  
 (use-package ace-jump-mode
   :commands (ace-jump-mode)
   :bind ("M-g" . ace-jump-mode))
@@ -700,7 +678,7 @@
   (doom-themes-treemacs-root-face ((t (:inherit nil :slant italic))))
   (treemacs-root-face ((t (:inherit variable-pitch :slant italic))))
   :config
-  (setf treemacs-window-background-color (cons "#242439" "#313244"))
+  (setf treemacs-window-background-color (cons "#26233a" "#191724"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
@@ -754,8 +732,7 @@
         flycheck-posframe-border-width 2
         flycheck-posframe-warning-prefix " ⚠︎ "
         flycheck-posframe-error-prefix " ✘ "
-        flycheck-posframe-info-prefix " ● "
-        ))
+        flycheck-posframe-info-prefix " ● "))
 
 (use-package flycheck-eglot
   :hook (swift-mode . global-flycheck-eglot-mode)
@@ -763,10 +740,10 @@
   (setq flycheck-eglot-exclusive nil))
 
 (use-package markdown-mode
-  :defer 10)
+  :defer t)
 
 (use-package yaml-mode
-  :defer 10)
+  :defer t)
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -919,7 +896,7 @@
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package json-mode
-  :defer 10)
+  :defer t)
 
 (use-package vterm
   :commands vterm
@@ -1072,10 +1049,10 @@
   (add-to-list 'org-modules 'org-tempo t))
 
 (use-package ob-swift
-  :defer 10)
+  :defer t)
 
 (use-package ob-swiftui
-  :defer 10
+  :defer t
   :config
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
@@ -1125,6 +1102,8 @@
 (use-package drag-stuff
   :hook (prog-mode . drag-stuff-mode)
   :bind
+  ("C-j" . drag-stuff-down)
+  ("C-k" . drag-stuff-up)
   ("S-M-<down>" . drag-stuff-down)
   ("M-S-<up>" . drag-stuff-up))
 
@@ -1137,13 +1116,6 @@
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 
-(use-package localizeable-mode
-  :mode "\\.strings\\'"
-  :bind (:map localizeable-mode-map
-              ("C-c C-c" . #'swift-additions:compile-and-run-app)
-              ("C-c C-k" . #'periphery-run-loco))
-  :ensure nil)
-
 ;; (use-package yasnippet
 ;;   :hook (prog-mode . yas-global-mode))
 
@@ -1154,6 +1126,13 @@
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
         swift-mode:highlight-anchor t))
+
+(use-package localizeable-mode
+  :mode "\\.strings\\'"
+  :bind (:map localizeable-mode-map
+              ("C-c C-c" . #'swift-additions:compile-and-run-app)
+              ("C-c C-k" . #'periphery-run-loco))
+  :ensure nil)
 
 (use-package ios-simulator
   :ensure nil
@@ -1182,6 +1161,8 @@
   :ensure nil
   :after swift-mode
   :bind
+  ("C-c r a" . #'swift-refactor:insert-around)
+  ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
   ("C-c r i" . #'swift-refactor:tidy-up-constructor)
   ("C-c r s" . #'swift-refactor:split-function-list)
   ("C-c r r" . #'swift-refactor:extract-function)
@@ -1247,17 +1228,6 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
-  
-  (when (boundp 'consult-imenu-config)
-    (add-to-list
-     'consult-imenu-config
-     '(swift-mode :types ((?f "Function")
-                          (?m "Method")
-                          (?p "Property")
-                          (?e "Enum")
-                          (?c "Class")
-                          (?s "Struct")
-                          (?x "Namespace")))))
 
   (use-package flycheck-swiftlint
     :after flycheck
@@ -1372,8 +1342,6 @@
 
 (with-eval-after-load 'swift-mode
   (setup-swift-programming))
-
-;; (setq gc-cons-threshold (* 2 1024 1024))
 
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
 

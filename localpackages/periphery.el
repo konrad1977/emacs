@@ -121,7 +121,7 @@
 
 (defvar periphery-mode-map nil "Keymap for periphery.")
 
-(defconst default-length 9)
+(defvar default-length 8)
 
 (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:+-_,a-zA-Z0-9\(\)\?\\\s\'\"\.\&\|]*\\)"
   "Parse vimgrep like strings (compilation).")
@@ -157,7 +157,7 @@
   (setq tabulated-list-format [
                                ("File" 25 t)
                                ("Line" 4 nil)
-                               ("Type" 9 nil)
+                               ("Type" 10 nil)
                                ("Message" 100 nil)
                                ]
         tabulated-list-padding 2
@@ -263,10 +263,10 @@
   "Center (as WORD)."
   (if (<= (length word) default-length)
       (progn
-        (setq padding  (/ (- default-length (string-width word)) 2))
+        (setq padding  (/ (- default-length (string-width word)) 3))
         (setq copy (concat (make-string padding ?\s) word))
         
-        (while (< (string-width copy) default-length)
+        (while (< (string-width copy) (- default-length 1))
           (setq copy (concat copy " ")))
         copy
         )
@@ -304,7 +304,7 @@
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
     (let* ((entry (periphery--parse-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
-          (secondEntry (parse-xcodebuild-notes-and-errors (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
+           (secondEntry (parse-xcodebuild-notes-and-errors (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
       (if entry
           (push entry periphery-errorList))
       (unless entry (and secondEntry
@@ -424,7 +424,7 @@
   
 (defun parse-xcodebuild-notes-and-errors (line)
   "Parse error and notes (as LINE)."
-  (setq default-length 7)
+  (setq default-length 8)
   (save-match-data
     (and (string-match periphery-note-and-errors-regex line)
          (let* ((note (match-string 1 line))
@@ -450,7 +450,7 @@
 
 (defun parse--search-query (text query)
   "Parse error and notes (as TEXT) and QUERY."
-  (setq default-length 6)
+  (setq default-length 8)
   (setq-local case-fold-search nil) ;; Make regex case sensitive
   (save-match-data
     (and (string-match periphery-parse-search text)
@@ -521,7 +521,7 @@
 
 (cl-defun periphery-parse-search-result (&key title &key text &key query)
   "Parse search result (as TITLE TEXT QUERY)."
-  (setq default-length 7)
+  (setq default-length 8)
   (setq periphery-errorList '())
   (dolist (line (split-string text "\n"))
     (when-let ((entry (parse--search-query (string-trim-left line) query)))

@@ -194,7 +194,7 @@
       (ios-simulator:setup-simulator-dwim current-simulator-id)
     (progn
     (message-with-color
-     :tag "[Setup up simulators]"
+     :tag "[Fetching simulators]"
      :text "Please stand by.."
      :attributes '(:inherit success))
       (let ((device-id

@@ -6,6 +6,7 @@
 /projectile-bookmarks.eld
 /places
 *.DS_Store
+*.elc
 /Not used/
 /elpa/
 /history
