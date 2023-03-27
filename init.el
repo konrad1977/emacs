@@ -5,8 +5,8 @@
 (eval-when-compile (defvar display-time-default-load-average nil))
 
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'light)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 165 :weight 'light)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 165 :weight 'light)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 170 :weight 'light)
 
 (custom-set-faces
  '(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0)))))
@@ -18,7 +18,6 @@
 (global-hl-line-mode 1)           ;; Highlight current line
 (save-place-mode 1)               ;; when buffer is closed, save the cursor position
 ;; (pixel-scroll-precision-mode 1)
-;; (pixel-scroll-mode)
 
 (setq ad-redefinition-action            'accept
       auto-revert-check-vc-info         t
@@ -153,9 +152,9 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  ;; (load-theme 'oxocarbon t)
+  (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   )

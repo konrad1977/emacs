@@ -46,9 +46,9 @@
       site-run-file nil
       tool-bar-mode nil
       default-frame-alist
-      '((background-color . "#1e1e2e")       ; Default background color
+      '((background-color . "#161616")       ; Default background color
         (bottom-divider-width . 0)           ; Thin horizontal window divider
-        (foreground-color . "#cdd6f4")       ; Default foreground color
+        (foreground-color . "#dde1e6")       ; Default foreground color
         (fullscreen . maximized)             ; Maximize the window by default
         (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
         (menu-bar-lines . 0)                 ; No menu bar

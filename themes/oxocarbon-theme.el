@@ -14,7 +14,7 @@
 
 
 (autothemer-deftheme
-	oxocarbon "A theme based on rose-pine's amazing color scheme"
+	oxocarbon "A theme based on oxocarbon amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -28,9 +28,9 @@
   (green            "#42be65" "#00d7ff")
   (pine             "#08bdba" "#afffff")
   (rose             "#f5e0dc" "#ffffff")
-  (gold             "#3ddbd9" "#ffd7af")
+  (gold             "#f6c177" "#ffd7af")
   (pink             "#FF74B8" "#ffd7af")
-  (love             "#ff7eb6" "#ff87af")
+  (love             "#FF0065" "#ff87af")
   (text             "#FFFFFF" "#ffffff")
   (subtle           "#dde1e6" "#ffffff")
   (dark-green       "#03302F" "#F00000")
@@ -73,9 +73,9 @@
   (tooltip                              (:background muted :foreground base))
   (shadow                               (:foreground muted))
   (success                              (:foreground pine))
-  (vertical-border                      (:foreground overlay))
+  (vertical-border                      (:foreground muted))
   (warning                              (:foreground gold))
-  (window-divider                       (:foreground surface :distant-foreground base))
+  (window-divider                       (:foreground overlay :background overlay))
 
   (whitespace-newline                   (:foreground muted))
   (whitespace-space                     (:foreground muted))
@@ -83,20 +83,20 @@
 
   ;; ;; Font lock
   (font-lock-keyword-face               (:foreground pink :weight 'semi-bold))
-  (font-lock-type-face                  (:foreground pink :weight 'semi-bold))
-  (font-lock-builtin-face               (:foreground pink))
-  (font-lock-function-name-face              (:foreground love))
-  (font-lock-variable-name-face              (:foreground rose))
-  (font-lock-comment-face                    (:foreground muted :italic t))
-  (font-lock-doc-face                        (:foreground muted))
-  (font-lock-string-face                     (:foreground green :italic t))
-  (font-lock-warning-face                    (:foreground gold))
-  (font-lock-constant-face                   (:foreground iris :bold t))
-  (font-lock-regexp-grouping-backslash  (:foreground foam :weight 'semi-bold))
+  (font-lock-type-face                  (:foreground iris :weight 'semi-bold))
+  (font-lock-builtin-face               (:foreground iris))
+  (font-lock-function-name-face         (:foreground foam))
+  (font-lock-variable-name-face         (:foreground rose))
+  (font-lock-comment-face               (:foreground muted :italic t))
+  (font-lock-comment-delimiter-face     (:foreground muted :italic t))
+  (font-lock-doc-face                   (:foreground muted))
+  (font-lock-string-face                (:foreground gold :italic t))
+  (font-lock-warning-face               (:foreground gold))
+  (font-lock-constant-face              (:foreground gold :bold t))
+  (font-lock-regexp-grouping-backslash  (:foreground green :weight 'semi-bold))
   
   (font-lock-reference-face				(:foreground foam))
   (font-lock-negation-char-face         (:foreground love))
-  (font-lock-comment-delimiter-face     (:foreground muted :italic t))
   (font-lock-doc-markup-face            (:foreground muted))
   (font-lock-preprocessor-face	   		(:foreground muted))
   
@@ -478,8 +478,8 @@
   ;; Tree sitter highlightning
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function))
-  (tree-sitter-hl-face:function.builtin          (:foreground foam))
-  (tree-sitter-hl-face:function.special          (:foreground text :italic t :bold t))
+  (tree-sitter-hl-face:function.builtin          (:foreground green))
+  (tree-sitter-hl-face:function.special          (:foreground green :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground pine))
   (tree-sitter-hl-face:function.label            (:foreground gold))
 
@@ -490,12 +490,13 @@
   (tree-sitter-hl-face:type.parameter            (:foreground gold :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground muted))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
-  (tree-sitter-hl-face:type.super                (:foreground rose :bold t))
-  (tree-sitter-hl-face:constructor               (:foreground foam :weight 'semi-bold))
+  (tree-sitter-hl-face:type.super                (:foreground pine :bold t))
+  (tree-sitter-hl-face:constructor               (:foreground pine :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter :weight 'semi-bold))
   (tree-sitter-hl-face:variable.builtin          (:foreground foam :italic t))
+  
   (tree-sitter-hl-face:variable.special          (:foreground iris :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground love :italic t))
   (tree-sitter-hl-face:property                  (:foreground rose))
@@ -515,9 +516,9 @@
   (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))
   (tree-sitter-hl-face:number                    (:foreground gold))
 
-  (tree-sitter-hl-face:punctuation               (:foreground love :weight 'semi-bold))
+  (tree-sitter-hl-face:punctuation               (:foreground pink :weight 'semi-bold))
   (tree-sitter-hl-face:punctuation.bracket       (:foreground foam :weight 'semi-bold))
-  (tree-sitter-hl-face:punctuation.delimiter     (:foreground text :weight 'semi-bold))
+  (tree-sitter-hl-face:punctuation.delimiter     (:foreground subtle :weight 'semi-bold))
   (tree-sitter-hl-face:punctuation.special       (:foreground rose :weight 'semi-bold))
 
   (tree-sitter-hl-face:case-pattern              (:foreground gold))
