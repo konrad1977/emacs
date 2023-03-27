@@ -19,39 +19,40 @@
   "Delete all text between the current line and the next closing brace }, but not including the brace itself."
   (interactive)
   (let ((start (point)))
-    (when (re-search-forward "\}" nil t)
-      (forward-char)
-      (forward-line -1)
+    (when (re-search-forward "\\w?\s?{\\|\}" nil t)
+      (forward-line 2)
       (delete-region start (point))
       (indent-region start (point)))))
 
 (cl-defun swift-refactor:delete-until-balancing-char (&key opening-char &key closing-char)
-  "Deletes the current line starting with OPENING-CHAR and the matching CLOSING-CHAR brace somewhere below it."
+  "Deletes the current line starting with an opening brace { and the matching closing brace } somewhere below it."
   (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (when (search-forward opening-char nil )
-      (delete-line)
-      (let ((brace-count 1)
-            (closing-brace-pos nil)
-            (opening-brace-pos (line-beginning-position)))
-        (while (and (not closing-brace-pos)
-                    (re-search-forward (format "[%s]" closing-char) nil t))
-          (if (eq (char-after) (format "?\%s" opening-char))
-              (setq brace-count (1+ brace-count))
-            (setq brace-count (1- brace-count)))
-          (when (eq brace-count 0)
-            (setq closing-brace-pos (point))))
-        (when closing-brace-pos
-          (delete-region (1- closing-brace-pos) (1+ closing-brace-pos))
-          ;; (forward-line)
-          ;; (delete-to-next-closing-brace)
-          (indent-region (1- opening-brace-pos) (line-end-position)))))))
+  (let ((open-char opening-char)
+        (close-char closing-char))
+    (save-excursion
+      (end-of-line)
+      (when (search-backward open-char nil t)
+        (let ((opening-postion (line-beginning-position)))
+          (goto-char (point))
+          (delete-line)
+          ;; (delete-region (line-beginning-position) (1+ (point)))
+          (let ((count 1))
+            (while (and (> count 0) (search-forward-regexp (concat open-char "\\|" close-char) nil t))
+              (when (string= (match-string 0) open-char)
+                (setq count (1+ count)))
+              (when (string= (match-string 0) close-char)
+                (setq count (1- count))))
+            (when (eq count 0)
+              (goto-char (point))
+              (delete-line) ;; Delete the whole line
+              (indent-region opening-postion (point)))))))))
 
 (defun swift-refactor:delete-current-line-with-matching-brace ()
   "Deletes the current line starting with '{' and the matching '}' brace somewhere below it."
   (interactive)
-  (swift-refactor:delete-until-balancing-char :opening-char "{" :closing-char "}"))
+  (swift-refactor:delete-until-balancing-char
+   :opening-char "{"
+   :closing-char "}"))
 
 (defun swift-refactor:insert-at (start end name)
   "Insert a an element with NAME and '{' and ending '}' using START AND END."
