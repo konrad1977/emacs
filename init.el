@@ -153,14 +153,11 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  ;; (load-theme 'catppuccin-mocha t)
-  (load-theme 'rose-pine t)
+  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'rose-pine t)
   ;; (load-theme 'oxocarbon t)
-  ;; (load-theme 'doom-gruvbox t)
-  ;; (load-theme 'doom-tokyo-night)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
-  ;; (load-theme 'doom-old-hope t)
   )
 
 (use-package exec-path-from-shell
@@ -663,9 +660,8 @@
   (setq completion-cycle-threshold 3)
   (setq tab-always-indent 'complete))
   
-(use-package ace-jump-mode
-  :commands (ace-jump-mode)
-  :bind ("M-g" . ace-jump-mode))
+(use-package avy
+  :bind ("M-g" . avy-goto-char))
 
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
@@ -1219,11 +1215,11 @@
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-(use-package company-tabnine
-  :after corfu
-  :custom
-  (setq company-tabnine-wait 0.5
-        company-tabnine-max-num-results 5))
+;; (use-package company-tabnine
+;;   :after corfu
+;;   :custom
+;;   (setq company-tabnine-wait 0.5
+;;         company-tabnine-max-num-results 5))
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
@@ -1240,7 +1236,7 @@
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
                                        #'cape-dabbrev
-                                       (cape-company-to-capf #'company-tabnine)
+                                       ;; (cape-company-to-capf #'company-tabnine)
                                        ;; (cape-company-to-capf #'company-yasnippet)
                                        ))))
 

@@ -19,8 +19,7 @@
   "Delete all text between the current line and the next closing brace }, but not including the brace itself."
   (interactive)
   (let ((start (point)))
-    (when (re-search-forward "\w+\s?{\\|}" nil t)
-    ;; (when (re-search-forward "\\w+\s?\\(?![\\(\\)]\\){}|\\}" nil t)
+    (when (re-search-forward "\}" nil t)
       (forward-char)
       (forward-line -1)
       (delete-region start (point))
@@ -30,8 +29,8 @@
   "Deletes the current line starting with OPENING-CHAR and the matching CLOSING-CHAR brace somewhere below it."
   (interactive)
   (save-excursion
-    (end-of-line)
-    (when (looking-back opening-char nil t)
+    (beginning-of-line)
+    (when (search-forward opening-char nil )
       (delete-line)
       (let ((brace-count 1)
             (closing-brace-pos nil)
@@ -45,8 +44,8 @@
             (setq closing-brace-pos (point))))
         (when closing-brace-pos
           (delete-region (1- closing-brace-pos) (1+ closing-brace-pos))
-          (forward-line 2)
-          (delete-to-next-closing-brace)
+          ;; (forward-line)
+          ;; (delete-to-next-closing-brace)
           (indent-region (1- opening-brace-pos) (line-end-position)))))))
 
 (defun swift-refactor:delete-current-line-with-matching-brace ()

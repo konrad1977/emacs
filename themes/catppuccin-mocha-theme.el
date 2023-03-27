@@ -48,8 +48,7 @@
   (crust      "#11111b" "#ffffff"))
 
  ;; Customize faces
- (
-  (default                              (:background base :foreground text))
+ ((default                              (:background base :foreground text))
   (border                               (:foreground overlay1))
   (bookmark-face                        (:foreground red))
   (button                               (:foreground blue))
@@ -177,6 +176,11 @@
   (message-header-cc                    (:foreground green))
   (message-header-xheader               (:foreground rosewater))
   (custom-link                          (:foreground blue :underline t))
+
+  (avy-lead-face                        (:background red :foreground crust))
+  (avy-lead-face-0                      (:background blue :foreground crust))
+  (avy-lead-face-1                      (:background green :foreground crust))
+  (avy-lead-face-2                      (:background rosewater :foreground crust))
   
   ;; org-mode
   (org-done                             (:foreground overlay2))
@@ -539,13 +543,14 @@
   (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
   (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
 
-  (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
-  (swift-mode:property-access-face (:foreground subtext1))
-  (swift-mode:builtin-property-face (:foreground rosewater))
-  (swift-mode:builtin-enum-case-face (:foreground teal))
-  (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
-  (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
-  (swift-mode:function-call-face (:foreground pink))
+  (with-eval-after-load "swift-mode"
+    (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
+    (swift-mode:property-access-face (:foreground subtext1))
+    (swift-mode:builtin-property-face (:foreground rosewater))
+    (swift-mode:builtin-enum-case-face (:foreground teal))
+    (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
+    (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
+    (swift-mode:function-call-face (:foreground pink)))
   
   ;; (localizeable-variable-face (:inherit font-lock-string-face))
   ;; (localizeable-value-face (:inherit font-lock-keyword-face))
