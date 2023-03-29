@@ -187,10 +187,10 @@
   :init
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
-  ;; (setq vertico-posframe-parameters
-  ;;       '((left-fringe . 2)
-  ;;         (right-fringe . 2)))
   :config
+  (setq vertico-posframe-parameters
+        '((left-fringe . 5)
+          (right-fringe . 5)))
   (setq ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
@@ -605,15 +605,16 @@
         corfu-count 12
         corfu-auto-delay 0.25
         corfu-quit-no-match 'separator
-        corfu-preselect 'prompt
-        corfu-preview-current 'insert
+        ;; corfu-preselect 'insert
+        ;; corfu-preview-current ni
         corfu-popupinfo-delay 0.5
         corfu-popupinfo-resize t
         corfu-popupinfo-hide nil
         corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-resize t
         corfu-popupinfo-min-width corfu-min-width
-        corfu-popupinfo-max-width corfu-max-width))
+        corfu-popupinfo-max-width corfu-max-width
+        tab-always-indent 'complete))
 
 (use-package corfu-history
   :ensure nil
@@ -673,7 +674,7 @@
   (doom-themes-treemacs-root-face ((t (:inherit nil :slant italic))))
   (treemacs-root-face ((t (:inherit variable-pitch :slant italic))))
   :config
-  (setf treemacs-window-background-color (cons "#26233a" "#191724"))
+  (setf treemacs-window-background-color (cons "#191919" "#03302f"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
@@ -1111,8 +1112,11 @@
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 
-;; (use-package yasnippet
-;;   :hook (prog-mode . yas-global-mode))
+(use-package yasnippet
+  :hook (prog-mode . yas-minor-mode)
+  :diminish yas-minor-mode
+  :commands (yas-reload-all)
+  :config (yas-reload-all))
 
 (use-package swift-mode
   :mode "\\.swift\\'"
@@ -1234,7 +1238,7 @@
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
-                                       #'cape-dabbrev
+                                       ;; #'cape-dabbrev
                                        ;; (cape-company-to-capf #'company-tabnine)
                                        ;; (cape-company-to-capf #'company-yasnippet)
                                        ))))

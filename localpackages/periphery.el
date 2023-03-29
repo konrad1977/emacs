@@ -104,7 +104,7 @@
   :group 'periphery)
 
 (defface periphery-mark-face-full
-  '((t (:font "SF Mono" :foreground "#313244" :background "#9399b2" :distant-foreground "#9399b2" :box "#FF0000" :weight light)))
+  '((t (:foreground "#313244" :background "#9399b2" :distant-foreground "#9399b2" :box "#FF0000" :weight light)))
   "Performance face."
   :group 'periphery)
 
@@ -577,11 +577,22 @@
                                                                                              :margin 0
                                                                                              :crop-right nil))))
 
-    ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE" :face 'periphery-hack-face-full :margin 0))))
-    ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-hack-face-full :crop-left t :inverse t))))
+    ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE"
+                                                                  :face 'periphery-hack-face-full
+                                                                  :margin 0
+                                                                  :crop-right t))))
+    ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
+                                                                :face 'periphery-hack-face-full
+                                                                :crop-left t
+                                                                :inverse t))))
 
-    ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE" :face 'periphery-note-face-full :margin 0))))
-    ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-note-face-full :crop-left t :inverse t))))
+    ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE"
+                                                                 :face 'periphery-note-face-full
+                                                                 :margin 0))))
+    ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
+                                                               :face 'periphery-note-face-full
+                                                               :crop-left t
+                                                               :inverse t))))
     ))
 
 (provide 'periphery)

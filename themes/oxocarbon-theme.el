@@ -24,17 +24,22 @@
   (highlight-med    "#262626" "#d7d7ff")
   (highlight-low    "#21202e" "#d7d7ff")
   (iris             "#be95ff" "#d7d7ff")
+  (dark-iris        "#17121F" "#d7d7ff")
   (foam             "#82cfff" "#00d7ff")
+  (dark-foam        "#142027" "#00d7ff")
   (green            "#42be65" "#00d7ff")
   (pine             "#08bdba" "#afffff")
   (rose             "#f5e0dc" "#ffffff")
   (gold             "#f6c177" "#ffd7af")
+  (dark-gold        "#211A10" "#ffd7af")
   (pink             "#FF74B8" "#ffd7af")
   (love             "#FF0065" "#ff87af")
+  (dark-love        "#27000F" "#ff87af")
   (text             "#FFFFFF" "#ffffff")
   (subtle           "#dde1e6" "#ffffff")
-  (dark-green       "#03302F" "#F00000")
+  (unmuted          "#bbc1c6" "#686868")
   (muted            "#525252" "#ffffff")
+  (dark-green       "#03302F" "#F00000")
   (overlay          "#292929" "#ffffff")
   (surface          "#161616" "#ffffff")
   (base             "#131313" "#ffffff"))
@@ -307,22 +312,22 @@
   (vertico-current                              (:background overlay :distant-foreground text :bold t :foreground surface))
 
   (vertico-posframe-border                      (:background muted))
-  (vertico-posframe                             (:background base :foreground muted))
+  (vertico-posframe                             (:background base :foreground subtle))
 
   (corfu-annotations                            (:foreground muted))
   (corfu-current                                (:inherit 'vertico-current))
   (corfu-border                                 (:background overlay))
   (corfu-bar                                    (:background gold))
-  (corfu-default                                (:background base :foreground text))
+  (corfu-default                                (:background base :foreground unmuted))
   (corfu-popupinfo                              (:background overlay :foreground text :weight 'light :italic t))
   
   ;; posframe's
   (ivy-posframe                                 (:background muted))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (orderless-match-face-0                       (:foreground love :background "#211A1F" :weight 'semi-bold))
+  (orderless-match-face-0                       (:foreground gold :background "#221F18" :weight 'semi-bold))
   (orderless-match-face-1                       (:foreground foam :background "#222d3e" :weight 'semi-bold))
-  (orderless-match-face-2                       (:foreground gold :background "#221F18" :weight 'semi-bold))
+  (orderless-match-face-2                       (:foreground love :background "#211A1F" :weight 'semi-bold))
   (orderless-match-face-3                       (:foreground iris :background "#292233" :weight 'semi-bold))
 
   (comint-highlight-prompt                      (:background gold :foreground base))
@@ -332,6 +337,9 @@
   (completions-common-part                      (:foreground gold :distant-foreground base :distant-background pine :bold t :italic t))
   (completions-first-difference                 (:foreground love))
   (consult-file                                 (:foreground muted :distant-foreground base))
+  (consult-preview-insertion                    (:foreground love :background base))
+  (yas-field-highlight-face                     (:background pine :foreground text))
+
 
   (diff-added (:background pine :foreground text))
   (diff-changed (:background gold :foreground base))
@@ -541,7 +549,18 @@
   (swift-mode:builtin-method-trailing-closure-face (:foreground foam))
   (swift-mode:builtin-function-trailing-closure-face (:foreground foam))
   (swift-mode:function-call-face (:foreground love))
+
+  (periphery-note-face-full (:foreground dark-green :background pine :bold t))
+  (periphery-mark-face-full (:foreground overlay :background muted :bold t))
+  (periphery-todo-face-full (:foreground dark-foam :background foam :bold t))
+  (periphery-hack-face-full (:foreground dark-love :background love :bold t))
+  (periphery-warning-face-full (:foreground gold :background dark-gold :bold t))
   
+  (periphery-error-face-full (:inherit 'periphery-hack-face-full))
+  (periphery-error-face (:foreground love))
+
+  (periphery-performance-face-full (:foreground dark-iris :background iris :bold t))
+  (periphery-note-face-full (:foreground text :background green :bold t))
   ;; (localizeable-variable-face (:inherit font-lock-string-face))
   ;; (localizeable-value-face (:inherit font-lock-keyword-face))
 
