@@ -77,7 +77,7 @@
          (let ((file (match-string 1 data))
                (linenumber (string-to-number (match-string 2 data)))
                (column (match-string 3 data)))
-           (with-current-buffer (find-file file)
+         (with-current-buffer (find-file file)
              (when (> linenumber 0)
                (goto-char (point-min))
                (forward-line (1- linenumber))

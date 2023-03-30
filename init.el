@@ -94,10 +94,6 @@
     (package-refresh-contents))
   (package-install 'use-package))
 
-;; (setq quelpa-update-melpa-p nil)
-;; (package-install 'quelpa-use-package)
-;; (require 'quelpa-use-package)
-
 (require 'use-package)
 
 (defconst jetbrains-ligature-mode--ligatures
@@ -141,9 +137,9 @@
 ;;   :init
 ;;   (exec-path-from-shell-initialize))
 
-(use-package benchmark-init
-  :config
-  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+;; (use-package benchmark-init
+;;   :config
+;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -159,16 +155,11 @@
   ;; (load-theme 'kanagawa t)
   )
 
-(use-package exec-path-from-shell
-  :after evil
-  :init
-  (exec-path-from-shell-initialize))
-
 (use-package vertico
   :hook (after-init . vertico-mode)
   :bind (:map vertico-map
-              ("C-S-j" . vertico-next)
-              ("C-S-k" . vertico-previous))
+              ("C-j" . vertico-next)
+              ("C-k" . vertico-previous))
   :custom
   (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
@@ -661,7 +652,9 @@
   (setq tab-always-indent 'complete))
   
 (use-package avy
-  :bind ("M-g" . avy-goto-char))
+  :bind ("M-g" . avy-goto-word-1)
+  :config
+  (setq avy-single-candidate-jump t))
 
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
@@ -736,10 +729,13 @@
   (setq flycheck-eglot-exclusive nil))
 
 (use-package markdown-mode
-  :defer t)
+  :commands (markdown-mode))
 
 (use-package yaml-mode
-  :defer t)
+  :commands (yaml-mode))
+
+(use-package json-mode
+  :commands (json-mode))
 
 (use-package projectile
   :hook (prog-mode . projectile-mode)
@@ -838,6 +834,7 @@
 
 ;; darkroom (go to focus mode)
 (use-package darkroom
+  :commands (darkroom-tentative-mode)
   :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
   (setq darkroom-text-scale-increase 1.5
@@ -890,9 +887,6 @@
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
-
-(use-package json-mode
-  :defer t)
 
 (use-package vterm
   :commands vterm
@@ -1045,10 +1039,10 @@
   (add-to-list 'org-modules 'org-tempo t))
 
 (use-package ob-swift
-  :defer t)
+  :after org)
 
 (use-package ob-swiftui
-  :defer t
+  :after org
   :config
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
@@ -1228,12 +1222,12 @@
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
 
-  (use-package flycheck-swiftlint
-    :after flycheck
-    :custom (flycheck-swiftlint-setup))
+  ;; (use-package flycheck-swiftlint
+  ;;   :after flycheck
+  ;;   :custom (flycheck-swiftlint-setup))
 
-   ;; (add-to-list 'flycheck-checkers 'eglot-check)
-    (add-to-list 'flycheck-checkers 'swiftlint)
+  ;;  ;; (add-to-list 'flycheck-checkers 'eglot-check)
+  ;;   (add-to-list 'flycheck-checkers 'swiftlint)
 
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
@@ -1275,6 +1269,7 @@
   "Programming mode."
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
+  (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
   (hs-minor-mode)       ; Add support for folding code blocks

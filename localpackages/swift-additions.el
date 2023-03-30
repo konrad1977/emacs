@@ -32,7 +32,7 @@
 (defvar current-buildconfiguration-json-data nil)
 (defvar local-device-id nil)
 (defvar run-app-on-build t)
-(defvar DEBUG nil)
+(defvar DEBUG t)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -153,15 +153,17 @@
      :simulatorId (ios-simulator:load-simulator-id)
      :appIdentifier (swift-additions:fetch-or-load-app-identifier))))
 
-(defun swift-additions:check-for-errors (text callback)
+(defun swift-additions:check-for-errors (output callback)
   "Run periphery parser on TEXT (optional CALLBACK)."
+  (when DEBUG
+    (message output))
   (if (or
-       (string-match-p (regexp-quote "BUILD FAILED") text)
-       (string-match-p (regexp-quote ": error:") text)
-       (string-match-p (regexp-quote ": warning:") text))
+       (string-match-p (regexp-quote "BUILD FAILED") output)
+       (string-match-p (regexp-quote ": error:") output)
+       (string-match-p (regexp-quote ": warning:") output))
       (progn
-        (periphery-run-parser text)
-        (when (not (string-match-p (regexp-quote "BUILD FAILED") text))
+        (periphery-run-parser output)
+        (when (not (string-match-p (regexp-quote "BUILD FAILED") output))
           (funcall callback)))
     (funcall callback)))
 

@@ -362,18 +362,26 @@
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
 
-;;;###autoload
 (defun periphery-kill-buffer ()
   "Kill the periphery buffer."
   (interactive)
   (when (get-buffer periphery-buffer-name)
     (kill-buffer periphery-buffer-name)))
 
-;;;###autoload
 (defun periphery-show-buffer ()
   "Show current periphery buffer."
   (interactive)
   (periphery--listing-command periphery-errorList))
+
+(defun periphery-toggle-buffer ()
+  "Toggle Periphery buffer."
+  (interactive)
+  (let ((buffer (get-buffer periphery-buffer-name)))
+    (if (not buffer)
+        (message "Buffer %s does not exist" periphery-buffer-name)
+      (if (get-buffer-window buffer)
+          (delete-window (get-buffer-window buffer))
+        (periphery-show-buffer)))))
 
 ;;; - Bartycrouch parsing
 (defun periphery--clean-up-comments (text)

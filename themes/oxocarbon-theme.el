@@ -306,10 +306,10 @@
   (ivy-grep-line-number                         (:foreground iris))
   (ivy-confirm-face                             (:foreground pine))
 
-  (vertico-multiline                            (:background base))
+  (vertico-multiline                            (:background base :foreground text :distant-foreground text))
   (vertico-group-title                          (:foreground subtle :weight 'semi-bold :height 180))
   (vertico-group-separator                      (:foreground muted :strike-through t))
-  (vertico-current                              (:background overlay :distant-foreground text :bold t :foreground surface))
+  (vertico-current                              (:background dark-green :distant-foreground text :foreground text))
 
   (vertico-posframe-border                      (:background muted))
   (vertico-posframe                             (:background base :foreground subtle))
@@ -336,7 +336,7 @@
   (completions-highlight                        (:foreground foam :italic t))
   (completions-common-part                      (:foreground gold :distant-foreground base :distant-background pine :bold t :italic t))
   (completions-first-difference                 (:foreground love))
-  (consult-file                                 (:foreground muted :distant-foreground base))
+  (consult-file                                 (:foreground subtle :distant-foreground base))
   (consult-preview-insertion                    (:foreground love :background base))
   (yas-field-highlight-face                     (:background pine :foreground text))
 
