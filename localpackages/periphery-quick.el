@@ -2,7 +2,7 @@
 ;;; Code:
 
 (require 'periphery-helper)
-(require 'projectile)
+(require 'project)
 
 (defconst periphery-quick-regex-parser "\\([^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\):\s?\\(.+\\)"
   "Parse vimgrep like strings (compilation).")
@@ -49,16 +49,16 @@
                           'face 'periphery-filename-face)
                          text) fileWithLine)))))
 
+;;;###autoload
 (cl-defun periphery-quick:run-query (query)
   "Run query (as QUERY)."
-  (let ((default-directory (projectile-project-root)))
+  (let ((default-directory (periphery-helper:project-root-dir)))
     (async-start-command-to-string
      :command (format "rg -e %s --color=never --no-heading --with-filename --line-number --column --sort path" query)
      :callback '(lambda (output) (periphery-quick:parse output)))))
 
 (defun periphery-quick:run-query-file (query file)
   "Run query (as QUERY) on file."
-  (message file)
   (let ((file file)
         (query query))
     (async-start-command-to-string
@@ -77,7 +77,7 @@
 (defun periphery-quick:find-ask ()
   "Quickfind but ask user for input."
   (interactive)
-  (let ((default-directory (projectile-project-root))
+  (let ((default-directory (periphery-helper:project-root-dir))
         (query (read-string "Query: ")))
     (when (> (length query) 0)
       (async-start-command-to-string

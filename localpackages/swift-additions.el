@@ -32,7 +32,7 @@
 (defvar current-buildconfiguration-json-data nil)
 (defvar local-device-id nil)
 (defvar run-app-on-build t)
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -131,7 +131,7 @@
   "Copy symbols for LSP to work."
 
   (message-with-color :tag "[Copying LSP Symbols]" :text "" :attributes 'success)
-  (let* ((default-directory (projectile-project-root))
+  (let* ((default-directory (periphery-helper:project-root-dir))
          (build-folder (format "%s%s" default-directory ".build/arm64-apple-macosx/debug/")))
     ;; Create directory if it doesnt exist
     (unless (file-exists-p build-folder)
@@ -192,7 +192,7 @@
 
 (cl-defun find-project-root-folder-with (&key extension)
   "Find project folder where it has its project files EXTENSION."
-  (let ((project-root (expand-file-name (projectile-project-root)))
+  (let ((project-root (expand-file-name (periphery-helper:project-root-dir)))
         (root (directory-files project-root nil (format "\\%s$" extension) 1))
         (subroot (swift-additions:get-files-from :directory project-root :extension extension :exclude ".build"))
         (workroot (or root subroot))
@@ -203,7 +203,7 @@
 
 (defun swift-additions:get-project-files ()
   "Get project files."
-  (let* ((files (directory-files-recursively (projectile-project-root) "\.xcworkspace$\\|\.xcodeproj$" 2)))
+  (let* ((files (directory-files-recursively (periphery-helper:project-root-dir) "\.xcworkspace$\\|\.xcodeproj$" 2)))
       (cdr-safe files)))
 
 (defun swift-additions:get-ios-project-root ()
@@ -329,7 +329,7 @@
 (defun swift-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (swift-additions:clean-build-folder-with (projectile-project-root) ".build" "swift package")
+  (swift-additions:clean-build-folder-with (periphery-helper:project-root-dir) ".build" "swift package")
   (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "/build" current-xcode-scheme))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
@@ -349,15 +349,6 @@
     (save-match-data
       (goto-char (point-max))
       (search-backward string nil t))))
-
-(defun swift-additions:mark-function-as-renamed ()
-  "Mark current function as obselete."
-  (interactive)
-  (save-excursion
-    (let ((name (thing-at-point 'word)))
-      (previous-line)
-      (indent-for-tab-command)
-      (insert (format "@available(*, renamed: \"%s()\")" name)))))
 
 (defun swift-additions:insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."
@@ -467,7 +458,7 @@
 
 (defun swift-additions:is-a-swift-package-base-project ()
   "Check if project is a swift package based."
-  (let ((default-directory (projectile-project-root)))
+  (let ((default-directory (periphery-helper:project-root-dir)))
     (file-exists-p "Package.swift")))
 
 (defun swift-additions:check-for-spm-build-errors (text)
@@ -492,18 +483,18 @@
 (defun swift-additions:build-swift-package ()
   "Build swift package module."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (let ((default-directory (periphery-helper:project-root-dir)))
     (swift-additions:reset-settings)
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
+    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
 
 ;;;###autoload
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
   (interactive)
-  (let ((default-directory (projectile-project-root)))
+  (let ((default-directory (periphery-helper:project-root-dir)))
     (async-shell-command-to-string :process-name "periphery" :command "swift test" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (projectile-project-root)) :attributes 'warning)))
+    (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
 
 (defun swift-additions:lsp-arguments ()
   "Get the lsp arguments to support UIKit."

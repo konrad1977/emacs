@@ -6,11 +6,18 @@
 
 (require 'async)
 (require 'json)
+(require 'project)
 
 (defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
    "Parse linenumber and columns.")
 
 ;;;###autoload
+(defun periphery-helper:project-root-dir ()
+  "Get the root directory of the current project."
+  (let ((project (project-current)))
+    (when project
+      (project-root project))))
+
 (cl-defun async-start-shell-command-to-json (&key command &key callback)
   "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
   (async-start-command-to-string
@@ -19,7 +26,6 @@
                (let* ((json-object (json-read-from-string result)))
                  (funcall ,callback json-object)))))
 
-;;;###autoload
 (cl-defun async-start-command-to-string (&key command &key callback)
   "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
   (async-start
@@ -33,12 +39,10 @@
   (string-trim-left
    (replace-regexp-in-string "\n$" "" text)))
 
-;;;###autoload
 (cl-defun message-with-color (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES."
   (message "%s %s" (propertize tag 'face attributes) text))
 
-;;;###autoload
 (cl-defun animate-message-with-color (&key tag &key text &key attributes &key times)
   "Print a TAG and TEXT with ATTRIBUTES nr of TIMES."
   (dotimes (x times)

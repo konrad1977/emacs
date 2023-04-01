@@ -6,7 +6,6 @@
 (require 'periphery-helper)
 (require 'periphery)
 (require 'thingatpt)
-(require 'projectile)
 
 (defvar current-query "")
 (defvar current-title "Search")
@@ -41,7 +40,7 @@
   (setq current-query nil)
   (if (executable-find "rg")
       (progn
-        (let ((default-directory (projectile-project-root)))
+        (let ((default-directory (periphery-helper:project-root-dir)))
           (setq current-query (regexp-quote text))
           (message-with-color :tag "[SEARCHING]" :text (format "for %s" current-query) :attributes 'warning)
           (async-start-command-to-string

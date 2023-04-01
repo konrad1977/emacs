@@ -137,9 +137,9 @@
 ;;   :init
 ;;   (exec-path-from-shell-initialize))
 
-;; (use-package benchmark-init
-;;   :config
-;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
+(use-package benchmark-init
+  :config
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -587,14 +587,14 @@
   :init
   (setq corfu-bar-width 2
         corfu-scroll-margin 2
-        corfu-auto-prefix 2
+        corfu-auto-prefix 1
         corfu-min-width 40
         corfu-max-width 130
         corfu-left-margin-width 0.5
         corfu-right-margin-width 0.8
         corfu-bar-width 0.1
-        corfu-count 12
-        corfu-auto-delay 0.25
+        corfu-count 14
+        corfu-auto-delay 0.1
         corfu-quit-no-match 'separator
         ;; corfu-preselect 'insert
         ;; corfu-preview-current ni
@@ -838,7 +838,7 @@
   :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
   (setq darkroom-text-scale-increase 1.5
-        darkroom-margins 0.2))
+        darkroom-margins '(15 . 0)))
 
 ;; Use git
 (use-package magit
@@ -1107,7 +1107,7 @@
   (setq dumb-jump-prefer-searcher 'rg))
 
 (use-package yasnippet
-  :hook (prog-mode . yas-minor-mode)
+  :hook (swift-mode . yas-minor-mode)
   :diminish yas-minor-mode
   :commands (yas-reload-all)
   :config (yas-reload-all))
@@ -1134,6 +1134,10 @@
   ("M-s" . #'ios-simulator:terminate-current-app)
   ("M-p" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
+
+(use-package overlay-usage
+  :hook (swift-mode . overlay-usage-mode)
+  :ensure nil)
 
 (use-package swift-additions
   :ensure nil
