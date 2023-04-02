@@ -1,6 +1,6 @@
 ;;; overlay-usage.el --- ;; -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;; Package for showing usage of functions. 
+;;; Package for showing usage of function. 
 
 ;;; Code:
 
@@ -31,7 +31,6 @@
       (overlay-usage-enable)
     (overlay-usage-disable)))
 
-
 (defun project-root-dir ()
   "Get the root directory of the current project."
   (let ((project (project-current)))
@@ -52,16 +51,17 @@
   "Clean up all overlays."
   (mapc #'delete-overlay overlays-list))
 
-(defun add-overlay (position spaces extension)
+(cl-defun add-overlay (&key position spaces extension)
   "Add overlay (as POSITION with SPACES and search EXTENSION)."
   (save-excursion
     (goto-char position)
     (let* ((function-name (thing-at-point 'symbol))
            (extension extension)
-           (default-directory (project-root-dir))
            (count (string-to-number
                    (shell-command-to-string
-                    (format "rg --glob '%s' -e '%s\\(' | wc -l" extension function-name)))))
+                    (shell-command-from
+                     :extension extension
+                     :function function-name)))))
 
       (let ((ov (make-overlay (line-beginning-position 0)
                               (line-end-position 0))))
@@ -76,25 +76,41 @@
         (push ov overlays-list) ov))))
 
 (defun extension-from-file ()
+  "Get file extension."
   (file-name-extension buffer-file-name))
+
+(cl-defun shell-command-from (&key extension function)
+  "Shell command from EXTENSION and FUNCTION."
+  (cond
+   ((string-suffix-p "swift" extension t)
+    (format "rg --glob '*.%s' -e '%s\\(' | wc -l" extension function))
+   ((string-suffix-p "el" extension t)
+    (format "rg --glob '*.%s' -e '%s' | wc -l" extension function))))
 
 (defun regex-for-file-type (extension)
   "Detect what the function start with."
   (cond
    ((string-match-p (regexp-quote "swift") extension) "func")
    ((string-match-p (regexp-quote "kt") extension) "fun")
-   ((string-match-p (regexp-quote "el") extension) "(defun")))
+   ((string-match-p (regexp-quote "el") extension) "defun")))
 
 (defun overlay-add-to-functions ()
-  "Adds overlay to functions."
+  "Add overlay to functions."
   (overlay-usage-remove-overlays)
   (goto-char (point-min))
   (let*  ((extension (extension-from-file))
-          (func-regex (regex-for-file-type extension)))
-    (while (search-forward-regexp  (concat func-regex " \\([a-zA-Z0-9_-\(]+\\)") nil t)
-      (let* ((position (match-beginning 1))
-             (column (save-excursion (back-to-indentation) (current-column))))
-        (add-overlay position (spaces-string column) (format "*.%s" extension))))))
+          (func-regex (regex-for-file-type extension))
+          (default-directory (project-root-dir)))
+
+    (while (search-forward-regexp (concat func-regex " \\([a-zA-Z0-9_-\(]+\\)") nil t)
+      (let ((position (match-beginning 1))
+            (column (save-excursion
+                      (back-to-indentation)
+                      (current-column))))
+        (add-overlay
+         :position position
+         :spaces (spaces-string column)
+         :extension (format "%s" extension))))))
 
 (provide 'overlay-usage)
 
