@@ -47,6 +47,7 @@
       tool-bar-mode nil
       default-frame-alist
       '((background-color . "#161616")       ; Default background color
+        (inhibit-double-buffering . t)
         (bottom-divider-width . 0)           ; Thin horizontal window divider
         (foreground-color . "#dde1e6")       ; Default foreground color
         (fullscreen . maximized)             ; Maximize the window by default

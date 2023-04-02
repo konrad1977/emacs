@@ -1,6 +1,6 @@
 ;;; overlay-usage.el --- ;; -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;; Package for showing usage of function. 
+;;; Package for showing usage of function.
 
 ;;; Code:
 
@@ -68,10 +68,10 @@
         (overlay-put ov 'before-string "\n")
         (overlay-put ov 'after-string
                      (concat spaces 
-                     (concat (propertize "⚡︎ " 'face '(:height 0.6))
-                             (propertize (concat "Found " (number-to-string (if (> count 0)
-                                                                                (- count 1) 0)) " references")
-                                         'face 'overlay-usage-default-face))))
+                             (concat (propertize "⚡︎ " 'face '(:height 0.7))
+                                     (propertize (concat "Found " (number-to-string (if (> count 0)
+                                                                                        (- count 1) 0)) " references")
+                                                 'face 'overlay-usage-default-face))))
         (overlay-put ov 'overlay-usage t)
         (push ov overlays-list) ov))))
 
@@ -88,7 +88,7 @@
     (format "rg --glob '*.%s' -e '%s' | wc -l" extension function))))
 
 (defun regex-for-file-type (extension)
-  "Detect what the function start with."
+  "Detect what the function start with from the (EXTENSION)."
   (cond
    ((string-match-p (regexp-quote "swift") extension) "func")
    ((string-match-p (regexp-quote "kt") extension) "fun")
@@ -97,10 +97,9 @@
 (defun overlay-add-to-functions ()
   "Add overlay to functions."
   (overlay-usage-remove-overlays)
-  (goto-char (point-min))
-  (let*  ((extension (extension-from-file))
-          (func-regex (regex-for-file-type extension))
-          (default-directory (project-root-dir)))
+  (let* ((extension (extension-from-file))
+         (func-regex (regex-for-file-type extension))
+         (default-directory (project-root-dir)))
 
     (while (search-forward-regexp (concat func-regex " \\([a-zA-Z0-9_-\(]+\\)") nil t)
       (let ((position (match-beginning 1))
@@ -113,5 +112,4 @@
          :extension (format "%s" extension))))))
 
 (provide 'overlay-usage)
-
 ;;; overlay-usage.el ends here
