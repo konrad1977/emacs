@@ -33,6 +33,7 @@
       find-file-visit-truename          t
       font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
+      fast-but-imprecise-scrolling      t
       jit-lock-defer-time               nil
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       scroll-margin                     0   ;; scroll N to screen edge
@@ -1136,7 +1137,7 @@
   ("C-c x l" . #'ios-simulator:change-language))
 
 (use-package overlay-usage
-  :hook (swift-mode . overlay-usage-mode)
+  :hook (prog-mode . overlay-usage-mode)
   :ensure nil)
 
 (use-package swift-additions
@@ -1256,7 +1257,6 @@
   (auto-fill-mode 0)
   (visual-line-mode t)
   (setq evil-auto-indent nil))
-
 ;;; esc quits
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
