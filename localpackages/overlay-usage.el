@@ -117,7 +117,6 @@
          (ov (make-overlay
               (line-end-position)
               (line-end-position))))
-    (message command)
     (overlay-put ov 'after-string
                  (concat " "
                  (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
