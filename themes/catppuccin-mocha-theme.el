@@ -551,8 +551,6 @@
     (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
     (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
     (swift-mode:function-call-face (:foreground pink)))
-
-    (overlay-usage-default-face (:foreground overlay0 :height 0.6))
  ))
 
 ;;;###autoload

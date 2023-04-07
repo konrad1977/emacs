@@ -21,17 +21,17 @@
   :group 'comm)
 
 (defface overlay-usage-default-face
-  '((t :font "Iosevka Aile" :height 0.7 :foreground "#898989"))
+  '((t :inherit font-lock-comment-face :foreground "#999999" :height 0.7 :italic nil))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
 (defface overlay-usage-function-symbol-face
-  '((t :inherit font-lock-function-name-face :height 0.7 :weight semi-bold))
+  '((t :inherit font-lock-function-name-face :height 0.8 :weight semi-bold))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
 (defface overlay-usage-variable-symbol-face
-  '((t :inherit font-lock-keyword-face :height 0.7))
+  '((t :inherit font-lock-keyword-face :height 0.7 :weight semi-bold))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
@@ -119,7 +119,8 @@
               (line-end-position))))
     (message command)
     (overlay-put ov 'after-string
-                 (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face))
+                 (concat " "
+                 (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
     (overlay-put ov 'invisible t)
     (overlay-put ov 'priority 900)
     (push ov variables-overlays-list)))
@@ -129,14 +130,14 @@
   "Propertize with symbol (as COUNT as SYMBOL as FONT-FACE)."
   (cond
    ((< count 1)
-    (concat (propertize (format " %s︎ " symbol) 'face font)
+    (concat (propertize (format "%s︎ " symbol) 'face font)
             (propertize "No references found" 'face 'overlay-usage-default-face)))
    ((= count 1)
-    (concat (propertize (format " %s︎ " symbol) 'face font)
-            (propertize "Found 1 reference" 'face 'overlay-usage-default-face)))
+    (concat (propertize (format "%s︎ " symbol) 'face font)
+            (propertize "1 reference" 'face 'overlay-usage-default-face)))
    ((> count 1)
-    (concat (propertize (format " %s " symbol) 'face font)
-            (propertize (concat "Found " (number-to-string count) " references")
+    (concat (propertize (format "%s " symbol) 'face font)
+            (propertize (concat " " (number-to-string count) " references")
                                 'face 'overlay-usage-default-face)))))
 
 
