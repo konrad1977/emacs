@@ -14,6 +14,11 @@
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
+(setq ffap-alist nil)                ; faster, dumber prompting
+(setq ffap-url-regexp nil)           ; disable URL features in ffap
+(setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
+(setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
+
 ;; (prefer-coding-system 'utf-8)
 ;; (set-default-coding-systems 'utf-8)
 ;; (set-terminal-coding-system 'utf-8)

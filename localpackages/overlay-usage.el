@@ -26,12 +26,12 @@
   :group 'overlay-usage)
 
 (defface overlay-usage-function-symbol-face
-  '((t :inherit font-lock-function-name-face :height 0.7))
+  '((t :inherit font-lock-function-name-face :height 0.7 :weight semi-bold))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
 (defface overlay-usage-variable-symbol-face
-  '((t :inherit font-lock-type-face :height 0.7))
+  '((t :inherit font-lock-keyword-face :height 0.7))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
@@ -96,16 +96,13 @@
               (line-beginning-position 0)
               (line-beginning-position 0))))
 
-      (overlay-put ov 'after-string
-                   (concat spaces
-                           (concat (propertize "λ︎ " 'face 'overlay-usage-function-symbol-face)
-                                   (propertize (concat "Found " (number-to-string (if (> count 0)
-                                                                                      (- count 1) 0)) " references")
-                                               'face 'overlay-usage-default-face))))
-      (overlay-put ov 'end (+ (line-beginning-position 0) (length spaces)))
-      (overlay-put ov 'invisible t)
-      (overlay-put ov 'priority 1000)
-      (push ov functions-overlays-list)))
+    (overlay-put ov 'after-string
+                 (concat spaces
+                 (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
+    (overlay-put ov 'end (+ (line-beginning-position 0) (length spaces)))
+    (overlay-put ov 'invisible t)
+    (overlay-put ov 'priority 1000)
+    (push ov functions-overlays-list)))
 
 
 (cl-defun add-overlays-for-variables (&key position filename)
@@ -120,14 +117,27 @@
          (ov (make-overlay
               (line-end-position)
               (line-end-position))))
+    (message command)
     (overlay-put ov 'after-string
-                 (concat (propertize " ⍟ " 'face 'overlay-usage-variable-symbol-face)
-                         (propertize (concat "Found " (number-to-string (if (> count 0)
-                                                                            (- count 1) 0)) " references")
-                                     'face 'overlay-usage-default-face)))
+                 (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face))
     (overlay-put ov 'invisible t)
     (overlay-put ov 'priority 900)
     (push ov variables-overlays-list)))
+
+
+(defun propertize-with-symbol (count symbol font)
+  "Propertize with symbol (as COUNT as SYMBOL as FONT-FACE)."
+  (cond
+   ((< count 1)
+    (concat (propertize (format " %s︎ " symbol) 'face font)
+            (propertize "No references found" 'face 'overlay-usage-default-face)))
+   ((= count 1)
+    (concat (propertize (format " %s︎ " symbol) 'face font)
+            (propertize "Found 1 reference" 'face 'overlay-usage-default-face)))
+   ((> count 1)
+    (concat (propertize (format " %s " symbol) 'face font)
+            (propertize (concat "Found " (number-to-string count) " references")
+                                'face 'overlay-usage-default-face)))))
 
 
 (defun extension-from-file ()
@@ -147,7 +157,7 @@
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg %s -e '(?<!\\()%s(?! *\\))' --pcre2 | wc -l" filename variable))))
+    (format "rg %s -e '\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
 
 
 (defun regex-for-file-type (extension)
@@ -186,7 +196,7 @@
     (let ((default-directory (project-root-dir)))
      (goto-char (point-min))
       
-      (while (search-forward-regexp "\\b\\(?:let\\|var\\)\s+\\(\\w+\\)[^\\{]*$" nil t)
+      (while (search-forward-regexp "\\b\\(?:let\\|var\\)\s+\\(\\w+\\)" nil t)
         (let ((position (match-beginning 1)))
           (add-overlays-for-variables
            :position position
