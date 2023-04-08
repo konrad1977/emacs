@@ -99,14 +99,11 @@
     (overlay-put ov 'after-string
                  (concat spaces
                  (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
-    (overlay-put ov 'end (+ (line-beginning-position 0) (length spaces)))
-    (overlay-put ov 'invisible t)
-    (overlay-put ov 'priority 1000)
     (push ov functions-overlays-list)))
 
 
 (cl-defun add-overlays-for-variables (&key position filename)
-  "Add overlay (as POSITION with SPACES) for variables."
+  "Add overlay (as POSITION and FILENAME) for variables."
   (goto-char position)
   (let* ((variable-name (thing-at-point 'symbol))
          (filename filename)
@@ -126,7 +123,7 @@
 
 
 (defun propertize-with-symbol (count symbol font)
-  "Propertize with symbol (as COUNT as SYMBOL as FONT-FACE)."
+  "Propertize with symbol (as COUNT as SYMBOL as FONT)."
   (cond
    ((< count 1)
     (concat (propertize (format "%s︎ " symbol) 'face font)
@@ -149,9 +146,9 @@
   "Shell command from EXTENSION and FUNCTION."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg --glob '*.%s' -e '%s\\(' | wc -l" extension function))
+    (format "rg --glob '*.%s' -e '\\b%s\\(' | wc -l" extension function))
    ((string-suffix-p "el" extension t)
-    (format "rg --glob '*.%s' -e '%s' | wc -l" extension function))))
+    (format "rg --glob '*.%s' -e '\\b%s' | wc -l" extension function))))
 
 (cl-defun shell-command-variable-from (&key filename variable)
   "Shell command from FILENAME and VARIABLE."
@@ -163,8 +160,8 @@
 (defun regex-for-file-type (extension)
   "Detect what the function start with from the (EXTENSION)."
   (cond
-   ((string-match-p (regexp-quote "swift") extension) "func")
-   ((string-match-p (regexp-quote "el") extension) "defun")))
+   ((string-match-p (regexp-quote "swift") extension) "\s+\\bfunc\\b")
+   ((string-match-p (regexp-quote "el") extension) "defun\\b")))
 
 
 (defun overlay-add-to-functions ()
@@ -190,7 +187,6 @@
 
 (defun overlay-add-to-variables ()
   "Add overlays to variables."
-  (message "Adding overlay to variables")
   (overlay-usage-remove-overlays-for-variables)
   (save-excursion
     (let ((default-directory (project-root-dir)))

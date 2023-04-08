@@ -149,9 +149,9 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  ;; (load-theme 'catppuccin-mocha t)
+  (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  (load-theme 'oxocarbon t)
+  ;; (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   )
@@ -423,11 +423,6 @@
 
 (use-package evil-tutor
   :commands evil-tutor)
-
-;; (use-package goggles
-;;   :hook ((prog-mode text-mode) . goggles-mode)
-;;   :config
-;;   (setq-default goggles-pulse t))
 
 (use-package evil-goggles
   :after evil
@@ -1078,11 +1073,6 @@
         elfeed-search-filter "@7-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
-
-;; (use-package highlight-indent-guides
-;;   :hook (prog-mode . highlight-indent-guides-mode)
-;;   :config
-;;   (setq highlight-indent-guides-method 'bitmap))
 
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
