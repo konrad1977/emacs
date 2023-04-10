@@ -34,17 +34,20 @@
 (defvar run-app-on-build t)
 (defvar DEBUG nil)
 
+
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
   (unless current-xcode-scheme
     (setq current-xcode-scheme (swift-additions:build-menu :title "Choose scheme: " :list (swift-additions:get-scheme-list))))
   current-xcode-scheme)
 
+
 (defun swift-additions:fetch-or-load-build-configuration ()
   "Get the build configuration or promp user."
   (unless current-build-configuration
     (setq current-build-configuration (swift-additions:build-menu :title "Choose configuration: " :list (swift-additions:get-configuration-list))))
   current-build-configuration)
+
 
 (defun swift-additions:fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."

@@ -18,6 +18,9 @@
 (defvar-local classes-overlays-list nil
   "List of overlays for structs and classes.")
 
+(defconst commented-lines-regex "^\\s-*/\\|;"
+  "Comment-line regex.")
+
 (defgroup overlay-usage nil
   "Plugin shows complexity information."
   :prefix "overlay-usage-"
@@ -40,6 +43,11 @@
 
 (defface overlay-usage-variable-symbol-face
   '((t :inherit font-lock-keyword-face :height 0.7 :weight semi-bold))
+  "Face added to code-usage display."
+  :group 'overlay-usage)
+
+(defface overlay-usage-count-symbol-face
+  '((t :inherit default :height 0.7 :weight semi-bold))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
@@ -126,7 +134,7 @@
 
     (overlay-put ov 'after-string
                  (concat (if (overlay-usage:previous-line-has-text-p) spaces " ")
-                 (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
+                         (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
     (push ov functions-overlays-list)))
 
 
@@ -143,11 +151,11 @@
               (line-end-position)
               (line-end-position))))
     (overlay-put ov 'after-string
-                 (concat " "
-                 (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
+                 (concat " " (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
     (overlay-put ov 'invisible t)
     (overlay-put ov 'priority 900)
     (push ov variables-overlays-list)))
+
 
 (cl-defun add-overlays-for-classes (&key position spaces extension)
   "Add overlay for classes (as POSITION with SPACES and search EXTENSION)."
@@ -165,7 +173,7 @@
 
     (overlay-put ov 'after-string
                  (concat (if (overlay-usage:previous-line-has-text-p) spaces " ")
-                 (propertize-with-symbol count "✦︎" 'overlay-usage-class-symbol-face)))
+                         (propertize-with-symbol count "✦︎" 'overlay-usage-class-symbol-face)))
     (push ov classes-overlays-list)))
 
 
@@ -177,11 +185,12 @@
             (propertize "No references found" 'face 'overlay-usage-default-face)))
    ((= count 1)
     (concat (propertize (format "%s︎ " symbol) 'face font)
-            (propertize "1 reference" 'face 'overlay-usage-default-face)))
+            (propertize "1" 'face 'overlay-usage-count-symbol-face)
+            (propertize " reference" 'face 'overlay-usage-default-face)))
    ((> count 1)
     (concat (propertize (format "%s " symbol) 'face font)
-            (propertize (concat " " (number-to-string count) " references")
-                                'face 'overlay-usage-default-face)))))
+            (propertize (number-to-string count) 'face 'overlay-usage-count-symbol-face)
+            (propertize " references" 'face 'overlay-usage-default-face)))))
 
 
 (defun extension-from-file ()
@@ -195,7 +204,7 @@
    ((string-suffix-p "swift" extension t)
     (format "rg -t swift -e '^[^\/]*\\b%s\\(' --pcre2 | wc -l" function))
    ((string-suffix-p "el" extension t)
-    (format "rg -t elisp -e '^[^;\/\n].*\\b%s\\b' --pcre2 | wc -l" function))))
+    (format "rg -t elisp -e '^[^\/]*\\b%s\\b' --pcre2 | wc -l" function))))
 
 
 (cl-defun overlay-usage:shell-command-classes-from (&key extension name)
@@ -209,14 +218,23 @@
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg -t swift %s -e '^[^\/]*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+    (format "rg -t swift %s -e '^[^\/]*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))
+   ((string-suffix-p "el" (file-name-extension filename) t)
+    (format "rg -t elisp %s -e '^(?!.*\\([def]).*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+
+
+(cl-defun overlay-usage:find-variable-regex-for-file-type (&key extension)
+  "Get the regex for finding variables for an (EXTENSION)."
+  (cond
+   ((string-match-p (regexp-quote "swift") extension) "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)")
+   ((string-match-p (regexp-quote "el") extension) "\\(?:defvar\\|defvar-local\\|defface\\|defconst\\|defgroup\\)\s+\\([a-zA-Z0-9_-\(]+\\)")))
 
 
 (defun overlay-usage:find-function-regex-for-file-type (extension)
   "Detect what the function start with from the (EXTENSION)."
   (cond
    ((string-match-p (regexp-quote "swift") extension) "^[^\/\n].*\s+\\bfunc\\b")
-   ((string-match-p (regexp-quote "el") extension) "^[^;\n].*\\bdefun\\b")))
+   ((string-match-p (regexp-quote "el") extension) "^[^;\n]*defun\\b")))
 
 
 (defun overlay-add-to-functions ()
@@ -232,7 +250,7 @@
                         (back-to-indentation)
                         (current-column))))
           (beginning-of-line)
-          (when (not (looking-at "^\\s-*/\\|;"))
+          (when (not (looking-at commented-lines-regex))
             (add-overlays-for-functions
              :position position
              :spaces (spaces-string column)
@@ -243,15 +261,18 @@
 (defun overlay-add-to-variables ()
   "Add overlays to variables."
   (save-excursion
-    (goto-char (point-min))
-    (while (search-forward-regexp "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)" nil t)
+    (let* ((extension (extension-from-file))
+           (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
+      (goto-char (point-min))
+    (while (search-forward-regexp variable-regex nil t)
       (let ((position (match-beginning 1)))
         (beginning-of-line)
-        (when (not (looking-at "^\\s-*//"))
+          (when (not (looking-at commented-lines-regex))
           (add-overlays-for-variables
            :position position
            :filename (buffer-file-name))))
-      (forward-line))))
+      (forward-line)))))
+
 
 
 (defun overlay-add-to-classes-and-structs ()
@@ -265,7 +286,7 @@
                         (back-to-indentation)
                         (current-column))))
           (beginning-of-line)
-          (when (not (looking-at "^\\s-*//"))
+          (when (not (looking-at commented-lines-regex))
             (add-overlays-for-classes
              :position position
              :spaces (spaces-string column)

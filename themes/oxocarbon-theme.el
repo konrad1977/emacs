@@ -92,6 +92,7 @@
   (font-lock-builtin-face               (:foreground iris))
   (font-lock-function-name-face         (:foreground foam))
   (font-lock-variable-name-face         (:foreground rose))
+  (font-lock-number-face                (:foreground gold))
   (font-lock-comment-face               (:foreground muted :italic t))
   (font-lock-comment-delimiter-face     (:foreground muted :italic t))
   (font-lock-doc-face                   (:foreground muted))
