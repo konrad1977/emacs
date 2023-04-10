@@ -202,7 +202,7 @@
   "Shell command from EXTENSION and NAME."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '^[^\/]*\\b%s\\b[\\(|\.init]' --pcre2 | wc -l" name))))
+    (format "rg -t swift -e '^[^\/]*\\b%s\\b(\\(|\.init)' --pcre2 | wc -l" name))))
 
 
 (cl-defun shell-command-variable-from (&key filename variable)
