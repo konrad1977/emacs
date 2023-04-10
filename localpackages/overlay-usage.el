@@ -154,7 +154,7 @@
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg %s -e '\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+    (format "rg --type swift %s -e '\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
 
 
 (defun regex-for-file-type (extension)
