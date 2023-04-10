@@ -164,8 +164,8 @@
               (line-end-position 0))))
 
     (overlay-put ov 'after-string
-                 (concat spaces
-                 (propertize-with-symbol (- count 1) "✦︎" 'overlay-usage-class-symbol-face)))
+                 (concat (if (overlay-usage:previous-line-has-text-p) spaces " ")
+                 (propertize-with-symbol count "✦︎" 'overlay-usage-class-symbol-face)))
     (push ov classes-overlays-list)))
 
 
@@ -193,7 +193,7 @@
   "Shell command from EXTENSION and FUNCTION."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '^[^\/\n].*\\b%s\\(' --pcre2 | wc -l" function))
+    (format "rg -t swift -e '^[^\/]*\\b%s\\(' --pcre2 | wc -l" function))
    ((string-suffix-p "el" extension t)
     (format "rg -t elisp -e '^[^;\/\n].*\\b%s\\b' --pcre2 | wc -l" function))))
 
@@ -202,14 +202,14 @@
   "Shell command from EXTENSION and NAME."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '^[^\/\n].*\\b%s\\(' --pcre2 | wc -l" name))))
+    (format "rg -t swift -e '^[^\/]*\\b%s\\b[\\(|\.init]' --pcre2 | wc -l" name))))
 
 
 (cl-defun shell-command-variable-from (&key filename variable)
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg -t swift %s -e '\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+    (format "rg -t swift %s -e '^[^\/]*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
 
 
 (defun overlay-usage:find-function-regex-for-file-type (extension)
@@ -226,16 +226,18 @@
            (func-regex (overlay-usage:find-function-regex-for-file-type extension)))
 
       (goto-char (point-min))
-      
       (while (search-forward-regexp (concat func-regex " \\([a-zA-Z0-9_-\(]+\\)") nil t)
         (let ((position (match-beginning 1))
               (column (save-excursion
                         (back-to-indentation)
                         (current-column))))
-          (add-overlays-for-functions
-           :position position
-           :spaces (spaces-string column)
-           :extension (format "%s" extension)))))))
+          (beginning-of-line)
+          (when (not (looking-at "^\\s-*/\\|;"))
+            (add-overlays-for-functions
+             :position position
+             :spaces (spaces-string column)
+             :extension (format "%s" extension))))
+        (forward-line)))))
 
 
 (defun overlay-add-to-variables ()
