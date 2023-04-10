@@ -15,6 +15,9 @@
 (defvar-local variables-overlays-list nil
   "List of overlays for variables.")
 
+(defvar-local classes-overlays-list nil
+  "List of overlays for structs and classes.")
+
 (defgroup overlay-usage nil
   "Plugin shows complexity information."
   :prefix "overlay-usage-"
@@ -27,6 +30,11 @@
 
 (defface overlay-usage-function-symbol-face
   '((t :inherit font-lock-function-name-face :height 0.8 :weight semi-bold))
+  "Face added to code-usage display."
+  :group 'overlay-usage)
+
+(defface overlay-usage-class-symbol-face
+  '((t :inherit font-lock-constant-face :height 0.8 :weight semi-bold))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
@@ -54,32 +62,45 @@
 
 (defun overlay-usage-enable ()
   "Enable overlay-usage."
-  (add-hook 'after-save-hook (lambda ()
-   (overlay-add-to-functions)
-   (overlay-add-to-variables)) nil t)
-  
-  (overlay-add-to-functions)
-  (overlay-add-to-variables))
+  (add-hook 'after-save-hook (lambda () (overlay-usage:add-all-overlays)) nil t)
+  (overlay-usage:add-all-overlays))
 
 
 (defun overlay-usage-disable ()
   "Disable overlay-usage-mode."
   (overlay-recenter (point-max))
-  (remove-hook 'after-save-hook (lambda ()
-                                   (overlay-usage-remove-overlays-for-functions)
-                                   (overlay-usage-remove-overlays-for-variables)) t)
-  (overlay-usage-remove-overlays-for-functions)
-  (overlay-usage-remove-overlays-for-variables))
+  (remove-hook 'after-save-hook (lambda () (overlay-usage:remove-all-overlays) t))
+  (overlay-usage:remove-all-overlays))
 
 
-(defun overlay-usage-remove-overlays-for-functions ()
+(defun overlay-usage:add-all-overlays ()
+  "Add all overlays."
+  (let ((default-directory (project-root-dir)))
+    (overlay-usage:remove-all-overlays)
+    (overlay-add-to-functions)
+    (overlay-add-to-variables)
+    (overlay-add-to-classes-and-structs)))
+
+
+(defun overlay-usage:remove-all-overlays ()
+  "Remove all overlays."
+  (overlay-usage:remove-overlays-for-functions)
+  (overlay-usage:remove-overlays-for-variables)
+  (overlay-usage:remove-overlays-for-classes))
+
+
+(defun overlay-usage:remove-overlays-for-functions ()
   "Clean up all overlays for functions."
   (mapc #'delete-overlay functions-overlays-list))
 
 
-(defun overlay-usage-remove-overlays-for-variables ()
+(defun overlay-usage:remove-overlays-for-variables ()
   "Clean up all overlays for variables."
   (mapc #'delete-overlay variables-overlays-list))
+
+(defun overlay-usage:remove-overlays-for-classes ()
+  "Clean up all overlays for classes."
+  (mapc #'delete-overlay classes-overlays-list))
 
 
 (cl-defun add-overlays-for-functions (&key position spaces extension)
@@ -121,6 +142,25 @@
     (overlay-put ov 'priority 900)
     (push ov variables-overlays-list)))
 
+(cl-defun add-overlays-for-classes (&key position spaces extension)
+  "Add overlay for classes (as POSITION with SPACES and search EXTENSION)."
+  (goto-char position)
+  (let* ((class-name (thing-at-point 'symbol))
+         (extension extension)
+         (count (string-to-number
+                 (shell-command-to-string
+                  (overlay-usage:shell-command-classes-from
+                   :extension extension
+                   :name class-name))))
+         (ov (make-overlay
+              (line-beginning-position 0)
+              (line-beginning-position 0))))
+
+    (overlay-put ov 'after-string
+                 (concat spaces
+                 (propertize-with-symbol (- count 1) "✦︎" 'overlay-usage-class-symbol-face)))
+    (push ov classes-overlays-list)))
+
 
 (defun propertize-with-symbol (count symbol font)
   "Propertize with symbol (as COUNT as SYMBOL as FONT)."
@@ -146,31 +186,37 @@
   "Shell command from EXTENSION and FUNCTION."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg --glob '*.%s' -e '\\b%s\\(' | wc -l" extension function))
+    (format "rg -t swift -e '^[^\/\n].*\\b%s\\(' --pcre2 | wc -l" function))
    ((string-suffix-p "el" extension t)
-    (format "rg --glob '*.%s' -e '\\b%s' | wc -l" extension function))))
+    (format "rg -t elisp -e '^[^;\/\n].*\\b%s\\b' --pcre2 | wc -l" function))))
+
+
+(cl-defun overlay-usage:shell-command-classes-from (&key extension name)
+  "Shell command from EXTENSION and NAME."
+  (cond
+   ((string-suffix-p "swift" extension t)
+    (format "rg -t swift -e '^[^\/\n].*\\b%s\\(' --pcre2 | wc -l" name))))
+
 
 (cl-defun shell-command-variable-from (&key filename variable)
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg --type swift %s -e '\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+    (format "rg -t swift %s -e '\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
 
 
-(defun regex-for-file-type (extension)
+(defun overlay-usage:find-function-regex-for-file-type (extension)
   "Detect what the function start with from the (EXTENSION)."
   (cond
-   ((string-match-p (regexp-quote "swift") extension) "\s+\\bfunc\\b")
-   ((string-match-p (regexp-quote "el") extension) "defun\\b")))
+   ((string-match-p (regexp-quote "swift") extension) "^[^\/\n].*\s+\\bfunc\\b")
+   ((string-match-p (regexp-quote "el") extension) "^[^;\n].*\\bdefun\\b")))
 
 
 (defun overlay-add-to-functions ()
   "Add overlay to functions."
-  (overlay-usage-remove-overlays-for-functions)
   (save-excursion
     (let* ((extension (extension-from-file))
-           (func-regex (regex-for-file-type extension))
-           (default-directory (project-root-dir)))
+           (func-regex (overlay-usage:find-function-regex-for-file-type extension)))
 
       (goto-char (point-min))
       
@@ -187,16 +233,38 @@
 
 (defun overlay-add-to-variables ()
   "Add overlays to variables."
-  (overlay-usage-remove-overlays-for-variables)
   (save-excursion
-    (let ((default-directory (project-root-dir)))
-     (goto-char (point-min))
-      
-      (while (search-forward-regexp "\\b\\(?:let\\|var\\)\s+\\(\\w+\\)" nil t)
-        (let ((position (match-beginning 1)))
+    (goto-char (point-min))
+    (while (search-forward-regexp "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)" nil t)
+      (let ((position (match-beginning 1)))
+        (beginning-of-line)
+        (when (not (looking-at "^\\s-*//"))
           (add-overlays-for-variables
            :position position
-           :filename (buffer-file-name)))))))
+           :filename (buffer-file-name))))
+      (forward-line))))
+
+
+(defun overlay-add-to-classes-and-structs ()
+  "Add overlays for structs and classes."
+
+  (save-excursion
+    (goto-char (point-min))
+    (let ((extension (extension-from-file)))
+      (while (search-forward-regexp "\\b\\(?:struct\\|class\\)\s+\\(\\w+\\)" nil t)
+        (let ((position (match-beginning 1))
+              (column (save-excursion
+                        (back-to-indentation)
+                        (current-column))))
+          (beginning-of-line)
+          (when (not (looking-at "^\\s-*//"))
+            (add-overlays-for-classes
+             :position position
+             :spaces (spaces-string column)
+             :extension extension)))
+        (forward-line)))))
+
+;; (defun dont-match ())
 
 (provide 'overlay-usage)
 ;;; overlay-usage.el ends here
