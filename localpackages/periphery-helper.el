@@ -7,6 +7,7 @@
 (require 'async)
 (require 'json)
 (require 'project)
+(require 'cl-lib)
 
 (defconst periphery-parse-line-regex "^\\([^:]+\\):\\([0-9]+\\)?:\\(\\([0-9]+\\)\\)?"
    "Parse linenumber and columns.")
@@ -17,6 +18,15 @@
   (let ((project (project-current)))
     (when project
       (project-root project))))
+
+
+(defun periphery-helper:filter-xcworkspace (lst)
+  "Filter out '.xcworkspace' paths that are inside '.xcodeproj' folders"
+  (cl-remove-if (lambda (path)
+                  (and (string-match-p "\.xcworkspace$" path)
+                       (string-match-p "\.xcodeproj/" path)))
+                lst))
+
 
 (cl-defun async-start-shell-command-to-json (&key command &key callback)
   "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."

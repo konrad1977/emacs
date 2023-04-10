@@ -203,8 +203,11 @@
 
 (defun swift-additions:get-project-files ()
   "Get project files."
-  (let* ((files (directory-files-recursively (periphery-helper:project-root-dir) "\.xcworkspace$\\|\.xcodeproj$" 2)))
-      (cdr-safe files)))
+  (let* ((root-dir (periphery-helper:project-root-dir))
+         (files (directory-files-recursively root-dir "\.xcworkspace$\\|\\.xcodeproj$" t))
+         (file-list (cdr-safe files)))
+    (periphery-helper:filter-xcworkspace file-list)))
+
 
 (defun swift-additions:get-ios-project-root ()
   "Get the ios-project root."
@@ -403,6 +406,7 @@
     (setq current-buildconfiguration-json-data (call-process-to-json xcodebuild-list-config-command)))
   current-buildconfiguration-json-data)
 
+
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
   (unless current-project-root
@@ -414,6 +418,7 @@
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
     targets))
+
 
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
@@ -451,7 +456,7 @@
 
 (defun swift-additions:is-xcodeproject ()
   "Check if its an xcode-project."
-  (if-let* ((default-directory (swift-additions:get-ios-project-root)))
+  (if-let ((default-directory (swift-additions:get-ios-project-root)))
       (or
        (directory-files-recursively default-directory "\\xcworkspace$" t)
        (directory-files-recursively default-directory "\\xcodeproj$" t))))
@@ -600,29 +605,6 @@
 (defface tree-sitter-hl-face:default
   '((t :inherit default))
   "Face to override other faces."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:case-pattern
-  '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:comment.special
-  '((t :inherit tree-sitter-hl-face:comment
-       :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:operator.special
-  '((t :inherit font-lock-negation-char-face
-       :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:punctuation.type
-  '((t :inherit tree-sitter-hl-face:type
-       :weight normal))
-  "Face for punctuation in type names (?, [], etc.)."
   :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)
