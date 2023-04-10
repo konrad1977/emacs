@@ -103,6 +103,13 @@
   (mapc #'delete-overlay classes-overlays-list))
 
 
+(defun overlay-usage:previous-line-has-text-p ()
+  "Return non-nil if the previous line has any non-whitespace text."
+  (save-excursion
+    (forward-line -1) ; Move to previous line
+    (looking-at "\\S-"))) ; Check if line has non-whitespace text
+
+
 (cl-defun add-overlays-for-functions (&key position spaces extension)
   "Add overlay (as POSITION with SPACES and search EXTENSION)."
   (goto-char position)
@@ -114,11 +121,11 @@
                    :extension extension
                    :function function-name))))
          (ov (make-overlay
-              (line-beginning-position 0)
-              (line-beginning-position 0))))
+              (line-end-position 0)
+              (line-end-position 0))))
 
     (overlay-put ov 'after-string
-                 (concat spaces
+                 (concat (if (overlay-usage:previous-line-has-text-p) spaces " ")
                  (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
     (push ov functions-overlays-list)))
 
@@ -153,8 +160,8 @@
                    :extension extension
                    :name class-name))))
          (ov (make-overlay
-              (line-beginning-position 0)
-              (line-beginning-position 0))))
+              (line-end-position 0)
+              (line-end-position 0))))
 
     (overlay-put ov 'after-string
                  (concat spaces
@@ -247,7 +254,6 @@
 
 (defun overlay-add-to-classes-and-structs ()
   "Add overlays for structs and classes."
-
   (save-excursion
     (goto-char (point-min))
     (let ((extension (extension-from-file)))
@@ -263,8 +269,6 @@
              :spaces (spaces-string column)
              :extension extension)))
         (forward-line)))))
-
-;; (defun dont-match ())
 
 (provide 'overlay-usage)
 ;;; overlay-usage.el ends here
