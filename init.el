@@ -138,9 +138,9 @@
 ;;   :init
 ;;   (exec-path-from-shell-initialize))
 
-(use-package benchmark-init
-  :config
-  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+;; (use-package benchmark-init
+;;   :config
+;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -436,6 +436,18 @@
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 
+(use-package minimap
+  :init
+  (setq minimap-width-fraction 0.1
+        minimap-minimum-width 10
+        minimap-hide-fringes t
+        minimap-window-location 'right
+        minimap-enlarge-certain-faces nil
+        minimap-dedicated-window t)
+  :config
+  (custom-set-faces
+   '(minimap-font-face ((t (:family "Minimap" :height 10 :group 'minimap))))))
+
 ;; Theming
 (use-package doom-themes
   :after doom-modeline
@@ -654,9 +666,8 @@
 
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
+  :hook (treemacs-mode . treemacs-project-follow-mode)
   :bind ("M-J" . treemacs-find-file)
-  :init
-  (treemacs-project-follow-mode)
   :custom-face
   (font-lock-doc-face ((t (:inherit nil))))
   (doom-themes-treemacs-file-face ((t (:inherit font-lock-doc-face :weight semi-bold))))
@@ -737,9 +748,9 @@
   :hook (prog-mode . projectile-mode)
   :bind
   ("C-M-r" . projectile-replace)
-  :init
-  (when (file-directory-p "~/git")
-    (setq projectile-project-search-path '("~/git")))
+  ;; :init
+  ;; (when (file-directory-p "~/git")
+  ;;   (setq projectile-project-search-path '("~/git")))
   :custom
   (setq projectile-completion-system 'auto
         projectile-enable-caching t
@@ -1266,6 +1277,7 @@
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
+  (semantic-mode)
   (hs-minor-mode)       ; Add support for folding code blocks
   (electric-pair-mode)  ; Auto insert pairs {} () [] etc
   ;; (which-function-mode)

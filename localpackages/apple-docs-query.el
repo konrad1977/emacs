@@ -6,7 +6,7 @@
 (require 'request)
 (require 'json)
 (require 'url-http)
-(require 'cl)
+(require 'cl-lib)
 
 (defgroup apple-docs-query nil
   "Apple Docs Query Group."

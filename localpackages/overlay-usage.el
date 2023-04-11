@@ -21,6 +21,12 @@
 (defconst commented-lines-regex "^\\s-*/\\|;"
   "Comment-line regex.")
 
+(defconst variable-regex-swift "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)"
+  "Match variables in swift.")
+
+(defconst variable-regex-elisp "\\(?:defvar\\|defvar-local\\|defface\\|defconst\\|defgroup\\)\s+\\([a-zA-Z0-9_-\(]+\\)"
+  "Match variables in elisp.")
+
 (defgroup overlay-usage nil
   "Plugin shows complexity information."
   :prefix "overlay-usage-"
@@ -218,16 +224,16 @@
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg -t swift %s -e '^[^\/]*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))
+    (format "rg -t swift %s -e '^[^\/].*(?<!\\.)\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))
    ((string-suffix-p "el" (file-name-extension filename) t)
-    (format "rg -t elisp %s -e '^(?!.*\\([def]).*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+    (format "rg -t elisp %s -e '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
 
 
 (cl-defun overlay-usage:find-variable-regex-for-file-type (&key extension)
   "Get the regex for finding variables for an (EXTENSION)."
   (cond
-   ((string-match-p (regexp-quote "swift") extension) "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)")
-   ((string-match-p (regexp-quote "el") extension) "\\(?:defvar\\|defvar-local\\|defface\\|defconst\\|defgroup\\)\s+\\([a-zA-Z0-9_-\(]+\\)")))
+   ((string-match-p (regexp-quote "swift") extension) variable-regex-swift)
+   ((string-match-p (regexp-quote "el") extension) variable-regex-elisp)))
 
 
 (defun overlay-usage:find-function-regex-for-file-type (extension)

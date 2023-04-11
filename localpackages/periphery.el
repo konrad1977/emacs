@@ -149,7 +149,7 @@
 
 (defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
-(defvar periphery-errorList '())
+(defvar-local periphery-errorList '())
 (defvar periphery-directory-root nil "DirectoryRoot for localizeable.")
 
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"

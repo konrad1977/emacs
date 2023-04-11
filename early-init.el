@@ -56,6 +56,8 @@
         (ns-transparent-titlebar . t)
         (vertical-scroll-bars . nil)))       ; No vertical scroll-bars
 
+(define-advice load-file (:override (file) silence)
+    (load file nil 'nomessage))
 
 (provide 'early-init)
 ;;; early-init.el ends here
