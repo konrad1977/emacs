@@ -57,6 +57,7 @@
   "Face added to code-usage display."
   :group 'overlay-usage)
 
+;;;###autoload
 (define-minor-mode overlay-usage-mode
   "Toggle overlay-usage-mode."
   :group overlay-usage
