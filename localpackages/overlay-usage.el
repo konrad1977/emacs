@@ -153,6 +153,7 @@
          (command (shell-command-variable-from
                    :filename filename
                    :variable variable-name))
+
          (count (string-to-number (shell-command-to-string command)))
          (ov (make-overlay
               (line-end-position)
@@ -168,11 +169,10 @@
   "Add overlay for classes (as POSITION with SPACES and search EXTENSION)."
   (goto-char position)
   (let* ((class-name (thing-at-point 'symbol))
-         (count (string-to-number
-                 (shell-command-to-string
-                  (overlay-usage:shell-command-classes-from
+         (command (overlay-usage:shell-command-classes-from
                    :extension extension
-                   :name class-name))))
+                   :name class-name))
+         (count (string-to-number (shell-command-to-string command)))
          (ov (make-overlay
               (line-end-position 0)
               (line-end-position 0))))
@@ -198,7 +198,6 @@
             (propertize (number-to-string count) 'face 'overlay-usage-count-symbol-face)
             (propertize " references" 'face 'overlay-usage-default-face)))))
 
-
 (defun extension-from-file ()
   "Get file extension."
   (file-name-extension buffer-file-name))
@@ -208,25 +207,25 @@
   "Shell command from EXTENSION and FUNCTION."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '^[^\/]*\\b%s\\(' --pcre2 | wc -l" function))
+    (format "rg -t swift -e '\\b%s\\(' | wc -l" function))
    ((string-suffix-p "el" extension t)
-    (format "rg -t elisp -e '^[^\/]*\\b%s\\b' --pcre2 | wc -l" function))))
+    (format "rg -t elisp -e '\\b%s\\b' | wc -l" function))))
 
 
 (cl-defun overlay-usage:shell-command-classes-from (&key extension name)
   "Shell command from EXTENSION and NAME."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '^[^\/]*\\b%s\\b(\\(|\.init)' --pcre2 | wc -l" name))))
+    (format "rg -t swift -e '\\b%s\\b(\\(|\.init)' | wc -l" name))))
 
 
 (cl-defun shell-command-variable-from (&key filename variable)
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg -t swift %s -e '^[^\/].*(?<!\\.)\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))
+    (format "rg -t swift %s -ce '(?<!\\.)\\b%s\\b(?!:)' --pcre2" filename variable))
    ((string-suffix-p "el" (file-name-extension filename) t)
-    (format "rg -t elisp %s -e '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
+    (format "rg -t elisp %s -ce '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2" filename variable))))
 
 
 (cl-defun overlay-usage:find-classes-regex-for-file-type (&key extension)
