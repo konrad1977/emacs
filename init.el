@@ -321,20 +321,6 @@
   ([remap describe-command] . helpful-command)
   ([remap describe-key] . helpful-key))
 
-(use-package vundo
-  :after evil
-  :config
-  (setq vundo-glyph-alist vundo-unicode-symbols))
-
-(use-package undo-fu
-  :after evil
-  :config
-  (setq undo-fu-allow-undo-in-region t))
-
-(use-package undo-fu-session
-  :hook (after-init . undo-fu-session-global-mode)
-  :config
-  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
 (use-package evil
   :hook (after-init . evil-mode)
@@ -387,6 +373,22 @@
 
   (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
 
+(use-package evil-args
+  :after evil
+  :config
+  ;; bind evil-args text objects
+  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)
+
+  ;; bind evil-forward/backward-args
+  (define-key evil-normal-state-map "L" 'evil-forward-arg)
+  (define-key evil-normal-state-map "H" 'evil-backward-arg)
+  (define-key evil-motion-state-map "L" 'evil-forward-arg)
+  (define-key evil-motion-state-map "H" 'evil-backward-arg)
+
+  ;; bind evil-jump-out-args
+  (define-key evil-normal-state-map "K" 'evil-jump-out-args))
+
 (use-package evil-collection
   :after evil
   :custom
@@ -435,6 +437,21 @@
 
 (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+
+(use-package vundo
+  :after evil
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols))
+
+(use-package undo-fu
+  :after evil
+  :config
+  (setq undo-fu-allow-undo-in-region t))
+
+(use-package undo-fu-session
+  :hook (after-init . undo-fu-session-global-mode)
+  :config
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
 (use-package minimap
   :init

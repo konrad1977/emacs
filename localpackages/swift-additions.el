@@ -522,92 +522,43 @@
   (add-to-list 'arglist
                (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
-
-(defface tree-sitter-hl-face:repeat
-  '((t :inherit tree-sitter-hl-face:keyword
-       :foreground "#666bb2"))
-  "Face for loops (for, in etc)."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:parameter
-  '((t :inherit tree-sitter-hl-face:label
-       :foreground "#666bb2"))
-  "Face for parameters in function calls."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:conditional
-  '((t :inherit tree-sitter-hl-face:property
-       :foreground "#666bb2"))
-  "Face for if/switch."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:include
-  '((t :inherit tree-sitter-hl-face:property
-       :foreground "#666bb2"))
-  "Import/include face."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:boolean
-  '((t :inherit tree-sitter-hl-face:property
-       :foreground "#666bb2"))
-  "Face for true/false."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:keyword.return
-  '((t :inherit tree-sitter-hl-face:property
-       :foreground "#666bb2"))
-  "Face for 'return'."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:keyword.operator
-  '((t :inherit tree-sitter-hl-face:property
-       :foreground "#666bb2"))
-  "Face for operator."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:keyword.function
-  '((t :inherit tree-sitter-hl-face:property
-       :foreground "#666bb2"))
-  "Face for 'func' keyword."
-  :group 'tree-sitter-hl-faces)
-
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match."
+  "Face for enum case names in a pattern match"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:comment.special
   '((t :inherit tree-sitter-hl-face:comment
        :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK."
+  "Face for comments with some markup-like meaning, like MARK"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:operator.special
   '((t :inherit font-lock-negation-char-face
        :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation."
+  "Face for operators that need to stand out, like unary negation"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:punctuation.type
   '((t :inherit tree-sitter-hl-face:type
        :weight normal))
-  "Face for punctuation in type names (?, [], etc.)."
+  "Face for punctuation in type names (?, [], etc.)"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.compiler
   '((t :inherit tree-sitter-hl-face:keyword
        :weight semi-bold))
-  "Face for compile-time keywords."
+  "Face for compile-time keywords"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:variable.synthesized
   '((t :inherit tree-sitter-hl-face:variable))
-  "Face for compiler-synthesized identifiers (prefixed with '$')."
+  "Face for compiler-synthesized identifiers (prefixed with '$')"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:default
   '((t :inherit default))
-  "Face to override other faces."
+  "Face to override other faces"
   :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)

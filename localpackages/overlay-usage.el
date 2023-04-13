@@ -78,6 +78,7 @@
 (defun overlay-usage-enable ()
   "Enable overlay-usage."
   (add-hook 'after-save-hook (lambda () (overlay-usage:add-all-overlays)) nil t)
+  (add-hook 'after-revert-hook (lambda () (overlay-usage:add-all-overlays)) nil t)
   (overlay-usage:add-all-overlays))
 
 
@@ -85,6 +86,7 @@
   "Disable overlay-usage-mode."
   (overlay-recenter (point-max))
   (remove-hook 'after-save-hook (lambda () (overlay-usage:remove-all-overlays) t))
+  (remove-hook 'after-revert-hook (lambda () (overlay-usage:remove-all-overlays) t))
   (overlay-usage:remove-all-overlays))
 
 
@@ -129,7 +131,6 @@
   "Add overlay (as POSITION with SPACES and search EXTENSION)."
   (goto-char position)
   (let* ((function-name (thing-at-point 'symbol))
-         (extension extension)
          (count (string-to-number
                  (shell-command-to-string
                   (shell-command-functions-from
@@ -140,7 +141,7 @@
               (line-end-position 0))))
 
     (overlay-put ov 'after-string
-                 (concat (if (overlay-usage:previous-line-has-text-p) spaces " ")
+                 (concat spaces
                          (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
     (push ov functions-overlays-list)))
 
@@ -149,7 +150,6 @@
   "Add overlay (as POSITION and FILENAME) for variables."
   (goto-char position)
   (let* ((variable-name (thing-at-point 'symbol))
-         (filename filename)
          (command (shell-command-variable-from
                    :filename filename
                    :variable variable-name))
@@ -168,7 +168,6 @@
   "Add overlay for classes (as POSITION with SPACES and search EXTENSION)."
   (goto-char position)
   (let* ((class-name (thing-at-point 'symbol))
-         (extension extension)
          (count (string-to-number
                  (shell-command-to-string
                   (overlay-usage:shell-command-classes-from
@@ -179,7 +178,7 @@
               (line-end-position 0))))
 
     (overlay-put ov 'after-string
-                 (concat (if (overlay-usage:previous-line-has-text-p) spaces " ")
+                 (concat spaces
                          (propertize-with-symbol count "✦︎" 'overlay-usage-class-symbol-face)))
     (push ov classes-overlays-list)))
 
@@ -239,9 +238,11 @@
 
 (defun overlay-usage:find-function-regex-for-file-type (extension)
   "Detect what the function start with from the (EXTENSION)."
-  (cond
-   ((string-match-p (regexp-quote "swift") extension) "^[^\/\n].*\s+\\bfunc\\b")
-   ((string-match-p (regexp-quote "el") extension) "^[^;\n]*defun\\b")))
+  (let ((case-fold-search nil))
+    (cond
+     ((string-match-p (regexp-quote "swift") extension) "^[^/\n]*\\_<func\\_>")
+     ((string-match-p (regexp-quote "el") extension) "^[^;\n]*\\bdefun\\_>")
+     (t nil))))
 
 
 (defun overlay-add-to-functions ()
