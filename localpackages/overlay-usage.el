@@ -229,6 +229,14 @@
     (format "rg -t elisp %s -e '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2 | wc -l" filename variable))))
 
 
+(cl-defun overlay-usage:find-classes-regex-for-file-type (&key extension)
+  "Get the regex for finding classes/structs for and (as EXTENSION)."
+  (let ((case-fold-search nil))
+    (cond
+     ((string-match-p (regexp-quote "swift") extension) "\\b\\(?:struct\\|class\\)\s+\\(\\w+\\)")
+     (t nil))))
+
+
 (cl-defun overlay-usage:find-variable-regex-for-file-type (&key extension)
   "Get the regex for finding variables for an (EXTENSION)."
   (cond
@@ -286,9 +294,10 @@
 (defun overlay-add-to-classes-and-structs ()
   "Add overlays for structs and classes."
   (save-excursion
-    (goto-char (point-min))
-    (let ((extension (extension-from-file)))
-      (while (search-forward-regexp "\\b\\(?:struct\\|class\\)\s+\\(\\w+\\)" nil t)
+    (when-let* ((extension (extension-from-file))
+           (classes-regex (overlay-usage:find-classes-regex-for-file-type :extension extension)))
+      (goto-char (point-min))
+      (while (search-forward-regexp classes-regex nil t)
         (let ((position (match-beginning 1))
               (column (save-excursion
                         (back-to-indentation)
