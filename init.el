@@ -146,12 +146,12 @@
 
 (use-package autothemer
   :config
- ;; (load-theme 'catppuccin-latte t)
+ (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  (load-theme 'oxocarbon t)
+  ;; (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   )

@@ -135,7 +135,7 @@
                  (shell-command-to-string
                   (shell-command-functions-from
                    :extension extension
-                   :function function-name))))
+                   :function (regexp-quote function-name)))))
          (ov (make-overlay
               (line-end-position 0)
               (line-end-position 0))))
