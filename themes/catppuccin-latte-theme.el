@@ -337,10 +337,10 @@
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
 
-  (orderless-match-face-0                       (:foreground pink :background "#211A1F" :weight 'semi-bold))
-  (orderless-match-face-1                       (:foreground blue :background "#222D3E" :weight 'semi-bold))
-  (orderless-match-face-2                       (:foreground yellow :background "#221F18" :weight 'semi-bold))
-  (orderless-match-face-3                       (:foreground mauve :background "#292233" :weight 'semi-bold))
+  (orderless-match-face-0                       (:foreground pink :background mantle :weight 'semi-bold))
+  (orderless-match-face-1                       (:foreground blue :background mantle :weight 'semi-bold))
+  (orderless-match-face-2                       (:foreground yellow :background mantle :weight 'semi-bold))
+  (orderless-match-face-3                       (:foreground mauve :background mantle :weight 'semi-bold))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
@@ -553,6 +553,18 @@
   (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
   (swift-mode:function-call-face (:foreground pink))
   
+  (periphery-note-face-full (:foreground crust :background overlay2 :bold t))
+  (periphery-mark-face-full (:foreground crust :background overlay2 :bold t))
+  (periphery-todo-face-full (:foreground crust :background blue :bold t))
+  (periphery-hack-face-full (:foreground crust :background red :bold t))
+  (periphery-warning-face-full (:foreground yellow :background text :bold t))
+  
+  (periphery-error-face-full (:inherit 'periphery-hack-face-full))
+  (periphery-error-face (:foreground red :background mantle))
+  (periphery-identifier-face (:foreground red :background mantle))
+
+  ;; (periphery-performance-face-full (:foreground dark-iris :background iris :bold t))
+  ;; (periphery-note-face-full (:foreground text :background green :bold t))
   ;; (localizeable-variable-face (:inherit font-lock-string-face))
   ;; (localizeable-value-face (:inherit font-lock-keyword-face))
 
