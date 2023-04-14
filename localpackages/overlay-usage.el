@@ -223,7 +223,7 @@
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg -t swift %s -ce '(?<!\\.)\\b%s\\b(?!:)' --pcre2" filename variable))
+    (format "rg -t swift %s -ce '(?<!\\.)\\b%s\\b(?!\s*[:=])' --pcre2" filename variable))
    ((string-suffix-p "el" (file-name-extension filename) t)
     (format "rg -t elisp %s -ce '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2" filename variable))))
 
