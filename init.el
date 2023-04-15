@@ -146,10 +146,10 @@
 
 (use-package autothemer
   :config
- (load-theme 'catppuccin-latte t)
+ ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  ;; (load-theme 'catppuccin-mocha t)
+  (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
   ;; (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
@@ -1326,17 +1326,20 @@
   "My org config."
   (setq highlight-indent-guides-mode nil))
 
+
 (defun mk/split-window-below ()
   "Split window below and select that."
   (interactive)
   (split-window-below)
   (other-window 1))
 
+
 (defun mk/split-window-right ()
   "Split window to the right and select window."
   (interactive)
   (split-window-right)
   (other-window 1))
+
 
 (defun mk/recompile (&optional force)
   "Recompile files (as FORCE) force compilation."
@@ -1361,6 +1364,7 @@
   (setup-swift-programming))
 
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
+
 
 (defun xref-eglot+dumb-backend () 'eglot+dumb)
 
