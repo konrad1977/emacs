@@ -557,7 +557,7 @@
   (periphery-mark-face-full (:foreground crust :background overlay2 :bold t))
   (periphery-todo-face-full (:foreground crust :background blue :bold t))
   (periphery-hack-face-full (:foreground crust :background red :bold t))
-  (periphery-warning-face-full (:foreground yellow :background text :bold t))
+  (periphery-warning-face-full (:foreground crust :background yellow :bold t))
   
   (periphery-error-face-full (:inherit 'periphery-hack-face-full))
   (periphery-error-face (:foreground red :background mantle))
