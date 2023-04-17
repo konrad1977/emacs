@@ -21,7 +21,7 @@
 (defconst commented-lines-regex "^\\s-*/\\|;"
   "Comment-line regex.")
 
-(defconst variable-regex-swift "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)"
+(defconst private-variable-regex-swift "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)"
   "Match variables in swift.")
 
 (defconst variable-regex-elisp "\\(?:defvar\\|defvar-local\\|defface\\|defconst\\|defgroup\\)\s+\\([a-zA-Z0-9_-\(]+\\)"
@@ -39,6 +39,11 @@
 
 (defface overlay-usage-function-symbol-face
   '((t :inherit font-lock-function-name-face :height 0.8 :weight semi-bold))
+  "Face added to code-usage display."
+  :group 'overlay-usage)
+
+(defface overlay-usage-function-symbol-face-public
+  '((t :inherit font-lock-type-face :height 0.8 :weight semi-bold))
   "Face added to code-usage display."
   :group 'overlay-usage)
 
@@ -92,11 +97,18 @@
 
 (defun overlay-usage:add-all-overlays ()
   "Add all overlays."
-  (let ((default-directory (project-root-dir)))
+  (let ((default-directory (project-root-dir))
+        (extension (extension-from-file)))
+
     (overlay-usage:remove-all-overlays)
-    (overlay-add-to-functions)
-    (overlay-add-to-variables)
-    (overlay-add-to-classes-and-structs)))
+
+    (cond
+     ((string-match-p (regexp-quote "swift") extension)
+      (overlay-usage:setup-functions :extension extension :private t)
+      (overlay-usage:setup-classes-and-structs)))
+
+    (overlay-usage:setup-functions :extension extension :private nil)
+    (overlay-usage:setup-variables)))
 
 
 (defun overlay-usage:remove-all-overlays ()
@@ -127,22 +139,27 @@
     (looking-at "\\S-"))) ; Check if line has non-whitespace text
 
 
-(cl-defun add-overlays-for-functions (&key position spaces extension)
+(cl-defun add-overlays-for-functions (&key position spaces filename extension private)
   "Add overlay (as POSITION with SPACES and search EXTENSION)."
   (goto-char position)
   (let* ((function-name (thing-at-point 'symbol))
          (count (string-to-number
                  (shell-command-to-string
-                  (shell-command-functions-from
+                  (overlay-usage:shell-command-functions-from
+                   :filename filename
                    :extension extension
-                   :function (regexp-quote function-name)))))
+                   :function (regexp-quote function-name)
+                   :private private))))
          (ov (make-overlay
               (line-end-position 0)
               (line-end-position 0))))
-
+    
     (overlay-put ov 'after-string
                  (concat spaces
-                         (propertize-with-symbol (- count 1) "λ︎" 'overlay-usage-function-symbol-face)))
+                         (propertize-with-symbol (- count 1) "λ︎" (if private
+                                                                     'overlay-usage-function-symbol-face
+                                                                   'overlay-usage-function-symbol-face-public
+                                                                  ))))
     (push ov functions-overlays-list)))
 
 
@@ -153,11 +170,11 @@
          (command (shell-command-variable-from
                    :filename filename
                    :variable variable-name))
-
          (count (string-to-number (shell-command-to-string command)))
          (ov (make-overlay
               (line-end-position)
               (line-end-position))))
+
     (overlay-put ov 'after-string
                  (concat " " (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
     (overlay-put ov 'invisible t)
@@ -203,11 +220,13 @@
   (file-name-extension buffer-file-name))
 
 
-(cl-defun shell-command-functions-from (&key extension function)
-  "Shell command from EXTENSION and FUNCTION."
+(cl-defun overlay-usage:shell-command-functions-from (&key filename extension function private)
+  "Shell command from EXTENSION and FUNCTION.  Can be PRIVATE and then we check the FILENAME."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '\\b%s\\(' | wc -l" function))
+    (if private
+        (format "rg -t swift %s -ce '\\b%s\\('" filename function)
+      (format "rg -t swift -e '\\b%s\\(' | wc -l" function)))
    ((string-suffix-p "el" extension t)
     (format "rg -t elisp -e '\\b%s\\b' | wc -l" function))))
 
@@ -239,11 +258,11 @@
 (cl-defun overlay-usage:find-variable-regex-for-file-type (&key extension)
   "Get the regex for finding variables for an (EXTENSION)."
   (cond
-   ((string-match-p (regexp-quote "swift") extension) variable-regex-swift)
+   ((string-match-p (regexp-quote "swift") extension) private-variable-regex-swift)
    ((string-match-p (regexp-quote "el") extension) variable-regex-elisp)))
 
 
-(defun overlay-usage:find-function-regex-for-file-type (extension)
+(cl-defun overlay-usage:find-function-regex-for-file-type (&key extension private)
   "Detect what the function start with from the (EXTENSION)."
   (let ((case-fold-search nil))
     (cond
@@ -252,45 +271,7 @@
      (t nil))))
 
 
-(defun overlay-add-to-functions ()
-  "Add overlay to functions."
-  (save-excursion
-    (let* ((extension (extension-from-file))
-           (func-regex (overlay-usage:find-function-regex-for-file-type extension)))
-
-      (goto-char (point-min))
-      (while (search-forward-regexp (concat func-regex " \\([a-zA-Z0-9_-\(]+\\)") nil t)
-        (let ((position (match-beginning 1))
-              (column (save-excursion
-                        (back-to-indentation)
-                        (current-column))))
-          (beginning-of-line)
-          (when (not (looking-at commented-lines-regex))
-            (add-overlays-for-functions
-             :position position
-             :spaces (spaces-string column)
-             :extension (format "%s" extension))))
-        (forward-line)))))
-
-
-(defun overlay-add-to-variables ()
-  "Add overlays to variables."
-  (save-excursion
-    (let* ((extension (extension-from-file))
-           (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
-      (goto-char (point-min))
-    (while (search-forward-regexp variable-regex nil t)
-      (let ((position (match-beginning 1)))
-        (beginning-of-line)
-          (when (not (looking-at commented-lines-regex))
-          (add-overlays-for-variables
-           :position position
-           :filename (buffer-file-name))))
-      (forward-line)))))
-
-
-
-(defun overlay-add-to-classes-and-structs ()
+(defun overlay-usage:setup-classes-and-structs ()
   "Add overlays for structs and classes."
   (save-excursion
     (when-let* ((extension (extension-from-file))
@@ -308,6 +289,50 @@
              :spaces (spaces-string column)
              :extension extension)))
         (forward-line)))))
+
+
+(defun overlay-usage:boolean-eq (a b)
+  (equal (when a t)
+         (when b t)))
+
+(cl-defun overlay-usage:setup-functions (&key extension private)
+  "Add overlay to functions with EXTENSION as PRIVATE."
+  (save-excursion
+    (let ((func-regex (overlay-usage:find-function-regex-for-file-type :extension extension :private private)))
+
+      (goto-char (point-min))
+      (while (search-forward-regexp (concat func-regex " \\([^(]+\\)\(") nil t)
+        (let ((position (match-beginning 1))
+              (column (save-excursion
+                        (back-to-indentation)
+                        (current-column))))
+          (beginning-of-line)
+          (when (overlay-usage:boolean-eq private (looking-at "^\\s-*\\bprivate\\b"))
+          (when (not (looking-at commented-lines-regex))
+              (add-overlays-for-functions
+               :position position
+               :spaces (spaces-string column)
+               :filename (buffer-file-name)
+               :extension (format "%s" extension)
+               :private private))))
+        (forward-line)))))
+
+
+(defun overlay-usage:setup-variables ()
+  "Add overlays to variables."
+  (save-excursion
+    (let* ((extension (extension-from-file))
+           (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
+      (goto-char (point-min))
+    (while (search-forward-regexp variable-regex nil t)
+      (let ((position (match-beginning 1)))
+        (beginning-of-line)
+          (when (not (looking-at commented-lines-regex))
+          (add-overlays-for-variables
+           :position position
+           :filename (buffer-file-name))))
+      (forward-line)))))
+
 
 (provide 'overlay-usage)
 ;;; overlay-usage.el ends here

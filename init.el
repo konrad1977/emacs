@@ -691,7 +691,7 @@
   (doom-themes-treemacs-root-face ((t (:inherit nil :slant italic))))
   (treemacs-root-face ((t (:inherit variable-pitch :slant italic))))
   :config
-  (setf treemacs-window-background-color (cons "#191919" "#03302f"))
+  ;; (setf treemacs-window-background-color (cons "#191919" "#03302f"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
