@@ -21,7 +21,7 @@
 (defconst commented-lines-regex "^\\s-*/\\|;"
   "Comment-line regex.")
 
-(defconst private-variable-regex-swift "\s+\\b\\(?:let\\|var\\)\s+\\(\\w+\\)"
+(defconst private-variable-regex-swift "\s+\\b\\(?:let\\b\\|var\\b\\|case\\b\\)\s+\\(\\w+\\)"
   "Match variables in swift.")
 
 (defconst variable-regex-elisp "\\(?:defvar\\|defvar-local\\|defface\\|defconst\\|defgroup\\)\s+\\([a-zA-Z0-9_-\(]+\\)"
@@ -251,7 +251,7 @@
   "Get the regex for finding classes/structs for and (as EXTENSION)."
   (let ((case-fold-search nil))
     (cond
-     ((string-match-p (regexp-quote "swift") extension) "\\b\\(?:struct\\|class\\)\s+\\(\\w+\\)")
+     ((string-match-p (regexp-quote "swift") extension) "\\b\\(?:\\bstruct\\b\\|\\bclass\\b\\)\s+\\(\\w+\\)")
      (t nil))))
 
 
