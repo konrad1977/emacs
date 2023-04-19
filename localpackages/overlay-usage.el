@@ -225,8 +225,8 @@
   (cond
    ((string-suffix-p "swift" extension t)
     (if private
-        (format "rg -t swift %s -ce '\\b%s\\('" filename function)
-      (format "rg -t swift -e '\\b%s\\(' | wc -l" function)))
+        (format "rg -t swift %s -ce '^[^\/\n\"]*\\b%s\\('" filename function)
+      (format "rg -t swift -e '^[^\/\n\"]*\\b%s\\(' | wc -l" function)))
    ((string-suffix-p "el" extension t)
     (format "rg -t elisp -e '\\b%s\\b' | wc -l" function))))
 
@@ -235,14 +235,14 @@
   "Shell command from EXTENSION and NAME."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '\\b%s\\b(\\(|\.init)' | wc -l" name))))
+    (format "rg -t swift -e '^[^\/\n\"]*\\b%s\\b' | wc -l" name))))
 
 
 (cl-defun shell-command-variable-from (&key filename variable)
   "Shell command from FILENAME and VARIABLE."
   (cond
    ((string-suffix-p "swift" (file-name-extension filename) t)
-    (format "rg -t swift %s -ce '^[^/\n]*(?<!\\.)\\b%s\\b(?!\s*[:=])' --pcre2" filename variable))
+    (format "rg -t swift %s -ce '^[^/\n\"]*(?<!\\.)\\b%s\\b(?!\s*[:=])' --pcre2" filename variable))
    ((string-suffix-p "el" (file-name-extension filename) t)
     (format "rg -t elisp %s -ce '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2" filename variable))))
 
@@ -301,7 +301,7 @@
     (let ((func-regex (overlay-usage:find-function-regex-for-file-type :extension extension :private private)))
 
       (goto-char (point-min))
-      (while (search-forward-regexp (concat func-regex " \\([^(]+\\)\(") nil t)
+      (while (search-forward-regexp (concat func-regex " \\([^(=]+\\)\(") nil t)
         (let ((position (match-beginning 1))
               (column (save-excursion
                         (back-to-indentation)

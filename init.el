@@ -265,9 +265,9 @@
   :hook (after-init . doom-modeline-mode)
   :config
   (custom-set-faces
-   '(mode-line ((t (:family "SF Mono" :height 0.95)))))
+   '(mode-line ((t (:family "SF Mono" :height 0.85)))))
   (custom-set-faces
-   '(mode-line-inactive ((t (:family "SF Mono" :height 0.95)))))
+   '(mode-line-inactive ((t (:family "SF Mono" :height 0.85)))))
 
   (setq doom-modeline-buffer-encoding nil
         doom-modeline-percent-position nil
@@ -549,12 +549,12 @@
   (kind-icon-blend-frac nil)
   (kind-icon-default-face 'corfu-default)
   (kind-icon-default-style '(
-                             :padding 0.9
+                             :padding 0.8
                              :stroke 0
-                             :margin -0.9
+                             :margin -0.8
                              :radius 1.0
-                             :height 0.95
-                             :scale 0.7))
+                             :height 0.85
+                             :scale 0.8))
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
@@ -686,10 +686,19 @@
   :hook (treemacs-mode . treemacs-project-follow-mode)
   :bind ("M-J" . treemacs-find-file)
   :custom-face
-  (font-lock-doc-face ((t (:inherit nil))))
-  (doom-themes-treemacs-file-face ((t (:inherit font-lock-doc-face :weight semi-bold))))
-  (doom-themes-treemacs-root-face ((t (:inherit nil :slant italic))))
-  (treemacs-root-face ((t (:inherit variable-pitch :slant italic))))
+  (doom-themes-treemacs-file-face ((t (:weight semi-bold))))
+  (treemacs-file-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-directory-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-directory-collapsed-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-git-ignored-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-git-unmodified-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-git-untracked-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-git-added-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-git-renamed-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-git-modified-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-tags-face ((t (:family "Iosevka Aile" :height 0.8))))
+  ;; (treemacs-directory-face ((t (:family "Menlo" :slant italic))))
+  ;; (treemacs-directory-collapsed-face ((t (:family "Menlo" :slant italic))))
   :config
   ;; (setf treemacs-window-background-color (cons "#191919" "#03302f"))
   (setq treemacs-follow-after-init t
