@@ -500,7 +500,7 @@
   (setq svg-tag-tags (periphery-svg-tags)))
 
 (use-package rainbow-delimiters
-  :hook (emacs-lisp-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
@@ -510,7 +510,7 @@
   :hook (swift-mode . tree-sitter-mode)
   :config
   (setq tsc-dyn-get-from nil)
-  (setq tree-sitter-hl-use-font-lock-keywords t
+  (setq ;;tree-sitter-hl-use-font-lock-keywords t
         tree-sitter-hl-enable-query-region-extension t)
   :config
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
