@@ -149,9 +149,9 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  ;; (load-theme 'oxocarbon t)
+  (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   )
@@ -1166,7 +1166,7 @@
   ("C-c x l" . #'ios-simulator:change-language))
 
 (use-package overlay-usage
-  :hook (prog-mode . overlay-usage-mode)
+  :hook (swift-mode . overlay-usage-mode)
   :ensure nil)
 
 (use-package swift-additions
@@ -1305,7 +1305,6 @@
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
 
-  (semantic-mode)
   (hs-minor-mode)       ; Add support for folding code blocks
                                         ;// TODO:  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
   ;; (which-function-mode)
@@ -1320,11 +1319,11 @@
         display-line-numbers 'relative))   ;; Show line numbers
 
 (defun correct-fringe (&optional ignore)
-  (unless (eq fringe-mode '24)
-    (fringe-mode '24)))
+  (unless (eq fringe-mode '50)
+    (fringe-mode '50)))
 
 (add-hook 'after-init-hook #'correct-fringe)
-(add-hook 'buffer-list-update-hook #'correct-fringe)
+;; (add-hook 'buffer-list-update-hook #'correct-fringe)
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."

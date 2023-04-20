@@ -21,7 +21,7 @@
 (defconst commented-lines-regex "^\\s-*/\\|;"
   "Comment-line regex.")
 
-(defconst private-variable-regex-swift "\s+\\b\\(?:let\\b\\|var\\b\\|case\\b\\)\s+\\(\\w+\\)"
+(defconst private-variable-regex-swift "\s+\\b\\(?:let\\|var\\|case\\)\\b\s+\\(\\w+\\)"
   "Match variables in swift.")
 
 (defconst variable-regex-elisp "\\(?:defvar\\|defvar-local\\|defface\\|defconst\\|defgroup\\)\s+\\([a-zA-Z0-9_-\(]+\\)"
@@ -242,7 +242,8 @@
   "Shell command from EXTENSION and NAME."
   (cond
    ((string-suffix-p "swift" extension t)
-    (format "rg -t swift -e '^[^\/\n\"]*\\b%s\\b' | wc -l" name))))
+    (format "rg -t swift -e '^[^\/\n\"]*\\b%s\\b' | wc -l" name))
+   (t nil)))
 
 
 (cl-defun shell-command-variable-from (&key filename variable)
@@ -251,7 +252,8 @@
    ((string-suffix-p "swift" (file-name-extension filename) t)
     (format "rg -t swift %s -ce '^[^/\n\"]*(?<!\\.)\\b%s\\b(?!\s*[:=])' --pcre2" filename variable))
    ((string-suffix-p "el" (file-name-extension filename) t)
-    (format "rg -t elisp %s -ce '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2" filename variable))))
+    (format "rg -t elisp %s -ce '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2" filename variable))
+   (t nil)))
 
 
 (cl-defun overlay-usage:find-classes-regex-for-file-type (&key extension)
@@ -261,12 +263,12 @@
      ((string-match-p (regexp-quote "swift") extension) "\\b\\(?:\\bstruct\\b\\|\\bclass\\b\\)\s+\\(\\w+\\)")
      (t nil))))
 
-
 (cl-defun overlay-usage:find-variable-regex-for-file-type (&key extension)
   "Get the regex for finding variables for an (EXTENSION)."
   (cond
    ((string-match-p (regexp-quote "swift") extension) private-variable-regex-swift)
-   ((string-match-p (regexp-quote "el") extension) variable-regex-elisp)))
+   ((string-match-p (regexp-quote "el") extension) variable-regex-elisp)
+   (t nil)))
 
 
 (cl-defun overlay-usage:find-function-regex-for-file-type (&key extension private)
@@ -299,6 +301,7 @@
 
 
 (defun overlay-usage:boolean-eq (a b)
+  "Check if a and b are equal."
   (equal (when a t)
          (when b t)))
 
