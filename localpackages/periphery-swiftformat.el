@@ -72,20 +72,20 @@
   (interactive)
   (if (executable-find swiftformat-command)
       (progn
-        (let ((default-directory (vc-root-dir)))
+        (let ((default-directory (periphery-helper:project-root-dir)))
           (async-start-command-to-string
            :command (concat swiftformat-command " . --lint " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
-           :callback (lambda (result)
-                       (send-swiftformat-result-to-periphery result))))
+           :callback '(lambda (result)
+                        (send-swiftformat-result-to-periphery result))))
         (message-with-color
          :tag "[Linting|swiftformat]"
          :text (file-name-nondirectory (directory-file-name
                                         (file-name-directory (vc-root-dir))))
          :attributes 'success))
-  (message-with-color
-   :tag "[Swiftformat failed]"
-   :text (format "Install %s to use this command." swiftformat-command)
-   :attributes 'warning)))
+    (message-with-color
+     :tag "[Swiftformat failed]"
+     :text (format "Install %s to use this command." swiftformat-command)
+     :attributes 'warning)))
 
 (provide 'periphery-swiftformat)
 
