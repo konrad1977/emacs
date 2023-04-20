@@ -72,20 +72,17 @@
       (overlay-usage-enable)
     (overlay-usage-disable)))
 
-
 (defun project-root-dir ()
   "Get the root directory of the current project."
   (let ((project (project-current)))
     (when project
       (project-root project))))
 
-
 (defun overlay-usage-enable ()
   "Enable overlay-usage."
-  (add-hook 'after-save-hook (lambda () (overlay-usage:add-all-overlays)) nil t)
-  (add-hook 'after-revert-hook (lambda () (overlay-usage:add-all-overlays)) nil t)
+  (add-hook 'after-save-hook (lambda () (overlay-usage:update-all-buffer)) nil t)
+  (add-hook 'after-revert-hook (lambda () (overlay-usage:update-all-buffer)) nil t)
   (overlay-usage:add-all-overlays))
-
 
 (defun overlay-usage-disable ()
   "Disable overlay-usage-mode."
@@ -94,6 +91,16 @@
   (remove-hook 'after-revert-hook (lambda () (overlay-usage:remove-all-overlays) t))
   (overlay-usage:remove-all-overlays))
 
+(defun buffer-visible-p (buffer)
+  "Return non-nil if BUFFER is visible in any window."
+  (not (eq (get-buffer-window buffer 'visible) nil)))
+
+(defun overlay-usage:update-all-buffer ()
+  "Update all buffers."
+  (dolist (buf (buffer-list))
+    (when (buffer-visible-p buf)
+      (with-current-buffer buf
+        (overlay-usage:add-all-overlays)))))
 
 (defun overlay-usage:add-all-overlays ()
   "Add all overlays."

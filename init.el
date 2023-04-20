@@ -482,14 +482,16 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
-
 (use-package all-the-icons
   :after doom-modeline
   :custom
-  (setq all-the-icons-scale-factor 1.5))
+  (setq all-the-icons-scale-factor 1.1))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
+
+(use-package smartparens
+  :hook (prog-mode . smartparens-mode))
 
 (use-package svg-tag-mode
   :hook (swift-mode . svg-tag-mode)
@@ -1305,7 +1307,7 @@
 
   (semantic-mode)
   (hs-minor-mode)       ; Add support for folding code blocks
-  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
+                                        ;// TODO:  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
   ;; (which-function-mode)
   ;; (setq-default header-line-format
   ;;               '((which-func-mode ("\t\t   " which-func-current "()"))))
