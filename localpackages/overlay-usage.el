@@ -196,7 +196,7 @@
 
     (overlay-put ov 'after-string
                  (concat spaces
-                         (propertize-with-symbol count "✦︎" 'overlay-usage-class-symbol-face)))
+                         (propertize-with-symbol (- count 1) "✦︎" 'overlay-usage-class-symbol-face)))
     (push ov classes-overlays-list)))
 
 
