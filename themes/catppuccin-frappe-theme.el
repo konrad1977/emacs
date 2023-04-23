@@ -48,29 +48,27 @@
   (crust      "#232634" "#ffffff"))
 
  ;; Customize faces
- (
-  (default                              (:background base :foreground text))
-  (border                               (:foreground base))
-  (bookmark-face                        (:background base :foreground red))
-  (button                               (:foreground green))
-  (child-frame                          (:background base :foreground mantle))
-  (child-frame-border                   (:background base :foreground mantle))
-  (cursor                               (:background text :foreground crust))
+ ((default                              (:background base :foreground text))
+  (border                               (:foreground overlay1))
+  (bookmark-face                        (:foreground red))
+  (button                               (:foreground blue))
+  (child-frame                          (:foreground mantle))
+  (child-frame-border                   (:foreground mantle))
+  (cursor                               (:background blue :foreground crust))
   (error                                (:foreground red))
   (link                                 (:foreground blue))
-  (fringe                               (:background base :foreground overlay2))
-  (glyph-face                           (:background red))
+  (fringe                               (:foreground surface0))
+  (file-name-shadow                     (:foreground overlay2))
+  (glyph-face                           (:background red :foreground overlay0))
   (glyphless-char                       (:foreground overlay2))
   (header-line                          (:background mantle :foreground maroon :weight 'semi-bold :italic t))
   (highlight                            (:background mantle :foreground blue :distant-foreground crust))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
-  (internal-border                      (:background base :foreground base))
   (line-number                          (:foreground surface1))
   (line-number-current-line             (:background surface0 :foreground mauve :bold t))
-  (lv-separator                         (:background base :foreground overlay2))
   (match                                (:background yellow :foreground crust))
-  (menu                                 (:background base :foreground rosewater))
+  (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
   (mode-line                            (:background crust :foreground overlay2))
   (mode-line-inactive                   (:background surface0))
@@ -80,13 +78,11 @@
   (numbers                              (:background peach))
   (region                               (:background text :foreground crust))
   (tooltip                              (:background overlay2 :foreground crust))
-  (separator-line                       (:background base))
-  (shadow                               (:background crust))
+  (shadow                               (:foreground overlay2))
   (success                              (:foreground green))
   (vertical-border                      (:foreground surface0))
   (warning                              (:foreground yellow))
-  (window-border                        (:foreground peach))
-  (window-divider                       (:foreground surface0 :distant-foreground crust))
+  (window-divider                       (:foreground base :distant-foreground mantle))
 
   (whitespace-newline                   (:foreground surface2))
   (whitespace-space                     (:foreground surface2))
@@ -155,7 +151,7 @@
   (doom-modeline-time                   (:foreground overlay2 :weight 'semi-bold))
   (doom-modeline-project-dir            (:foreground blue))
   (doom-modeline-bar                    (:background yellow))
-  (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive :background base))
+  (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive))
   (doom-modeline-panel                  (:background blue :foreground crust :bold t))
   (doom-modeline                        (:foreground overlay1))
   (doom-themes-visual-bell              (:background red))
@@ -180,6 +176,11 @@
   (message-header-cc                    (:foreground green))
   (message-header-xheader               (:foreground rosewater))
   (custom-link                          (:foreground blue :underline t))
+
+  (avy-lead-face                        (:background red :foreground crust))
+  (avy-lead-face-0                      (:background blue :foreground crust))
+  (avy-lead-face-1                      (:background green :foreground crust))
+  (avy-lead-face-2                      (:background rosewater :foreground crust))
   
   ;; org-mode
   (org-done                             (:foreground overlay2))
@@ -193,8 +194,8 @@
   (org-headline-todo                    (:foreground base))
   (org-upcoming-deadline                (:foreground red))
   (org-footnote                         (:foreground green))
-  (org-indent                           (:background base :foreground base))
-  (org-hide	                            (:background base :foreground base))
+  (org-indent                           (:foreground base))
+  (org-hide	                            (:foreground base))
   (org-date                             (:foreground overlay2))
   (org-ellipsis                         (:foreground overlay2 :bold t))
   (org-level-1                          (:foreground red :height 1.3 :bold t))
@@ -287,14 +288,6 @@
   (flycheck-inline-error                (:background red :foreground red :height 128))
   (flycheck-inline-info                 (:background blue :foreground blue :height 128))
   (flycheck-inline-warning              (:background yellow :foreground yellow :height 128))
-
-  ;; (periphery-mark-face-full (:foreground mantle :background surface1 :bold t))
-  
-  ;; (periphery-todo-face-full (:foreground mantle :background blue :bold t))
-  ;; (periphery-todo-face (:foreground blue))
-  
-  ;; (periphery-fix-face (:foreground teal))
-  ;; (periphery-fix-face-full (:foreground mantle :background teal :bold t))
   
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground red :background red))
@@ -331,15 +324,14 @@
   (corfu-border                                 (:background surface1))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background surface0 :foreground text))
+  (corfu-popupinfo                              (:background surface1 :foreground text :weight 'light :italic t))
   
   ;; posframe's
   (ivy-posframe                                 (:background surface2))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-
   (orderless-match-face-0                       (:foreground pink :background "#211A1F" :weight 'semi-bold))
-  (orderless-match-face-1                       (:foreground blue :background "#222D3E" :weight 'semi-bold))
+  (orderless-match-face-1                       (:foreground blue :background "#222d3e" :weight 'semi-bold))
   (orderless-match-face-2                       (:foreground yellow :background "#221F18" :weight 'semi-bold))
   (orderless-match-face-3                       (:foreground mauve :background "#292233" :weight 'semi-bold))
 
@@ -357,6 +349,7 @@
   (treemacs-directory-collapsed-face			(:foreground subtext0))
   (treemacs-directory-face						(:foreground subtext1))
   (treemacs-file-face							(:foreground subtext1))
+  (treemacs-fringe-indicator-face               (:foreground red))
 
   (treemacs-git-added-face						(:foreground peach))
   (treemacs-git-renamed-face				   	(:foreground rosewater))
@@ -488,6 +481,10 @@
   (git-gutter:deleted                            (:foreground red))
   (git-gutter:modified                           (:foreground blue))
 
+  (goggles-added (:background green))
+  (goggles-changed (:background blue))
+  (goggles-removed (:background red))
+  
   ;; Tree sitter highlightning
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function))
@@ -546,17 +543,14 @@
   (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
   (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
 
-  (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
-  (swift-mode:property-access-face (:foreground subtext1))
-  (swift-mode:builtin-property-face (:foreground rosewater))
-  (swift-mode:builtin-enum-case-face (:foreground teal))
-  (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
-  (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
-  (swift-mode:function-call-face (:foreground pink))
-  
-  ;; (localizeable-variable-face (:inherit font-lock-string-face))
-  ;; (localizeable-value-face (:inherit font-lock-keyword-face))
-
+  (with-eval-after-load "swift-mode"
+    (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
+    (swift-mode:property-access-face (:foreground subtext1))
+    (swift-mode:builtin-property-face (:foreground rosewater))
+    (swift-mode:builtin-enum-case-face (:foreground teal))
+    (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
+    (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
+    (swift-mode:function-call-face (:foreground pink)))
  ))
 
 ;;;###autoload

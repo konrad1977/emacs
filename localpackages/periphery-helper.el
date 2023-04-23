@@ -21,7 +21,7 @@
 
 
 (defun periphery-helper:filter-xcworkspace (lst)
-  "Filter out '.xcworkspace' paths that are inside '.xcodeproj' folders"
+  "Filter out '.xcworkspace' paths that are inside '.xcodeproj' (as LST)."
   (cl-remove-if (lambda (path)
                   (and (string-match-p "\.xcworkspace$" path)
                        (string-match-p "\.xcodeproj/" path)))
