@@ -276,7 +276,7 @@
   (let ((case-fold-search nil))
     (cond
      ((string-match-p (regexp-quote "swift") extension) "^[^/\n]*\\_<func\\_>")
-     ((string-match-p (regexp-quote "el") extension) "^[^;\n]*\\bdefun\\_>")
+     ((string-match-p (regexp-quote "el") extension) "^[^;\n]*\\bdef\\w+\\_>")
      (t nil))))
 
 
@@ -308,8 +308,7 @@
 (cl-defun overlay-usage:setup-functions (&key extension private)
   "Add overlay to functions with EXTENSION as PRIVATE."
   (save-excursion
-    (let ((func-regex (overlay-usage:find-function-regex-for-file-type :extension extension :private private)))
-
+    (when-let ((func-regex (overlay-usage:find-function-regex-for-file-type :extension extension :private private)))
       (goto-char (point-min))
       (while (search-forward-regexp (concat func-regex " \\([^(=]+\\)\(") nil t)
         (let ((position (match-beginning 1))
@@ -331,7 +330,7 @@
 (defun overlay-usage:setup-variables ()
   "Add overlays to variables."
   (save-excursion
-    (let* ((extension (extension-from-file))
+    (when-let* ((extension (extension-from-file))
            (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
       (goto-char (point-min))
     (while (search-forward-regexp variable-regex nil t)
