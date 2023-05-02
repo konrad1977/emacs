@@ -8,6 +8,8 @@
 (require 'recentf)
 
 (defvar welcome-mode nil)
+(defvar welcome-recentfiles '()
+  "Recent list.")
 
 (defgroup welcome nil
   "Welcome group."
@@ -41,6 +43,7 @@
   (setq-local display-line-numbers nil)
   (setq-local truncate-lines t)
   (setq-local mode-line-format nil)
+  (setq-local global-hl-line-mode nil)
   (use-local-map welcome-mode-map))
 
 (defface welcome-title-face
@@ -49,22 +52,22 @@
   :group 'welcome)
 
 (defface welcome-info-face
-  '((t :inherit font-lock-keyword-face :height 0.9 :bold nil))
+  '((t :foreground "#F66D86" :height 0.9 :bold t :italic t))
   "Face added to code-usage display."
   :group 'welcome)
 
-(defface welcome-package-info-face
-  '((t :inherit font-lock-number-face :height 0.9 :bold nil :italic nil))
+(defface welcome-text-info-face
+  '((t :foreground "#ADB5D0" :height 0.9 :bold nil))
   "Face added to code-usage display."
   :group 'welcome)
 
 (defface welcome-path-face
-  '((t :foreground "#63677D" :height 0.9 :bold nil :italic nil))
+  '((t :foreground "#63677D" :height 0.9 :weight thin :bold nil :italic nil))
   "Face for the file path."
   :group 'welcome)
 
 (defface welcome-filename-face
-  '((t :inherit default :height 0.9 :bold t :italic nil))
+  '((t :inherit default :bold t :italic nil))
   "Face for the file name."
   :group 'welcome)
 
@@ -90,7 +93,7 @@
 (defun welcome--open-recent-file-at-index (index)
   "Open the recent file at the given INDEX in the list."
   (interactive "nIndex: ")
-  (let ((files (seq-take recentf-list 9)))
+  (let ((files (seq-take welcome-recentfiles 9)))
     (when (<= 1 index (length files))
       (find-file (nth (1- index) files)))))
 
@@ -98,8 +101,8 @@
   "Insert the first 9 recent files with icons in the welcome buffer."
   (recentf-mode)
   (insert "\n")
-  (let* ((files (seq-take recentf-list 9))
-         (max-length (apply 'max (mapcar 'length recentf-list)))
+  (let* ((files (seq-take welcome-recentfiles 9))
+         (max-length (apply 'max (mapcar 'length files)))
          (left-margin (/ (- (window-width) max-length) 2)))
     (dolist (file files)
       (let* ((index (cl-position file files :test #'equal))
@@ -118,20 +121,27 @@
 
 (defun welcome--insert-text (text)
   "Insert (as TEXT)."
-  (let* ((max-length (apply 'max (mapcar 'length recentf-list)))
+  (let* ((max-length (apply 'max (mapcar 'length welcome-recentfiles)))
          (left-margin (/ (- (window-width) max-length) 2)))
     (insert (format "%s%s\n" (make-string left-margin ?\s) text ))))
+
+(defun welcome--redisplay-buffer-on-resize (&rest _)
+  "Resize current buffer."
+  (when (equal (buffer-name) welcome-buffer)
+    (welcome--refresh-screen)))
 
 ;;;###autoload
 (defun welcome-create-welcome-hook ()
   "Setup welcome screen."
   (when (< (length command-line-args) 2)
-    (add-hook 'emacs-startup-hook (lambda ()
-                                    (welcome--refresh-screen)
-                                    ))))
+    (add-hook 'window-size-change-functions 'welcome--redisplay-buffer-on-resize)
+    (add-hook 'emacs-startup-hook (lambda () (welcome--refresh-screen)))))
 
 (defun welcome--refresh-screen ()
   "Show the welcome screen."
+  ;; (setq welcome--timer
+  ;;       (run-at-time "0 sec" 1 'welcome--refresh-screen))
+  (setq welcome-recentfiles recentf-list)
   (with-current-buffer (get-buffer-create welcome-buffer)
     (let* ((buffer-read-only)
            (image-path "~/.emacs.d/themes/true.png")
@@ -139,18 +149,22 @@
            (size (image-size image))
            (width (car size))
            (left-margin (floor (/ (- (window-width) width) 2)))
-           (title (format "Startup time: %s" (emacs-init-time "%.2f seconds")))
-           (packages (format "%d packages loaded" (length package-activated-list))))
+           (packages (format "%d" (length package-activated-list))))
       (erase-buffer)
       (goto-char (point-min))
       (let ((inhibit-read-only t))
         (insert "\n")
-        (welcome--insert-text (propertize "Recent: [C-x to open file]" 'face 'welcome-title-face))
+        (welcome--insert-text (propertize "Quick acccess [C-x to open file]" 'face 'welcome-title-face))
         (welcome--insert-recent-files)
         (setq cursor-type nil)
         (insert "\n")
-        (welcome--insert-text (propertize title 'face 'welcome-info-face))
-        (welcome--insert-text (propertize packages 'face 'welcome-package-info-face))
+        (welcome--insert-text (format "%s %s %s"
+                                      (propertize "Startup time:" 'face 'welcome-text-info-face)
+                                      (propertize (emacs-init-time "%.2f") 'face 'welcome-info-face)
+                                      (propertize "seconds" 'face 'welcome-text-info-face)))
+        (welcome--insert-text (format "%s %s"
+                                      (propertize packages 'face 'welcome-info-face)
+                                      (propertize "packages loaded" 'face 'welcome-text-info-face)))
         (insert "\n\n\n")
         (insert (make-string left-margin ?\ ))
         (insert-image image)
@@ -158,7 +172,8 @@
         (read-only-mode +1)
         (welcome-mode)
         (goto-char (point-min))
-        (forward-line 2)))))
+        (forward-line 3)
+        ))))
 
 (provide 'welcome)
 ;;; welcome.el ends here
