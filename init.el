@@ -128,7 +128,7 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error t))
+        debug-on-error nil))
 
 (use-package welcome
   :ensure nil

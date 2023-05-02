@@ -6,10 +6,18 @@
 ;;; code:
 
 (require 'recentf)
+(require 'async)
+(require 'all-the-icons)
 
 (defvar welcome-mode nil)
 (defvar welcome-recentfiles '()
   "Recent list.")
+
+(defvar latitude 52.52)
+(defvar longitude 13.41)
+(defvar temperature nil)
+(defvar weatherdescription nil)
+(defvar weathericon nil)
 
 (defgroup welcome nil
   "Welcome group."
@@ -30,7 +38,6 @@
         `(lambda ()
            (interactive)
            (welcome--open-recent-file-at-index ,i))))
-    (message "welcome-mode-map initialized")
     map)
   "Keymap for `welcome-mode'.")
 
@@ -71,6 +78,46 @@
   "Face for the file name."
   :group 'welcome)
 
+(defface welcome-time-face
+  '((t :inherit font-lock-comment-face))
+  "Face for time."
+  :group 'welcome)
+
+(defface welcome-weather-description-face
+  '((t :inherit font-lock-constant-face :height 0.9))
+  "Face for time."
+  :group 'welcome)
+
+(defface welcome-weather-temperature-face
+  '((t :inherit font-lock-function-name-face :height 0.9))
+  "Face for time."
+  :group 'welcome)
+
+(cl-defun async-start-command-to-string (&key command &key callback)
+  "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
+  (async-start
+   `(lambda ()
+      (shell-command-to-string ,command))
+   `(lambda (result)
+      (funcall ,callback result))))
+
+(defun weather-code-to-string (code)
+  "Maps a weather code to a corresponding string."
+  (pcase code
+    (`0 "Clear sky")
+    ((or `1 `2 `3) "Partly cloudy")
+    ((or `45 `48) "Fog")
+    ((or `51 `53 `55) "Drizzle")
+    ((or `56 `57) "Freezing drizzle")
+    ((or `61 `63 `65) "Rain")
+    ((or `66 `67) "Freezing rain")
+    ((or `71 `73 `75) "Snowfall")
+    (`77 "Snow grains")
+    ((or `80 `81 `82) "Rain showers")
+    ((or `85 `86) "Snow showers")
+    ((or `95 `96 `99) "Thunderstorm")
+    (_ "Unknown")))
+
 (defun welcome--insert-centered (text)
   "Insert TEXT at the center of the current line."
   (let ((width (window-width)))
@@ -93,7 +140,7 @@
 (defun welcome--open-recent-file-at-index (index)
   "Open the recent file at the given INDEX in the list."
   (interactive "nIndex: ")
-  (let ((files (seq-take welcome-recentfiles 9)))
+  (let ((files welcome-recentfiles))
     (when (<= 1 index (length files))
       (find-file (nth (1- index) files)))))
 
@@ -101,7 +148,7 @@
   "Insert the first 9 recent files with icons in the welcome buffer."
   (recentf-mode)
   (insert "\n")
-  (let* ((files (seq-take welcome-recentfiles 9))
+  (let* ((files welcome-recentfiles)
          (max-length (apply 'max (mapcar 'length files)))
          (left-margin (/ (- (window-width) max-length) 2)))
     (dolist (file files)
@@ -134,14 +181,27 @@
 (defun welcome-create-welcome-hook ()
   "Setup welcome screen."
   (when (< (length command-line-args) 2)
+    (add-hook 'switch-to-buffer 'welcome--redisplay-buffer-on-resize)
     (add-hook 'window-size-change-functions 'welcome--redisplay-buffer-on-resize)
-    (add-hook 'emacs-startup-hook (lambda () (welcome--refresh-screen)))))
+    (add-hook 'emacs-startup-hook (lambda ()
+                                    (welcome--refresh-screen)
+                                    (let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" latitude longitude))
+                                           (result (shell-command-to-string (format "curl -s '%s'" url)))
+                                           (json-obj (json-read-from-string result))
+                                           (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
+                                           (weather-code (cdr (assoc 'weathercode (cdr (assoc 'current_weather json-obj)))))
+                                           ;; (weather-icon (all-the-icons-icon-for-weather (weather-code-to-string weather-code)))
+                                           )
+                                      (setq temperature (format "%s" temp))
+                                      (setq weatherdescription (format "%s" (weather-code-to-string weather-code))))
+                                    (welcome--refresh-screen)))))
+
 
 (defun welcome--refresh-screen ()
   "Show the welcome screen."
   ;; (setq welcome--timer
   ;;       (run-at-time "0 sec" 1 'welcome--refresh-screen))
-  (setq welcome-recentfiles recentf-list)
+  (setq welcome-recentfiles (seq-take recentf-list 9))
   (with-current-buffer (get-buffer-create welcome-buffer)
     (let* ((buffer-read-only)
            (image-path "~/.emacs.d/themes/true.png")
@@ -165,15 +225,23 @@
         (welcome--insert-text (format "%s %s"
                                       (propertize packages 'face 'welcome-info-face)
                                       (propertize "packages loaded" 'face 'welcome-text-info-face)))
-        (insert "\n\n\n")
+        (when weatherdescription
+          (welcome--insert-text (format "%s %s, %s %s"
+                                        (propertize "Weather:" 'face 'welcome-text-info-face)
+                                        (propertize weatherdescription 'face 'welcome-weather-description-face)
+                                        (propertize temperature 'face 'welcome-weather-temperature-face)
+                                        (propertize "℃" 'face 'welcome-text-info-face))))
+        (insert "\n\n")
         (insert (make-string left-margin ?\ ))
         (insert-image image)
-        (switch-to-buffer (current-buffer))
+        (insert "\n\n")
+        (welcome--insert-centered (propertize (format-time-string "%A, %B %d %H:%M") 'face 'welcome-time-face))
+        (switch-to-buffer welcome-buffer)
         (read-only-mode +1)
         (welcome-mode)
         (goto-char (point-min))
-        (forward-line 3)
-        ))))
+
+        (forward-line 3)))))
 
 (provide 'welcome)
 ;;; welcome.el ends here
