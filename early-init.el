@@ -8,10 +8,10 @@
       gc-cons-threshold (* 512 1024 1024))
 
 (when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 64 1024 1024)))
+  (setq read-process-output-max (* 32 1024 1024)))
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
-(customize-set-variable 'native-comp-speed 2)
+(customize-set-variable 'native-comp-speed 3)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
 (setq ffap-alist nil)                ; faster, dumber prompting
@@ -45,13 +45,8 @@
       '((background-color . "#161616")       ; Default background color
         (inhibit-double-buffering . t)
         (bottom-divider-width . 0)           ; Thin horizontal window divider
-        (foreground-color . "#dde1e6")       ; Default foreground color
         (fullscreen . maximized)             ; Maximize the window by default
-        (horizontal-scroll-bars . nil)       ; No horizontal scroll-bars
-        (menu-bar-lines . 0)                 ; No menu bar
         (right-divider-width . 1)            ; Thin vertical window divider
-        (tool-bar-lines . 0)                 ; No tool bar
-        (right-fringe . 0)
         (ns-use-native-fullscreen . t)
         (ns-transparent-titlebar . t)
         (vertical-scroll-bars . nil)))       ; No vertical scroll-bars

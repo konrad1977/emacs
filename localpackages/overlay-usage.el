@@ -72,11 +72,10 @@
       (overlay-usage-enable)
     (overlay-usage-disable)))
 
-(defun project-root-dir ()
+(defun overlay-usage:project-root-dir ()
   "Get the root directory of the current project."
-  (let ((project (project-current)))
-    (when project
-      (project-root project))))
+  (when-let ((project (project-current)))
+    (project-root project)))
 
 (defun overlay-usage-enable ()
   "Enable overlay-usage."
@@ -86,28 +85,27 @@
 
 (defun overlay-usage-disable ()
   "Disable overlay-usage-mode."
-  (overlay-recenter (point-max))
   (remove-hook 'after-save-hook (lambda () (overlay-usage:remove-all-overlays) t))
   (remove-hook 'after-revert-hook (lambda () (overlay-usage:remove-all-overlays) t))
   (overlay-usage:remove-all-overlays))
 
-(defun buffer-visible-p (buffer)
+(defun overlay-usage:buffer-visible-p (buffer)
   "Return non-nil if BUFFER is visible in any window."
   (not (eq (get-buffer-window buffer 'visible) nil)))
 
 (defun overlay-usage:update-all-buffer ()
   "Update all buffers."
   (dolist (buf (buffer-list))
-    (when (buffer-visible-p buf)
+    (when (overlay-usage:buffer-visible-p buf)
       (with-current-buffer buf
         (overlay-usage:add-all-overlays)))))
 
 (defun overlay-usage:add-all-overlays ()
   "Add all overlays."
-  (let ((default-directory (project-root-dir))
-        (extension (extension-from-file)))
+  (overlay-usage:remove-all-overlays)
 
-    (overlay-usage:remove-all-overlays)
+  (let ((default-directory (overlay-usage:project-root-dir))
+        (extension (overlay-usage:extension-from-file)))
 
     (cond
      ((string-match-p (regexp-quote "swift") extension)
@@ -117,18 +115,15 @@
     (overlay-usage:setup-functions :extension extension :private nil)
     (overlay-usage:setup-variables)))
 
-
 (defun overlay-usage:remove-all-overlays ()
   "Remove all overlays."
   (overlay-usage:remove-overlays-for-functions)
   (overlay-usage:remove-overlays-for-variables)
   (overlay-usage:remove-overlays-for-classes))
 
-
 (defun overlay-usage:remove-overlays-for-functions ()
   "Clean up all overlays for functions."
   (mapc #'delete-overlay functions-overlays-list))
-
 
 (defun overlay-usage:remove-overlays-for-variables ()
   "Clean up all overlays for variables."
@@ -137,13 +132,6 @@
 (defun overlay-usage:remove-overlays-for-classes ()
   "Clean up all overlays for classes."
   (mapc #'delete-overlay classes-overlays-list))
-
-
-(defun overlay-usage:previous-line-has-text-p ()
-  "Return non-nil if the previous line has any non-whitespace text."
-  (save-excursion
-    (forward-line -1) ; Move to previous line
-    (looking-at "\\S-"))) ; Check if line has non-whitespace text
 
 
 (cl-defun add-overlays-for-functions (&key position spaces filename extension private)
@@ -163,12 +151,11 @@
     
     (overlay-put ov 'after-string
                  (concat spaces
-                         (propertize-with-symbol (- count 1) "λ︎" (if private
+                         (overlay-usage:propertize-with-symbol (- count 1) "λ︎" (if private
                                                                      'overlay-usage-function-symbol-face
                                                                    'overlay-usage-function-symbol-face-public
                                                                   ))))
     (push ov functions-overlays-list)))
-
 
 (cl-defun add-overlays-for-variables (&key position filename)
   "Add overlay (as POSITION and FILENAME) for variables."
@@ -183,7 +170,7 @@
               (line-end-position))))
 
     (overlay-put ov 'after-string
-                 (concat " " (propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
+                 (concat " " (overlay-usage:propertize-with-symbol count "⇠" 'overlay-usage-variable-symbol-face)))
     (overlay-put ov 'invisible t)
     (overlay-put ov 'priority 900)
     (push ov variables-overlays-list)))
@@ -203,11 +190,11 @@
 
     (overlay-put ov 'after-string
                  (concat spaces
-                         (propertize-with-symbol (- count 1) "✦︎" 'overlay-usage-class-symbol-face)))
+                         (overlay-usage:propertize-with-symbol (- count 1) "✦︎" 'overlay-usage-class-symbol-face)))
     (push ov classes-overlays-list)))
 
 
-(defun propertize-with-symbol (count symbol font)
+(defun overlay-usage:propertize-with-symbol (count symbol font)
   "Propertize with symbol (as COUNT as SYMBOL as FONT)."
   (cond
    ((< count 1)
@@ -222,7 +209,7 @@
             (propertize (number-to-string count) 'face 'overlay-usage-count-symbol-face)
             (propertize " references" 'face 'overlay-usage-default-face)))))
 
-(defun extension-from-file ()
+(defun overlay-usage:extension-from-file ()
   "Get file extension."
   (file-name-extension buffer-file-name))
 
@@ -235,7 +222,8 @@
         (format "rg -t swift %s -ce '^[^\/\n\"]*\\b%s\\('" filename function)
       (format "rg -t swift -e '^[^\/\n\"]*\\b%s\\(' | wc -l" function)))
    ((string-suffix-p "el" extension t)
-    (format "rg -t elisp -e '\\b%s\\b' | wc -l" function))))
+    (format "rg -t elisp -e '\\b%s\\b' | wc -l" function))
+   (t nil)))
 
 
 (cl-defun overlay-usage:shell-command-classes-from (&key extension name)
@@ -283,8 +271,8 @@
 (defun overlay-usage:setup-classes-and-structs ()
   "Add overlays for structs and classes."
   (save-excursion
-    (when-let* ((extension (extension-from-file))
-           (classes-regex (overlay-usage:find-classes-regex-for-file-type :extension extension)))
+    (when-let* ((extension (overlay-usage:extension-from-file))
+                (classes-regex (overlay-usage:find-classes-regex-for-file-type :extension extension)))
       (goto-char (point-min))
       (while (search-forward-regexp classes-regex nil t)
         (let ((position (match-beginning 1))
@@ -316,7 +304,7 @@
                         (back-to-indentation)
                         (current-column))))
           (beginning-of-line)
-          (when (overlay-usage:boolean-eq private (looking-at "^\\s-*\\bprivate\\b"))
+          (when (overlay-usage:boolean-eq private (looking-at "^\\s-*\\b\\(private\\|fileprivate\\)\\b"))
           (when (not (looking-at commented-lines-regex))
               (add-overlays-for-functions
                :position position
@@ -330,8 +318,8 @@
 (defun overlay-usage:setup-variables ()
   "Add overlays to variables."
   (save-excursion
-    (when-let* ((extension (extension-from-file))
-           (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
+    (when-let* ((extension (overlay-usage:extension-from-file))
+                (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
       (goto-char (point-min))
     (while (search-forward-regexp variable-regex nil t)
       (let ((position (match-beginning 1)))

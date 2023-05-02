@@ -14,9 +14,8 @@
 (display-battery-mode t)		  ;; Show battery.
 (display-time-mode t)			  ;; Show time.
 (fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
-(global-auto-revert-mode 1)       ;; refresh a buffer if changed on disk
+(global-auto-revert-mode)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)           ;; Highlight current line
-(save-place-mode 1)               ;; when buffer is closed, save the cursor position
 ;; (pixel-scroll-precision-mode 1)
 
 (setq ad-redefinition-action            'accept
@@ -83,10 +82,8 @@
 
 ;; Initialize package sources
 (require 'package)
-;; (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-;;                          ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
+                        ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
 
 ;; Initialize use-package on non-Linux platforms
@@ -131,16 +128,21 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error nil))
+        debug-on-error t))
+
+(use-package welcome
+  :ensure nil
+  :config
+  (welcome-create-welcome-hook))
 
 ;; (use-package exec-path-from-shell
 ;;   :after evil
 ;;   :init
 ;;   (exec-path-from-shell-initialize))
 
-;; (use-package benchmark-init
-;;   :config
-;;   (add-hook 'after-init-hook 'benchmark-init/deactivate))
+(use-package benchmark-init
+  :config
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -148,13 +150,23 @@
   :config
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
-   (load-theme 'catppuccin-macchiato t)
-  ;; (load-theme 'catppuccin-mocha t)
+   ;; (load-theme 'catppuccin-macchiato t)
+  (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
   ;; (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   )
+
+(use-package saveplace
+  :ensure nil
+  :hook (after-init . save-place-mode))
+
+(use-package auto-package-update
+  :custom
+  (setq auto-package-update-interval 7
+        auto-package-update-prompt-before-update t
+        auto-package-update-hide-results nil))
 
 (use-package vertico
   :hook (after-init . vertico-mode)
@@ -166,7 +178,7 @@
   :config
   (vertico-multiform-mode)
   (setq vertico-resize t
-        vertico-count 10
+        vertico-count 8
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t
@@ -203,6 +215,16 @@
   ;; Tidy shadowed file names
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
+(use-package nerd-icons
+  :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
+
 (use-package orderless
   :after vertico
   :init
@@ -215,23 +237,11 @@
   :after (vertico)
   :config (marginalia-mode))
 
-(use-package all-the-icons-completion
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
-
-(use-package embark
-  :after vertico
-  :bind
-  (("C-," . embark-act)         ;; pick some comfortable binding
-   ("C-x C-x" . kill-buffer-and-window))
-  :config
-  (setq prefix-help-command #'embark-prefix-help-command)
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
+;; (use-package all-the-icons-completion
+;;   :after (marginalia all-the-icons)
+;;   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+;;   :init
+;;   (all-the-icons-completion-mode))
 
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -244,21 +254,14 @@
   ("M-O" . consult-ls-git)
   ("M-f" . consult-line))
 
-(use-package embark-consult
-  :after (embark consult))
+;; (use-package embark-consult
+;;   :after (embark consult))
 
 (use-package consult-projectile
   :after projectile)
 
 (use-package recentf
   :hook (after-init . recentf-mode))
-
-;; Make sure we are up to date, atleast once a week
-(use-package auto-package-update
-  :custom
-  (setq auto-package-update-interval 7
-        auto-package-update-prompt-before-update t
-        auto-package-update-hide-results nil))
 
 ;; Config and install modeline
 (use-package doom-modeline
@@ -283,6 +286,7 @@
         doom-modeline-workspace-name nil
         doom-modeline-persp-name nil
         doom-modeline-bar-width 5
+        doom-modeline-height 38
         doom-modeline-hud t
         doom-modeline-buffer-state-icon nil
         doom-modeline-time-icon nil)
@@ -293,34 +297,12 @@
         evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
         evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple")))))
 
-(use-package dashboard
-  :config
-  (dashboard-setup-startup-hook)
-  (setq
-   dashboard-banner-logo-title "● Mikael's dashboard ●"
-   dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
-   dashboard-center-content t
-   dashboard-path-style 'truncate-beginning
-   dashboard-set-file-icons t
-   dashboard-projects-show-base 'align
-   dashboard-recentf-show-base t
-   dashboard-show-shortcuts nil
-   dashboard-image-banner-max-height 200
-   dashboard-set-init-info t
-   dashboard-set-navigator nil
-   dashboard-projects-item-format "%s"
-   dashboard-recentf-item-format "%s"
-   dashboard-set-heading-icons t
-   dashboard-items '((recents . 8)
-                     (projects . 5))))
-
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :bind
   ("C-x C-c" . describe-char)
   ([remap describe-command] . helpful-command)
   ([remap describe-key] . helpful-key))
-
 
 (use-package evil
   :hook (after-init . evil-mode)
@@ -343,6 +325,7 @@
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
   
+  (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (evil-jump-forward)))
 
@@ -427,16 +410,16 @@
   :commands evil-tutor)
 
 (use-package evil-goggles
+  :init
+  (evil-goggles-mode)
   :after evil
   :config
   (setq evil-goggles-pulse t
         evil-goggles-duration 0.3)
-  (evil-goggles-use-diff-faces)
-  :init
-  (evil-goggles-mode))
+  (evil-goggles-use-diff-faces))
 
-(define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-(define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+;; (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
+;; (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
 
 (use-package vundo
   :after evil
@@ -472,26 +455,17 @@
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t  ; if nil, italics is universally disabled
         doom-themes-treemacs-theme "doom-colors")
-
-  ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
   (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
 (use-package all-the-icons
   :after doom-modeline
   :custom
-  (setq all-the-icons-scale-factor 1.1))
+  (setq all-the-icons-scale-factor 1.0))
 
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
-
-(use-package smartparens
-  :hook (prog-mode . smartparens-mode))
+;; (use-package all-the-icons-dired
+;;   :hook (dired-mode . all-the-icons-dired-mode))
 
 (use-package svg-tag-mode
   :hook (swift-mode . svg-tag-mode)
@@ -547,55 +521,95 @@
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-blend-background nil)
-  (kind-icon-blend-frac nil)
+  (kind-icon-blend-background t)
+  (kind-icon-blend-frac 0.2)
   (kind-icon-default-face 'corfu-default)
-  (kind-icon-default-style '(
-                             :padding 0.8
-                             :stroke 0
-                             :margin -0.8
-                             :radius 1.0
-                             :height 0.85
-                             :scale 0.8))
+  ;; (kind-icon-default-style '(
+  ;;                            :padding 0.8
+  ;;                            :stroke 0
+  ;;                            :margin -0.8
+  ;;                            :radius 1.0
+  ;;                            :height 0.85
+  ;;                            :scale 0.8))
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
-  (setq kind-icon-use-icons t
-        svg-lib-icons-dir (expand-file-name "svg-lib" no-littering-var-directory)
-        kind-icon-mapping
-        '((variable "va" :icon "label-variant" :face font-lock-variable-name-face)
-          (numeric "nu" :icon "numeric" :face tree-sitter-hl-face:number)
-          (function "f" :icon "rocket" :face font-lock-function-name-face)
-          (method "m" :icon "rocket" :face font-lock-function-name-face)
-          (property "pr" :icon "virus" :face font-lock-variable-name-face)
-          (constructor "cn" :icon "orbit" :face tree-sitter-hl-face:constructor)
-          (boolean "b" :icon "circle-half-full" :face tree-sitter-hl-face:boolean)
-          (class "c" :icon "molecule" :face font-lock-type-face)
-          (array "a" :icon "code-brackets" :face font-lock-variable-name-face)
-          (color "#" :icon "palette" :face success)
-          (constant "co" :icon "pause-circle" :face font-lock-constant-face)
-          (enum "e" :icon "format-list-bulleted-square" :face font-lock-builtin-face)
-          (enum-member "em" :icon "format-list-checks" :face font-lock-builtin-face)
-          (event "ev" :icon "lightning-bolt-outline" :face font-lock-warning-face)
-          (field "fd" :icon "application-braces-outline" :face font-lock-variable-name-face)
-          (file "f" :icon "file" :face font-lock-string-face)
-          (folder "d" :icon "folder" :face font-lock-doc-face)
-          (interface "if" :icon "video-input-component" :face font-lock-type-face)
-          (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face)
-          (macro "mc" :icon "lambda" :face font-lock-keyword-face)
-          (module "{" :icon "orbit" :face font-lock-preprocessor-face)
-          (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face)
-          (param "pa" :icon "test-tube" :face default)
-          (reference "rf" :icon "hospital" :face font-lock-variable-name-face)
-          (snippet "S" :icon "pill" :face font-lock-string-face)
-          (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
-          (struct "%" :icon "molecule" :face font-lock-variable-name-face)
-          (text "tx" :icon "skull-scan" :face shadow)
-          (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
-          (unit "u" :icon "test-tube" :face shadow)
-          (tabnine "ai" :icon "cloud" :face shadow)
-          (value "v" :icon "pulse" :face font-lock-builtin-face)
-          (t "." :icon "microscope" :face shadow)))
+(setq kind-icon-use-icons nil)
+(setq kind-icon-mapping
+      `(
+        (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
+        (boolean ,(nerd-icons-codicon "nf-cod-symbol_boolean") :face font-lock-builtin-face)
+        (class ,(nerd-icons-codicon "nf-cod-symbol_class") :face font-lock-type-face)
+        (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
+        (command ,(nerd-icons-codicon "nf-cod-terminal") :face default)
+        (constant ,(nerd-icons-codicon "nf-cod-symbol_constant") :face font-lock-constant-face)
+        (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face tree-sitter-hl:constructor)
+        (enummember ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
+        (enum-member ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
+        (enum ,(nerd-icons-codicon "nf-cod-symbol_enum") :face font-lock-builtin-face)
+        (event ,(nerd-icons-codicon "nf-cod-symbol_event") :face font-lock-warning-face)
+        (field ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-variable-name-face)
+        (file ,(nerd-icons-codicon "nf-cod-symbol_file") :face font-lock-string-face)
+        (folder ,(nerd-icons-codicon "nf-cod-folder") :face font-lock-doc-face)
+        (interface ,(nerd-icons-codicon "nf-cod-symbol_interface") :face font-lock-type-face)
+        (keyword ,(nerd-icons-codicon "nf-cod-symbol_keyword") :face font-lock-keyword-face)
+        (macro ,(nerd-icons-codicon "nf-cod-symbol_misc") :face font-lock-keyword-face)
+        (magic ,(nerd-icons-codicon "nf-cod-wand") :face font-lock-builtin-face)
+        (method ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
+        (function ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
+        (module ,(nerd-icons-codicon "nf-cod-file_submodule") :face font-lock-preprocessor-face)
+        (numeric ,(nerd-icons-codicon "nf-cod-symbol_numeric") :face font-lock-builtin-face)
+        (operator ,(nerd-icons-codicon "nf-cod-symbol_operator") :face font-lock-comment-delimiter-face)
+        (param ,(nerd-icons-codicon "nf-cod-symbol_parameter") :face default)
+        (property ,(nerd-icons-codicon "nf-cod-symbol_property") :face font-lock-variable-name-face)
+        (reference ,(nerd-icons-codicon "nf-cod-references") :face font-lock-variable-name-face)
+        (snippet ,(nerd-icons-codicon "nf-cod-symbol_snippet") :face font-lock-string-face)
+        (string ,(nerd-icons-codicon "nf-cod-symbol_string") :face font-lock-string-face)
+        (struct ,(nerd-icons-codicon "nf-cod-symbol_structure") :face font-lock-variable-name-face)
+        (text ,(nerd-icons-codicon "nf-cod-text_size") :face font-lock-doc-face)
+        (typeparameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
+        (type-parameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
+        (unit ,(nerd-icons-codicon "nf-cod-symbol_ruler") :face font-lock-constant-face)
+        (value ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-builtin-face)
+        (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
+        (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
+
+  ;; (setq kind-icon-use-icons t
+  ;;       svg-lib-icons-dir (expand-file-name "svg-lib" no-littering-var-directory)
+  ;;       kind-icon-mapping
+  ;;       '((variable "va" :icon "label-variant" :face font-lock-variable-name-face)
+  ;;         (numeric "nu" :icon "numeric" :face tree-sitter-hl-face:number)
+  ;;         (function "f" :icon "rocket" :face font-lock-function-name-face)
+  ;;         (method "m" :icon "rocket" :face font-lock-function-name-face)
+  ;;         (property "pr" :icon "virus" :face font-lock-variable-name-face)
+  ;;         (constructor "cn" :icon "orbit" :face tree-sitter-hl-face:constructor)
+  ;;         (boolean "b" :icon "circle-half-full" :face tree-sitter-hl-face:boolean)
+  ;;         (class "c" :icon "molecule" :face font-lock-type-face)
+  ;;         (array "a" :icon "code-brackets" :face font-lock-variable-name-face)
+  ;;         (color "#" :icon "palette" :face success)
+  ;;         (constant "co" :icon "pause-circle" :face font-lock-constant-face)
+  ;;         (enum "e" :icon "format-list-bulleted-square" :face font-lock-builtin-face)
+  ;;         (enum-member "em" :icon "format-list-checks" :face font-lock-builtin-face)
+  ;;         (event "ev" :icon "lightning-bolt-outline" :face font-lock-warning-face)
+  ;;         (field "fd" :icon "application-braces-outline" :face font-lock-variable-name-face)
+  ;;         (file "f" :icon "file" :face font-lock-string-face)
+  ;;         (folder "d" :icon "folder" :face font-lock-doc-face)
+  ;;         (interface "if" :icon "video-input-component" :face font-lock-type-face)
+  ;;         (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face)
+  ;;         (macro "mc" :icon "lambda" :face font-lock-keyword-face)
+  ;;         (module "{" :icon "orbit" :face font-lock-preprocessor-face)
+  ;;         (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face)
+  ;;         (param "pa" :icon "test-tube" :face default)
+  ;;         (reference "rf" :icon "hospital" :face font-lock-variable-name-face)
+  ;;         (snippet "S" :icon "pill" :face font-lock-string-face)
+  ;;         (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
+  ;;         (struct "%" :icon "molecule" :face font-lock-variable-name-face)
+  ;;         (text "tx" :icon "skull-scan" :face shadow)
+  ;;         (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
+  ;;         (unit "u" :icon "test-tube" :face shadow)
+  ;;         (tabnine "ai" :icon "cloud" :face shadow)
+  ;;         (value "v" :icon "pulse" :face font-lock-builtin-face)
+  ;;         (t "." :icon "microscope" :face shadow)))
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
@@ -673,6 +687,35 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
+
+;; (use-package dashboard
+;;   :config
+;;   (setq dashboard-banner-logo-title "● Mikael's dashboard ●"
+;;         dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
+;;         dashboard-week-agenda t
+;;         dashboard-filter-agenda-entry 'dashboard-no-filter-agenda
+;;         dashboard-path-style 'truncate-beginning
+;;         dashboard-set-file-icons t
+;;         dashboard-projects-show-base 'align
+;;         dashboard-recentf-show-base nil
+;;         dashboard-show-shortcuts nil
+;;         dashboard-image-banner-max-height 150
+;;         dashboard-set-init-info t
+;;         dashboard-projects-item-format "%s"
+;;         dashboard-recentf-item-format "%s"
+;;         dashboard-agenda-time-string-format "%d/%m "
+;;         dashboard-agenda-prefix-format "%s"
+;;         dashboard-agenda-sort-strategy '(time-up)
+;;         dashboard-agenda-release-buffers t
+;;         dashboard-set-heading-icons t
+;;         dashboard-center-content t
+;;         dashboard-items '(
+;;                           (agenda . 15)
+;;                           (recents . 5)
+;;                           (projects . 5)
+;;                           ))
+;;   (dashboard-setup-startup-hook))
+
 (use-package emacs
   :init
   (setq completion-cycle-threshold 3)
@@ -731,10 +774,10 @@
 (use-package treemacs-projectile
   :after (treemacs projectile))
 
-(use-package treemacs-all-the-icons
-  :after (treemacs all-the-icons)
-  :config
-  (treemacs-load-theme "all-the-icons"))
+;; (use-package treemacs-all-the-icons
+;;   :after (treemacs all-the-icons)
+;;   :config
+;;   (treemacs-load-theme "all-the-icons"))
 
 (use-package restclient
   :commands (restclient))
@@ -776,16 +819,12 @@
   :hook (prog-mode . projectile-mode)
   :bind
   ("C-M-r" . projectile-replace)
-  ;; :init
-  ;; (when (file-directory-p "~/git")
-  ;;   (setq projectile-project-search-path '("~/git")))
   :custom
   (setq projectile-completion-system 'auto
         projectile-enable-caching t
         projectile-sort-order 'default
         projectile-indexing-method 'hybrid
         projectile-verbose nil
-        ;; projectile-project-root-files '(".xcworkspace" ".projectile" ".xcodeproj")
         projectile-switch-project-action #'projectile-commander
         projectile-ignored-files '(".orig$" ".yml$"))
   :config
@@ -806,6 +845,7 @@
   :bind
   ("C-x C-f" . toggle-frame-fullscreen)
   ("C-x C-s" . window-toggle-side-windows)
+  ("C-x C-x" . kill-buffer-and-window)
   :custom
   (display-buffer-alist
    '(("\\*xwidget\\*\\|\\*xref\\*"
@@ -1019,12 +1059,24 @@
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
         org-startup-with-inline-images t
-        org-startup-folded t
+        org-startup-folded nil
+        org-directory "~/Desktop/org"
+        org-agenda-files '("work.org")
         org-hide-leading-stars t
         org-src-edit-src-content-indentation 0
+        org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "STARTED(s)" "|" "DONE(d)" "CANCELLED(c)"))
         org-log-into-drawer t
         org-clock-sound "~/.emacs.d/etc/sound/bell.mp3"
-        org-log-done 'time))
+        org-log-done 'time
+        org-fontify-emphasized-text t
+        org-fontify-whole-heading-line t
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-startup-with-inline-images t
+        org-cycle-separator-lines 2
+        org-hide-emphasis-markers nil
+        org-return-follows-link t))
 
 (defun mk/play-sound (orgin-fn sound)
   (cl-destructuring-bind (_ _ file) sound
@@ -1042,12 +1094,20 @@
     (force-mode-line-update)))
 
 (with-eval-after-load 'org
-  (mk/org-mode-setup)
+  ;; (mk/org-mode-setup)
 
   (advice-add 'org-timer-update-mode-line :override #'mk/org-timer-update-mode-line)
 
-  (setq org-confirm-babel-evaluate nil)
   (require 'org-tempo)
+
+  ;; (auto-fill-mode 0)
+  (setq-local org-confirm-babel-evaluate nil)
+  (setq-local evil-auto-indent nil)
+
+  ;; (auto-fill-mode nil)
+  (variable-pitch-mode)
+  ;; (org-indent-mode)
+  (visual-line-mode)
 
   ;; Setup fonts for org-mode
   (set-face-attribute 'org-block nil                :inherit 'fixed-pitch)
@@ -1073,22 +1133,23 @@
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
 
-(use-package ob-swift
-  :after org)
-
-(use-package ob-swiftui
-  :after org
-  :config
-  (add-hook 'org-babel-after-execute-hook (lambda ()
-                                            (when org-inline-image-overlays
-                                              (org-redisplay-inline-images))))
-  (add-to-list 'org-babel-tangle-lang-exts
-               '("swiftui" . "swift"))
-  (add-to-list 'org-src-lang-modes
-               '("swiftui" . swift)))
+;; (use-package ob-swift
+;;   :config
+;;   (org-babel-do-load-languages 'org-babel-load-languages
+;;                                (append org-babel-load-languages
+;;                                         '((swift . t)))))
+;; (use-package ob-swiftui
+;;   :config
+;;   (add-hook 'org-babel-after-execute-hook (lambda ()
+;;                                             (when org-inline-image-overlays
+;;                                               (org-redisplay-inline-images))))
+;;   (add-to-list 'org-babel-tangle-lang-exts
+;;                '("swiftui" . "swift"))
+;;   (add-to-list 'org-src-lang-modes
+;;                '("swiftui" . swift)))
 
 (use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
+  :hook ((org-mode . org-bullets-mode))
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
@@ -1132,7 +1193,6 @@
   :hook (prog-mode . dumb-jump-mode)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
-  (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (setq dumb-jump-window 'current)
   (setq dumb-jump-prefer-searcher 'rg))
 
@@ -1143,8 +1203,10 @@
   :config (yas-reload-all))
 
 (use-package swift-mode
+  :defer t
   :mode "\\.swift\\'"
   :config
+  (message "Use package swift-mode")
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
@@ -1165,9 +1227,9 @@
   ("M-p" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
 
-(use-package overlay-usage
-  :hook (swift-mode . overlay-usage-mode)
-  :ensure nil)
+;; (use-package overlay-usage
+;;   ;; :hook (swift-mode . overlay-usage-mode)
+;;   :ensure nil)
 
 (use-package swift-additions
   :ensure nil
@@ -1255,14 +1317,6 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
-
-  ;; (use-package flycheck-swiftlint
-  ;;   :after flycheck
-  ;;   :custom (flycheck-swiftlint-setup))
-
-  ;;  ;; (add-to-list 'flycheck-checkers 'eglot-check)
-  ;;   (add-to-list 'flycheck-checkers 'swiftlint)
-
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point
@@ -1273,20 +1327,6 @@
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
-(defun mk/org-mode-setup()
-  "Setup 'org-mode'."
-  (setq-local completion-at-point-functions
-              (list (cape-super-capf #'cape-ispell
-                                     #'cape-file
-                                     #'cape-dabbrev
-                                     ;; (cape-company-to-capf #'company-yasnippet)
-                                     )))
-  (org-indent-mode 1)
-  (variable-pitch-mode 1)
-  (auto-fill-mode 0)
-  (visual-line-mode t)
-  (setq evil-auto-indent nil))
-;;; esc quits
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
   (interactive)
@@ -1316,6 +1356,8 @@
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
+        electric-pair-mode t
+        electric-indent-mode t
         display-line-numbers 'relative))   ;; Show line numbers
 
 (defun correct-fringe (&optional ignore)
@@ -1371,10 +1413,10 @@
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
 (with-eval-after-load 'swift-mode
-  (setup-swift-programming))
+  ;; (setup-swift-programming)
+  )
 
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
-
 
 (defun xref-eglot+dumb-backend () 'eglot+dumb)
 

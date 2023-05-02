@@ -313,13 +313,13 @@
   (vertico-current                              (:background dark-green :distant-foreground text :foreground text))
 
   (vertico-posframe-border                      (:background muted))
-  (vertico-posframe                             (:background base :foreground subtle))
+  (vertico-posframe                             (:background overlay :foreground subtle))
 
   (corfu-annotations                            (:foreground muted))
   (corfu-current                                (:inherit 'vertico-current))
-  (corfu-border                                 (:background overlay))
+  (corfu-border                                 (:background base))
   (corfu-bar                                    (:background gold))
-  (corfu-default                                (:background base :foreground unmuted))
+  (corfu-default                                (:background overlay :foreground unmuted))
   (corfu-popupinfo                              (:background overlay :foreground text :weight 'light :italic t))
   
   ;; posframe's
