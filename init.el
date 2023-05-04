@@ -254,8 +254,8 @@
   ("M-O" . consult-ls-git)
   ("M-f" . consult-line))
 
-;; (use-package embark-consult
-;;   :after (embark consult))
+(use-package embark-consult
+  :after (embark consult))
 
 (use-package consult-projectile
   :after projectile)
@@ -687,35 +687,6 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword))
 
-
-;; (use-package dashboard
-;;   :config
-;;   (setq dashboard-banner-logo-title "● Mikael's dashboard ●"
-;;         dashboard-startup-banner (concat user-emacs-directory "themes/emacs.png")
-;;         dashboard-week-agenda t
-;;         dashboard-filter-agenda-entry 'dashboard-no-filter-agenda
-;;         dashboard-path-style 'truncate-beginning
-;;         dashboard-set-file-icons t
-;;         dashboard-projects-show-base 'align
-;;         dashboard-recentf-show-base nil
-;;         dashboard-show-shortcuts nil
-;;         dashboard-image-banner-max-height 150
-;;         dashboard-set-init-info t
-;;         dashboard-projects-item-format "%s"
-;;         dashboard-recentf-item-format "%s"
-;;         dashboard-agenda-time-string-format "%d/%m "
-;;         dashboard-agenda-prefix-format "%s"
-;;         dashboard-agenda-sort-strategy '(time-up)
-;;         dashboard-agenda-release-buffers t
-;;         dashboard-set-heading-icons t
-;;         dashboard-center-content t
-;;         dashboard-items '(
-;;                           (agenda . 15)
-;;                           (recents . 5)
-;;                           (projects . 5)
-;;                           ))
-;;   (dashboard-setup-startup-hook))
-
 (use-package emacs
   :init
   (setq completion-cycle-threshold 3)
@@ -773,11 +744,6 @@
 
 (use-package treemacs-projectile
   :after (treemacs projectile))
-
-;; (use-package treemacs-all-the-icons
-;;   :after (treemacs all-the-icons)
-;;   :config
-;;   (treemacs-load-theme "all-the-icons"))
 
 (use-package restclient
   :commands (restclient))
@@ -1206,7 +1172,6 @@
   :defer t
   :mode "\\.swift\\'"
   :config
-  (message "Use package swift-mode")
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
@@ -1227,9 +1192,9 @@
   ("M-p" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
 
-;; (use-package overlay-usage
-;;   ;; :hook (swift-mode . overlay-usage-mode)
-;;   :ensure nil)
+(use-package overlay-usage
+  :hook (swift-mode . overlay-usage-mode)
+  :ensure nil)
 
 (use-package swift-additions
   :ensure nil
@@ -1308,30 +1273,20 @@
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-;; (use-package company-tabnine
-;;   :after corfu
-;;   :custom
-;;   (setq company-tabnine-wait 0.5
-;;         company-tabnine-max-num-results 5))
-
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
-                (list (cape-super-capf #'eglot-completion-at-point
-                                       ;; #'cape-dabbrev
-                                       ;; (cape-company-to-capf #'company-tabnine)
-                                       ;; (cape-company-to-capf #'company-yasnippet)
-                                       ))))
+                (list (cape-super-capf #'eglot-completion-at-point))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
   (interactive)
-  (let* ((ignore-window-parameters t)
-         (dedicated-p (window-dedicated-p)))
+  (let ((ignore-window-parameters t)
+        (dedicated-p (window-dedicated-p)))
     (delete-other-windows)
     (split-window-horizontally)
     (other-window 1)
@@ -1413,8 +1368,7 @@
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
 (with-eval-after-load 'swift-mode
-  ;; (setup-swift-programming)
-  )
+  (setup-swift-programming))
 
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
 

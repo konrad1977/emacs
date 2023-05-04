@@ -89,7 +89,7 @@
 
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder)
   "Install and launch app (as SIMULATORID and BUILD-FOLDER)."
-  (if-let* ((folder build-folder)
+  (let* ((folder build-folder)
          (install-path (shell-quote-argument folder)))
     (inhibit-sentinel-messages
      #'call-process-shell-command

@@ -34,20 +34,17 @@
 (defvar run-app-on-build t)
 (defvar DEBUG nil)
 
-
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
   (unless current-xcode-scheme
     (setq current-xcode-scheme (swift-additions:build-menu :title "Choose scheme: " :list (swift-additions:get-scheme-list))))
   current-xcode-scheme)
 
-
 (defun swift-additions:fetch-or-load-build-configuration ()
   "Get the build configuration or promp user."
   (unless current-build-configuration
     (setq current-build-configuration (swift-additions:build-menu :title "Choose configuration: " :list (swift-additions:get-configuration-list))))
   current-build-configuration)
-
 
 (defun swift-additions:fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."
@@ -101,8 +98,9 @@
    (format "-configuration '%s' \\" (swift-additions:fetch-or-load-build-configuration))
    (format "-jobs %s \\" (swift-additions:get-number-of-cores))
    (format "-sdk %s \\" (swift-additions:get-current-sdk))
-   (if simulatorId
-       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId)
+   (when simulatorId
+     (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
+   (when local-device-id
      (format "-destination 'generic/platform=iOS' \\" ))
    "-UseModernBuildSystem=YES \\"
    "-destination-timeout 1 \\"
@@ -150,6 +148,7 @@
   "Run app.  Either in simulator or on physical."
   (if local-device-id
       (swift-additions:install-app-on-device)
+
     (ios-simulator:install-and-run-app
      :rootfolder current-project-root
      :build-folder (swift-additions:get-build-folder)
@@ -240,17 +239,12 @@
 
   (let* ((folder (swift-additions:get-build-folder))
          (app-name (ios-simulator:app-name-from :folder folder))
-         (default-directory (concat current-project-root folder)))
+         (install-path (concat current-project-root "/" folder))
+         (default-directory install-path)
+         (command (format "ios-deploy -b %s.app -d" app-name)))
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
-    (run-async-command-in-buffer :command (format "ios-deploy -b %s.app -d" app-name))))
-
-;;;###autoload
-(defun build-using-compilation-mode ()
-  "Build using builtin compile and 'compilation-mode'."
-  (interactive)
-  (let* ((default-directory (current-project-root))
-         (compile-command (build-app-command :simulatorId (ios-simulator:load-simulator-id))))
-    (compile compile-command)))
+    (message command)
+    (run-async-command-in-buffer :command command)))
 
 ;;;###autoload
 (defun swift-additions:reset-settings ()
@@ -297,30 +291,54 @@
   (save-some-buffers t)
   (periphery-kill-buffer)
   (ios-simulator:kill-buffer)
+  (setq local-device-id (get-connected-device-id))
 
   (if (swift-additions:is-xcodeproject)
       (progn
-        (setq device-or-simulator "[Building for simulator]")
-        (ios-simulator:load-simulator-id)
         (setq run-app-on-build runApp)
-        (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
-        (let* ((default-directory current-project-root)
-               (build-command (build-app-command :simulatorId: current-simulator-id)))
-          (async-start-command-to-string
-           :command build-command
-           :callback '(lambda (text)
-                        (swift-additions:copy-symbols-for-lsp)
-                        (if run-app-on-build
-                            (swift-additions:check-for-errors text #'swift-additions:run-app)
-                          (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
-        (animate-message-with-color
-         :tag device-or-simulator
-         :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
-         :attributes 'warning
-         :times 2))
+        (if local-device-id
+            (progn
+              (setq device-or-simulator "[Building for physcical device]")
+              (swift-additions:compile-and-run-on-device))
+          ;; Simulator
+          (progn
+            (setq device-or-simulator "[Building for simulator]")
+            (ios-simulator:load-simulator-id)
+            (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+            (let ((default-directory current-project-root)
+                  (build-command (build-app-command :simulatorId: current-simulator-id)))
+              (async-start-command-to-string
+               :command build-command
+               :callback '(lambda (text)
+                            (swift-additions:copy-symbols-for-lsp)
+                            (if run-app-on-build
+                                (swift-additions:check-for-errors text #'swift-additions:run-app)
+                              (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
+            )
+            (animate-message-with-color
+             :tag device-or-simulator
+             :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
+             :attributes 'warning
+             :times 2))
     (if (swift-additions:is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
       (message "Not xcodeproject nor swift package"))))
+
+(defun swift-additions:compile-and-run-on-device ()
+  "Compile and run on device."
+  (message "Compiling for deveice")
+  (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+  (let ((default-directory current-project-root)
+        (build-command (build-app-command :simulatorId: nil)))
+    (async-start-command-to-string
+     :command build-command
+     :callback '(lambda (text)
+                  (swift-additions:copy-symbols-for-lsp)
+                  (if run-app-on-build
+                      (progn
+                        (swift-additions:install-app-on-device)
+                        (swift-additions:run-app))
+                    (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
 
 ;;;###autoload
 (defun swift-additions:test-module-silent ()
@@ -398,8 +416,8 @@
   (unless current-project-root
     (setq current-project-root (swift-additions:get-ios-project-root)))
   
-  (let* ((default-directory current-project-root)
-         (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
+  (let ((default-directory current-project-root)
+        (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
 
@@ -408,7 +426,6 @@
   (unless current-buildconfiguration-json-data
     (setq current-buildconfiguration-json-data (call-process-to-json xcodebuild-list-config-command)))
   current-buildconfiguration-json-data)
-
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
@@ -421,7 +438,6 @@
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
     targets))
-
 
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
@@ -515,7 +531,6 @@
      "-Xswiftc" "-target"
      "-Xswiftc" target)))
 
-;;;###autoload
 (defun my-swift-mode:eglot-server-contact (_ignored)
   "Construct the list that eglot needs to start sourcekit-lsp."
   (setq arglist (swift-additions:lsp-arguments))

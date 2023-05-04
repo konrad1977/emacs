@@ -8,16 +8,22 @@
 (require 'recentf)
 (require 'async)
 (require 'all-the-icons)
+(require 'projectile)
 
 (defvar welcome-mode nil)
 (defvar welcome-recentfiles '()
   "Recent list.")
 
-(defvar latitude 52.52)
-(defvar longitude 13.41)
+(defvar recent-projects '()
+  "List of recent projects.")
+
 (defvar temperature nil)
 (defvar weatherdescription nil)
 (defvar weathericon nil)
+
+(defvar latitude 52.52)
+(defvar longitude 13.41)
+
 
 (defgroup welcome nil
   "Welcome group."
@@ -88,18 +94,32 @@
   "Face for time."
   :group 'welcome)
 
+(defface welcome-weather-icon-face
+  '((t :inherit default :height 0.9))
+  "Face for time."
+  :group 'welcome)
+
 (defface welcome-weather-temperature-face
   '((t :inherit font-lock-function-name-face :height 0.9))
   "Face for time."
   :group 'welcome)
 
-(cl-defun async-start-command-to-string (&key command &key callback)
-  "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
-  (async-start
-   `(lambda ()
-      (shell-command-to-string ,command))
-   `(lambda (result)
-      (funcall ,callback result))))
+(defun weather-icon-from-code (code)
+  "Maps a weather code to a corresponding string."
+  (pcase code
+    (`0 "wi-day-sunny")
+    ((or `1 `2 `3) "wi-day-cloudy")
+    ((or `45 `48) "wi-day-fog")
+    ((or `51 `53 `55) "wi-sprinkle")
+    ((or `56 `57) "wi-snow")
+    ((or `61 `63 `65) "wi-day-rain")
+    ((or `66 `67) "wi-day-rain-mix")
+    ((or `71 `73 `75) "wi-snow")
+    (`77 "wi-snow")
+    ((or `80 `81 `82) "wi-rain")
+    ((or `85 `86) "wi-rain-mix")
+    ((or `95 `96 `99) "wi-thunderstorm")
+    (_ "Unknown")))
 
 (defun weather-code-to-string (code)
   "Maps a weather code to a corresponding string."
@@ -177,6 +197,26 @@
   (when (equal (buffer-name) welcome-buffer)
     (welcome--refresh-screen)))
 
+(defun fetch-weater-data ()
+  "Fetch feather data."
+  (when-let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" latitude longitude))
+              (result (shell-command-to-string (format "curl -s '%s'" url)))
+              (json-obj (json-read-from-string result))
+              (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
+              (weather-code (cdr (assoc 'weathercode (cdr (assoc 'current_weather json-obj)))))
+              (weather-icon (all-the-icons-icon-for-weather (weather-icon-from-code weather-code))))
+    (setq weathericon weather-icon)
+    (setq temperature (format "%s" temp))
+    (setq weatherdescription (format "%s" (weather-code-to-string weather-code)))
+    (welcome--refresh-screen)))
+
+;; (defun get-last-projects ()
+;;   "Get a list of the last 3 projects and their recently opened files."
+;;   (let ((projects (projectile-relevant-known-projects)))
+;;     (mapcar (lambda (project)
+;;               (cons (projectile-project-name project)))
+;;             projects)))
+
 ;;;###autoload
 (defun welcome-create-welcome-hook ()
   "Setup welcome screen."
@@ -185,22 +225,46 @@
     (add-hook 'window-size-change-functions 'welcome--redisplay-buffer-on-resize)
     (add-hook 'emacs-startup-hook (lambda ()
                                     (welcome--refresh-screen)
-                                    (let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" latitude longitude))
-                                           (result (shell-command-to-string (format "curl -s '%s'" url)))
-                                           (json-obj (json-read-from-string result))
-                                           (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
-                                           (weather-code (cdr (assoc 'weathercode (cdr (assoc 'current_weather json-obj)))))
-                                           ;; (weather-icon (all-the-icons-icon-for-weather (weather-code-to-string weather-code)))
-                                           )
-                                      (setq temperature (format "%s" temp))
-                                      (setq weatherdescription (format "%s" (weather-code-to-string weather-code))))
-                                    (welcome--refresh-screen)))))
+                                    (fetch-weater-data)))))
 
+(defun insert-startup-time ()
+  "Insert startup time."
+  (welcome--insert-text (format "%s %s %s %s"
+                                (propertize (all-the-icons-octicon "clock")
+                                            'face `(:family ,(all-the-icons-octicon-family) :height 1.0)
+                                            'display '(raise 0))
+                                (propertize "Startup time:" 'face 'welcome-text-info-face)
+                                (propertize (emacs-init-time "%.2f") 'face 'welcome-info-face)
+                                (propertize "seconds" 'face 'welcome-text-info-face))))
+
+
+(defun insert-package-info (packages)
+  "Insert package info as (PACKAGES)."
+  (welcome--insert-text (format "%s %s %s"
+                                (propertize (all-the-icons-octicon "package")
+                                            'face `(:family ,(all-the-icons-octicon-family) :height 1.0)
+                                            'display '(raise 0))
+                                (propertize packages 'face 'welcome-info-face)
+                                (propertize "packages loaded" 'face 'welcome-text-info-face))))
+
+(defun insert-weather-info ()
+  "Insert weather info."
+  (when weatherdescription
+    (welcome--insert-text (format "%s %s, %s%s"
+                                  (propertize weathericon 'face '(:family "Weather icons" :height 1.0) 'display '(raise 0))
+                                  (propertize weatherdescription 'face 'welcome-weather-description-face)
+                                  (propertize temperature 'face 'welcome-weather-temperature-face)
+                                  (propertize "℃" 'face 'welcome-text-info-face)))))
+
+(defun insert-recent-projects ()
+  "Insert recent projects."
+  (projectile-mode +1)
+  (setq recent-projects (projectile-relevant-known-projects))
+  (dolist (project (seq-take recent-projects 3))
+    (welcome--insert-text (projectile-project-name project))))
 
 (defun welcome--refresh-screen ()
   "Show the welcome screen."
-  ;; (setq welcome--timer
-  ;;       (run-at-time "0 sec" 1 'welcome--refresh-screen))
   (setq welcome-recentfiles (seq-take recentf-list 9))
   (with-current-buffer (get-buffer-create welcome-buffer)
     (let* ((buffer-read-only)
@@ -217,20 +281,15 @@
         (welcome--insert-text (propertize "Quick acccess [C-x to open file]" 'face 'welcome-title-face))
         (welcome--insert-recent-files)
         (setq cursor-type nil)
-        (insert "\n")
-        (welcome--insert-text (format "%s %s %s"
-                                      (propertize "Startup time:" 'face 'welcome-text-info-face)
-                                      (propertize (emacs-init-time "%.2f") 'face 'welcome-info-face)
-                                      (propertize "seconds" 'face 'welcome-text-info-face)))
-        (welcome--insert-text (format "%s %s"
-                                      (propertize packages 'face 'welcome-info-face)
-                                      (propertize "packages loaded" 'face 'welcome-text-info-face)))
-        (when weatherdescription
-          (welcome--insert-text (format "%s %s, %s %s"
-                                        (propertize "Weather:" 'face 'welcome-text-info-face)
-                                        (propertize weatherdescription 'face 'welcome-weather-description-face)
-                                        (propertize temperature 'face 'welcome-weather-temperature-face)
-                                        (propertize "℃" 'face 'welcome-text-info-face))))
+        (insert "\n\n")
+
+        (insert-startup-time)
+        (insert-package-info packages)
+        (insert-weather-info)
+
+        ;; (insert "\n")
+        ;; (insert-recent-projects)
+
         (insert "\n\n")
         (insert (make-string left-margin ?\ ))
         (insert-image image)
