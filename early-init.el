@@ -8,10 +8,10 @@
       gc-cons-threshold (* 512 1024 1024))
 
 (when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 32 1024 1024)))
+  (setq read-process-output-max (* 96 1024 1024)))
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
-(customize-set-variable 'native-comp-speed 3)
+(customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation t)
 
 (setq ffap-alist nil)                ; faster, dumber prompting
