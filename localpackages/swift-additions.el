@@ -31,6 +31,7 @@
 (defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
 (defvar local-device-id nil)
+(defvar run-on-device nil)
 (defvar run-app-on-build t)
 (defvar DEBUG nil)
 
@@ -71,7 +72,7 @@
 (defun swift-additions:get-build-folder ()
   "Fetch build folder."
   (let ((config (swift-additions:fetch-or-load-build-configuration)))
-    (if local-device-id
+    (if (and local-device-id run-on-device)
         (format "build/Build/Products/%s-iphoneos/" config)
       (format "build/Build/Products/%s-iphonesimulator/" config))))
 
@@ -100,7 +101,7 @@
    (format "-sdk %s \\" (swift-additions:get-current-sdk))
    (when simulatorId
      (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
-   (when local-device-id
+   (when (and local-device-id run-on-device)
      (format "-destination 'generic/platform=iOS' \\" ))
    "-UseModernBuildSystem=YES \\"
    "-destination-timeout 1 \\"
@@ -144,9 +145,26 @@
        :command command
        :callback '(lambda (txt) ))))
 
+
+(cl-defun swift-additions:build-device-or-simulator-menu (&key title)
+  "Build device or simulator menu (as TITLE)."
+  (defconst languageList '(
+                           ("Simulator" nil)
+                           ("Physical device" t)))
+    (progn
+    (let* ((choices (seq-map (lambda (item) item) languageList))
+           (choice (completing-read title choices)))
+      (car (cdr (assoc choice choices))))))
+
+(defun swift-addition:ask-for-device-or-simulator ()
+  "Show menu for runnings on simulator or device."
+  (interactive)
+  (when local-device-id
+    (setq run-on-device (swift-additions:build-device-or-simulator-menu :title "Run on simulator or device?"))))
+
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
-  (if local-device-id
+  (if (and local-device-id run-on-device)
       (swift-additions:install-app-on-device)
 
     (ios-simulator:install-and-run-app
@@ -292,11 +310,12 @@
   (periphery-kill-buffer)
   (ios-simulator:kill-buffer)
   (setq local-device-id (get-connected-device-id))
+  (swift-addition:ask-for-device-or-simulator)
 
   (if (swift-additions:is-xcodeproject)
       (progn
         (setq run-app-on-build runApp)
-        (if local-device-id
+        (if run-on-device
             (progn
               (setq device-or-simulator "[Building for physcical device]")
               (swift-additions:compile-and-run-on-device))
