@@ -16,6 +16,8 @@
 
 (defvar recent-projects '()
   "List of recent projects.")
+(defvar min-left-padding 10
+  "Minimum left padding when resizing window.")
 
 (defvar temperature nil)
 (defvar weatherdescription nil)
@@ -60,7 +62,7 @@
   (use-local-map welcome-mode-map))
 
 (defface welcome-title-face
-  '((t :inherit link :height 1.1 :bold t))
+  '((t :inherit link :height 1.1))
   "Face added to code-usage display."
   :group 'welcome)
 
@@ -80,7 +82,7 @@
   :group 'welcome)
 
 (defface welcome-filename-face
-  '((t :inherit default :bold t :italic nil))
+  '((t :inherit default :weight semi-bold :italic nil))
   "Face for the file name."
   :group 'welcome)
 
@@ -164,13 +166,24 @@
     (when (<= 1 index (length files))
       (find-file (nth (1- index) files)))))
 
+(defun welcome:truncate-path-in-middle (path n)
+  "Truncate the middle of PATH to length N by removing characters and adding an ellipsis."
+  (if (<= (length path) n)
+      path
+    (let* ((left (/ (- n 3) 2))
+           (right (- n left 3))
+           (head (substring path 0 (+ left 1)))
+           (tail (substring path (- (length path) right)))
+           (ellipsis "..."))
+      (concat head ellipsis tail))))
+
 (defun welcome--insert-recent-files ()
   "Insert the first 9 recent files with icons in the welcome buffer."
   (recentf-mode)
   (insert "\n")
   (let* ((files welcome-recentfiles)
          (max-length (apply 'max (mapcar 'length files)))
-         (left-margin (/ (- (window-width) max-length) 2)))
+         (left-margin (max min-left-padding (/ (- (window-width) max-length) 2))))
     (dolist (file files)
       (let* ((index (cl-position file files :test #'equal))
              (full-path (file-truename file))
@@ -179,17 +192,16 @@
              (file-dir (file-name-directory file))
              (title (format "%s %s%s"
                     (propertize (all-the-icons-icon-for-file file :v-adjust -0.05) 'face '(:family "all-the-icons" :height 1.0))
-                    (propertize file-dir 'face 'welcome-path-face)
+                    (propertize (welcome:truncate-path-in-middle file-dir 80) 'face 'welcome-path-face)
                     (propertize file-name 'face 'welcome-filename-face)))
              (title-with-path (propertize title 'path full-path))
-             (title-with-path-and-shortcut (concat title-with-path (propertize (format " [%s]" shortcut) 'face '(:height 0.9 :inherit font-lock-constant-face))))
-        (right-margin (- (window-width) max-length left-margin)))
-        (insert (format "%s%s%s\n" (make-string left-margin ?\s) title-with-path-and-shortcut (make-string right-margin ?\s)))))))
+             (title-with-path-and-shortcut (concat title-with-path (propertize (format " [%s]" shortcut) 'face '(:height 0.9 :inherit font-lock-constant-face)))))
+        (insert (format "%s%s\n" (make-string left-margin ?\s) title-with-path-and-shortcut))))))
 
 (defun welcome--insert-text (text)
   "Insert (as TEXT)."
   (let* ((max-length (apply 'max (mapcar 'length welcome-recentfiles)))
-         (left-margin (/ (- (window-width) max-length) 2)))
+         (left-margin (max min-left-padding (/ (- (window-width) max-length) 2))))
     (insert (format "%s%s\n" (make-string left-margin ?\s) text ))))
 
 (defun welcome--redisplay-buffer-on-resize (&rest _)
@@ -272,7 +284,7 @@
            (image (create-image image-path 'png nil :width 200 :height 169))
            (size (image-size image))
            (width (car size))
-           (left-margin (floor (/ (- (window-width) width) 2)))
+           (left-margin (max min-left-padding (floor (/ (- (window-width) width) 2))))
            (packages (format "%d" (length package-activated-list))))
       (erase-buffer)
       (goto-char (point-min))
