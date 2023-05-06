@@ -139,7 +139,8 @@
         welcome-min-left-padding 10
         welcome-image-file "~/.emacs.d/themes/true.png"
         welcome-image-width 200
-        welcome-image-height 169)
+        welcome-image-height 169
+        welcome-title "Welcome Mikael. Have a great day!")
   (welcome-create-welcome-hook))
 
 ;; (use-package exec-path-from-shell

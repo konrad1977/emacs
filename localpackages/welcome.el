@@ -22,6 +22,11 @@
 (defvar weatherdescription nil)
 (defvar weathericon nil)
 
+(defcustom welcome-title "Quick access [C-number to open file]"
+  "Welcome title."
+  :group 'welcome
+  :type '(string))
+
 (defcustom welcome-min-left-padding 10
   "Minimum left padding when resizing window."
   :group 'welcome
@@ -337,7 +342,7 @@
       (goto-char (point-min))
       (let ((inhibit-read-only t))
         (insert "\n")
-        (welcome--insert-text (propertize "Quick acccess [C-x to open file]" 'face 'welcome-title-face))
+        (welcome--insert-text (propertize welcome-title 'face 'welcome-title-face))
         (welcome--insert-recent-files)
         (setq cursor-type nil)
         (insert "\n\n")
