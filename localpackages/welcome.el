@@ -13,7 +13,6 @@
 (defvar welcome-mode nil)
 (defvar welcome-recentfiles '()
   "Recent list.")
-
 (defvar recent-projects '()
   "List of recent projects.")
 
@@ -40,6 +39,21 @@
   "Longitude for weather information in welcome package."
   :group 'welcome
   :type '(float))
+
+(defcustom welcome-image-file ""
+  "Image file in welcome package."
+  :group 'welcome
+  :type '(file))
+
+(defcustom welcome-image-width 200
+  "Image width for weather information."
+  :group 'welcome
+  :type '(natnum))
+
+(defcustom welcome-image-height 200
+  "Image width for weather information."
+  :group 'welcome
+  :type '(natnum))
 
 (defgroup welcome nil
   "Welcome group."
@@ -300,8 +314,7 @@
   (setq welcome-recentfiles (seq-take recentf-list 9))
   (with-current-buffer (get-buffer-create welcome-buffer)
     (let* ((buffer-read-only)
-           (image-path "~/.emacs.d/themes/true.png")
-           (image (create-image image-path 'png nil :width 200 :height 169))
+           (image (create-image welcome-image-file 'png nil :width welcome-image-width :height welcome-image-height))
            (size (image-size image))
            (width (car size))
            (left-margin (max welcome-min-left-padding (floor (/ (- (window-width) width) 2))))

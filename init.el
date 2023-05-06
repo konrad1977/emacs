@@ -136,7 +136,10 @@
   (setq welcome-latitude 56.7365
         welcome-longitude 16.2981
         welcome-path-max-length 60
-        welcome-min-left-padding 10)
+        welcome-min-left-padding 10
+        welcome-image-file "~/.emacs.d/themes/true.png"
+        welcome-image-width 200
+        welcome-image-height 169)
   (welcome-create-welcome-hook))
 
 ;; (use-package exec-path-from-shell
