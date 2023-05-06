@@ -825,7 +825,7 @@
       (window-height . 0.18)
       (side . bottom)
       (slot . 1))
-     ("\\*IOS Simulator\\|*swift package"
+     ("\\*IOS Simulator\\|*swift package\\|*ios-device"
       (display-buffer-reuse-window display-buffer-in-side-window)
       (reusable-frames . nil)
       (body-function . select-window)

@@ -82,6 +82,7 @@
                                buffer)
 
     (with-current-buffer buffer
+      (setq-local mode-line-format nil)
       (setq left-fringe-width 0)
       (setq right-fringe-width 0)
       (setq buffer-face-mode-face 'ios-simulator-background-face)

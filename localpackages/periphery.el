@@ -129,7 +129,7 @@
 (defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
   "Remove unicode-characters.")
 
-(defconst periphery-note-and-errors-regex "\\(^[^\s:]+\\):\s\\(.*\\)$"
+(defconst periphery-note-and-errors-regex "\\(^[^\s:]\\w+\\):\s\\(.*\\)$"
   "When we fail because of other errors than compilation errors.")
 
 (defconst mark-inside-parenteses "\\(\(.+?\)\\)"
@@ -300,7 +300,7 @@
 
 ;;;###autoload
 (cl-defun periphery-run-parser (input &optional succesCallback)
-  "Run parser (as INPUT, optional SUCCESSCALLBACK)."
+  "Run parser (as INPUT as SUCCESSCALLBACK)."
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
     (let* ((entry (periphery--parse-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
@@ -432,6 +432,7 @@
   
 (defun parse-xcodebuild-notes-and-errors (line)
   "Parse error and notes (as LINE)."
+  (message line)
   (setq default-length 8)
   (save-match-data
     (and (string-match periphery-note-and-errors-regex line)

@@ -11,6 +11,7 @@
 (require 'periphery-helper)
 (require 'periphery)
 (require 'ios-simulator)
+(require 'ios-device)
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
@@ -115,14 +116,6 @@
    "-derivedDataPath \\"
    "build"))
 
-(defun swift-additions:format-device-id (id)
-  "Format device id (as ID)."
-  (if id
-      (if (not
-           (string-match-p (regexp-quote "-") id))
-          (concat (substring id 0 8) "-" (substring id 6))
-        id)))
-
 (defun swift-additions:full-build-folder ()
   "Full path to to the build folder."
   (let* ((folder (swift-additions:get-build-folder))
@@ -164,14 +157,11 @@
 
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
-  (if (and local-device-id run-on-device)
-      (swift-additions:install-app-on-device)
-
     (ios-simulator:install-and-run-app
      :rootfolder current-project-root
      :build-folder (swift-additions:get-build-folder)
      :simulatorId (ios-simulator:load-simulator-id)
-     :appIdentifier (swift-additions:fetch-or-load-app-identifier))))
+     :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:check-for-errors (output callback)
   "Run periphery parser on TEXT (optional CALLBACK)."
@@ -236,33 +226,12 @@
             (root (directory-file-name (file-name-directory file))))
       root))
 
-(defun get-connected-device-id ()
-  "Get the id of the connected device."
-  (let ((device-id
-         (clean-up-newlines
-          (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
-    (if (= (length device-id) 0)
-        nil
-      (swift-additions:format-device-id device-id))))
-
 (defun swift-additions:get-current-sdk ()
   "Return the current SDK."
   (if local-device-id
       "iphoneos"
     "iphonesimulator"))
 
-(defun swift-additions:install-app-on-device ()
-  "Install an app on device."
-  (when DEBUG (message (concat "Buildpath:" (swift-additions:get-build-folder))))
-
-  (let* ((folder (swift-additions:get-build-folder))
-         (app-name (ios-simulator:app-name-from :folder folder))
-         (install-path (concat current-project-root "/" folder))
-         (default-directory install-path)
-         (command (format "ios-deploy -b %s.app -d" app-name)))
-    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
-    (message command)
-    (run-async-command-in-buffer :command command)))
 
 ;;;###autoload
 (defun swift-additions:reset-settings ()
@@ -309,7 +278,7 @@
   (save-some-buffers t)
   (periphery-kill-buffer)
   (ios-simulator:kill-buffer)
-  (setq local-device-id (get-connected-device-id))
+  (setq local-device-id (ios-device:id))
   (swift-addition:ask-for-device-or-simulator)
 
   (if (swift-additions:is-xcodeproject)
@@ -345,8 +314,13 @@
 
 (defun swift-additions:compile-and-run-on-device ()
   "Compile and run on device."
-  (message "Compiling for deveice")
   (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+
+  (message-with-color
+   :tag "[Preparing]"
+   :text "Fetching build information..."
+   :attributes '(:inherit warning))
+
   (let ((default-directory current-project-root)
         (build-command (build-app-command :simulatorId: nil)))
     (async-start-command-to-string
@@ -354,9 +328,10 @@
      :callback '(lambda (text)
                   (swift-additions:copy-symbols-for-lsp)
                   (if run-app-on-build
-                      (progn
-                        (swift-additions:install-app-on-device)
-                        (swift-additions:run-app))
+                      (ios-device:install-app
+                       :project-root current-project-root
+                       :buildfolder (swift-additions:get-build-folder)
+                       :appname (ios-simulator:app-name-from :folder (swift-additions:get-build-folder)))
                     (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
 
 ;;;###autoload

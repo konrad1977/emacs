@@ -154,5 +154,4 @@ ARGS are rest arguments, appended to the argument list."
     (json-read)))
 
 (provide 'periphery-helper)
-
 ;;; periphery-helper.el ends here
