@@ -8,7 +8,7 @@
 (require 'all-the-icons)
 (require 'async)
 (require 'json)
-(require 'projectile)
+;; (require 'projectile)
 (require 'recentf)
 (require 'url)
 
@@ -244,19 +244,6 @@
   "Resize current buffer."
   (when (equal (buffer-name) welcome-buffer)
     (welcome--refresh-screen)))
-
-;; (defun fetch-weater-data ()
-;;   "Fetch feather data."
-;;   (when-let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" welcome-latitude welcome-longitude))
-;;               (result (shell-command-to-string (format "curl -s '%s'" url)))
-;;               (json-obj (json-read-from-string result))
-;;               (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
-;;               (weather-code (cdr (assoc 'weathercode (cdr (assoc 'current_weather json-obj)))))
-;;               (weather-icon (all-the-icons-icon-for-weather (weather-icon-from-code weather-code))))
-;;     (setq weathericon weather-icon)
-;;     (setq temperature (format "%s" temp))
-;;     (setq weatherdescription (format "%s" (weather-code-to-string weather-code)))
-;;     (welcome--refresh-screen)))
 
 (defun fetch-weather-data ()
   "Fetch weather data from API."
