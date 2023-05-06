@@ -327,7 +327,7 @@
                                   (propertize weatherdescription 'face 'welcome-weather-description-face)
                                   (propertize temperature 'face 'welcome-weather-temperature-face)
                                   (propertize "℃" 'face 'welcome-text-info-face)))
-    (welcome--insert-text (propertize "Loading weather data..." 'face 'welcome-info-face))))
+    (welcome--insert-text (propertize "Loading weather data..." 'face 'welcome-weather-temperature-face))))
 
 (defun insert-recent-projects ()
   "Insert recent projects."
