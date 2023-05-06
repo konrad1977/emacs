@@ -432,7 +432,6 @@
   
 (defun parse-xcodebuild-notes-and-errors (line)
   "Parse error and notes (as LINE)."
-  (message line)
   (setq default-length 8)
   (save-match-data
     (and (string-match periphery-note-and-errors-regex line)

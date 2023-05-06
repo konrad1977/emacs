@@ -213,7 +213,6 @@
   "Get file extension."
   (file-name-extension buffer-file-name))
 
-
 (cl-defun overlay-usage:shell-command-functions-from (&key filename extension function private)
   "Shell command from EXTENSION and FUNCTION.  Can be PRIVATE and then we check the FILENAME."
   (cond
@@ -225,14 +224,12 @@
     (format "rg -t elisp -e '\\b%s\\b' | wc -l" function))
    (t nil)))
 
-
 (cl-defun overlay-usage:shell-command-classes-from (&key extension name)
   "Shell command from EXTENSION and NAME."
   (cond
    ((string-suffix-p "swift" extension t)
     (format "rg -t swift -e '^[^\/\n\"]*\\b%s\\b' | wc -l" name))
    (t nil)))
-
 
 (cl-defun shell-command-variable-from (&key filename variable)
   "Shell command from FILENAME and VARIABLE."
@@ -242,7 +239,6 @@
    ((string-suffix-p "el" (file-name-extension filename) t)
     (format "rg -t elisp %s -ce '^(?!.*\\(def\\w+).*\\b%s\\b(?!:)' --pcre2" filename variable))
    (t nil)))
-
 
 (cl-defun overlay-usage:find-classes-regex-for-file-type (&key extension)
   "Get the regex for finding classes/structs for and (as EXTENSION)."
@@ -258,7 +254,6 @@
    ((string-match-p (regexp-quote "el") extension) variable-regex-elisp)
    (t nil)))
 
-
 (cl-defun overlay-usage:find-function-regex-for-file-type (&key extension private)
   "Detect what the function start with from the (EXTENSION)."
   (let ((case-fold-search nil))
@@ -267,11 +262,10 @@
      ((string-match-p (regexp-quote "el") extension) "^[^;\n]*\\bdef\\w+\\_>")
      (t nil))))
 
-
 (defun overlay-usage:setup-classes-and-structs ()
   "Add overlays for structs and classes."
   (save-excursion
-    (when-let* ((extension (overlay-usage:extension-from-file))
+    (let* ((extension (overlay-usage:extension-from-file))
                 (classes-regex (overlay-usage:find-classes-regex-for-file-type :extension extension)))
       (goto-char (point-min))
       (while (search-forward-regexp classes-regex nil t)
@@ -287,7 +281,6 @@
              :extension extension)))
         (forward-line)))))
 
-
 (defun overlay-usage:boolean-eq (a b)
   "Check if a and b are equal."
   (equal (when a t)
@@ -296,7 +289,7 @@
 (cl-defun overlay-usage:setup-functions (&key extension private)
   "Add overlay to functions with EXTENSION as PRIVATE."
   (save-excursion
-    (when-let ((func-regex (overlay-usage:find-function-regex-for-file-type :extension extension :private private)))
+    (let ((func-regex (overlay-usage:find-function-regex-for-file-type :extension extension :private private)))
       (goto-char (point-min))
       (while (search-forward-regexp (concat func-regex " \\([^(=]+\\)\(") nil t)
         (let ((position (match-beginning 1))
@@ -314,12 +307,11 @@
                :private private))))
         (forward-line)))))
 
-
 (defun overlay-usage:setup-variables ()
   "Add overlays to variables."
   (save-excursion
-    (when-let* ((extension (overlay-usage:extension-from-file))
-                (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
+    (let* ((extension (overlay-usage:extension-from-file))
+           (variable-regex (overlay-usage:find-variable-regex-for-file-type :extension extension)))
       (goto-char (point-min))
     (while (search-forward-regexp variable-regex nil t)
       (let ((position (match-beginning 1)))
@@ -329,7 +321,6 @@
            :position position
            :filename (buffer-file-name))))
       (forward-line)))))
-
 
 (provide 'overlay-usage)
 ;;; overlay-usage.el ends here
