@@ -5,10 +5,12 @@
 
 ;;; code:
 
-(require 'recentf)
-(require 'async)
 (require 'all-the-icons)
+(require 'async)
+(require 'json)
 (require 'projectile)
+(require 'recentf)
+(require 'url)
 
 (defvar welcome-mode nil)
 (defvar welcome-recentfiles '()
@@ -243,18 +245,42 @@
   (when (equal (buffer-name) welcome-buffer)
     (welcome--refresh-screen)))
 
-(defun fetch-weater-data ()
-  "Fetch feather data."
-  (when-let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" welcome-latitude welcome-longitude))
-              (result (shell-command-to-string (format "curl -s '%s'" url)))
-              (json-obj (json-read-from-string result))
-              (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
-              (weather-code (cdr (assoc 'weathercode (cdr (assoc 'current_weather json-obj)))))
-              (weather-icon (all-the-icons-icon-for-weather (weather-icon-from-code weather-code))))
-    (setq weathericon weather-icon)
-    (setq temperature (format "%s" temp))
-    (setq weatherdescription (format "%s" (weather-code-to-string weather-code)))
-    (welcome--refresh-screen)))
+;; (defun fetch-weater-data ()
+;;   "Fetch feather data."
+;;   (when-let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" welcome-latitude welcome-longitude))
+;;               (result (shell-command-to-string (format "curl -s '%s'" url)))
+;;               (json-obj (json-read-from-string result))
+;;               (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
+;;               (weather-code (cdr (assoc 'weathercode (cdr (assoc 'current_weather json-obj)))))
+;;               (weather-icon (all-the-icons-icon-for-weather (weather-icon-from-code weather-code))))
+;;     (setq weathericon weather-icon)
+;;     (setq temperature (format "%s" temp))
+;;     (setq weatherdescription (format "%s" (weather-code-to-string weather-code)))
+;;     (welcome--refresh-screen)))
+
+(defun fetch-weather-data ()
+  "Fetch weather data from API."
+  (let ((url-request-method "GET")
+        (url-request-extra-headers '(("Content-Type" . "application/json")))
+        (url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" welcome-latitude welcome-longitude)))
+    (url-retrieve url
+                  (lambda (_)
+                    (goto-char (point-min))
+                    (re-search-forward "^$")
+                    (let* ((json-data (buffer-substring-no-properties (point) (point-max)))
+                           (json-obj (json-read-from-string json-data))
+                           (current-weather (cdr (assoc 'current_weather json-obj)))
+                           (temp (cdr (assoc 'temperature current-weather)))
+                           (weather-code (cdr (assoc 'weathercode current-weather)))
+                           (weather-icon (all-the-icons-icon-for-weather
+                                          (weather-icon-from-code weather-code))))
+                      (setq weathericon weather-icon)
+                      (setq temperature (format "%s" temp))
+                      (setq weatherdescription (format "%s" (weather-code-to-string weather-code))))
+                    (welcome--refresh-screen))
+                  nil
+                  t)))
+
 
 ;; (defun get-last-projects ()
 ;;   "Get a list of the last 3 projects and their recently opened files."
@@ -271,7 +297,7 @@
     (add-hook 'window-size-change-functions 'welcome--redisplay-buffer-on-resize)
     (add-hook 'emacs-startup-hook (lambda ()
                                     (welcome--refresh-screen)
-                                    (fetch-weater-data)))))
+                                    (fetch-weather-data)))))
 
 (defun insert-startup-time ()
   "Insert startup time."
@@ -295,12 +321,13 @@
 
 (defun insert-weather-info ()
   "Insert weather info."
-  (when weatherdescription
+  (if weatherdescription
     (welcome--insert-text (format "%s %s, %s%s"
                                   (propertize weathericon 'face '(:family "Weather icons" :height 1.0) 'display '(raise 0))
                                   (propertize weatherdescription 'face 'welcome-weather-description-face)
                                   (propertize temperature 'face 'welcome-weather-temperature-face)
-                                  (propertize "℃" 'face 'welcome-text-info-face)))))
+                                  (propertize "℃" 'face 'welcome-text-info-face)))
+    (welcome--insert-text (propertize "Loading weather data..." 'face 'welcome-info-face))))
 
 (defun insert-recent-projects ()
   "Insert recent projects."
