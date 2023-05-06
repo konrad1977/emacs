@@ -16,16 +16,30 @@
 
 (defvar recent-projects '()
   "List of recent projects.")
-(defvar min-left-padding 10
-  "Minimum left padding when resizing window.")
 
 (defvar temperature nil)
 (defvar weatherdescription nil)
 (defvar weathericon nil)
 
-(defvar latitude 52.52)
-(defvar longitude 13.41)
+(defcustom welcome-min-left-padding 10
+  "Minimum left padding when resizing window."
+  :group 'welcome
+  :type '(natnum))
 
+(defcustom welcome-path-max-length 72
+  "Latitude for weather information."
+  :group 'welcome
+  :type '(natnum))
+
+(defcustom welcome-latitude nil
+  "Latitude for weather information."
+  :group 'welcome
+  :type '(float))
+
+(defcustom welcome-longitude nil
+  "Longitude for weather information in welcome package."
+  :group 'welcome
+  :type '(float))
 
 (defgroup welcome nil
   "Welcome group."
@@ -62,7 +76,7 @@
   (use-local-map welcome-mode-map))
 
 (defface welcome-title-face
-  '((t :inherit link :height 1.1))
+  '((t :inherit link :height 1.2))
   "Face added to code-usage display."
   :group 'welcome)
 
@@ -182,8 +196,7 @@
   (recentf-mode)
   (insert "\n")
   (let* ((files welcome-recentfiles)
-         (max-length (apply 'max (mapcar 'length files)))
-         (left-margin (max min-left-padding (/ (- (window-width) max-length) 2))))
+         (left-margin (welcome:calculate-padding-left)))
     (dolist (file files)
       (let* ((index (cl-position file files :test #'equal))
              (full-path (file-truename file))
@@ -192,17 +205,24 @@
              (file-dir (file-name-directory file))
              (title (format "%s %s%s"
                     (propertize (all-the-icons-icon-for-file file :v-adjust -0.05) 'face '(:family "all-the-icons" :height 1.0))
-                    (propertize (welcome:truncate-path-in-middle file-dir 80) 'face 'welcome-path-face)
+                    (propertize (welcome:truncate-path-in-middle file-dir welcome-path-max-length) 'face 'welcome-path-face)
                     (propertize file-name 'face 'welcome-filename-face)))
              (title-with-path (propertize title 'path full-path))
              (title-with-path-and-shortcut (concat title-with-path (propertize (format " [%s]" shortcut) 'face '(:height 0.9 :inherit font-lock-constant-face)))))
         (insert (format "%s%s\n" (make-string left-margin ?\s) title-with-path-and-shortcut))))))
 
+(defun welcome:calculate-padding-left ()
+  "Calculate padding for left side."
+  (let* ((max-length (apply 'max (mapcar (lambda (path) (length (welcome:truncate-path-in-middle path welcome-path-max-length))) welcome-recentfiles)))
+         (left-margin (max welcome-min-left-padding (/ (- (window-width) max-length) 2)))
+         (filenames (mapcar (lambda (path) (file-name-nondirectory path)) welcome-recentfiles))
+         (max-filename-length (apply 'max (mapcar 'length filenames))))
+    (- left-margin (/ max-filename-length 2))))
+
 (defun welcome--insert-text (text)
   "Insert (as TEXT)."
-  (let* ((max-length (apply 'max (mapcar 'length welcome-recentfiles)))
-         (left-margin (max min-left-padding (/ (- (window-width) max-length) 2))))
-    (insert (format "%s%s\n" (make-string left-margin ?\s) text ))))
+  (let ((left-margin (welcome:calculate-padding-left)))
+    (insert (format "%s%s\n" (make-string left-margin ?\s) text))))
 
 (defun welcome--redisplay-buffer-on-resize (&rest _)
   "Resize current buffer."
@@ -211,7 +231,7 @@
 
 (defun fetch-weater-data ()
   "Fetch feather data."
-  (when-let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" latitude longitude))
+  (when-let* ((url (format "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true" welcome-latitude welcome-longitude))
               (result (shell-command-to-string (format "curl -s '%s'" url)))
               (json-obj (json-read-from-string result))
               (temp (cdr (assoc 'temperature (cdr (assoc 'current_weather json-obj)))))
@@ -284,7 +304,7 @@
            (image (create-image image-path 'png nil :width 200 :height 169))
            (size (image-size image))
            (width (car size))
-           (left-margin (max min-left-padding (floor (/ (- (window-width) width) 2))))
+           (left-margin (max welcome-min-left-padding (floor (/ (- (window-width) width) 2))))
            (packages (format "%d" (length package-activated-list))))
       (erase-buffer)
       (goto-char (point-min))
