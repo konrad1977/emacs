@@ -1,13 +1,15 @@
-/var/
-/transient/
-/themes/.DS_Store
-/recentf
-/quelpa/
-/projectile-bookmarks.eld
-/places
 *.DS_Store
 *.elc
 /Not used/
+/backups/
+/eln-cache/
 /elpa/
 /history
-/eln-cache/
+/localpackages/welcome-dashboard
+/places
+/projectile-bookmarks.eld
+/quelpa/
+/recentf
+/themes/.DS_Store
+/transient/
+/var/
