@@ -1,4 +1,4 @@
-;;; periphery-quick --- A small package for quickly finding symbols -*- lexical-binding: t -*-
+;;; periphery-quick.el --- A small package for quickly finding symbols -*- lexical-binding: t -*-
 ;;; Code:
 
 (require 'periphery-helper)
@@ -104,6 +104,6 @@
     (car (cdr (assoc choice choices)))))
 
 (provide 'periphery-quick)
-;;; periphery-quickel ends here
+;;; periphery-quick.el ends here
 
 

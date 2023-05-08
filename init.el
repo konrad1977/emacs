@@ -58,7 +58,13 @@
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
-(add-to-list 'load-path (concat user-emacs-directory "localpackages"))
+(let* ((dir (expand-file-name (concat user-emacs-directory "localpackages")))
+       (default-directory dir))
+  (when (file-directory-p dir)
+    (add-to-list 'load-path dir)
+    (if (fboundp 'normal-top-level-add-subdirs-to-load-path)
+        (normal-top-level-add-subdirs-to-load-path))))
+
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 
 ; On macos use our custom settings ---------------------
@@ -128,7 +134,7 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error nil))
+        debug-on-error t))
 
 (use-package welcome
   :ensure nil
@@ -1167,8 +1173,11 @@
   :hook (prog-mode . dumb-jump-mode)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
-  (setq dumb-jump-window 'current)
-  (setq dumb-jump-prefer-searcher 'rg))
+  (setq dumb-jump-window 'current
+        dumb-jump-force-searcher 'rg
+        dumb-jump-quiet t
+        xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 (use-package yasnippet
   :hook (swift-mode . yas-minor-mode)

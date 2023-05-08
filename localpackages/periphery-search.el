@@ -1,8 +1,8 @@
-;;; Periphery-search --- Search using Ag/Rg and show the result as flycheck list.  -*- lexical-binding: t; -*-
-
+;;; periphery-search.el --- Search using Ag/Rg and show the result as flycheck list.  -*- lexical-binding: t; -*-
 ;;; Commentary: Package for showing search as result in a tabulated list
 
 ;;; Code:
+
 (require 'periphery-helper)
 (require 'periphery)
 (require 'thingatpt)
@@ -10,16 +10,13 @@
 (defvar current-query "")
 (defvar current-title "Search")
 
-
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
   (periphery-parse-search-result :title current-title :text text :query current-query))
 
-
 (defun setup-search-title ()
   "Default search title."
   (setq current-title "Search"))
-
 
 (defun periphery--search-thing-at-point ()
   "Search thing at point."
@@ -30,16 +27,13 @@
             (periphery-run-query (format "rg -g '*.%s' -s -e" extension) (escape-string text))))
           (periphery-run-query (format "rg -g '*.%s' -w -s -e" extension) (thing-at-point 'symbol)))))
 
-
 (defun escape-string (text)
   "Escape TEXT."
   (setq str (replace-regexp-in-string "\{" "\\\\{" text))
   (setq str (replace-regexp-in-string "\}" "\\\\}" str))
   (setq str (replace-regexp-in-string "\(" "\\\\(" str))
   (setq str (replace-regexp-in-string "\)" "\\\\)" str))
-  str
-  )
-
+  str)
 
 (defun periphery-run-query (searcher text)
   "Search using (SEARCHER) with (TEXT)."
@@ -53,7 +47,6 @@
            :command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path" searcher current-query)
            :callback '(lambda (result) (send-search-result-to-periphery result)))))
     (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
-
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."
