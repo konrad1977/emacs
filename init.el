@@ -134,20 +134,24 @@
         use-package-always-ensure t
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
-        debug-on-error t))
+        debug-on-error nil))
 
-(use-package welcome
+(use-package welcome-dashboard
   :ensure nil
+  ;; :custom-face
+  ;; (welcome-dashboard-path-face ((t (:height 0.9))))
   :config
-  (setq welcome-latitude 56.7365
-        welcome-longitude 16.2981
-        welcome-path-max-length 75
-        welcome-min-left-padding 10
-        welcome-image-file "~/.emacs.d/themes/true.png"
-        welcome-image-width 200
-        welcome-image-height 169
-        welcome-title "Welcome Mikael. Have a great day!")
-  (welcome-create-welcome-hook))
+  (setq welcome-dashboard-latitude 56.7365
+        welcome-dashboard-longitude 16.2981
+        welcome-dashboard-show-weather-info t
+        welcome-dashboard-use-fahrenheit nil
+        welcome-dashboard-path-max-length 50
+        welcome-dashboard-min-left-padding 10
+        welcome-dashboard-image-file "~/.emacs.d/themes/true.png"
+        welcome-dashboard-image-width 200
+        welcome-dashboard-image-height 169
+        welcome-dashboard-title "Welcome Mikael. Have a great day!")
+  (welcome-dashboard-create-welcome-hook))
 
 ;; (use-package exec-path-from-shell
 ;;   :after evil
@@ -699,7 +703,8 @@
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-keyword))
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package emacs
   :init
@@ -761,6 +766,13 @@
 
 (use-package restclient
   :commands (restclient))
+
+(use-package flyspell
+  :ensure nil
+  :config
+  (setq flyspell-issue-message-flag nil
+      ispell-local-dictionary "sv-SE"
+      ispell-program-name "aspell"))
 
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
@@ -1035,7 +1047,6 @@
   :hook ((org-mode . visual-line-mode)
          (org-mode . org-display-inline-images))
   :config
-  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
         org-startup-with-inline-images t
@@ -1055,7 +1066,6 @@
         org-src-tab-acts-natively t
         org-startup-with-inline-images t
         org-cycle-separator-lines 2
-        org-hide-emphasis-markers nil
         org-return-follows-link t))
 
 (defun mk/play-sound (orgin-fn sound)
@@ -1085,9 +1095,21 @@
   (setq-local evil-auto-indent nil)
 
   ;; (auto-fill-mode nil)
-  (variable-pitch-mode)
   ;; (org-indent-mode)
+  (variable-pitch-mode)
   (visual-line-mode)
+
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
+
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
 
   ;; Setup fonts for org-mode
   (set-face-attribute 'org-block nil                :inherit 'fixed-pitch)
@@ -1128,10 +1150,17 @@
 ;;   (add-to-list 'org-src-lang-modes
 ;;                '("swiftui" . swift)))
 
-(use-package org-bullets
-  :hook ((org-mode . org-bullets-mode))
-  :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+(use-package org-superstar
+  :hook ((org-mode . org-superstar-mode))
+  :init
+  (setq org-inlinetask-show-first-star t
+        org-superstar-cycle-headline-bullets nil
+        org-superstar-headline-bullets-list '("› ")
+        org-superstar-prettify-item-bullets t
+        ;; org-superstar-headline-bullets-list '("◉" "○" "⍟" "◈" "◇" "◈" "○" "▷")
+        ;; org-superstar-headline-bullets-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
+        ))
+
 
 (use-package visual-fill-column
   :hook ((org-mode . visual-fill-column-mode))
@@ -1210,7 +1239,7 @@
   ("C-c x l" . #'ios-simulator:change-language))
 
 (use-package overlay-usage
-  :hook (swift-mode . overlay-usage-mode)
+  :hook (prog-mode . overlay-usage-mode)
   :ensure nil)
 
 (use-package swift-additions

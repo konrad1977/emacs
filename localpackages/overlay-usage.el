@@ -64,7 +64,7 @@
 
 ;;;###autoload
 (define-minor-mode overlay-usage-mode
-  "Toggle overlay-usage-mode."
+  "Toggle 'overlay-usage-mode'."
   :group overlay-usage
   :init-value nil
   :lighter "OverlayUsage"
@@ -79,14 +79,14 @@
 
 (defun overlay-usage-enable ()
   "Enable overlay-usage."
-  (add-hook 'after-save-hook (lambda () (overlay-usage:update-all-buffer)) nil t)
-  (add-hook 'after-revert-hook (lambda () (overlay-usage:update-all-buffer)) nil t)
+  `(add-hook 'after-save-hook (lambda () (overlay-usage:update-all-buffer)) nil t)
+  `(add-hook 'after-revert-hook (lambda () (overlay-usage:update-all-buffer)) nil t)
   (overlay-usage:add-all-overlays))
 
 (defun overlay-usage-disable ()
-  "Disable overlay-usage-mode."
-  (remove-hook 'after-save-hook (lambda () (overlay-usage:remove-all-overlays) t))
-  (remove-hook 'after-revert-hook (lambda () (overlay-usage:remove-all-overlays) t))
+  "Disable 'overlay-usage-mode'."
+  `(remove-hook 'after-save-hook (lambda () (overlay-usage:remove-all-overlays) t))
+  `(remove-hook 'after-revert-hook (lambda () (overlay-usage:remove-all-overlays) t))
   (overlay-usage:remove-all-overlays))
 
 (defun overlay-usage:buffer-visible-p (buffer)
@@ -107,13 +107,12 @@
   (let ((default-directory (overlay-usage:project-root-dir))
         (extension (overlay-usage:extension-from-file)))
 
-    (cond
-     ((string-match-p (regexp-quote "swift") extension)
+    (cond ((string-match-p (regexp-quote "swift") extension)
       (overlay-usage:setup-functions :extension extension :private t)
       (overlay-usage:setup-classes-and-structs)))
 
-    (overlay-usage:setup-functions :extension extension :private nil)
-    (overlay-usage:setup-variables)))
+      (overlay-usage:setup-functions :extension extension :private nil)
+      (overlay-usage:setup-variables)))
 
 (defun overlay-usage:remove-all-overlays ()
   "Remove all overlays."
@@ -135,7 +134,7 @@
 
 
 (cl-defun add-overlays-for-functions (&key position spaces filename extension private)
-  "Add overlay (as POSITION with SPACES and search EXTENSION)."
+  "Add overlay (as POSITION with SPACES FILENAME and search EXTENSION PRIVATE)."
   (goto-char position)
   (let* ((function-name (thing-at-point 'symbol))
          (count (string-to-number
@@ -255,7 +254,7 @@
    (t nil)))
 
 (cl-defun overlay-usage:find-function-regex-for-file-type (&key extension private)
-  "Detect what the function start with from the (EXTENSION)."
+  "Detect what the function start with from the (EXTENSION PRIVATE)."
   (let ((case-fold-search nil))
     (cond
      ((string-match-p (regexp-quote "swift") extension) "^[^/\n]*\\_<func\\_>")
@@ -282,9 +281,9 @@
         (forward-line)))))
 
 (defun overlay-usage:boolean-eq (a b)
-  "Check if a and b are equal."
-  (equal (when a t)
-         (when b t)))
+  "Check if (as A B) are equal."
+  (equal a b))
+
 
 (cl-defun overlay-usage:setup-functions (&key extension private)
   "Add overlay to functions with EXTENSION as PRIVATE."
