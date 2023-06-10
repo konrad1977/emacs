@@ -8,7 +8,7 @@
 (require 'cl-lib)
 
 (defvar swiftformat-command "swiftformat")
-(defvar swift-version "5.7.2")
+(defvar swift-version "5.8")
 (defvar disabled-rules-list '(
                               "blankLinesAroundMark"
                               "blankLinesAtStartOfScope"

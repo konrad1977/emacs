@@ -153,7 +153,6 @@
 
 (cl-defun ios-simulator:build-language-menu (&key title)
   "Build language menu (as TITLE)."
-  (interactive)
   (defconst languageList '(
                            ("🏴󠁧󠁢󠁥󠁮󠁧󠁿 English (UK)" "en-UK")
                            ("🇸🇪 Swedish (Sweden)" "sv-SE")
@@ -182,7 +181,6 @@
 
 (cl-defun ios-simulator:build-selection-menu (&key title &key list)
   "Builds a widget menu from (as TITLE as LIST)."
-  (interactive)
   (if (<= (length list) 1)
       (elt list 0)
     (progn
@@ -228,7 +226,6 @@
 
 (defun ios-simulator:setup-language ()
   "Setup language if it isnt set."
-  (interactive)
   (unless current-language-selection
     (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))))
 

@@ -4,21 +4,22 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'light)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'light)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 170 :weight 'light)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin) 
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'light)
 
 (custom-set-faces
  '(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0)))))
 
-(display-battery-mode t)		  ;; Show battery.
-(display-time-mode t)			  ;; Show time.
-(fset 'yes-or-no-p 'y-or-n-p)     ;; Set yes or no to y/n
+(display-battery-mode t)        ;; Show battery.
+(display-time-mode t)           ;; Show time.
+(fset 'yes-or-no-p 'y-or-n-p)   ;; Set yes or no to y/n
 (global-auto-revert-mode)       ;; refresh a buffer if changed on disk
-(global-hl-line-mode 1)           ;; Highlight current line
+(global-hl-line-mode 1)         ;; Highlight current line
 ;; (pixel-scroll-precision-mode 1)
 
 (setq ad-redefinition-action            'accept
+      global-auto-revert-non-file-buffers t
       auto-revert-check-vc-info         t
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
@@ -51,10 +52,7 @@
               ediff-forward-word-function   'forward-char
               ediff-split-window-function   'split-window-horizontally
               tab-width                     4            ;: Use four tabs
-              line-spacing                  0.0         ;; Increase linespacing a bit
-              truncate-lines                t
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-              completion-ignore-case        t            ;; Ignore case when completing
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
@@ -69,14 +67,13 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-  (set-fontset-font t nil "SF Pro Display" nil 'append)
-  (set-fontset-font t nil "SF Mono" nil 'append)
+  ;; (set-fontset-font t nil "SF Pro Display" nil 'append)
+  ;; (set-fontset-font t nil "SF Mono" nil 'append)
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
         mac-command-modifier 'meta
         mac-option-modifier 'none
         dired-use-ls-dired nil
-        pixel-scroll-precision-use-momentum t
         browse-url-browser-function #'mk/browser-split-window))
 (put 'narrow-to-page 'disabled nil)
 
@@ -89,7 +86,8 @@
 ;; Initialize package sources
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                        ("elpa" . "https://elpa.gnu.org/packages/")))
+                         ("elpa" . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
 
 ;; Initialize use-package on non-Linux platforms
@@ -136,13 +134,17 @@
         use-package-minimum-reported-time 0.1
         debug-on-error nil))
 
+(use-package gcmh
+  :hook (after-init . gcmh-mode))
+
 (use-package welcome-dashboard
   :ensure nil
-  ;; :custom-face
-  ;; (welcome-dashboard-path-face ((t (:height 0.9))))
+  :custom-face
+  (welcome-dashboard-path-face ((t (:height 0.9))))
   :config
   (setq welcome-dashboard-latitude 56.7365
         welcome-dashboard-longitude 16.2981
+        welcome-dashboard-use-nerd-icons t
         welcome-dashboard-show-weather-info t
         welcome-dashboard-use-fahrenheit nil
         welcome-dashboard-path-max-length 50
@@ -152,15 +154,6 @@
         welcome-dashboard-image-height 169
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
   (welcome-dashboard-create-welcome-hook))
-
-;; (use-package exec-path-from-shell
-;;   :after evil
-;;   :init
-;;   (exec-path-from-shell-initialize))
-
-(use-package benchmark-init
-  :config
-  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 
 (use-package no-littering)
 
@@ -211,16 +204,16 @@
   (vertico-posframe-cleanup)
   :config
   (setq vertico-posframe-parameters
-        '((left-fringe . 5)
-          (right-fringe . 5)))
+        '((left-fringe . 0)
+          (right-fringe . 0)))
   (setq ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines t
-        vertico-posframe-width 160
-        vertico-posframe-min-height 1
-        vertico-posframe-border-width 1))
+        vertico-posframe-width 158
+        vertico-posframe-min-height 2
+        vertico-posframe-border-width 15))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -234,10 +227,8 @@
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 (use-package nerd-icons
+  :defer t
   :custom
-  ;; The Nerd Font you want to use in GUI
-  ;; "Symbols Nerd Font Mono" is the default and is recommended
-  ;; but you can use any other Nerd Font if you want
   (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package nerd-icons-dired
@@ -246,20 +237,23 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless)
+  (setq completion-styles '(orderless basic)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles  . (orderless flex)))
+        completion-category-overrides '((file (styles flex))
                                         (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
   :after (vertico)
   :config (marginalia-mode))
 
-;; (use-package all-the-icons-completion
-;;   :after (marginalia all-the-icons)
-;;   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-;;   :init
-;;   (all-the-icons-completion-mode))
+;; (use-package multiple-cursors
+;;   :hook (prog-mode . multiple-cursors-mode)
+;;   :bind
+;;   ("M-j" . 'mc/mark-all-dwim)
+;;   ("C-M-c" . 'mc/edit-lines))
+
+;; (global-unset-key (kbd "M-<down-mouse-1>"))
+;; (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
 
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -281,39 +275,23 @@
 (use-package recentf
   :hook (after-init . recentf-mode))
 
-;; Config and install modeline
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
+  :hook (evil-mode . doom-modeline-mode)
   :config
-  (custom-set-faces
-   '(mode-line ((t (:family "SF Mono" :height 0.85)))))
-  (custom-set-faces
-   '(mode-line-inactive ((t (:family "SF Mono" :height 0.85)))))
-
   (setq doom-modeline-buffer-encoding nil
         doom-modeline-percent-position nil
         doom-modeline-buffer-file-name-style 'file-name
-        doom-modeline-checker-simple-format t
         doom-modeline-vcs-max-length 50
-        doom-modeline-major-mode-icon nil
         doom-modeline-project-detection 'projectile
-        doom-modeline-icon t
         doom-modeline-modal t
         doom-modeline-modal-icon nil
-        doom-modeline-lsp t
-        doom-modeline-workspace-name nil
-        doom-modeline-persp-name nil
-        doom-modeline-bar-width 5
-        doom-modeline-height 38
+        ;; doom-modeline-workspace-name nil
+        ;; doom-modeline-persp-name nil
+        doom-modeline-bar-width 20
+        doom-modeline-height 31
         doom-modeline-hud t
         doom-modeline-buffer-state-icon nil
-        doom-modeline-time-icon nil)
-  (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
-        evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
-        evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
-        evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
-        evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
-        evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple")))))
+        doom-modeline-time-icon nil))
 
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
@@ -372,7 +350,14 @@
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
-  (add-to-list 'desktop-locals-to-save 'evil-markers-alist))
+  (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+
+  (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
+        evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
+        evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
+        evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
+        evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
+        evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple")))))
 
 (use-package evil-args
   :after evil
@@ -397,6 +382,18 @@
   :init
   (evil-collection-init))
 
+(use-package evil-mc
+  :hook (evil-mode . global-evil-mc-mode)
+  :bind
+  ("C-g" . evil-mc-undo-all-cursors)
+  ("C-M-<down>" . (lambda () (interactive) (evil-mc-make-cursor-move-next-line 1)))
+  ("C-M-<up>" . (lambda () (interactive) (evil-mc-make-cursor-move-prev-line 1)))
+  ("C-c a" . (lambda () (interactive) (evil-mc-make-cursor-here)))
+  :config
+  (setq evil-mc-undo-cursors-on-keyboard-quit t)
+  (setq evil-mc-mode-line-text-inverse-colors t)
+  (setq evil-mc-mode-line-text-cursor-color t))
+
 (use-package evil-iedit-state
   :after evil
   :config
@@ -414,18 +411,9 @@
   :init
   (evil-commentary-mode 1))
 
-(use-package evil-numbers
-  :after evil
-  :config
-  (define-key evil-normal-state-map (kbd "C-c +") 'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-c -") 'evil-numbers/dec-at-pt))
-
 (use-package evil-quickscope
   :after evil
   :hook (prog-mode . evil-quickscope-mode))
-
-(use-package evil-tutor
-  :commands evil-tutor)
 
 (use-package evil-goggles
   :init
@@ -435,14 +423,6 @@
   (setq evil-goggles-pulse t
         evil-goggles-duration 0.3)
   (evil-goggles-use-diff-faces))
-
-;; (define-key global-map [remap quit-window] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-;; (define-key global-map [remap kill-buffer] 'kill-buffer-and-window) ;; remap kill window to kill buffer also
-
-(use-package vundo
-  :after evil
-  :config
-  (setq vundo-glyph-alist vundo-unicode-symbols))
 
 (use-package undo-fu
   :after evil
@@ -455,35 +435,21 @@
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
 (use-package minimap
-  :init
-  (setq minimap-width-fraction 0.1
+  :commands (minimap-mode)
+  :config
+  (setq minimap-width-fraction 0.05
         minimap-minimum-width 10
+        minimap-always-recenter t
         minimap-hide-fringes t
         minimap-window-location 'right
         minimap-enlarge-certain-faces nil
         minimap-dedicated-window t)
-  :config
   (custom-set-faces
-   '(minimap-font-face ((t (:family "Minimap" :height 10 :group 'minimap))))))
+   '(minimap-font-face ((t (:family "Minimap" :height 0.2 :group 'minimap))))))
 
-;; Theming
-(use-package doom-themes
-  :after doom-modeline
+(use-package treemacs-nerd-icons
   :config
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t  ; if nil, italics is universally disabled
-        doom-themes-treemacs-theme "doom-colors")
-  (doom-themes-visual-bell-config)
-  (doom-themes-treemacs-config)
-  (doom-themes-org-config))
-
-(use-package all-the-icons
-  :after doom-modeline
-  :custom
-  (setq all-the-icons-scale-factor 1.0))
-
-;; (use-package all-the-icons-dired
-;;   :hook (dired-mode . all-the-icons-dired-mode))
+  (treemacs-load-theme "nerd-icons"))
 
 (use-package svg-tag-mode
   :hook (swift-mode . svg-tag-mode)
@@ -540,15 +506,10 @@
   :after corfu
   :custom
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.2)
-  (kind-icon-default-face 'corfu-default)
-  ;; (kind-icon-default-style '(
-  ;;                            :padding 0.8
-  ;;                            :stroke 0
-  ;;                            :margin -0.8
-  ;;                            :radius 1.0
-  ;;                            :height 0.85
-  ;;                            :scale 0.8))
+  (kind-icon-blend-frac 0.15)
+  ;; (kind-icon-default-face 'corfu-default)
+  ;; (kind-icon-default-style 
+  ;;  '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 0.8 :scale 1.5))
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
@@ -561,7 +522,7 @@
         (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
         (command ,(nerd-icons-codicon "nf-cod-terminal") :face default)
         (constant ,(nerd-icons-codicon "nf-cod-symbol_constant") :face font-lock-constant-face)
-        (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face tree-sitter-hl:constructor)
+        (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face font-lock-constant-face)
         (enummember ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
         (enum-member ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
         (enum ,(nerd-icons-codicon "nf-cod-symbol_enum") :face font-lock-builtin-face)
@@ -614,12 +575,12 @@
   ;;         (folder "d" :icon "folder" :face font-lock-doc-face)
   ;;         (interface "if" :icon "video-input-component" :face font-lock-type-face)
   ;;         (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face)
-  ;;         (macro "mc" :icon "lambda" :face font-lock-keyword-face)
+  ;;         (macro "/mmc" :icon "lambda" :face font-lock-keyword-face)
   ;;         (module "{" :icon "orbit" :face font-lock-preprocessor-face)
   ;;         (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face)
   ;;         (param "pa" :icon "test-tube" :face default)
   ;;         (reference "rf" :icon "hospital" :face font-lock-variable-name-face)
-  ;;         (snippet "S" :icon "pill" :face font-lock-string-face)
+;;         (snippet "S" :icon "pill" :face font-lock-string-face)
   ;;         (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
   ;;         (struct "%" :icon "molecule" :face font-lock-variable-name-face)
   ;;         (text "tx" :icon "skull-scan" :face shadow)
@@ -666,12 +627,12 @@
         corfu-popupinfo-max-width corfu-max-width
         tab-always-indent 'complete))
 
-(use-package corfu-history
-  :ensure nil
-  :after (corfu savehist)
-  :config
-  (corfu-history-mode 1)
-  (add-to-list 'savehist-additional-variables 'corfu-history))
+;; (use-package corfu-history
+;;   :ensure nil
+;;   :after (corfu savehist)
+;;   :config
+;;   (corfu-history-mode 1)
+;;   (add-to-list 'savehist-additional-variables 'corfu-history))
 
 (use-package savehist
   :ensure nil
@@ -732,25 +693,24 @@
   (treemacs-git-renamed-face ((t (:family "Iosevka Aile" :height 0.8))))
   (treemacs-git-modified-face ((t (:family "Iosevka Aile" :height 0.8))))
   (treemacs-tags-face ((t (:family "Iosevka Aile" :height 0.8))))
-  ;; (treemacs-directory-face ((t (:family "Menlo" :slant italic))))
-  ;; (treemacs-directory-collapsed-face ((t (:family "Menlo" :slant italic))))
   :config
-  ;; (setf treemacs-window-background-color (cons "#191919" "#03302f"))
+  (setq doom-themes-treemacs-theme nil
+        treemacs-window-background-color '("#221F22" . "#423f42"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
         treemacs-file-name-transformer #'identity
-        treemacs-file-follow-delay 0.2
+        treemacs-show-cursor nil
         treemacs-display-current-project-exclusively t
         treemacs-filewatch-mode t
-        treemacs-follow-mode t
+        treemacs-follow-mode nil
         treemacs-hide-dot-git-directory t
         treemacs-git-integration t
         treemacs-space-between-root-nodes t
         treemacs-hide-gitignored-files-mode t
         treemacs-git-mode 'extended
         treemacs-indentation 1
-        treemacs-is-never-other-window nil
+        treemacs-is-never-other-window t
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
         treemacs-width 35))
@@ -774,29 +734,29 @@
       ispell-local-dictionary "sv-SE"
       ispell-program-name "aspell"))
 
-(use-package flycheck
-  :hook (prog-mode . flycheck-mode)
-  :diminish t
-  :bind
-  ("C-c e n" . flycheck-next-error)
-  ("C-c e p" . flycheck-previous-error)
-  :custom
-  (flycheck-indication-mode 'left-fringe)
-  (flycheck-check-syntax-automatically '(save mode-enabled new-line idle-change)))
+;; (use-package flycheck
+;;  :hook (prog-mode . flycheck-mode)
+;;  :diminish t
+;;  :bind
+;;   ("C-c e n" . flycheck-next-error)
+;;   ("C-c e p" . flycheck-previous-error)
+;;   :custom
+;;   (flycheck-indication-mode 'left-margin)
+;;   (flycheck-check-syntax-automatically '(save mode-enabled new-line idle-change)))
 
-(use-package flycheck-posframe
-  :hook (flycheck-mode . flycheck-posframe-mode)
-  :config
-  (setq flycheck-posframe-position 'point-bottom-left-corner
-        flycheck-posframe-border-width 2
-        flycheck-posframe-warning-prefix " ⚠︎ "
-        flycheck-posframe-error-prefix " ✘ "
-        flycheck-posframe-info-prefix " ● "))
+;; (use-package flycheck-posframe
+;;   :hook (flycheck-mode . flycheck-posframe-mode)
+;;   :config
+;;   (setq flycheck-posframe-position 'point-bottom-left-corner
+;;         flycheck-posframe-border-width 2
+;;         flycheck-posframe-warning-prefix " ⚠︎ "
+;;         flycheck-posframe-error-prefix " ✘ "
+;;         flycheck-posframe-info-prefix " ● "))
 
-(use-package flycheck-eglot
-  :hook (swift-mode . global-flycheck-eglot-mode)
-  :config
-  (setq flycheck-eglot-exclusive nil))
+;; (use-package flycheck-eglot
+;;   :hook (swift-mode . global-flycheck-eglot-mode)
+;;   :config
+;;   (setq flycheck-eglot-exclusive nil))
 
 (use-package markdown-mode
   :commands (markdown-mode))
@@ -958,6 +918,7 @@
 (use-package vterm
   :commands vterm
   :config
+  (add-hook 'vterm-mode-hook (lambda () (setq-local global-hl-line-mode nil)))
   (setq vterm-timer-delay nil))
 
 ;; general
@@ -980,7 +941,7 @@
     "5" '(winum-select-window-5 :which-key "Window 5")
     "6" '(winum-select-window-6 :which-key "Window 6")
     "P" 'package-install
-    "'" '((lambda () (interactive) (eshell)) :which-key "Term"))
+    "'" '((lambda () (interactive) (vterm)) :which-key "Term"))
 
   (mk/leader-keys
     "aa" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
@@ -1084,13 +1045,11 @@
     (force-mode-line-update)))
 
 (with-eval-after-load 'org
-  ;; (mk/org-mode-setup)
 
   (advice-add 'org-timer-update-mode-line :override #'mk/org-timer-update-mode-line)
 
   (require 'org-tempo)
 
-  ;; (auto-fill-mode 0)
   (setq-local org-confirm-babel-evaluate nil)
   (setq-local evil-auto-indent nil)
 
@@ -1126,8 +1085,9 @@
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp t)
-                                 (swift t)
-                                 (swiftui t)))
+                                 ;; (swift t)
+                                 ;; (swiftui t)
+                                 ))
 
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("sw" . "src swift"))
@@ -1165,7 +1125,7 @@
 (use-package visual-fill-column
   :hook ((org-mode . visual-fill-column-mode))
   :config
-  (setq visual-fill-column-width 120
+  (setq visual-fill-column-width 50
         visual-fill-column-center-text t))
 
 (use-package elfeed
@@ -1227,6 +1187,7 @@
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
               ("C-c C-c" . #'swift-additions:compile-and-run-app)
+              ("C-c C-r" . #'swift-additions:run-app)
               ("C-c C-k" . #'periphery-run-loco))
   :ensure nil)
 
@@ -1235,27 +1196,28 @@
   :after swift-mode
   :bind
   ("M-s" . #'ios-simulator:terminate-current-app)
-  ("M-p" . #'ios-simulator:appcontainer)
+  ("C-c x c" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
 
 (use-package overlay-usage
-  :hook (prog-mode . overlay-usage-mode)
+  ;; :hook (swift-mode . overlay-usage-mode)
   :ensure nil)
 
 (use-package swift-additions
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c C-t" .  #'swift-additions:test-module-silent)
+  ("C-c t m" .  #'swift-additions:test-module-silent)
+  ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
+  ("C-c C-c" . #'swift-additions:compile-and-run-app)
+  ("C-c C-x" . #'swift-additions:reset-settings)
   ("M-K" .  #'swift-additions:clean-build-folder)
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
-  ("C-c C-c" . #'swift-additions:compile-and-run-app)
   ("M-B" . #'swift-additions:run-without-compiling)
   ("M-b" . #'swift-additions:compile-app)
-  ("M-r" . #'swift-additions:compile-and-run-app)
-  ("C-c C-x" . #'swift-additions:reset-settings))
+  ("M-r" . #'swift-additions:compile-and-run-app))
 
 (use-package swift-refactor
   :ensure nil
@@ -1321,7 +1283,9 @@
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
+  (flymake-mode nil)
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
+
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list (cape-super-capf #'eglot-completion-at-point))))
@@ -1338,6 +1302,12 @@
     (other-window 1)
     (xwidget-webkit-browse-url url)))
 
+(use-package electric
+  :hook (prog-mode . electric-pair-mode)
+  :ensure nil
+  :config
+  (setq electric-pair-preserve-balance nil))
+
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
@@ -1345,20 +1315,17 @@
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
-
   (hs-minor-mode)       ; Add support for folding code blocks
                                         ;// TODO:  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
   ;; (which-function-mode)
   ;; (setq-default header-line-format
-  ;;               '((which-func-mode ("\t\t   " which-func-current "()"))))
+  ;;               '((which-func-mode ("\t\t   " which-func-current ""))))
   ;; (setq-default mode-line-misc-info nil)
   
   (setq indicate-empty-lines t            ;; Show empty lines
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
-        electric-pair-mode t
-        electric-indent-mode t
         display-line-numbers 'relative))   ;; Show line numbers
 
 (defun correct-fringe (&optional ignore)

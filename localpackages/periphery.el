@@ -24,12 +24,12 @@
   :group 'periphery)
 
 (defface periphery-warning-face-full
-  '((t (:foreground "#f9e2af" :background "#2E2A1E" :bold t :distant-foreground "#f9e2af" )))
+  '((t (:foreground "#f9e2af" :bold t :background "#2E2A1E" :distant-foreground "#f9e2af" )))
   "Warning face."
   :group 'periphery)
 
 (defface periphery-error-face
-  '((t (:foreground "#f38ba8" :bold t)))
+  '((t (:foreground "#f38ba8")))
   "Error face."
   :group 'periphery)
 
@@ -39,12 +39,12 @@
   :group 'periphery)
 
 (defface periphery-identifier-face
-  '((t (:inherit periphery-error-face :weight semi-bold :background "#2D1E28")))
+  '((t (:inherit periphery-error-face :background "#2D1E28")))
   "Identifier face."
   :group 'periphery)
 
 (defface periphery-message-face
-  '((t (:inherit font-lock-comment-face)))
+  '((t (:foreground "#9399b2" :font-weight thin)))
   "Message face."
   :group 'periphery)
 
@@ -123,11 +123,11 @@
 
 (defvar default-length 8)
 
-(defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.[<>=:+-_,a-zA-Z0-9\(\)\?\\\s\'\"\.\&\|]*\\)"
-  "Parse vimgrep like strings (compilation).")
+;; (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
+;;   "Parse vimgrep like strings (compilation).")
 
-(defconst periphery-remove-unicode-regex "[^\x00-\x7F]+"
-  "Remove unicode-characters.")
+(defconst periphery-regex-parser "\\(\\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\\s?\\(\\w+\\):\\(.*\\)\n\\s+\\(.*\\(?:\n\\s+.*\\)*\\)"
+  "Parse vimgrep like strings (compilation).")
 
 (defconst periphery-note-and-errors-regex "\\(^[^\s:]\\w+\\):\s\\(.*\\)$"
   "When we fail because of other errors than compilation errors.")
@@ -144,6 +144,9 @@
 (defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)"
   "Parse bartycrouch regex.")
 
+(defconst xctest-regex-parser "^\\([^:]+\\):\\([0-9]+\\):\\w?\\([^:]*\\)[^.]+\\.\\([^:|]*\\)\s?:\\(.*\\)"
+  "XCTest regex.")
+
 (defconst todos-clean-regex "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)"
   "Parse Todos and hacks.")
 
@@ -155,12 +158,12 @@
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
   (setq tabulated-list-format [
-                               ("File" 25 t)
+                               ("Type" 9 nil)
+                               ("File" 28 t)
                                ("Line" 4 nil)
-                               ("Type" 10 nil)
-                               ("Message" 100 nil)
+                               ("Message" 120 nil)
                                ]
-        tabulated-list-padding 2
+        tabulated-list-padding 1
         tabulated-list-sort-key (cons "Line" nil))
   (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
@@ -171,8 +174,9 @@
 
 (defun periphery--go-to-first-error (list)
   "Go to first error in LIST."
-  (defvar errors-with-reference (--filter (> (length (aref (car(cdr it)) 1)) 0) (periphery--get-all-errors list)))
-  (open-current-line-with (car (car errors-with-reference))))
+  (defvar errors-with-reference (--filter (> (length (aref (car (cdr it)) 1)) 0) (periphery--get-all-errors list)))
+  (when errors-with-reference
+    (open-current-line-with (car (car errors-with-reference)))))
 
 (defun periphery--open-current-line ()
   "Open current current line."
@@ -192,8 +196,9 @@
         (select-window window))
 
       (setq tabulated-list-entries (nreverse (-non-nil errorList)))
-      (periphery--go-to-first-error tabulated-list-entries)
+
       (tabulated-list-print t)
+      (periphery--go-to-first-error tabulated-list-entries)
       
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
@@ -214,6 +219,25 @@
           (add-text-properties startPosition position property normalizedInput)))
   normalizedInput)))
 
+(defun periphery--parse-xctest-putput (line)
+  "Run regex for xctest case."
+  (save-match-data
+    (and (string-match xctest-regex-parser line)
+         (let* ((file (match-string 1 line))
+                (linenumber (match-string 2 line))
+                (type (match-string 3 line))
+                (result (match-string 4 line))
+                (message (match-string 5 line))
+                (fileWithLine (format "%s:%s" file linenumber)))
+         
+           (periphery--build-list
+            :path fileWithLine
+            :file result
+            :line linenumber
+            :keyword "Failed"
+            :result message
+            :regex mark-strings-regex)))))
+
 (defun periphery--parse-output-line (line)
   "Run regex over curent LINE."
   (save-match-data
@@ -231,7 +255,8 @@
             :line linenumber
             :keyword type
             :result result
-            :regex periphery-regex-mark-quotes)))))
+            :regex periphery-regex-mark-quotes)
+           ))))
 
 (defun propertize-message (text)
   "Colorize TEXT based on type."
@@ -298,25 +323,63 @@
      ((or (string= type "PERF") (string= type "PERFORMANCE")) 'periphery-performance-face)
      (t 'periphery-info-face))))
 
-;;;###autoload
-(cl-defun periphery-run-parser (input &optional succesCallback)
+(defun periphery--is-list-empty-alt (lst)
+  "Alternative method to check if the given list is empty."
+  (and (listp lst) (null lst)))
+
+(defun parse-compiler-errors (text)
+  "Parse compiler error messages from LOG."
+  (setq tempList '())
+  (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\(\\w+\\):\\(.*\\)?\n\\(.*\\)"))
+    (while (string-match regex text)
+      (let* ((path (match-string 1 text))
+             (line (match-string 2 text))
+             (column (match-string 3 text))
+             (error-type (match-string 4 text))
+             (msg-part1 (s-trim-left (match-string 5 text)))
+             (msg-part2 (s-trim-left (match-string 6 text)))
+             (msg (format "%s: %s" msg-part1 msg-part2)))
+        
+        (push (periphery--build-list
+               :path (format "%s:%s:%s" path line column)
+               :file path
+               :line line
+               :keyword error-type
+               :result msg 
+               :regex periphery-regex-mark-quotes)
+              tempList)
+      ;; Update the text to the remaining unmatched portion
+        (setq text (substring text (match-end 6))))))
+  tempList)
+
+(cl-defun periphery-run-parser (input successCallback)
   "Run parser (as INPUT as SUCCESSCALLBACK)."
+  ;; (message input)
+  (setq periphery-errorList (delete-dups  (parse-compiler-errors input)))
+  (setq build-notesList nil)
+  (dolist (line (split-string input "\n"))
+    (when-let ((secondEntry (parse-xcodebuild-notes-and-errors (string-trim-left line))))
+      (push secondEntry build-notesList)))
+
+  (setq compiledList (delete-dups (append periphery-errorList build-notesList)))
+  (when compiledList
+      (periphery--listing-command periphery-errorList))
+
+  (when (not (string-match-p (regexp-quote "BUILD FAILED") input))
+    (funcall successCallback)))
+
+(cl-defun periphery-run-test-parser (input succesCallback)
   (setq periphery-errorList nil)
   (dolist (line (split-string input "\n"))
-    (let* ((entry (periphery--parse-output-line (string-trim-left (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
-           (secondEntry (parse-xcodebuild-notes-and-errors (replace-regexp-in-string periphery-remove-unicode-regex "" line))))
-      (if entry
-          (push entry periphery-errorList))
-      (unless entry (and secondEntry
-          (push secondEntry periphery-errorList))
-      )))
+    (let* ((compilation-entry (periphery--parse-output-line (string-trim-left line)))
+           (test-entry (periphery--parse-xctest-putput (string-trim-left line))))
+      (when compilation-entry
+        (push compilation-entry periphery-errorList))
+      (when test-entry
+        (push test-entry periphery-errorList))))
   (if periphery-errorList
       (periphery--listing-command (delete-dups periphery-errorList))
-    (progn
-      (periphery-kill-buffer)
-      (setq periphery-errorList '())
-      (if (fboundp 'succesCallback)
-          (funcall succesCallback)))))
+    (funcall succesCallback)))
 
 (defun periphery-mode-all ()
   "Show all."
@@ -374,14 +437,14 @@
   (periphery--listing-command periphery-errorList))
 
 (defun periphery-toggle-buffer ()
-  "Toggle Periphery buffer."
+  "Toggle visibility of the Periphery buffer window."
   (interactive)
   (let ((buffer (get-buffer periphery-buffer-name)))
     (if (not buffer)
         (message "Buffer %s does not exist" periphery-buffer-name)
       (if (get-buffer-window buffer)
           (delete-window (get-buffer-window buffer))
-        (periphery-show-buffer)))))
+        (display-buffer buffer)))))
 
 ;;; - Bartycrouch parsing
 (defun periphery--clean-up-comments (text)
@@ -489,9 +552,9 @@
 (cl-defun periphery--build-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
+              (periphery--propertize-severity keyword (string-trim-left keyword))
               (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
-              (periphery--propertize-severity keyword (string-trim-left keyword))
               (periphery--mark-all-symbols
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols
@@ -509,9 +572,9 @@
 (cl-defun periphery--build-todo-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
+              (periphery--propertize-severity keyword (string-trim-left keyword))
               (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
-              (periphery--propertize-severity keyword (string-trim-left keyword))
               (periphery--mark-all-symbols
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols

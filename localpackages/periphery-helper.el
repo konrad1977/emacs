@@ -83,14 +83,21 @@
               (apply (quote ,sentinel) args)))))))
     (apply fun args)))
 
+(defun periphery-helper:filter-keep-beginning-paths (text)
+  "Filter lines starting with '/' from TEXT."
+  (with-temp-buffer
+    (insert text)
+    (keep-lines "^/")
+    (buffer-string)))
+
 (defun open-current-line-with (data)
   "Open current line with DATA."
   (when data
   (save-match-data
     (and (string-match periphery-parse-line-regex data)
-         (let ((file (match-string 1 data))
-               (linenumber (string-to-number (match-string 2 data)))
-               (column (match-string 3 data)))
+         (when-let ((file (match-string 1 data))
+                    (linenumber (string-to-number (match-string 2 data)))
+                    (column (match-string 3 data)))
          (with-current-buffer (find-file file)
              (when (> linenumber 0)
                (goto-char (point-min))

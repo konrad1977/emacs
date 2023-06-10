@@ -118,6 +118,8 @@
   (dired-mark                           (:foreground pink))
   (dired-ignored                        (:background peach))
 
+  (minimap-active-region-background     (:background surface1))
+  
   (iedit-occurrence                     (:background blue :foreground crust))
   (iedit-read-only-occurrence           (:background green :foreground crust))
   
@@ -149,7 +151,7 @@
   (doom-modeline-info                   (:foreground subtext1 :bold t))
   (doom-modeline-time                   (:foreground overlay2 :weight 'semi-bold))
   (doom-modeline-project-dir            (:foreground blue))
-  (doom-modeline-bar                    (:background yellow))
+  (doom-modeline-bar                    (:foreground yellow))
   (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive))
   (doom-modeline-panel                  (:background blue :foreground crust :bold t))
   (doom-modeline                        (:foreground overlay1))
@@ -200,8 +202,8 @@
   (org-level-1                          (:foreground red :height 1.3 :bold t))
   (org-level-2                          (:foreground mauve :height 1.15 :bold t))
   (org-level-3                          (:foreground flamingo :height 1.05))
-  (org-level-4                          (:foreground text))
-  (org-level-5                          (:foreground text))
+  (org-level-4                          (:foreground teal))
+  (org-level-5                          (:foreground pink))
   (org-level-6                          (:foreground yellow))
   (org-level-7                          (:foreground peach))
   (org-level-8                          (:foreground maroon))
@@ -323,7 +325,7 @@
   (corfu-border                                 (:background surface1))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background surface1 :foreground text :weight 'light :italic t))
+  (corfu-popupinfo                              (:background "#2e344c" :foreground blue :italic t :bold t))
   
   ;; posframe's
   (ivy-posframe                                 (:background surface2))

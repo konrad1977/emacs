@@ -54,7 +54,7 @@
   (button                               (:foreground blue))
   (child-frame                          (:foreground mantle))
   (child-frame-border                   (:foreground mantle))
-  (cursor                               (:background blue :foreground crust))
+  (cursor                               (:background yellow :foreground crust))
   (error                                (:foreground red))
   (link                                 (:foreground blue))
   (fringe                               (:foreground surface0))
@@ -119,6 +119,8 @@
   (dired-mark                           (:foreground pink))
   (dired-ignored                        (:background peach))
 
+  (minimap-active-region-background     (:background surface1))
+  
   (iedit-occurrence                     (:background blue :foreground crust))
   (iedit-read-only-occurrence           (:background green :foreground crust))
   
@@ -133,13 +135,13 @@
   (doom-modeline-battery-full           (:foreground overlay1))
 
   ;; Doom visual state
-  (doom-modeline-evil-motion-state      (:foreground teal))
-  (doom-modeline-evil-emacs-state       (:foreground blue))
-  (doom-modeline-evil-insert-state      (:foreground maroon))
-  (doom-modeline-evil-normal-state      (:foreground subtext0))
-  (doom-modeline-evil-visual-state      (:foreground sky))
-  (doom-modeline-evil-replace-state     (:foreground red))
-  (doom-modeline-evil-operator-state    (:foreground blue))
+  ;; (doom-modeline-evil-motion-state      (:foreground teal))
+  ;; (doom-modeline-evil-emacs-state       (:foreground blue))
+  ;; (doom-modeline-evil-insert-state      (:foreground maroon))
+  ;; (doom-modeline-evil-normal-state      (:foreground subtext0))
+  ;; (doom-modeline-evil-visual-state      (:foreground sky))
+  ;; (doom-modeline-evil-replace-state     (:foreground red))
+  ;; (doom-modeline-evil-operator-state    (:foreground blue))
 
   (doom-modeline-project-dir            (:foreground overlay2))
   (doom-modeline-buffer-path            (:foreground overlay2))
@@ -150,7 +152,7 @@
   (doom-modeline-info                   (:foreground subtext1 :bold t))
   (doom-modeline-time                   (:foreground overlay2 :weight 'semi-bold))
   (doom-modeline-project-dir            (:foreground blue))
-  (doom-modeline-bar                    (:background yellow))
+  (doom-modeline-bar                    (:foreground yellow))
   (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive))
   (doom-modeline-panel                  (:background blue :foreground crust :bold t))
   (doom-modeline                        (:foreground overlay1))
@@ -316,15 +318,15 @@
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
   (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
 
-  (vertico-posframe-border                      (:background overlay0))
-  (vertico-posframe                             (:background mantle :foreground subtext0))
+  (vertico-posframe-border                      (:background crust))
+  (vertico-posframe                             (:background crust :foreground subtext0))
 
   (corfu-annotations                            (:foreground overlay0))
   (corfu-current                                (:inherit 'vertico-current))
   (corfu-border                                 (:background surface1))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background surface1 :foreground text :weight 'light :italic t))
+  (corfu-popupinfo                              (:background "#2e344c" :foreground blue :italic t :bold t))
   
   ;; posframe's
   (ivy-posframe                                 (:background surface2))
@@ -342,6 +344,7 @@
   (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
   (completions-first-difference                 (:foreground red))
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))
+  (consult-preview-line                         (:background crust))
 
   (diff-added (:background green :foreground text))
   (diff-changed (:background yellow :foreground crust))
@@ -357,6 +360,9 @@
   (treemacs-git-unmodified-face		   			(:foreground text))
   (treemacs-git-renamed-face		   			(:foreground text))
   (treemacs-git-modified-face		   			(:foreground maroon))
+
+  (treemacs-nerd-icons-file-face (:foreground peach))
+
 
   ;; lets support solaire mode
   (solaire-default-face (:background mantle))

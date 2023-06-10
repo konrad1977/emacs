@@ -11,7 +11,7 @@
   "Parse as (INPUT)."
   (setq list '())
   (dolist (line (split-string input "\n"))
-    (let* ((entry (periphery-quick:parse-line line)))
+    (let ((entry (periphery-quick:parse-line line)))
       (if entry
           (push entry list))))
   (open-current-line-with

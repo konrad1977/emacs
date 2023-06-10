@@ -12,6 +12,7 @@
 (require 'periphery)
 (require 'ios-simulator)
 (require 'ios-device)
+(require 'spinner)
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
@@ -34,6 +35,7 @@
 (defvar local-device-id nil)
 (defvar run-on-device nil)
 (defvar run-app-on-build t)
+(defvar build-progress-spinner nil)
 (defvar DEBUG nil)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
@@ -104,17 +106,23 @@
      (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
    (when (and local-device-id run-on-device)
      (format "-destination 'generic/platform=iOS' \\" ))
+   "-disableAutomaticPackageResolution \\"
+   "-usePackageSupportBuiltinSCM \\"
+   "-parallelizeTargets \\"
    "-UseModernBuildSystem=YES \\"
-   "-destination-timeout 1 \\"
+   "-destination-timeout 0 \\"
    "-scmProvider system \\"
    "-skipUnavailableActions \\"
-   "-parallelizeTargets \\"
    "-hideShellScriptEnvironment \\"
+   "-clonedSourcePackagesDirPath build/SourcePackages \\"
    "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
-   "-quiet \\"
-   ;; (format "-derivedDataPath %s \\" (swift-additions:full-build-folder))
-   "-derivedDataPath \\"
-   "build"))
+   "-derivedDataPath build \\"
+   "-quiet"
+   ;; "ONLY_ACTIVE_ARCH=YES \\"
+   ;; "DEBUG_INFORMATION_FORMAT=dwarf \\"
+   ;; "CODE_SIGNING_ALLOWED=NO \\"
+   ;; "COMPILER_INDEX_STORE_ENABLE=NO"
+   ))
 
 (defun swift-additions:full-build-folder ()
   "Full path to to the build folder."
@@ -124,7 +132,6 @@
 
 (defun swift-additions:copy-symbols-for-lsp ()
   "Copy symbols for LSP to work."
-
   (message-with-color :tag "[Copying LSP Symbols]" :text "" :attributes 'success)
   (let* ((default-directory (periphery-helper:project-root-dir))
          (build-folder (format "%s%s" default-directory ".build/arm64-apple-macosx/debug/")))
@@ -157,25 +164,15 @@
 
 (defun swift-additions:run-app()
   "Run app.  Either in simulator or on physical."
-    (ios-simulator:install-and-run-app
-     :rootfolder current-project-root
-     :build-folder (swift-additions:get-build-folder)
-     :simulatorId (ios-simulator:load-simulator-id)
-     :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
+  (ios-simulator:install-and-run-app
+   :rootfolder current-project-root
+   :build-folder (swift-additions:get-build-folder)
+   :simulatorId (ios-simulator:load-simulator-id)
+   :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:check-for-errors (output callback)
   "Run periphery parser on TEXT (optional CALLBACK)."
-  (when DEBUG
-    (message output))
-  (if (or
-       (string-match-p (regexp-quote "BUILD FAILED") output)
-       (string-match-p (regexp-quote ": error:") output)
-       (string-match-p (regexp-quote ": warning:") output))
-      (progn
-        (periphery-run-parser output)
-        (when (not (string-match-p (regexp-quote "BUILD FAILED") output))
-          (funcall callback)))
-    (funcall callback)))
+  (periphery-run-parser output callback)) ;; (lambda () (message "Hello world"))))
 
 (defun swift-additions:filename-by-extension (extension)
   "Get filename based on (as EXTENSION)."
@@ -200,23 +197,16 @@
             (directory-files-recursively directory (format "\\%s$" extension) t))
     result))
 
-(cl-defun find-project-root-folder-with (&key extension)
-  "Find project folder where it has its project files EXTENSION."
-  (let ((project-root (expand-file-name (periphery-helper:project-root-dir)))
-        (root (directory-files project-root nil (format "\\%s$" extension) 1))
-        (subroot (swift-additions:get-files-from :directory project-root :extension extension :exclude ".build"))
-        (workroot (or root subroot))
-        (path (file-name-directory (car-safe workroot))))
-    (if (and path (string-match-p (regexp-quote extension) path))
-        (file-name-directory (directory-file-name path))
-      path)))
 
 (defun swift-additions:get-project-files ()
   "Get project files."
   (let* ((root-dir (periphery-helper:project-root-dir))
          (files (directory-files-recursively root-dir "\.xcworkspace$\\|\\.xcodeproj$" t))
-         (file-list (cdr-safe files)))
-    (periphery-helper:filter-xcworkspace file-list)))
+         (file-list (cdr-safe files))
+         (filtered-list (cl-remove-if (lambda (file)
+                                        (string-match-p "/\.build/" file))
+                                      file-list)))
+    (periphery-helper:filter-xcworkspace filtered-list)))
 
 
 (defun swift-additions:get-ios-project-root ()
@@ -231,7 +221,6 @@
   (if local-device-id
       "iphoneos"
     "iphonesimulator"))
-
 
 ;;;###autoload
 (defun swift-additions:reset-settings ()
@@ -286,28 +275,31 @@
         (setq run-app-on-build runApp)
         (if run-on-device
             (progn
-              (setq device-or-simulator "[Building for physcical device]")
+              (setq device-or-simulator "physical device")
               (swift-additions:compile-and-run-on-device))
           ;; Simulator
           (progn
-            (setq device-or-simulator "[Building for simulator]")
+            (setq device-or-simulator "simulator")
             (ios-simulator:load-simulator-id)
             (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+            (when DEBUG
+              (message (format "Project root %s" current-project-root)))
             (let ((default-directory current-project-root)
                   (build-command (build-app-command :simulatorId: current-simulator-id)))
+              (spinner-start 'progress-bar-filled)
+              (setq build-progress-spinner spinner-current)
               (async-start-command-to-string
                :command build-command
                :callback '(lambda (text)
-                            (swift-additions:copy-symbols-for-lsp)
+                            (spinner-stop build-progress-spinner)
+                            ;; (swift-additions:copy-symbols-for-lsp)
                             (if run-app-on-build
                                 (swift-additions:check-for-errors text #'swift-additions:run-app)
-                              (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
-            )
-            (animate-message-with-color
-             :tag device-or-simulator
-             :text (format "%s. Please wait. Patience is a virtue!" current-xcode-scheme)
-             :attributes 'warning
-             :times 2))
+                              (swift-additions:check-for-errors text #'swift-additions:successful-build)))))))
+            (message-with-color
+             :tag (format "[Building '%s' for %s]" current-xcode-scheme device-or-simulator)
+             :text "Please wait. Patience is a virtue!"
+             :attributes 'warning))
     (if (swift-additions:is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
       (message "Not xcodeproject nor swift package"))))
@@ -486,7 +478,7 @@
        (string-match-p (regexp-quote "error:") text)
        (string-match-p (regexp-quote "warning:") text))
       (progn
-        (periphery-run-parser text)
+        ;; (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "error:") text))
           (swift-additions:run-async-swift-package)))
     (swift-additions:run-async-swift-package)))
@@ -504,20 +496,49 @@
   (let ((default-directory (periphery-helper:project-root-dir)))
     (swift-additions:reset-settings)
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Building Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
+    (message-with-color :tag "[ Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
 
 ;;;###autoload
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
   (interactive)
-  (let ((default-directory (periphery-helper:project-root-dir)))
-    (async-shell-command-to-string :process-name "periphery" :command "swift test" :callback #'swift-additions:check-for-spm-build-errors)
-    (message-with-color :tag "[Testing Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
+  (swift-additions:test-swift-package :root (periphery-helper:project-root-dir)))
+
+;;;###autoload
+(defun swift-additions:test-swift-package-from-file ()
+  "Test swift package module."
+  (interactive)
+  (swift-additions:test-swift-package :root (swift-additions:detect-package-root)))
+
+(cl-defun swift-additions:test-swift-package (&key root)
+  (let ((default-directory root)
+        (package-name (file-name-nondirectory (directory-file-name root))))
+    (spinner-start 'progress-bar-filled)
+    (setq build-progress-spinner spinner-current)
+    (async-start-command-to-string
+     :command "swift test"
+     :callback '(lambda (text)
+                  (spinner-stop build-progress-spinner)
+                  (let ((filtered (periphery-helper:filter-keep-beginning-paths text)))
+                    (periphery-run-test-parser filtered (lambda ()
+                                                          (message-with-color
+                                                           :tag "[All tests passed]"
+                                                           :text "" 
+                                                           :attributes 'success))))))
+    (message-with-color
+     :tag (format "[Testing '%s'-package]" package-name)
+     :text "Please wait. Patience is a virtue!"
+     :attributes 'warning)))
+
+(defun swift-additions:detect-package-root ()
+  "Detects the root directory of the Swift package based on the current buffer."
+  (let ((buffer-dir (file-name-directory (or (buffer-file-name) default-directory))))
+    (locate-dominating-file buffer-dir "Package.swift")))
 
 (defun swift-additions:lsp-arguments ()
   "Get the lsp arguments to support UIKit."
   (let* ((sdk (ios-simulator:sdk-path))
-         (target (ios-simulator:target)))
+        (target (ios-simulator:target)))
     (list
      "--completion-max-results" "20"
      "-Xswiftc" "-sdk"
