@@ -29,13 +29,13 @@
 (defvar current-build-configuration nil)
 (defvar current-environment-x86 nil)
 (defvar current-simulator-id nil)
-(defvar secondary-simulator-id nil)
 (defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
-(defvar local-device-id nil)
+(defvar current-local-device-id nil)
+(defvar current-build-command nil)
+(defvar build-progress-spinner nil)
 (defvar run-on-device nil)
 (defvar run-app-on-build t)
-(defvar build-progress-spinner nil)
 (defvar DEBUG nil)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
@@ -75,7 +75,7 @@
 (defun swift-additions:get-build-folder ()
   "Fetch build folder."
   (let ((config (swift-additions:fetch-or-load-build-configuration)))
-    (if (and local-device-id run-on-device)
+    (if (and current-local-device-id run-on-device)
         (format "build/Build/Products/%s-iphoneos/" config)
       (format "build/Build/Products/%s-iphonesimulator/" config))))
 
@@ -95,34 +95,33 @@
 
 (cl-defun build-app-command (&simulatorId simulatorId)
   "Xcodebuild with (as SIMULATORID)."
-  (concat
-   (swift-additions:xcodebuild-command)
-   (swift-additions:get-workspace-or-project)
-   (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
-   (format "-configuration '%s' \\" (swift-additions:fetch-or-load-build-configuration))
-   (format "-jobs %s \\" (swift-additions:get-number-of-cores))
-   (format "-sdk %s \\" (swift-additions:get-current-sdk))
-   (when simulatorId
-     (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
-   (when (and local-device-id run-on-device)
-     (format "-destination 'generic/platform=iOS' \\" ))
-   "-disableAutomaticPackageResolution \\"
-   "-usePackageSupportBuiltinSCM \\"
-   "-parallelizeTargets \\"
-   "-UseModernBuildSystem=YES \\"
-   "-destination-timeout 0 \\"
-   "-scmProvider system \\"
-   "-skipUnavailableActions \\"
-   "-hideShellScriptEnvironment \\"
-   "-clonedSourcePackagesDirPath build/SourcePackages \\"
-   "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
-   "-derivedDataPath build \\"
-   "-quiet"
-   ;; "ONLY_ACTIVE_ARCH=YES \\"
-   ;; "DEBUG_INFORMATION_FORMAT=dwarf \\"
-   ;; "CODE_SIGNING_ALLOWED=NO \\"
-   ;; "COMPILER_INDEX_STORE_ENABLE=NO"
-   ))
+  (if current-build-command
+      current-build-command
+    (concat
+     (swift-additions:xcodebuild-command)
+     (swift-additions:get-workspace-or-project)
+     (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
+     (format "-configuration '%s' \\" (swift-additions:fetch-or-load-build-configuration))
+     (format "-jobs %s \\" (swift-additions:get-number-of-cores))
+     (format "-sdk %s \\" (swift-additions:get-current-sdk))
+     (when simulatorId
+       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
+     (when (and current-local-device-id run-on-device)
+       (format "-destination 'generic/platform=iOS' \\" ))
+     "-disableAutomaticPackageResolution \\"
+     "-usePackageSupportBuiltinSCM \\"
+     "-parallelizeTargets \\"
+     "-UseModernBuildSystem=YES \\"
+     "-destination-timeout 0 \\"
+     "-scmProvider system \\"
+     "-skipUnavailableActions \\"
+     "-hideShellScriptEnvironment \\"
+     "-clonedSourcePackagesDirPath build/SourcePackages \\"
+     "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
+     "-derivedDataPath build \\"
+     "COMPILER_INDEX_STORE_ENABLE=NO \\"
+     "ONLY_ACTIVE_ARCH=YES \\"
+     "-quiet")))
 
 (defun swift-additions:full-build-folder ()
   "Full path to to the build folder."
@@ -159,7 +158,7 @@
 (defun swift-addition:ask-for-device-or-simulator ()
   "Show menu for runnings on simulator or device."
   (interactive)
-  (when local-device-id
+  (when current-local-device-id
     (setq run-on-device (swift-additions:build-device-or-simulator-menu :title "Run on simulator or device?"))))
 
 (defun swift-additions:run-app()
@@ -211,14 +210,17 @@
 
 (defun swift-additions:get-ios-project-root ()
   "Get the ios-project root."
-  (if-let* ((files (swift-additions:get-project-files))
-            (file (car-safe files))
-            (root (directory-file-name (file-name-directory file))))
-      root))
+  (if current-project-root
+      current-project-root
+    (if-let* ((files (swift-additions:get-project-files))
+              (file (car-safe files))
+              (root (directory-file-name (file-name-directory file))))
+        (setq current-project-root root))
+    current-project-root))
 
 (defun swift-additions:get-current-sdk ()
   "Return the current SDK."
-  (if local-device-id
+  (if current-local-device-id
       "iphoneos"
     "iphonesimulator"))
 
@@ -235,7 +237,8 @@
   (setq current-simulator-id nil)
   (setq current-simulator-name nil)
   (setq current-buildconfiguration-json-data nil)
-  (setq local-device-id nil)
+  (setq current-local-device-id nil)
+  (setq current-build-command nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
 (defun swift-additions:successful-build ()
@@ -267,7 +270,7 @@
   (save-some-buffers t)
   (periphery-kill-buffer)
   (ios-simulator:kill-buffer)
-  (setq local-device-id (ios-device:id))
+  (setq current-local-device-id (ios-device:id))
   (swift-addition:ask-for-device-or-simulator)
 
   (if (swift-additions:is-xcodeproject)
@@ -281,11 +284,12 @@
           (progn
             (setq device-or-simulator "simulator")
             (ios-simulator:load-simulator-id)
-            (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+            (swift-additions:setup-current-project current-project-root)
             (when DEBUG
               (message (format "Project root %s" current-project-root)))
             (let ((default-directory current-project-root)
                   (build-command (build-app-command :simulatorId: current-simulator-id)))
+              (setq current-build-command build-command)
               (spinner-start 'progress-bar-filled)
               (setq build-progress-spinner spinner-current)
               (async-start-command-to-string
@@ -315,6 +319,7 @@
 
   (let ((default-directory current-project-root)
         (build-command (build-app-command :simulatorId: nil)))
+    (setq current-build-command build-command)
     (async-start-command-to-string
      :command build-command
      :callback '(lambda (text)

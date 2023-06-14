@@ -42,6 +42,7 @@
       visible-bell                      nil
       word-wrap                         nil
       auto-mode-case-fold               nil
+      truncate-lines                    t
       truncate-string-ellipsis          "..."
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
@@ -53,6 +54,7 @@
               ediff-split-window-function   'split-window-horizontally
               tab-width                     4            ;: Use four tabs
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
+              truncate-lines                t
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
@@ -162,9 +164,9 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  ;; (load-theme 'oxocarbon t)
+  (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
   ;; (load-theme 'kanagawa t)
   )
@@ -211,7 +213,8 @@
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
         vertico-posframe-truncate-lines t
-        vertico-posframe-width 158
+        vertico-posframe-min-width 120
+        vertico-posframe-width 155
         vertico-posframe-min-height 2
         vertico-posframe-border-width 15))
 
@@ -506,10 +509,7 @@
   :after corfu
   :custom
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.15)
-  ;; (kind-icon-default-face 'corfu-default)
-  ;; (kind-icon-default-style 
-  ;;  '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 0.8 :scale 1.5))
+  (kind-icon-blend-frac 0.05)
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
@@ -610,14 +610,12 @@
         corfu-auto-prefix 1
         corfu-min-width 40
         corfu-max-width 130
-        corfu-left-margin-width 0.5
-        corfu-right-margin-width 0.8
-        corfu-bar-width 0.1
+        corfu-left-margin-width 0.9
+        corfu-right-margin-width 0.9
+        corfu-bar-width 0.2
         corfu-count 14
-        corfu-auto-delay 0.1
+        corfu-auto-delay 0.5
         corfu-quit-no-match 'separator
-        ;; corfu-preselect 'insert
-        ;; corfu-preview-current ni
         corfu-popupinfo-delay 0.5
         corfu-popupinfo-resize t
         corfu-popupinfo-hide nil
@@ -646,6 +644,7 @@
 
 ;; Add extensions
 (use-package cape
+  :defer t
   :bind (("C-c p p" . completion-at-point) ;; capf
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
@@ -673,6 +672,7 @@
   (setq tab-always-indent 'complete))
   
 (use-package avy
+  :defer t
   :bind ("M-g" . avy-goto-word-1)
   :config
   (setq avy-single-candidate-jump t))
@@ -713,7 +713,7 @@
         treemacs-is-never-other-window t
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 35))
+        treemacs-width 30))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -1005,7 +1005,8 @@
     "qr" '(restart-emacs :which-key "Restart emacs")))
 
 (use-package org
-  :hook ((org-mode . visual-line-mode)
+  :hook (
+         ;;(org-mode . visual-line-mode)
          (org-mode . org-display-inline-images))
   :config
   (setq org-ellipsis " ▾"
@@ -1056,7 +1057,7 @@
   ;; (auto-fill-mode nil)
   ;; (org-indent-mode)
   (variable-pitch-mode)
-  (visual-line-mode)
+  ;; (visual-line-mode)
 
   (dolist (face '((org-level-1 . 1.2)
                   (org-level-2 . 1.1)
@@ -1125,7 +1126,7 @@
 (use-package visual-fill-column
   :hook ((org-mode . visual-fill-column-mode))
   :config
-  (setq visual-fill-column-width 50
+  (setq visual-fill-column-width 100
         visual-fill-column-center-text t))
 
 (use-package elfeed
@@ -1328,13 +1329,6 @@
         column-number-mode nil            ;; Show current line number highlighted
         display-line-numbers 'relative))   ;; Show line numbers
 
-(defun correct-fringe (&optional ignore)
-  (unless (eq fringe-mode '50)
-    (fringe-mode '50)))
-
-(add-hook 'after-init-hook #'correct-fringe)
-;; (add-hook 'buffer-list-update-hook #'correct-fringe)
-
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."
   (interactive)
@@ -1342,24 +1336,17 @@
       (kill-buffer "*Flycheck errors*")
     (list-flycheck-errors)))
 
-(defun mk/setupOrgMode ()
-  "My org config."
-  (setq highlight-indent-guides-mode nil))
-
-
 (defun mk/split-window-below ()
   "Split window below and select that."
   (interactive)
   (split-window-below)
   (other-window 1))
 
-
 (defun mk/split-window-right ()
   "Split window to the right and select window."
   (interactive)
   (split-window-right)
   (other-window 1))
-
 
 (defun mk/recompile (&optional force)
   "Recompile files (as FORCE) force compilation."
@@ -1379,6 +1366,29 @@
        (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
+
+;; (defun setup-visual-fill ()
+;;   "Configure visual-fill-column-mode and display-fill-column-indicator-mode for prog-mode."
+;;   (unless (or (eq major-mode 'treemacs-mode) (bound-and-true-p visual-fill-column-mode))
+;;     (visual-fill-column-mode 1)
+;;     (setq visual-fill-column-width 280)
+;;     (setq visual-fill-column-center-text t)
+;;   ))
+
+;; (add-hook 'prog-mode-hook #'setup-visual-fill)
+
+;; (defun correct-fringe (&optional ignore)
+;;   (unless (eq major-mode 'treemacs-mode) 
+;;     (fringe-mode '(50 . 0))))
+
+;; (add-hook 'prog-mode-hook #'correct-fringe)
+
+(defun prog-fringe-hook ()
+  "Setup fringes."
+  (setq left-fringe-width 100
+        right-fringe-width 0))
+
+(add-hook 'prog-mode-hook #'prog-fringe-hook)
 
 (with-eval-after-load 'swift-mode
   (setup-swift-programming))

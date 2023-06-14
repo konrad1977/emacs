@@ -25,6 +25,7 @@
   (pink       "#f5c2e7" "#d7afaf")
   (mauve      "#cba6f7" "#d7afd7")
   (red        "#f38ba8" "#ff87af")
+  (dark-red   "#311c22" "#311c22")
   (maroon     "#eba0ac" "#ffafaf")
   (peach      "#fab387" "#ffaf87")
   (yellow     "#f9e2af" "#ffd7af")
@@ -113,8 +114,8 @@
   (highlight-symbol-face                (:background surface2 :foreground text))
   (info-xref                            (:foreground yellow))
 
-  (minibuffer-prompt-end                (:foreground red))
-  (minibuffer-prompt                    (:foreground red))
+  (minibuffer-prompt-end                (:foreground blue))
+  (minibuffer-prompt                    (:foreground blue))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
   (dired-ignored                        (:background peach))
@@ -291,16 +292,16 @@
   (flycheck-inline-info                 (:background blue :foreground blue :height 128))
   (flycheck-inline-warning              (:background yellow :foreground yellow :height 128))
   
-  ;; indent dots
-  (highlight-indent-guides-character-face       (:foreground red :background red))
-  (highlight-indent-guides-stack-character-face (:foreground red :background red))
-  (highlight-indent-guides-top-character-face   (:foreground red :background red))
-  (highlight-indent-guides-stack-odd-face       (:foreground red :background red))
-  (highlight-indent-guides-stack-even-face      (:foreground red :background red))
-  (highlight-indent-guides-even-face            (:foreground red :background red))
-  (highlight-indent-guides-odd-face             (:foreground red :background red))
-  (highlight-indent-guides-top-odd-face         (:foreground red :background red))
-  (highlight-indent-guides-top-even-face        (:foreground red :background red))
+  ;; ;; indent dots
+  ;; (highlight-indent-guides-character-face       (:foreground blue))
+  ;; (highlight-indent-guides-stack-odd-face       (:foreground red))
+  ;; (highlight-indent-guides-stack-character-face (:foreground red))
+  ;; (highlight-indent-guides-stack-even-face      (:foreground red))
+  ;; (highlight-indent-guides-even-face            (:foreground red))
+  ;; (highlight-indent-guides-odd-face             (:foreground red))
+  ;; (highlight-indent-guides-top-odd-face         (:foreground red))
+  ;; (highlight-indent-guides-top-character-face   (:foreground red))
+  ;; (highlight-indent-guides-top-even-face        (:foreground red))
 
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground crust :bold t))
@@ -349,10 +350,12 @@
   (diff-added (:background green :foreground text))
   (diff-changed (:background yellow :foreground crust))
   
-  (treemacs-directory-collapsed-face			(:foreground subtext0))
+  (treemacs-directory-collapsed-face			(:foreground subtext1))
   (treemacs-directory-face						(:foreground subtext1))
   (treemacs-file-face							(:foreground subtext1))
   (treemacs-fringe-indicator-face               (:foreground red))
+  (treemacs-nerd-icons-file-face                (:foreground subtext1))
+  (treemacs-nerd-icons-root-face                (:foreground subtext1))
 
   (treemacs-git-added-face						(:foreground peach))
   (treemacs-git-renamed-face				   	(:foreground rosewater))
@@ -557,6 +560,21 @@
     (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
     (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
     (swift-mode:function-call-face (:foreground pink)))
+
+
+  (diff-file-header (:foreground subtext1 :background overlay0))
+  (diff-header (:foreground subtext1 :background overlay0))
+  (diff-hunk-header (:foreground subtext1 :background overlay0))
+  (diff-function (:foreground subtext1 :background overlay0))
+  (diff-index (:foreground subtext1 :background overlay0))
+
+  (diff-added (:foreground subtext1 :background crust))
+  (diff-indicator-added (:foreground subtext1 :background crust))
+  (diff-changed (:foreground subtext1 :background base))
+  (diff-indicator-changed (:foreground subtext1 :background base))
+  (diff-removed (:foreground subtext1 :background dark-red))
+  (diff-indicator-removed (:foreground subtext1 :background dark-red))
+  (diff-nonexistent (:foreground subtext1))
  ))
 
 ;;;###autoload

@@ -27,22 +27,27 @@
   (dark-iris        "#17121F" "#d7d7ff")
   (foam             "#82cfff" "#00d7ff")
   (dark-foam        "#142027" "#00d7ff")
+  (medium-foam      "#434d52" "#00d7ff")
   (green            "#42be65" "#00d7ff")
   (pine             "#08bdba" "#afffff")
   (rose             "#f5e0dc" "#ffffff")
   (gold             "#f6c177" "#ffd7af")
   (dark-gold        "#211A10" "#ffd7af")
+  (medium-gold      "#624d30" "#ffd7af")
   (pink             "#FF74B8" "#ffd7af")
   (love             "#FF0065" "#ff87af")
   (dark-love        "#27000F" "#ff87af")
+  (medium-love      "#53333f" "#ff87af")
   (text             "#FFFFFF" "#ffffff")
   (subtle           "#dde1e6" "#ffffff")
   (unmuted          "#bbc1c6" "#686868")
   (muted            "#525252" "#ffffff")
   (dark-green       "#03302F" "#F00000")
+  (medium-green     "#365958" "#F00000")
   (overlay          "#292929" "#ffffff")
   (surface          "#161616" "#ffffff")
-  (base             "#131313" "#ffffff"))
+  (base             "#131313" "#ffffff")
+  (crust            "#050505" "#ffffff"))
 
  ;; Customize faces
  (
@@ -64,7 +69,7 @@
   (hl-line                              (:background dark-green))
   (homoglyph                            (:foreground foam))
   (line-number                          (:foreground highlight-high))
-  (line-number-current-line             (:background overlay :foreground iris :bold t))
+  (line-number-current-line             (:background dark-green :foreground subtle :bold t))
   (match                                (:background gold :foreground base))
   (menu                                 (:foreground rose))
   (fill-column-indicator                (:foreground overlay))
@@ -78,9 +83,9 @@
   (tooltip                              (:background muted :foreground base))
   (shadow                               (:foreground muted))
   (success                              (:foreground pine))
-  (vertical-border                      (:foreground muted))
+  (vertical-border                      (:foreground surface))
   (warning                              (:foreground gold))
-  (window-divider                       (:foreground overlay :background overlay))
+  (window-divider                       (:foreground surface :background surface))
 
   (whitespace-newline                   (:foreground muted))
   (whitespace-space                     (:foreground muted))
@@ -312,8 +317,8 @@
   (vertico-group-separator                      (:foreground muted :strike-through t))
   (vertico-current                              (:background dark-green :distant-foreground text :foreground text))
 
-  (vertico-posframe-border                      (:background muted))
-  (vertico-posframe                             (:background overlay :foreground subtle))
+  (vertico-posframe-border                      (:background crust))
+  (vertico-posframe                             (:background crust :foreground unmuted))
 
   (corfu-annotations                            (:foreground muted))
   (corfu-current                                (:inherit 'vertico-current))
@@ -340,10 +345,6 @@
   (consult-file                                 (:foreground subtle :distant-foreground base))
   (consult-preview-insertion                    (:foreground love :background base))
   (yas-field-highlight-face                     (:background pine :foreground text))
-
-
-  (diff-added (:background pine :foreground text))
-  (diff-changed (:background gold :foreground base))
   
   (treemacs-directory-collapsed-face			(:foreground muted))
   (treemacs-directory-face						(:foreground subtle))
@@ -564,6 +565,24 @@
   (periphery-note-face-full (:foreground text :background green :bold t))
   ;; (localizeable-variable-face (:inherit font-lock-string-face))
   ;; (localizeable-value-face (:inherit font-lock-keyword-face))
+
+  (diff-file-header (:foreground subtle :background overlay))
+  (diff-header (:foreground subtle :background overlay))
+  (diff-hunk-header (:foreground subtle :background overlay))
+  (diff-function (:foreground subtle :background overlay))
+  (diff-index (:foreground subtle :background overlay))
+
+  (diff-added (:foreground subtle :background dark-green))
+  (diff-indicator-added (:foreground subtle :background dark-green))
+  (diff-changed (:foreground subtle :background dark-gold))
+  (diff-indicator-changed (:foreground subtle :background dark-gold))
+  (diff-removed (:foreground subtle :background dark-love))
+  (diff-indicator-removed (:foreground subtle :background dark-love))
+  (diff-nonexistent (:foreground subtle))
+
+  (diff-refine-added (:background medium-green))
+  (diff-refine-changed (:background medium-gold))
+  (diff-refine-removed (:background medium-love))
 
  ))
 

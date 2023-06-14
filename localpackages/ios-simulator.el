@@ -267,8 +267,7 @@
          (devices (cdr (assoc 'devices json)))
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
          (available-devices
-          (seq-filter
-           (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
+          (seq-filter (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
          ) available-devices))
 
 (provide 'ios-simulator)
