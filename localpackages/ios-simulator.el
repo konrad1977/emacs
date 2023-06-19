@@ -30,6 +30,7 @@
 (defvar current-simulator-id nil)
 (defvar secondary-simulator-id nil)
 (defvar current-app-identifier nil)
+(defvar current-app-name nil)
 
 (defun ios-simulator:current-sdk-version ()
   "Get the current simulator sdk-version."
@@ -66,6 +67,7 @@
      :tag "[Installing]"
      :text (format "%s onto %s. Will launch app when done." applicationName simulatorName)
      :attributes '(:inherit success))
+
     (ios-simulator:terminate-app-with
      :appIdentifier appIdentifier)
     

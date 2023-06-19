@@ -329,7 +329,7 @@
 
 (defun parse-compiler-errors (text)
   "Parse compiler error messages from LOG."
-  (setq tempList '())
+  (setq tempList nil)
   (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\(\\w+\\):\\(.*\\)?\n\\(.*\\)"))
     (while (string-match regex text)
       (let* ((path (match-string 1 text))
@@ -354,16 +354,19 @@
 
 (cl-defun periphery-run-parser (input successCallback)
   "Run parser (as INPUT as SUCCESSCALLBACK)."
-  ;; (message input)
-  (setq periphery-errorList (delete-dups  (parse-compiler-errors input)))
-  (setq build-notesList nil)
-  (dolist (line (split-string input "\n"))
-    (when-let ((secondEntry (parse-xcodebuild-notes-and-errors (string-trim-left line))))
-      (push secondEntry build-notesList)))
+  (setq periphery-errorList (delete-dups (parse-compiler-errors input)))
+  ;; (setq build-notesList nil)
+  ;; (dolist (line (split-string input "\n"))
+  ;;   (when-let ((secondEntry (parse-xcodebuild-notes-and-errors (string-trim-left line))))
+  ;;     (push secondEntry build-notesList)))
 
-  (setq compiledList (delete-dups (append periphery-errorList build-notesList)))
-  (when compiledList
-      (periphery--listing-command periphery-errorList))
+  ;; (setq compiledList (delete-dups (append periphery-errorList build-notesList)))
+  ;; (when compiledList
+  ;;   (periphery--listing-command periphery-errorList)
+  ;;   )
+
+  (when periphery-errorList
+    (periphery--listing-command periphery-errorList))
 
   (when (not (string-match-p (regexp-quote "BUILD FAILED") input))
     (funcall successCallback)))
@@ -410,17 +413,17 @@
 
 (setq periphery-mode-map (make-sparse-keymap))
 (define-key periphery-mode-map (kbd "a") 'periphery-mode-all)
-(define-key periphery-mode-map (kbd "e") #'(lambda () (interactive) (periphery-mode-build-filter "error" 2)))
-(define-key periphery-mode-map (kbd "t") #'(lambda () (interactive) (periphery-mode-build-filter "todo" 2)))
-(define-key periphery-mode-map (kbd "h") #'(lambda () (interactive) (periphery-mode-build-filter "hack" 2)))
-(define-key periphery-mode-map (kbd "n") #'(lambda () (interactive) (periphery-mode-build-filter "note" 2)))
-(define-key periphery-mode-map (kbd "w") #'(lambda () (interactive) (periphery-mode-build-filter "warning" 2)))
+(define-key periphery-mode-map (kbd "e") #'(lambda () (interactive) (periphery-mode-build-filter "error" 1)))
+(define-key periphery-mode-map (kbd "t") #'(lambda () (interactive) (periphery-mode-build-filter "todo" 1)))
+(define-key periphery-mode-map (kbd "h") #'(lambda () (interactive) (periphery-mode-build-filter "hack" 1)))
+(define-key periphery-mode-map (kbd "n") #'(lambda () (interactive) (periphery-mode-build-filter "note" 1)))
+(define-key periphery-mode-map (kbd "w") #'(lambda () (interactive) (periphery-mode-build-filter "warning" 1)))
 (define-key periphery-mode-map (kbd "f") #'(lambda () (interactive) (periphery-mode-build-filter "Function\\|fix" 3)))
 (define-key periphery-mode-map (kbd "u") #'(lambda () (interactive) (periphery-mode-build-filter "Unused" 3)))
 (define-key periphery-mode-map (kbd "i") #'(lambda () (interactive) (periphery-mode-build-filter "Initializer" 3)))
 (define-key periphery-mode-map (kbd "I") #'(lambda () (interactive) (periphery-mode-build-filter "Protocol" 3)))
 (define-key periphery-mode-map (kbd "P") #'(lambda () (interactive) (periphery-mode-build-filter "Parameter" 3)))
-(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "Property\\|perf" 2)))
+(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "Property\\|perf" 1)))
 (define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
@@ -430,11 +433,6 @@
   (interactive)
   (when (get-buffer periphery-buffer-name)
     (kill-buffer periphery-buffer-name)))
-
-(defun periphery-show-buffer ()
-  "Show current periphery buffer."
-  (interactive)
-  (periphery--listing-command periphery-errorList))
 
 (defun periphery-toggle-buffer ()
   "Toggle visibility of the Periphery buffer window."
@@ -641,7 +639,7 @@
                                                                                                            :inverse t
                                                                                                            :crop-left t))))
     
-    ("\\([\\/|;]\\{1,3\\}\\W?[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:\\)" . ((lambda (tag)
+    ("\\([\\/\|;]\\{1,3\\}\\W?[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:\\)" . ((lambda (tag)
                                                                                (svg-tag-make (periphery--remove-comments-in-string tag)
                                                                                              :face (svg-color-from-tag tag)
                                                                                              :inverse nil

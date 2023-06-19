@@ -83,9 +83,9 @@
   (tooltip                              (:background muted :foreground base))
   (shadow                               (:foreground muted))
   (success                              (:foreground pine))
-  (vertical-border                      (:foreground surface))
+  (vertical-border                      (:foreground crust))
   (warning                              (:foreground gold))
-  (window-divider                       (:foreground surface :background surface))
+  (window-divider                       (:foreground crust :background surface))
 
   (whitespace-newline                   (:foreground muted))
   (whitespace-space                     (:foreground muted))
@@ -139,27 +139,26 @@
   (doom-modeline-battery-full           (:foreground muted))
 
   ;; Doom visual state
-  (doom-modeline-evil-motion-state      (:foreground foam))
-  (doom-modeline-evil-emacs-state       (:foreground foam))
-  (doom-modeline-evil-insert-state      (:foreground rose))
-  (doom-modeline-evil-normal-state      (:foreground muted))
-  (doom-modeline-evil-visual-state      (:foreground foam))
-  (doom-modeline-evil-replace-state     (:foreground love))
-  (doom-modeline-evil-operator-state    (:foreground foam))
+  (doom-modeline-evil-motion-state      (:foreground foam :bold t))
+  (doom-modeline-evil-emacs-state       (:foreground foam :bold t))
+  (doom-modeline-evil-insert-state      (:foreground love :bold t))
+  (doom-modeline-evil-normal-state      (:foreground gold))
+  (doom-modeline-evil-visual-state      (:foreground green :bold t))
+  (doom-modeline-evil-replace-state     (:foreground love :bold t))
+  (doom-modeline-evil-operator-state    (:foreground foam :bold t))
 
   (doom-modeline-project-dir            (:foreground muted))
   (doom-modeline-buffer-path            (:foreground muted))
-  (doom-modeline-buffer-file            (:foreground text :bold t))
-  (doom-modeline-buffer-major-mode      (:foreground rose :bold t))
+  ;; (doom-modeline-buffer-file            (:foreground text :bold t))
+  (doom-modeline-buffer-major-mode      (:foreground pine :bold t))
   (doom-modeline-buffer-modified        (:foreground text :italic t :bold t))
   (doom-modeline-error                  (:background love))
   (doom-modeline-info                   (:foreground subtle :bold t))
   (doom-modeline-time                   (:foreground muted :weight 'semi-bold))
-  (doom-modeline-project-dir            (:foreground foam))
   (doom-modeline-bar                    (:background gold))
   (doom-modeline-bar-inactive           (:inherit 'mode-line-inactive))
-  (doom-modeline-panel                  (:background foam :foreground base :bold t))
-  (doom-modeline                        (:foreground muted))
+  ;; (doom-modeline                        (:foreground muted))
+  ;; (doom-modeline-panel                  (:background foam :foreground base :bold t))
   (doom-themes-visual-bell              (:background love))
 
 
@@ -506,9 +505,9 @@
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter :weight 'semi-bold))
   (tree-sitter-hl-face:variable.builtin          (:foreground foam :italic t))
-  
   (tree-sitter-hl-face:variable.special          (:foreground iris :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground love :italic t))
+
   (tree-sitter-hl-face:property                  (:foreground rose))
   (tree-sitter-hl-face:property.definition       (:inherit 'tree-sitter-hl-face:property :italic t))
 
@@ -555,7 +554,7 @@
   (periphery-note-face-full (:foreground dark-green :background pine :bold t))
   (periphery-mark-face-full (:foreground overlay :background muted :bold t))
   (periphery-todo-face-full (:foreground dark-foam :background foam :bold t))
-  (periphery-hack-face-full (:foreground dark-love :background love :bold t))
+  (periphery-hack-face-full (:foreground medium-love :background pink :bold t))
   (periphery-warning-face-full (:foreground gold :background dark-gold :bold t))
   
   (periphery-error-face-full (:inherit 'periphery-hack-face-full))

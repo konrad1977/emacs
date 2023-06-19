@@ -11,6 +11,8 @@
   "Name of the buffer.")
 
 (defvar current-buffer-name nil)
+(defvar current-device-id nil)
+(defvar current-install-command)
 
 (defun ios-device:format-id (id)
   "Format device id (as ID)."
@@ -22,12 +24,16 @@
 
 (defun ios-device:id ()
   "Get the id of the connected device."
-  (let ((device-id
-         (clean-up-newlines
-          (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
-    (if (= (length device-id) 0)
-        nil
-      (ios-device:format-id device-id))))
+  (if current-device-id
+      current-device-id
+    (progn
+      (let ((device-id
+             (clean-up-newlines
+              (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
+        (if (= (length device-id) 0)
+            nil
+          (setq current-device-id (ios-device:format-id device-id))))
+      current-device-id)))
 
 (cl-defun ios-device:install-app (&key project-root &key buildfolder &key appname)
   "Install an app on device (PROJECT-ROOT BUILDFOLDER APPNAME)."
@@ -38,6 +44,7 @@
          (default-directory install-path)
          (command (format "ios-deploy -b %s.app -d" app-name))
          (buffer (get-buffer-create (concat ios-device:buffer-name app-name))))
+
     (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
     (setq current-buffer-name buffer)
     (inhibit-sentinel-messages #'async-shell-command

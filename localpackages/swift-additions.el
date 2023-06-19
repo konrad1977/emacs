@@ -34,6 +34,7 @@
 (defvar current-local-device-id nil)
 (defvar current-build-command nil)
 (defvar build-progress-spinner nil)
+(defvar current-is-xcode-project nil)
 (defvar run-on-device nil)
 (defvar run-app-on-build t)
 (defvar DEBUG nil)
@@ -113,15 +114,17 @@
      "-parallelizeTargets \\"
      "-UseModernBuildSystem=YES \\"
      "-destination-timeout 0 \\"
+     "-skipPackageUpdates \\"
      "-scmProvider system \\"
      "-skipUnavailableActions \\"
      "-hideShellScriptEnvironment \\"
-     "-clonedSourcePackagesDirPath build/SourcePackages \\"
+     "-clonedSourcePackagesDirPath ~/Library/Cache/com.apple.swiftpm  \\"
      "-packageCachePath ~/Library/Cache/com.apple.swiftpm \\"
      "-derivedDataPath build \\"
      "COMPILER_INDEX_STORE_ENABLE=NO \\"
      "ONLY_ACTIVE_ARCH=YES \\"
-     "-quiet")))
+     "-quiet"
+     )))
 
 (defun swift-additions:full-build-folder ()
   "Full path to to the build folder."
@@ -466,10 +469,13 @@
 
 (defun swift-additions:is-xcodeproject ()
   "Check if its an xcode-project."
-  (if-let ((default-directory (swift-additions:get-ios-project-root)))
-      (or
-       (directory-files-recursively default-directory "\\xcworkspace$" t)
-       (directory-files-recursively default-directory "\\xcodeproj$" t))))
+  (unless current-is-xcode-project
+    (if-let ((default-directory (swift-additions:get-ios-project-root)))
+        (setq current-is-xcode-project
+        (or
+         (directory-files-recursively default-directory "\\xcworkspace$" t)
+         (directory-files-recursively default-directory "\\xcodeproj$" t)))))
+    current-is-xcode-project)
 
 (defun swift-additions:is-a-swift-package-base-project ()
   "Check if project is a swift package based."

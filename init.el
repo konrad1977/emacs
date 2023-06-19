@@ -43,7 +43,7 @@
       word-wrap                         nil
       auto-mode-case-fold               nil
       truncate-lines                    t
-      truncate-string-ellipsis          "..."
+      truncate-string-ellipsis          ".."
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
@@ -166,9 +166,9 @@
    ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  (load-theme 'oxocarbon t)
+   ;; (load-theme 'oxocarbon t)
    ;; (load-theme 'kman t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
   )
 
 (use-package saveplace
@@ -183,9 +183,12 @@
 
 (use-package vertico
   :hook (after-init . vertico-mode)
-  :bind (:map vertico-map
-              ("C-j" . vertico-next)
-              ("C-k" . vertico-previous))
+  :bind
+  (:map vertico-map
+  ("C-j" . vertico-next)
+  ("C-k" . vertico-previous)
+  ("C-d" . vertico-scroll-down)
+  ("C-u" . vertico-scroll-up))
   :custom
   (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
@@ -305,7 +308,7 @@
 
 (use-package evil
   :hook (after-init . evil-mode)
-  :bind ("<escape>" . keyboard-escape-quit)
+  ;; :bind ("<escape>" . keyboard-escape-quit)
   :init
   (setq evil-want-integration t
         evil-want-minibuffer t
@@ -315,15 +318,13 @@
         evil-undo-system 'undo-fu
         evil-search-module 'evil-search
         evil-vsplit-window-right t
-  ;; evil-normal-state-cursor '(hollow . 2)
+        ;; evil-normal-state-cursor '(hollow . 2)
         evil-split-window-below t
         evil-want-C-i-jump nil)
   :config
-
   (define-key evil-visual-state-map (kbd "C-u u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
-  
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
   (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (evil-jump-forward)))
@@ -451,6 +452,7 @@
    '(minimap-font-face ((t (:family "Minimap" :height 0.2 :group 'minimap))))))
 
 (use-package treemacs-nerd-icons
+  :after treemacs
   :config
   (treemacs-load-theme "nerd-icons"))
 
@@ -473,8 +475,8 @@
   :hook (swift-mode . tree-sitter-mode)
   :config
   (setq tsc-dyn-get-from nil)
-  (setq ;;tree-sitter-hl-use-font-lock-keywords t
-        tree-sitter-hl-enable-query-region-extension t)
+  (setq tree-sitter-hl-use-font-lock-keywords t
+        tree-sitter-hl-enable-query-region-extension nil)
   :config
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
@@ -552,43 +554,6 @@
         (value ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-builtin-face)
         (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
         (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
-
-  ;; (setq kind-icon-use-icons t
-  ;;       svg-lib-icons-dir (expand-file-name "svg-lib" no-littering-var-directory)
-  ;;       kind-icon-mapping
-  ;;       '((variable "va" :icon "label-variant" :face font-lock-variable-name-face)
-  ;;         (numeric "nu" :icon "numeric" :face tree-sitter-hl-face:number)
-  ;;         (function "f" :icon "rocket" :face font-lock-function-name-face)
-  ;;         (method "m" :icon "rocket" :face font-lock-function-name-face)
-  ;;         (property "pr" :icon "virus" :face font-lock-variable-name-face)
-  ;;         (constructor "cn" :icon "orbit" :face tree-sitter-hl-face:constructor)
-  ;;         (boolean "b" :icon "circle-half-full" :face tree-sitter-hl-face:boolean)
-  ;;         (class "c" :icon "molecule" :face font-lock-type-face)
-  ;;         (array "a" :icon "code-brackets" :face font-lock-variable-name-face)
-  ;;         (color "#" :icon "palette" :face success)
-  ;;         (constant "co" :icon "pause-circle" :face font-lock-constant-face)
-  ;;         (enum "e" :icon "format-list-bulleted-square" :face font-lock-builtin-face)
-  ;;         (enum-member "em" :icon "format-list-checks" :face font-lock-builtin-face)
-  ;;         (event "ev" :icon "lightning-bolt-outline" :face font-lock-warning-face)
-  ;;         (field "fd" :icon "application-braces-outline" :face font-lock-variable-name-face)
-  ;;         (file "f" :icon "file" :face font-lock-string-face)
-  ;;         (folder "d" :icon "folder" :face font-lock-doc-face)
-  ;;         (interface "if" :icon "video-input-component" :face font-lock-type-face)
-  ;;         (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face)
-  ;;         (macro "/mmc" :icon "lambda" :face font-lock-keyword-face)
-  ;;         (module "{" :icon "orbit" :face font-lock-preprocessor-face)
-  ;;         (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face)
-  ;;         (param "pa" :icon "test-tube" :face default)
-  ;;         (reference "rf" :icon "hospital" :face font-lock-variable-name-face)
-;;         (snippet "S" :icon "pill" :face font-lock-string-face)
-  ;;         (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
-  ;;         (struct "%" :icon "molecule" :face font-lock-variable-name-face)
-  ;;         (text "tx" :icon "skull-scan" :face shadow)
-  ;;         (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
-  ;;         (unit "u" :icon "test-tube" :face shadow)
-  ;;         (tabnine "ai" :icon "cloud" :face shadow)
-  ;;         (value "v" :icon "pulse" :face font-lock-builtin-face)
-  ;;         (t "." :icon "microscope" :face shadow)))
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
@@ -682,8 +647,8 @@
   :hook (treemacs-mode . treemacs-project-follow-mode)
   :bind ("M-J" . treemacs-find-file)
   :custom-face
-  (doom-themes-treemacs-file-face ((t (:weight semi-bold))))
-  (treemacs-file-face ((t (:family "Iosevka Aile" :height 0.8))))
+  ;; (doom-themes-treemacs-file-face ((t (:weight semi-bold))))
+  ;; (treemacs-file-face ((t (:family "Iosevka Aile"))))
   (treemacs-directory-face ((t (:family "Iosevka Aile" :height 0.8))))
   (treemacs-directory-collapsed-face ((t (:family "Iosevka Aile" :height 0.8))))
   (treemacs-git-ignored-face ((t (:family "Iosevka Aile" :height 0.8))))
@@ -807,16 +772,13 @@
       (side . right))
      ("\\*occur\\|evil-marks\\*"
       (display-buffer-in-side-window)
-      (body-function . select-window)
-      (window-height . 0.18)
-      (side . bottom)
-      (slot . 1))
+      (window-width . 0.26)
+      (side . right)
+      (slot . 0))
      ("\\*IOS Simulator\\|*swift package\\|*ios-device"
       (display-buffer-reuse-window display-buffer-in-side-window)
       (reusable-frames . nil)
-      (body-function . select-window)
       (window-height . 0.2)
-      ;; (window-parameters . ((mode-line-format . (" " " "))))
       (side . bottom)
       (slot . 1))
      ("\\*Periphery\\*"
@@ -1154,9 +1116,7 @@
   :hook (prog-mode . drag-stuff-mode)
   :bind
   ("C-j" . drag-stuff-down)
-  ("C-k" . drag-stuff-up)
-  ("S-M-<down>" . drag-stuff-down)
-  ("M-S-<up>" . drag-stuff-up))
+  ("C-k" . drag-stuff-up))
 
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
@@ -1182,7 +1142,9 @@
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
-        swift-mode:highlight-anchor t))
+        swift-mode:highlight-anchor t)
+
+  )
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
@@ -1303,11 +1265,14 @@
     (other-window 1)
     (xwidget-webkit-browse-url url)))
 
-(use-package electric
-  :hook (prog-mode . electric-pair-mode)
-  :ensure nil
-  :config
-  (setq electric-pair-preserve-balance nil))
+(use-package smartparens
+  :hook (prog-mode . smartparens-mode))
+
+;; (use-package electric
+;;   :hook (prog-mode . electric-pair-mode)
+;;   :ensure nil
+;;   :config
+;;   (setq electric-pair-preserve-balance nil))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
