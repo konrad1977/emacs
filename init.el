@@ -164,11 +164,12 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  ;; (load-theme 'catppuccin-mocha t)
+  (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-   ;; (load-theme 'oxocarbon t)
+    ;; (load-theme 'oxocarbon t)
+   ;;(load-theme 'oxographite t)
    ;; (load-theme 'kman t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
   )
 
 (use-package saveplace
@@ -393,6 +394,7 @@
   ("C-M-<down>" . (lambda () (interactive) (evil-mc-make-cursor-move-next-line 1)))
   ("C-M-<up>" . (lambda () (interactive) (evil-mc-make-cursor-move-prev-line 1)))
   ("C-c a" . (lambda () (interactive) (evil-mc-make-cursor-here)))
+  ;; ("C-M-e" . (lambda() (interactive) (evil-mc-make-all-cursors)))
   :config
   (setq evil-mc-undo-cursors-on-keyboard-quit t)
   (setq evil-mc-mode-line-text-inverse-colors t)
@@ -752,10 +754,6 @@
           "pods"
           "xcodeproj"
           ".build")))
-
-;; Restart emacs
-(use-package restart-emacs
-  :commands restart-emacs)
 
 (use-package window
   :ensure nil

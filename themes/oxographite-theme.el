@@ -1,6 +1,6 @@
 ;;; package --- A beutiful theme
 ;;; Commentary:
-;;; oxocarbon based theme
+;;; oxographite based theme
 
 
 ;;; Code:
@@ -14,15 +14,15 @@
 
 
 (autothemer-deftheme
-	oxocarbon "A theme based on oxocarbon amazing color scheme"
+	oxographite "A theme based on oxocarbon but a bit lighter amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette
-  (highlight-high   "#464646" "#d7d7ff")
-  (highlight-med    "#363636" "#d7d7ff")
-  (highlight-low    "#272727" "#d7d7ff")
+  (highlight-high   "#555555" "#d7d7ff")
+  (highlight-med    "#262626" "#d7d7ff")
+  (highlight-low    "#282828" "#d7d7ff")
   (iris             "#be95ff" "#d7d7ff")
   (dark-iris        "#17121F" "#d7d7ff")
   (foam             "#82cfff" "#00d7ff")
@@ -45,7 +45,7 @@
   (dark-green       "#03302F" "#F00000")
   (medium-green     "#365958" "#F00000")
   (overlay          "#292929" "#ffffff")
-  (surface          "#161616" "#ffffff")
+  (surface          "#212121" "#ffffff")
   (base             "#131313" "#ffffff")
   (crust            "#050505" "#ffffff"))
 
@@ -592,5 +592,5 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide 'oxocarbon-theme)
-;;; oxocarbon-theme.el ends here
+(provide 'oxographite-theme)
+;;; oxographite-theme.el ends here

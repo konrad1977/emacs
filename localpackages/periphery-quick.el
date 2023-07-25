@@ -54,7 +54,7 @@
   "Run query (as QUERY)."
   (let ((default-directory (periphery-helper:project-root-dir)))
     (async-start-command-to-string
-     :command (format "rg -e %s --color=never --no-heading --with-filename --line-number --column --sort path" query)
+     :command (format "rg -wse \'%s\' --color=never --no-heading --with-filename --line-number --column --sort path" query)
      :callback '(lambda (output) (periphery-quick:parse output)))))
 
 (defun periphery-quick:run-query-file (query file)
@@ -62,7 +62,7 @@
   (let ((file file)
         (query query))
     (async-start-command-to-string
-     :command (format "rg -w %s %s --color=never --no-heading --with-filename --line-number --column" query file)
+     :command (format "rg -wse \'%s\' %s --color=never --no-heading --with-filename --line-number --column" query file)
      :callback '(lambda (output)
                   (periphery-quick:parse output)))))
 

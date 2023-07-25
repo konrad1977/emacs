@@ -99,14 +99,14 @@
   (shadow                                        (:background sumiInk-0))
   (success                                       (:foreground waveAqua2))
   (vertical-border                               (:foreground sumiInk-1))
-  (warning                                       (:foreground roninYellow))
+  (warning                                       (:foreground carpYellow))
   (window-border                                 (:background sumiInk-1b))
   (window-divider                                (:foreground sumiInk-2))
   (hi-yellow                                     (:background carpYellow :foreground sumiInk-1b))
 
   ;; Font lock
-  (font-lock-keyword-face                        (:foreground oniViolet :bold t))
-  (font-lock-type-face                           (:foreground springBlue :weight 'semi-bold))
+  (font-lock-keyword-face                        (:foreground oniViolet :weight 'semi-bold))
+  (font-lock-type-face                           (:foreground springBlue))
   (font-lock-warning-face                        (:foreground roninYellow))
   (font-lock-string-face                         (:foreground springGreen :italic t))
   (font-lock-builtin-face                        (:foreground springBlue))
@@ -460,6 +460,10 @@
   (ansi-color-bright-white                       (:foreground old-white))
 
  ;; Tree sitter highlightning
+  (tree-sitter-hl-face:annotation                (:foreground crystalBlue :weight 'semi-bold))
+  (tree-sitter-hl-face:annotation.builtin        (:foreground sakuraPink :weight 'semi-bold))
+  (tree-sitter-hl-face:annotation.type           (:foreground crystalBlue))
+
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:foreground springBlue))
   (tree-sitter-hl-face:function.builtin          (:foreground springGreen))
@@ -474,11 +478,11 @@
   (tree-sitter-hl-face:type.parameter            (:foreground autumnYellow :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground sumiInk-4))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
-  (tree-sitter-hl-face:type.super                (:foreground waveAqua2 :bold t))
+  (tree-sitter-hl-face:type.super                (:foreground waveAqua2))
   (tree-sitter-hl-face:constructor               (:foreground waveAqua2 :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
-  (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter :weight 'semi-bold))
+  (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
   (tree-sitter-hl-face:variable.builtin          (:foreground springBlue :italic t))
   (tree-sitter-hl-face:variable.special          (:foreground oniViolet :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground peachRed :italic t))
@@ -494,16 +498,18 @@
   (tree-sitter-hl-face:embedded                  (:foreground springBlue))
 
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
+  (tree-sitter-hl-face:keyword.compiler          (:foreground carpYellow))
+  (tree-sitter-hl-face:keyword.type              (:foreground autumnRed))
   (tree-sitter-hl-face:operator                  (:foreground peachRed))
   (tree-sitter-hl-face:label                     (:foreground sumiInk-4))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))
   (tree-sitter-hl-face:number                    (:foreground autumnYellow))
 
-  (tree-sitter-hl-face:punctuation               (:foreground sakuraPink :weight 'semi-bold))
-  (tree-sitter-hl-face:punctuation.bracket       (:foreground springBlue :weight 'semi-bold))
-  (tree-sitter-hl-face:punctuation.delimiter     (:foreground old-white :weight 'semi-bold))
-  (tree-sitter-hl-face:punctuation.special       (:foreground surimiOrange :weight 'semi-bold))
+  (tree-sitter-hl-face:punctuation               (:foreground sakuraPink))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground springBlue))
+  (tree-sitter-hl-face:punctuation.delimiter     (:foreground old-white))
+  (tree-sitter-hl-face:punctuation.special       (:foreground surimiOrange))
 
   (tree-sitter-hl-face:case-pattern              (:foreground autumnYellow))
   (tree-sitter-hl-face:keyword.compiler          (:foreground sumiInk-4 :bold t :italic t))

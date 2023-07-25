@@ -562,6 +562,8 @@
   (setq arglist (swift-additions:lsp-arguments))
   (add-to-list 'arglist (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
 
+(require 'tree-sitter-hl)
+
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))
   "Face for enum case names in a pattern match"
@@ -582,7 +584,22 @@
 (defface tree-sitter-hl-face:punctuation.type
   '((t :inherit tree-sitter-hl-face:type
        :weight normal))
-  "Face for punctuation in type names (?, [], etc.)"
+  "Face for punctuation in type names or annotations"
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:annotation
+  '((t :inherit font-lock-keyword-face))
+  "Face for annotations or attributes attached to declarations."
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:annotation.builtin
+  '((t :inherit tree-sitter-hl-face:annotation))
+  "Face for declaration annotations which are built in to the language."
+  :group 'tree-sitter-hl-faces)
+
+(defface tree-sitter-hl-face:annotation.type
+  '((t :inherit tree-sitter-hl-face:annotation))
+  "Face for annotations attached to type descriptors."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.compiler
@@ -591,14 +608,20 @@
   "Face for compile-time keywords"
   :group 'tree-sitter-hl-faces)
 
+(defface tree-sitter-hl-face:keyword.type
+  '((t :inherit tree-sitter-hl-face:keyword))
+  "Face for keywords that appear in type annotations"
+  :group 'tree-sitter-hl-faces)
+
 (defface tree-sitter-hl-face:variable.synthesized
   '((t :inherit tree-sitter-hl-face:variable))
-  "Face for compiler-synthesized identifiers (prefixed with '$')"
+  "Face for compiler-synthesized identifiers"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:default
   '((t :inherit default))
-  "Face to override other faces"
+  "Face to override other faces, forcing the base display
+attributes."
   :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)
