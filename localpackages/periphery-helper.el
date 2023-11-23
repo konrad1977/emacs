@@ -42,23 +42,23 @@
    `(lambda ()
       (shell-command-to-string ,command))
    `(lambda (result)
-        (funcall ,callback result))))
+      (funcall ,callback result))))
+
+(cl-defun async-start-command (&key command &key callback)
+  "Async shell command run async (as COMMAND) and call (as CALLBACK)."
+  (async-start
+   `(lambda ()
+      (shell-command ,command))
+   `(lambda (result)
+      (funcall ,callback))))
 
 (defun clean-up-newlines (text)
   "Clean up new lines (as TEXT)."
   (string-trim-left
-   (replace-regexp-in-string "\n$" "" text)))
+   (replace-regexp-in-string "\n" "" text)))
 
 (cl-defun message-with-color (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES."
-  (message "%s %s" (propertize tag 'face attributes) text))
-
-(cl-defun animate-message-with-color (&key tag &key text &key attributes &key times)
-  "Print a TAG and TEXT with ATTRIBUTES nr of TIMES."
-  (dotimes (x times)
-    (dotimes (current 2)
-      (message "%s %s%s" (propertize tag 'face attributes) text (make-string current ?.))
-      (sit-for 0.2)))
   (message "%s %s" (propertize tag 'face attributes) text))
 
 ;;; Processes

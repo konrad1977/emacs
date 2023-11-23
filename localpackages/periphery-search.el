@@ -58,7 +58,7 @@
   "Search using RG (Ripgrep)."
   (interactive)
   (setup-search-title)
-  (periphery--search-for "rg -w"))
+  (periphery--search-for "rg -wS"))
 
 ;;;###autoload
 (defun periphery-query-todos-and-fixmes ()

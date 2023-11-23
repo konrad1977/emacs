@@ -4,9 +4,9 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin) 
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 160 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 170 :weight 'light)
 
 (custom-set-faces
  '(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0)))))
@@ -17,6 +17,7 @@
 (global-auto-revert-mode)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)         ;; Highlight current line
 ;; (pixel-scroll-precision-mode 1)
+
 
 (setq ad-redefinition-action            'accept
       global-auto-revert-non-file-buffers t
@@ -98,6 +99,10 @@
     (package-refresh-contents))
   (package-install 'use-package))
 
+;; (unless (package-installed-p 'vc-use-package)
+;;   (package-vc-install "https://github.com/slotThe/vc-use-package"))
+;; (require 'vc-use-package)
+
 (require 'use-package)
 
 (defconst jetbrains-ligature-mode--ligatures
@@ -139,10 +144,13 @@
 (use-package gcmh
   :hook (after-init . gcmh-mode))
 
+(use-package all-the-icons
+  :defer t)
+
 (use-package welcome-dashboard
   :ensure nil
   :custom-face
-  (welcome-dashboard-path-face ((t (:height 0.9))))
+  (welcome-dashboard-path-face ((t (:height 0.8))))
   :config
   (setq welcome-dashboard-latitude 56.7365
         welcome-dashboard-longitude 16.2981
@@ -164,13 +172,13 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-macchiatotppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
     ;; (load-theme 'oxocarbon t)
    ;;(load-theme 'oxographite t)
    ;; (load-theme 'kman t)
-  ;; (load-theme 'kanagawa t)
-  )
+    (load-theme 'kanagawa t)
+    )
 
 (use-package saveplace
   :ensure nil
@@ -199,8 +207,8 @@
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t
-        read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
+        read-file-name-completion-ignore-case t
         completion-ignore-case t))
 
 (use-package vertico-posframe
@@ -216,7 +224,7 @@
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-        vertico-posframe-truncate-lines t
+        vertico-posframe-truncate-lines nil
         vertico-posframe-min-width 120
         vertico-posframe-width 155
         vertico-posframe-min-height 2
@@ -224,18 +232,18 @@
 
 ;; Configure directory extension.
 (use-package vertico-directory
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
   :commands (find-file)
   :ensure nil
   :bind (:map vertico-map
               ("<tab>" . vertico-directory-enter)
               ("DEL" . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word))
-  ;; Tidy shadowed file names
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+              ("M-DEL" . vertico-directory-delete-word)))
 
 (use-package nerd-icons
   :defer t
   :custom
+  (setq nerd-icons-scale-factor 0.8)
   (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package nerd-icons-dired
@@ -244,9 +252,12 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless basic)
+  (setq
+        read-file-name-completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        completion-styles '(orderless basic)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles flex))
+        completion-category-overrides '((file (styles . (orderless flex)))
                                         (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
@@ -270,34 +281,42 @@
   ("<backtab>" . consult-buffer)
   ("C-c C-a" . consult-apropos)
   ("C-c m m" . consult-imenu-multi)
-  ("M-O" . consult-ls-git)
+  ("M-O" . consult-projectile-find-file)
   ("M-f" . consult-line))
 
 (use-package embark-consult
   :after (embark consult))
 
+(use-package consult-project-extra
+  :after consult
+  :bind
+  ("C-<tab>" . #'consult-projectile-switch-to-buffer))
+
+(use-package consult-ls-git
+  :after consult)
+
 (use-package consult-projectile
   :after projectile)
+
+(use-package consult-flycheck
+  :after flycheck)
 
 (use-package recentf
   :hook (after-init . recentf-mode))
 
 (use-package doom-modeline
-  :hook (evil-mode . doom-modeline-mode)
+  :hook (after-init . doom-modeline-mode)
   :config
   (setq doom-modeline-buffer-encoding nil
         doom-modeline-percent-position nil
         doom-modeline-buffer-file-name-style 'file-name
         doom-modeline-vcs-max-length 50
         doom-modeline-project-detection 'projectile
-        doom-modeline-modal t
-        doom-modeline-modal-icon nil
-        ;; doom-modeline-workspace-name nil
-        ;; doom-modeline-persp-name nil
-        doom-modeline-bar-width 20
-        doom-modeline-height 31
-        doom-modeline-hud t
-        doom-modeline-buffer-state-icon nil
+        doom-modeline-workspace-name nil
+        doom-modeline-persp-name nil
+        doom-modeline-bar-width 2
+        doom-modeline-height 37
+        doom-modeline-hud nil
         doom-modeline-time-icon nil))
 
 (use-package helpful
@@ -440,6 +459,9 @@
   :config
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
+(use-package ws-butler
+  :hook (prog-mode . ws-butler-mode))
+
 (use-package minimap
   :commands (minimap-mode)
   :config
@@ -458,13 +480,13 @@
   :config
   (treemacs-load-theme "nerd-icons"))
 
-(use-package svg-tag-mode
-  :hook (swift-mode . svg-tag-mode)
-  :config
-  (plist-put svg-lib-style-default :font-family "Iosevka Aile")
-  (plist-put svg-lib-style-default :font-size 16)
-  (require 'periphery)
-  (setq svg-tag-tags (periphery-svg-tags)))
+;; (use-package svg-tag-mode
+;;   :hook (swift-mode . svg-tag-mode)
+;;   :config
+;;   (plist-put svg-lib-style-default :font-family "Iosevka Aile")
+;;   (plist-put svg-lib-style-default :font-size 16)
+;;   (require 'periphery)
+;;   (setq svg-tag-tags (periphery-svg-tags)))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -474,7 +496,9 @@
   :hook (emacs-lisp-mode . rainbow-mode))
 
 (use-package tree-sitter
-  :hook (swift-mode . tree-sitter-mode)
+  :hook (
+         (swift-mode . tree-sitter-mode)
+         (kotlin-mode . tree-sitter-mode))
   :config
   (setq tsc-dyn-get-from nil)
   (setq tree-sitter-hl-use-font-lock-keywords t
@@ -487,14 +511,6 @@
   :defer t)
 
 ;; ------------------ EDITING -------------------
-(use-package consult-project-extra
-  :after consult
-  :bind
-  ("C-<tab>" . #'consult-projectile-switch-to-buffer))
-
-(use-package consult-ls-git
-  :after consult)
-
 (use-package google-this
   :commands (google-this)
   :bind ("C-x C-g" . google-this))
@@ -504,16 +520,19 @@
   :commands (eglot eglot-ensure)
   :ensure nil
   :config
+  (fset #'jsonrpc--log-event #'ignore)
   (setq eglot-stay-out-of '(corfu company)
-        eglot-extend-to-xref t
-        eglot-ignored-server-capabilities '(:hoverProvider))
+        eglot-send-changes-idle-time 0.2
+        eglot-autoshutdown t
+        eglot-ignored-server-capabilities '(:hoverProvider)
+        eglot-extend-to-xref t)
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package kind-icon
   :after corfu
   :custom
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.05)
+  (kind-icon-blend-frac 0.08)
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
@@ -521,6 +540,7 @@
 (setq kind-icon-mapping
       `(
         (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
+        (tabnine ,(nerd-icons-codicon "nf-cod-hubot") :face font-lock-warning-face)
         (boolean ,(nerd-icons-codicon "nf-cod-symbol_boolean") :face font-lock-builtin-face)
         (class ,(nerd-icons-codicon "nf-cod-symbol_class") :face font-lock-type-face)
         (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
@@ -579,14 +599,12 @@
         corfu-max-width 130
         corfu-left-margin-width 0.9
         corfu-right-margin-width 0.9
-        corfu-bar-width 0.2
-        corfu-count 14
-        corfu-auto-delay 0.5
+        corfu-count 10
+        corfu-auto-delay 0.2
         corfu-quit-no-match 'separator
-        corfu-popupinfo-delay 0.5
         corfu-popupinfo-resize t
         corfu-popupinfo-hide nil
-        corfu-popupinfo-direction '(force-horizontal)
+        ;; corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-resize t
         corfu-popupinfo-min-width corfu-min-width
         corfu-popupinfo-max-width corfu-max-width
@@ -603,11 +621,6 @@
   :ensure nil
   :config
   (savehist-mode t))
-
-(use-package dabbrev
-  :ensure nil
-  :custom
-  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
 
 ;; Add extensions
 (use-package cape
@@ -627,8 +640,8 @@
   (setq cape-dabbrev-check-other-buffers t
         cape-dabbrev-min-length 4)
   :init
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  ;; (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
@@ -651,17 +664,17 @@
   :custom-face
   ;; (doom-themes-treemacs-file-face ((t (:weight semi-bold))))
   ;; (treemacs-file-face ((t (:family "Iosevka Aile"))))
-  (treemacs-directory-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-directory-collapsed-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-git-ignored-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-git-unmodified-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-git-untracked-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-git-added-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-git-renamed-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-git-modified-face ((t (:family "Iosevka Aile" :height 0.8))))
-  (treemacs-tags-face ((t (:family "Iosevka Aile" :height 0.8))))
+  (treemacs-directory-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-directory-collapsed-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-git-ignored-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-git-unmodified-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-git-untracked-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-git-added-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-git-renamed-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-git-modified-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-tags-face ((t (:family "Iosevka Aile" :height 0.9))))
   :config
-  (setq doom-themes-treemacs-theme nil
+  (setq doom-themes-treemacs-theme t
         treemacs-window-background-color '("#221F22" . "#423f42"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
@@ -701,15 +714,40 @@
       ispell-local-dictionary "sv-SE"
       ispell-program-name "aspell"))
 
-;; (use-package flycheck
-;;  :hook (prog-mode . flycheck-mode)
-;;  :diminish t
-;;  :bind
-;;   ("C-c e n" . flycheck-next-error)
-;;   ("C-c e p" . flycheck-previous-error)
+(use-package flycheck
+ :hook (prog-mode . flycheck-mode)
+ :diminish t
+ :bind
+  ("C-c e n" . flycheck-next-error)
+  ("C-c e p" . flycheck-previous-error)
+  :custom
+  (setq flycheck-checker-error-threshold 15)
+  ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
+  ;; (flycheck-check-syntax-automatically '(save mode-enabled new-line idle-change))
+  )
+
+;; (use-package tabnine
+;;   :commands (tabnine-start-process)
+;;   :hook (prog-mode . tabnine-mode)
+;;   :diminish "⌬"
 ;;   :custom
-;;   (flycheck-indication-mode 'left-margin)
-;;   (flycheck-check-syntax-automatically '(save mode-enabled new-line idle-change)))
+;;   (tabnine-wait 3)
+;;   (tabnine-minimum-prefix-length 0)
+;;   :hook (kill-emacs . tabnine-kill-process)
+;;   :config
+;;   ;; (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
+;;   (tabnine-start-process)
+;;   :bind
+;;   (:map  tabnine-completion-map
+;; 	 ("<tab>" . tabnine-accept-completion)
+;; 	 ("TAB" . tabnine-accept-completion)
+;; 	 ("M-<return>" . tabnine-accept-completion-by-line)
+;; 	 ("C-g" . tabnine-clear-overlay)
+;; 	 ("C-k" . tabnine-previous-completion)
+;; 	 ("C-j" . tabnine-next-completion)))
+
+(use-package flycheck-inline
+  :hook (flycheck-mode . flycheck-inline-mode))
 
 ;; (use-package flycheck-posframe
 ;;   :hook (flycheck-mode . flycheck-posframe-mode)
@@ -720,10 +758,10 @@
 ;;         flycheck-posframe-error-prefix " ✘ "
 ;;         flycheck-posframe-info-prefix " ● "))
 
-;; (use-package flycheck-eglot
-;;   :hook (swift-mode . global-flycheck-eglot-mode)
-;;   :config
-;;   (setq flycheck-eglot-exclusive nil))
+(use-package flycheck-eglot
+  :hook (swift-mode . global-flycheck-eglot-mode)
+  :config
+  (setq flycheck-eglot-exclusive t))
 
 (use-package markdown-mode
   :commands (markdown-mode))
@@ -770,11 +808,12 @@
       (side . right))
      ("\\*occur\\|evil-marks\\*"
       (display-buffer-in-side-window)
+      (body-function . select-window)
       (window-width . 0.26)
       (side . right)
       (slot . 0))
      ("\\*IOS Simulator\\|*swift package\\|*ios-device"
-      (display-buffer-reuse-window display-buffer-in-side-window)
+      (display-buffer-in-side-window)
       (reusable-frames . nil)
       (window-height . 0.2)
       (side . bottom)
@@ -792,7 +831,7 @@
       (window-width . 0.4)
       (side . right)
       (slot . 1))
-     ("\\*e?shell\\|vterm*"
+     ("\\*e?shell\\|vterm*\\|*ellama\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.25)
@@ -800,6 +839,7 @@
       (slot . -1))
      ("simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*\\|Warnings"
       (display-buffer-in-side-window)
+      (display-buffer-at-bottom)
       (window-height . 0.2)
       (side . bottom)
       (slot . 2)))))
@@ -834,15 +874,15 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package magit-todos
-  :commands (magit-todos-mode)
-  :hook (magit-mode . magit-todos-mode)
-  :config
-  (setq magit-todos-recursive t
-        magit-todos-depth 10
-        magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
-  (custom-set-variables
-   '(magit-todos-keywords (list "TODO" "FIXME" "HACK"))))
+;; (use-package magit-todos
+;;   :commands (magit-todos-mode)
+;;   :hook (magit-mode . magit-todos-mode)
+;;   :config
+;;   (setq magit-todos-recursive t
+;;         magit-todos-depth 10
+;;         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
+;;   (custom-set-variables
+;;    '(magit-todos-keywords (list "TODO" "FIXME" "HACK"))))
 
 (use-package blamer
   :commands (blamer-mode)
@@ -880,6 +920,20 @@
   :config
   (add-hook 'vterm-mode-hook (lambda () (setq-local global-hl-line-mode nil)))
   (setq vterm-timer-delay nil))
+
+(defun project-root-override (dir)
+  "Find DIR's project root by searching for a '.project.el' file."
+  (let ((root (or (locate-dominating-file dir ".xcodeproj")
+                  (locate-dominating-file dir ".envrc")))
+        (backend (ignore-errors (vc-responsible-backend dir))))
+    (when root (if (version<= emacs-version "28")
+                    (cons 'vc root)
+                 (list 'vc backend root)))))
+
+(use-package project
+  :ensure nil
+  :config
+  (add-hook 'project-find-functions #'project-root-override))
 
 ;; general
 (use-package general
@@ -1076,10 +1130,10 @@
   :init
   (setq org-inlinetask-show-first-star t
         org-superstar-cycle-headline-bullets nil
-        org-superstar-headline-bullets-list '("› ")
+        ;; org-superstar-headline-bullets-list '("› ")
         org-superstar-prettify-item-bullets t
         ;; org-superstar-headline-bullets-list '("◉" "○" "⍟" "◈" "◇" "◈" "○" "▷")
-        ;; org-superstar-headline-bullets-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
+        org-superstar-headline-bullets-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
         ))
 
 
@@ -1107,7 +1161,7 @@
 (use-package highlight-symbol
   :hook (prog-mode . highlight-symbol-mode)
   :config
-  (setq highlight-symbol-idle-delay 0.3))
+  (setq highlight-symbol-idle-delay 0.5))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1140,15 +1194,13 @@
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 4
-        swift-mode:highlight-anchor t)
-
-  )
+        swift-mode:highlight-anchor t))
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
               ("C-c C-c" . #'swift-additions:compile-and-run-app)
-              ("C-c C-r" . #'swift-additions:run-app)
+              ;; ("C-c C-r" . #'swift-additions:run-app)
               ("C-c C-k" . #'periphery-run-loco))
   :ensure nil)
 
@@ -1160,9 +1212,16 @@
   ("C-c x c" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
 
-(use-package overlay-usage
-  ;; :hook (swift-mode . overlay-usage-mode)
-  :ensure nil)
+(use-package xcode-build
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("M-r" . #'xcode-build:run)
+  ("M-s" . #'xcode-build:stop))
+
+;; (use-package overlay-usage
+;;   ;; :hook (swift-mode . overlay-usage-mode)
+;;   :ensure nil)
 
 (use-package swift-additions
   :ensure nil
@@ -1178,7 +1237,8 @@
   ("M-m" . #'swift-additions:insert-mark)
   ("M-B" . #'swift-additions:run-without-compiling)
   ("M-b" . #'swift-additions:compile-app)
-  ("M-r" . #'swift-additions:compile-and-run-app))
+  ;; ("M-r" . #'swift-additions:compile-and-run-app)
+  )
 
 (use-package swift-refactor
   :ensure nil
@@ -1218,6 +1278,7 @@
   :ensure nil
   :after prog-mode
   :bind
+  ("C-c C-s" . #'periphery-search-rg)
   ("C-c C-f" . #'periphery-search-dwiw-rg)
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
@@ -1249,7 +1310,9 @@
 
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
-                (list (cape-super-capf #'eglot-completion-at-point))))
+                (list
+                 ;; (cape-super-capf #'tabnine-completion-at-point)
+                 (cape-super-capf #'eglot-completion-at-point))))
 
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
@@ -1264,7 +1327,9 @@
     (xwidget-webkit-browse-url url)))
 
 (use-package smartparens
-  :hook (prog-mode . smartparens-mode))
+  :hook (prog-mode . smartparens-mode)
+  :init
+  (require 'smartparens-swift))
 
 ;; (use-package electric
 ;;   :hook (prog-mode . electric-pair-mode)
@@ -1330,25 +1395,9 @@
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
-;; (defun setup-visual-fill ()
-;;   "Configure visual-fill-column-mode and display-fill-column-indicator-mode for prog-mode."
-;;   (unless (or (eq major-mode 'treemacs-mode) (bound-and-true-p visual-fill-column-mode))
-;;     (visual-fill-column-mode 1)
-;;     (setq visual-fill-column-width 280)
-;;     (setq visual-fill-column-center-text t)
-;;   ))
-
-;; (add-hook 'prog-mode-hook #'setup-visual-fill)
-
-;; (defun correct-fringe (&optional ignore)
-;;   (unless (eq major-mode 'treemacs-mode) 
-;;     (fringe-mode '(50 . 0))))
-
-;; (add-hook 'prog-mode-hook #'correct-fringe)
-
 (defun prog-fringe-hook ()
   "Setup fringes."
-  (setq left-fringe-width 100
+  (setq left-fringe-width 80
         right-fringe-width 0))
 
 (add-hook 'prog-mode-hook #'prog-fringe-hook)

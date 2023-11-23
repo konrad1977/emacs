@@ -172,11 +172,14 @@
   "Get all error entries from LIST."
   (--filter (string-match-p (regexp-quote "error") (aref (car (cdr it)) 2)) list))
 
-(defun periphery--go-to-first-error (list)
-  "Go to first error in LIST."
-  (defvar errors-with-reference (--filter (> (length (aref (car (cdr it)) 1)) 0) (periphery--get-all-errors list)))
-  (when errors-with-reference
-    (open-current-line-with (car (car errors-with-reference)))))
+(defun periphery--go-to-first-error ()
+  "Go to the first error in the periphery-errorList."
+  (interactive)
+  (when (and periphery-errorList (> (length periphery-errorList) 0))
+    (let* ((first-error (car periphery-errorList))
+           (file (nth 1 first-error))
+           (line (string-to-number (nth 2 first-error)))))
+    (message "%s" file)))
 
 (defun periphery--open-current-line ()
   "Open current current line."
@@ -184,7 +187,20 @@
   (open-current-line-with (tabulated-list-get-id)))
 
 (defun periphery--listing-command (errorList)
-  "Create a ERRORLIST for current mode."
+  "Create an ERRORLIST for the current mode."
+  (let ((errors '())
+        (warnings '()))
+    ;; Separate errors from warnings
+    (dolist (entry errorList)
+      (let ((severity (aref (car (cdr entry)) 0)))
+        (if (string-prefix-p "error" severity)
+            (setq errors (cons entry errors))
+          (setq warnings (cons entry warnings)))))
+    ;; Sort errors and warnings separately and combine them
+    (setq errors (sort errors (lambda (a b) (string< (aref (car (cdr a)) 1) (aref (car (cdr b)) 1)))))
+    (setq warnings (sort warnings (lambda (a b) (string< (aref (car (cdr a)) 1) (aref (car (cdr b)) 1)))))
+    (setq errorList (append errors warnings)))
+
   (save-selected-window
     (let* ((buffer (get-buffer-create periphery-buffer-name))
            (window (get-buffer-window buffer)))
@@ -198,8 +214,8 @@
       (setq tabulated-list-entries (nreverse (-non-nil errorList)))
 
       (tabulated-list-print t)
-      (periphery--go-to-first-error tabulated-list-entries)
-      
+      ;; (periphery--go-to-first-error tabulated-list-entries)
+
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
            :tag "[Done]"
@@ -326,11 +342,38 @@
 (defun periphery--is-list-empty-alt (lst)
   "Alternative method to check if the given list is empty."
   (and (listp lst) (null lst)))
+(defun parse-compiler-errors-async (text callback)
+  "Parse compiler error messages from LOG (as TEXT) asynchronously and call CALLBACK with the result."
+  (async-start
+   `(lambda ()
+      ,(async-inject-variables "\\`tempList\\'")
+      (let ((regex "\\(^/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\\s+\\([^:]+\\):\\(.*\\)\\([^^|/]*\\)"))
+        (while (string-match regex ,text)
+          (let* ((path (match-string 1 ,text))
+                 (line (match-string 2 ,text))
+                 (column (match-string 3 ,text))
+                 (error-type (match-string 4 ,text))
+                 (msg-part1 (s-trim-left (match-string 5 ,text)))
+                 (msg-part2 (s-trim-left (match-string 6 ,text)))
+                 (msg (clean-up-newlines (format "%s: %s" msg-part1 msg-part2))))
+
+            (push (periphery--build-list
+                   :path (format "%s:%s:%s" path line column)
+                   :file path
+                   :line line
+                   :keyword error-type
+                   :result msg
+                   :regex periphery-regex-mark-quotes)
+                  tempList)
+            ;; Update the text to the remaining unmatched portion
+            (setq ,text (substring ,text (match-end 6))))))
+      tempList)
+   callback))
 
 (defun parse-compiler-errors (text)
-  "Parse compiler error messages from LOG."
+  "Parse compiler error messages from LOG (as TEXT)."
   (setq tempList nil)
-  (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\(\\w+\\):\\(.*\\)?\n\\(.*\\)"))
+  (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)"))
     (while (string-match regex text)
       (let* ((path (match-string 1 text))
              (line (match-string 2 text))
@@ -338,38 +381,38 @@
              (error-type (match-string 4 text))
              (msg-part1 (s-trim-left (match-string 5 text)))
              (msg-part2 (s-trim-left (match-string 6 text)))
-             (msg (format "%s: %s" msg-part1 msg-part2)))
+             (msg (clean-up-newlines (format "%s: %s" msg-part1 msg-part2))))
         
         (push (periphery--build-list
                :path (format "%s:%s:%s" path line column)
                :file path
                :line line
                :keyword error-type
-               :result msg 
+               :result msg
                :regex periphery-regex-mark-quotes)
               tempList)
       ;; Update the text to the remaining unmatched portion
         (setq text (substring text (match-end 6))))))
   tempList)
 
-(cl-defun periphery-run-parser (input successCallback)
+(cl-defun periphery-run-parser (input)
   "Run parser (as INPUT as SUCCESSCALLBACK)."
+  ;; Filter lines that don't start with "/" only if it doesn't contain "BUILD FAILED" or "BUILD INTERRUPTED"
+  ;; (message input)
+  (setq input (mapconcat #'identity (seq-filter (lambda (line) (string-match-p "^/" line)) (split-string input "\n")) "\n"))
   (setq periphery-errorList (delete-dups (parse-compiler-errors input)))
-  ;; (setq build-notesList nil)
-  ;; (dolist (line (split-string input "\n"))
-  ;;   (when-let ((secondEntry (parse-xcodebuild-notes-and-errors (string-trim-left line))))
-  ;;     (push secondEntry build-notesList)))
 
-  ;; (setq compiledList (delete-dups (append periphery-errorList build-notesList)))
-  ;; (when compiledList
-  ;;   (periphery--listing-command periphery-errorList)
-  ;;   )
+  (when (or (periphery--is-buffer-visible) periphery-errorList)
+    (periphery--listing-command periphery-errorList)))
 
-  (when periphery-errorList
-    (periphery--listing-command periphery-errorList))
-
-  (when (not (string-match-p (regexp-quote "BUILD FAILED") input))
-    (funcall successCallback)))
+(defun periphery--is-buffer-visible ()
+  "Check if a buffer is visible."
+  (let ((buffer (get-buffer periphery-buffer-name)))
+    (when buffer
+      (let ((window (get-buffer-window buffer)))
+        (if window
+            t ; Buffer is visible
+          nil))))) ; Buffer is not visible
 
 (cl-defun periphery-run-test-parser (input succesCallback)
   (setq periphery-errorList nil)
@@ -646,22 +689,22 @@
                                                                                              :margin 0
                                                                                              :crop-right nil))))
 
-    ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE"
-                                                                  :face 'periphery-hack-face-full
-                                                                  :margin 0
-                                                                  :crop-right t))))
-    ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
-                                                                :face 'periphery-hack-face-full
-                                                                :crop-left t
-                                                                :inverse t))))
+    ;; ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE"
+    ;;                                                               :face 'periphery-hack-face-full
+    ;;                                                               :margin 0
+    ;;                                                               :crop-right t))))
+    ;; ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
+    ;;                                                             :face 'periphery-hack-face-full
+    ;;                                                             :crop-left t
+    ;;                                                             :inverse t))))
 
-    ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE"
-                                                                 :face 'periphery-note-face-full
-                                                                 :margin 0))))
-    ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
-                                                               :face 'periphery-note-face-full
-                                                               :crop-left t
-                                                               :inverse t))))
+    ;; ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE"
+    ;;                                                              :face 'periphery-note-face-full
+    ;;                                                              :margin 0))))
+    ;; ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
+    ;;                                                            :face 'periphery-note-face-full
+    ;;                                                            :crop-left t
+    ;;                                                            :inverse t))))
     ))
 
 (provide 'periphery)

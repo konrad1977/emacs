@@ -20,12 +20,7 @@
 
 (defun send-swiftformat-result-to-periphery (text)
   "Let periphery parse the (as TEXT)."
-  (periphery-run-parser text (lambda ()
-                               (message-with-color
-                                :tag "[Swiftformat succeeded]"
-                                :text "All code will soon look good."
-                                :attributes 'success)
-                               )))
+  (periphery-run-parser text))
 
 (defun periphery--create-disable-rules-list (list)
   "Create disable block for swift format (as LIST)."

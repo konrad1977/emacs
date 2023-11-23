@@ -54,5 +54,32 @@
   (if-let* ((default-directory (xcode-additions:find-xcode-project-directory)))
       (xcode-additions:filename-by-extension xcodeproject-extension default-directory)))
 
+(defun xcode-additions:list-xcscheme-files (folder)
+  "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of FOLDER."
+  (let ((xcscheme-names '()))
+    (setq folder (expand-file-name folder))
+    (setq xcshemes-folder (concat folder "xcshareddata/xcschemes/"))
+    (when (file-directory-p xcshemes-folder)
+      (dolist (item (directory-files xcshemes-folder t))
+        (when (and (file-regular-p item)
+                   (string-match-p ".*\\.xcscheme$" item))
+          (setq xcscheme-names (cons (file-name-sans-extension (file-name-nondirectory item)) xcscheme-names)))))
+    (if xcscheme-names
+        (setq xcscheme-names (nreverse xcscheme-names))
+      (message "No '.xcscheme' files found in %s" xcshemes-folder))
+    xcscheme-names))
+
+(defun xcode-additions:list-scheme-files ()
+  "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of the current Xcode project or workspace directory."
+  (let* ((xcshemes '())
+         (project-name (concat (xcode-additions:project-name) ".xcodeproj/"))
+         (project-directory (concat (xcode-additions:find-xcode-project-directory) project-name)))
+    (cond
+     (project-directory
+      (let ((xcscheme-files (xcode-additions:list-xcscheme-files project-directory)))
+        (if xcscheme-files
+            xcscheme-files
+          nil))))))
+
 (provide 'xcode-additions)
 ;;; xcode-additions.el ends here

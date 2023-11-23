@@ -24,6 +24,7 @@
   (pink       "#ea76cb" "#d7afaf")
   (mauve      "#8839ef" "#d7afd7")
   (red        "#d20f39" "#ff87af")
+  (dark-red   "#311c22" "#311c22")
   (maroon     "#e64553" "#ffafaf")
   (peach      "#fe640b" "#ffaf87")
   (yellow     "#df8e1d" "#ffd7af")
@@ -53,7 +54,7 @@
   (button                               (:foreground blue))
   (child-frame                          (:foreground mantle))
   (child-frame-border                   (:foreground mantle))
-  (cursor                               (:background blue :foreground crust))
+  (cursor                               (:background yellow :foreground crust))
   (error                                (:foreground red))
   (link                                 (:foreground blue))
   (fringe                               (:foreground surface0))
@@ -87,42 +88,17 @@
   (whitespace-space                     (:foreground surface2))
   (whitespace-trailing                  (:foreground mantle :background red))
 
-  ;; ;; Font lock
-  (font-lock-keyword-face               (:foreground mauve :weight 'semi-bold))
-  (font-lock-type-face                  (:foreground red :weight 'semi-bold))
-  (font-lock-regexp-grouping-backslash  (:foreground blue :weight 'semi-bold))
-  (font-lock-warning-face               (:inherit 'warning))
-  (font-lock-string-face                (:foreground green :italic t))
-  (font-lock-builtin-face               (:foreground pink))
-  (font-lock-reference-face				(:foreground sky))
-  (font-lock-constant-face              (:foreground yellow :bold t))
-  (font-lock-function-name-face         (:foreground blue))
-  (font-lock-variable-name-face         (:foreground flamingo))
-  (font-lock-negation-char-face         (:foreground red))
-  (font-lock-comment-face               (:foreground overlay1 :italic t))
-  (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
-  (font-lock-doc-face                   (:foreground overlay2))
-  (font-lock-doc-markup-face            (:foreground overlay2))
-  (font-lock-preprocessor-face	   		(:foreground overlay2))
-  (elisp-shorthand-font-lock-face       (:foreground peach))
-
-  (highlight-operators-face             (:foreground red))
-  (highlight-quoted-symbol              (:foreground maroon))
-  (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background surface2 :foreground text))
-  (info-xref                            (:foreground yellow))
-
-  (minibuffer-prompt-end                (:foreground red))
-  (minibuffer-prompt                    (:foreground red))
+  (minibuffer-prompt-end                (:foreground blue))
+  (minibuffer-prompt                    (:foreground blue))
   (epa-mark                             (:foreground pink))
   (dired-mark                           (:foreground pink))
   (dired-ignored                        (:background peach))
 
   (minimap-active-region-background     (:background surface1))
-  
+
   (iedit-occurrence                     (:background blue :foreground crust))
   (iedit-read-only-occurrence           (:background green :foreground crust))
-  
+
   (trailing-rosewaterspace              (:background surface1))
 
   ;; ;; Battery colors
@@ -182,7 +158,7 @@
   (avy-lead-face-0                      (:background blue :foreground crust))
   (avy-lead-face-1                      (:background green :foreground crust))
   (avy-lead-face-2                      (:background rosewater :foreground crust))
-  
+
   ;; org-mode
   (org-done                             (:foreground overlay2))
   (org-code                             (:background crust))
@@ -277,29 +253,31 @@
   ;; Flycheck
   (flycheck-posframe-background-face    (:background crust))
   (flycheck-posframe-face               (:background crust))
-  (flycheck-posframe-info-face          (:foreground blue :background "#1B2431" :height 160))
-  (flycheck-posframe-warning-face       (:foreground "#FFF" :background "#2F3E56" :height 160 :weight 'semi-light))
-  (flycheck-posframe-error-face         (:foreground "#FFF" :background "#2D1E28" :height 160 :weight 'semi-light))
+  (flycheck-posframe-info-face          (:foreground text :background blue :height 130))
+  (flycheck-posframe-warning-face       (:foreground text :background yellow :height 130 :weight 'semi-light))
+  (flycheck-posframe-error-face         (:foreground text :background red :height 130 :weight 'semi-light))
   (flycheck-fringe-warning              (:inherit 'warning))
+
   (flycheck-fringe-error                (:inherit 'error))
   (flycheck-fringe-info                 (:inherit 'info ))
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:background blue :bold t))
-  (flycheck-inline-error                (:background red :foreground red :height 128))
-  (flycheck-inline-info                 (:background blue :foreground blue :height 128))
-  (flycheck-inline-warning              (:background yellow :foreground yellow :height 128))
-  
-  ;; indent dots
-  (highlight-indent-guides-character-face       (:foreground red :background red))
-  (highlight-indent-guides-stack-character-face (:foreground red :background red))
-  (highlight-indent-guides-top-character-face   (:foreground red :background red))
-  (highlight-indent-guides-stack-odd-face       (:foreground red :background red))
-  (highlight-indent-guides-stack-even-face      (:foreground red :background red))
-  (highlight-indent-guides-even-face            (:foreground red :background red))
-  (highlight-indent-guides-odd-face             (:foreground red :background red))
-  (highlight-indent-guides-top-odd-face         (:foreground red :background red))
-  (highlight-indent-guides-top-even-face        (:foreground red :background red))
+
+  (flycheck-inline-error                (:inherit 'flycheck-posframe-error-face))
+  (flycheck-inline-info                 (:inherit 'flycheck-posframe-info-face))
+  (flycheck-inline-warning                (:inherit 'flycheck-posframe-warning-face))
+
+  ;; ;; indent dots
+  ;; (highlight-indent-guides-character-face       (:foreground blue))
+  ;; (highlight-indent-guides-stack-odd-face       (:foreground red))
+  ;; (highlight-indent-guides-stack-character-face (:foregroundnd red))
+  ;; (highlight-indent-guides-stack-even-face      (:foreground red))
+  ;; (highlight-indent-guides-even-face            (:foreground red))
+  ;; (highlight-indent-guides-odd-face             (:foreground red))
+  ;; (highlight-indent-guides-top-odd-face         (:foreground red))
+  ;; (highlight-indent-guides-top-character-face   (:foreground red))
+  ;; (highlight-indent-guides-top-even-face        (:foreground red))
 
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground crust :bold t))
@@ -317,24 +295,24 @@
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
   (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
 
-  (vertico-posframe-border                      (:background overlay0))
-  (vertico-posframe                             (:background mantle :foreground subtext0))
+  (vertico-posframe-border                      (:background crust))
+  (vertico-posframe                             (:background crust :foreground subtext0))
 
   (corfu-annotations                            (:foreground overlay0))
   (corfu-current                                (:inherit 'vertico-current))
   (corfu-border                                 (:background surface1))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background "#2e344c" :foreground blue :italic t :bold t))
-  
+  (corfu-popupinfo                              (:background surface0 :foreground blue :italic t :bold t))
+
   ;; posframe's
   (ivy-posframe                                 (:background surface2))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (orderless-match-face-0                       (:foreground pink :background "#211A1F" :weight 'semi-bold))
-  (orderless-match-face-1                       (:foreground blue :background "#222d3e" :weight 'semi-bold))
-  (orderless-match-face-2                       (:foreground yellow :background "#221F18" :weight 'semi-bold))
-  (orderless-match-face-3                       (:foreground mauve :background "#292233" :weight 'semi-bold))
+  (orderless-match-face-0                       (:foreground pink :background surface0 :weight 'semi-bold))
+  (orderless-match-face-1                       (:foreground blue :background surface0 :weight 'semi-bold))
+  (orderless-match-face-2                       (:foreground yellow :background surface0 :weight 'semi-bold))
+  (orderless-match-face-3                       (:foreground mauve :background surface0 :weight 'semi-bold))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
@@ -343,14 +321,17 @@
   (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
   (completions-first-difference                 (:foreground red))
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))
+  (consult-preview-line                         (:background crust))
 
   (diff-added (:background green :foreground text))
   (diff-changed (:background yellow :foreground crust))
-  
-  (treemacs-directory-collapsed-face			(:foreground subtext0))
+
+  (treemacs-directory-collapsed-face			(:foreground subtext1))
   (treemacs-directory-face						(:foreground subtext1))
   (treemacs-file-face							(:foreground subtext1))
   (treemacs-fringe-indicator-face               (:foreground red))
+  (treemacs-nerd-icons-file-face                (:foreground subtext1))
+  (treemacs-nerd-icons-root-face                (:foreground subtext1))
 
   (treemacs-git-added-face						(:foreground peach))
   (treemacs-git-renamed-face				   	(:foreground rosewater))
@@ -358,6 +339,9 @@
   (treemacs-git-unmodified-face		   			(:foreground text))
   (treemacs-git-renamed-face		   			(:foreground text))
   (treemacs-git-modified-face		   			(:foreground maroon))
+
+  (treemacs-nerd-icons-file-face (:foreground peach))
+
 
   ;; lets support solaire mode
   (solaire-default-face (:background mantle))
@@ -485,13 +469,38 @@
   (goggles-added (:background green))
   (goggles-changed (:background blue))
   (goggles-removed (:background red))
-  
+
+  ;; ;; Font lock
+  (font-lock-keyword-face               (:foreground mauve :weight 'semi-bold))
+  (font-lock-type-face                  (:foreground red))
+  (font-lock-regexp-grouping-backslash  (:foreground blue :weight 'semi-bold))
+  (font-lock-warning-face               (:inherit 'warning))
+  (font-lock-string-face                (:foreground green :italic t))
+  (font-lock-builtin-face               (:foreground pink))
+  (font-lock-reference-face				(:foreground sky))
+  (font-lock-constant-face              (:foreground yellow :bold t))
+  (font-lock-function-name-face         (:foreground blue))
+  (font-lock-variable-name-face         (:foreground flamingo))
+  (font-lock-negation-char-face         (:foreground red))
+  (font-lock-comment-face               (:foreground overlay1 :italic t))
+  (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
+  (font-lock-doc-face                   (:foreground overlay2))
+  (font-lock-doc-markup-face            (:foreground overlay2))
+  (font-lock-preprocessor-face	   		(:foreground overlay2))
+  (elisp-shorthand-font-lock-face       (:foreground peach))
+
+  (highlight-operators-face             (:foreground red))
+  (highlight-quoted-symbol              (:foreground yellow))
+  (highlight-numbers-face               (:foreground pink))
+  (highlight-symbol-face                (:background surface2 :foreground text))
+  (info-xref                            (:foreground yellow))
+
   ;; Tree sitter highlightning
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
-  (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function))
+  (tree-sitter-hl-face:function.call             (:foreground blue :italic t))
   (tree-sitter-hl-face:function.builtin          (:foreground sky))
   (tree-sitter-hl-face:function.special          (:foreground text :italic t :bold t))
-  (tree-sitter-hl-face:function.macro            (:foreground sapphire))
+  (tree-sitter-hl-face:function.macro            (:foreground teal))
   (tree-sitter-hl-face:function.label            (:foreground yellow))
 
   (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
@@ -501,14 +510,14 @@
   (tree-sitter-hl-face:type.parameter            (:foreground pink :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground subtext0))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
-  (tree-sitter-hl-face:type.super                (:foreground maroon :bold t))
+  (tree-sitter-hl-face:type.super                (:foreground green :bold t))
   (tree-sitter-hl-face:constructor               (:foreground teal :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
-  (tree-sitter-hl-face:variable.builtin          (:foreground blue :italic t))
+  (tree-sitter-hl-face:variable.builtin          (:foreground sapphire :italic t))
   (tree-sitter-hl-face:variable.special          (:foreground mauve :italic t))
-  (tree-sitter-hl-face:variable.synthesized      (:foreground pink :italic t))
+  (tree-sitter-hl-face:variable.synthesized      (:foreground lavender :italic t))
   (tree-sitter-hl-face:property                  (:foreground rosewater))
   (tree-sitter-hl-face:property.definition       (:inherit 'tree-sitter-hl-face:property :italic t))
 
@@ -519,12 +528,16 @@
   (tree-sitter-hl-face:escape                    (:inherit 'font-lock-regexp-grouping-backslash))
   (tree-sitter-hl-face:embedded                  (:foreground teal))
 
+  (tree-sitter-hl-face:annotation                (:foreground blue :weight 'semi-bold))
+  (tree-sitter-hl-face:annotation.builtin        (:foreground maroon :weight 'semi-bold))
+  (tree-sitter-hl-face:annotation.type           (:foreground green))
+
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
   (tree-sitter-hl-face:operator                  (:foreground sapphire))
   (tree-sitter-hl-face:label                     (:foreground overlay2))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))
-  (tree-sitter-hl-face:number                    (:foreground peach))
+  (tree-sitter-hl-face:number                    (:foreground red :bold t))
 
   (tree-sitter-hl-face:punctuation               (:foreground red :weight 'semi-bold))
   (tree-sitter-hl-face:punctuation.bracket       (:foreground blue :weight 'semi-bold))
@@ -552,6 +565,21 @@
     (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
     (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
     (swift-mode:function-call-face (:foreground pink)))
+
+
+  (diff-file-header (:foreground subtext1 :background overlay0))
+  (diff-header (:foreground subtext1 :background overlay0))
+  (diff-hunk-header (:foreground subtext1 :background overlay0))
+  (diff-function (:foreground subtext1 :background overlay0))
+  (diff-index (:foreground subtext1 :background overlay0))
+
+  (diff-added (:foreground subtext1 :background crust))
+  (diff-indicator-added (:foreground subtext1 :background crust))
+  (diff-changed (:foreground subtext1 :background base))
+  (diff-indicator-changed (:foreground subtext1 :background base))
+  (diff-removed (:foreground subtext1 :background dark-red))
+  (diff-indicator-removed (:foreground subtext1 :background dark-red))
+  (diff-nonexistent (:foreground subtext1))
  ))
 
 ;;;###autoload

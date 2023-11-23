@@ -13,7 +13,7 @@
    "osascript -e 'tell application \"Xcode\"' -e 'set targetProject to active workspace document' -e 'build targetProject' -e 'end tell'")
   (message "Build project using Xcode..."))
 
-(defun xbode-build:stop()
+(defun xcode-build:stop()
   "Stop application from Xcode."
   (interactive)
   (save-some-buffers t)

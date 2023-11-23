@@ -79,13 +79,13 @@
   (mode-line-highlight                  (:foreground rose))
   (mode-line-buffer-id                  (:foreground text :bold t))
   (numbers                              (:background gold))
-  (region                               (:background text :foreground base))
-  (tooltip                              (:background muted :foreground base))
+  (region                               (:background medium-green))
+  (tooltip                              (:background medium-gold :foreground gold))
   (shadow                               (:foreground muted))
   (success                              (:foreground pine))
   (vertical-border                      (:foreground crust))
   (warning                              (:foreground gold))
-  (window-divider                       (:foreground crust :background surface))
+  (window-divider                       (:background surface))
 
   (whitespace-newline                   (:foreground muted))
   (whitespace-space                     (:foreground muted))
@@ -116,7 +116,7 @@
   (highlight-operators-face             (:foreground love))
   (highlight-quoted-symbol              (:foreground rose))
   (highlight-numbers-face               (:foreground love))
-  (highlight-symbol-face                (:background muted :foreground text))
+  (highlight-symbol-face                (:background medium-gold :foreground gold))
   (info-xref                            (:foreground gold))
 
   (minibuffer-prompt-end                (:foreground love))
@@ -229,7 +229,7 @@
 
   (counsel-outline-default              (:foreground gold))
   (info-header-xref                     (:foreground gold))
-  (xref-file-header                     (:foreground gold))
+  (xref-file-header                     (:foreground foam :background dark-green))
   (xref-match		                    (:foreground gold))
 
   ;; rainbow delimiter
@@ -237,17 +237,17 @@
   (rainbow-delimiters-unmatched-face    (:foreground base :background love))
   (rainbow-delimiters-base-error-face   (:foreground base :background love))
 
-  (rainbow-delimiters-base-face         (:foreground muted))
+  (rainbow-delimiters-base-face         (:foreground iris))
 
-  (rainbow-delimiters-depth-1-face      (:foreground pine))
+  (rainbow-delimiters-depth-1-face      (:foreground iris))
   (rainbow-delimiters-depth-2-face      (:foreground pink))
-  (rainbow-delimiters-depth-3-face      (:foreground love))
+  (rainbow-delimiters-depth-3-face      (:foreground pine))
   (rainbow-delimiters-depth-4-face      (:foreground foam))
-  (rainbow-delimiters-depth-5-face      (:foreground iris))
+  (rainbow-delimiters-depth-5-face      (:foreground love))
   (rainbow-delimiters-depth-6-face      (:foreground subtle))
-  (rainbow-delimiters-depth-7-face      (:foreground muted))
-  (rainbow-delimiters-depth-8-face      (:foreground gold))
-  (rainbow-delimiters-depth-9-face      (:foreground iris))
+  (rainbow-delimiters-depth-7-face      (:foreground gold))
+  (rainbow-delimiters-depth-8-face      (:foreground pine))
+  (rainbow-delimiters-depth-9-face      (:foreground green))
 
   ;; show-paren
   (show-paren-match						(:background rose :foreground base :bold t))
@@ -285,9 +285,10 @@
   (flycheck-error-list-warning          (:inherit 'warning :bold t))
   (flycheck-error-list-error            (:inheirt 'error :bold t))
   (flycheck-error-list-info             (:foreground foam :bold t))
-  (flycheck-inline-error                (:background love :foreground love :height 128))
-  (flycheck-inline-info                 (:background foam :foreground foam :height 128))
-  (flycheck-inline-warning              (:background gold :foreground gold :height 128))
+
+  (flycheck-inline-error                (:background dark-love :foreground love :height 130 :bold t))
+  (flycheck-inline-warning              (:background dark-gold :foreground gold :height 130 :bold t))
+  (flycheck-inline-info                 (:background dark-green :foreground pine :height 130 :bold t))
   
   ;; indent dots
   (highlight-indent-guides-character-face       (:foreground love :background love))
@@ -319,13 +320,12 @@
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground unmuted))
 
-  (corfu-annotations                            (:foreground muted))
-  (corfu-current                                (:inherit 'vertico-current))
-  (corfu-border                                 (:background base))
+  ;; (corfu-annotations                            (:foreground love :distant-foreground love :background crust))
+  ;; (corfu-current                                (:background pine :distant-foreground crust :foreground crust))
   (corfu-bar                                    (:background gold))
-  (corfu-default                                (:background overlay :foreground unmuted))
-  (corfu-popupinfo                              (:background overlay :foreground text :weight 'light :italic t))
-  
+  (corfu-default                                (:background crust :foreground unmuted))
+  (corfu-popupinfo                              (:background crust :foreground love :weight 'light :italic t))
+
   ;; posframe's
   (ivy-posframe                                 (:background muted))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
@@ -486,7 +486,7 @@
   
   ;; Tree sitter highlightning
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
-  (tree-sitter-hl-face:function.call             (:inherit 'tree-sitter-hl-face:function))
+  (tree-sitter-hl-face:function.call             (:foreground pine))
   (tree-sitter-hl-face:function.builtin          (:foreground green))
   (tree-sitter-hl-face:function.special          (:foreground green :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground pine))
@@ -519,6 +519,7 @@
   (tree-sitter-hl-face:embedded                  (:foreground foam))
 
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
+  (tree-sitter-hl-face:annotation                (:foreground pine :bold t))
   (tree-sitter-hl-face:operator                  (:foreground pine))
   (tree-sitter-hl-face:label                     (:foreground muted))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
@@ -564,6 +565,7 @@
   (periphery-note-face-full (:foreground text :background green :bold t))
   ;; (localizeable-variable-face (:inherit font-lock-string-face))
   ;; (localizeable-value-face (:inherit font-lock-keyword-face))
+  ;; (ios-simulator-background-face (:foreground rose :background crust))
 
   (diff-file-header (:foreground subtle :background overlay))
   (diff-header (:foreground subtle :background overlay))

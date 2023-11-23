@@ -24,16 +24,13 @@
 
 (defun ios-device:id ()
   "Get the id of the connected device."
-  (if current-device-id
-      current-device-id
-    (progn
-      (let ((device-id
-             (clean-up-newlines
-              (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
-        (if (= (length device-id) 0)
-            nil
-          (setq current-device-id (ios-device:format-id device-id))))
-      current-device-id)))
+  (let ((device-id
+         (clean-up-newlines
+          (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
+    (if (= (length device-id) 0)
+        (setq current-device-id nil)
+      (setq current-device-id (ios-device:format-id device-id))))
+  current-device-id)
 
 (cl-defun ios-device:install-app (&key project-root &key buildfolder &key appname)
   "Install an app on device (PROJECT-ROOT BUILDFOLDER APPNAME)."

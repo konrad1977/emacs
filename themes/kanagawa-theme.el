@@ -29,6 +29,7 @@
   (sumiInk-2		"#2A2A37" "#121212")
   (sumiInk-3		"#363646" "#303030")
   (sumiInk-4		"#54546D" "#303030")
+  (sumiInk-5		"#888899" "#303030")
 
   (waveBlue-1		"#223249" "#4e4e4e")
   (waveBlue-2		"#2D4F67" "#585858")
@@ -88,9 +89,9 @@
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
   (match                                         (:background carpYellow :foreground sumiInk-0))
   (menu                                          (:background sumiInk-0 :foreground fujiWhite))
-  (mode-line                                     (:background sumiInk-0))
-  (mode-line-inactive                            (:background nil :foreground sumiInk-4 :bold nil))
-  (mode-line-active                              (:background sumiInk-0 :foreground old-white :bold nil))
+  (mode-line                                     (:background sumiInk))
+  (mode-line-inactive                            (:background sumiInk-2 :foreground sumiInk-5))
+  (mode-line-active                              (:background sumiInk :foreground old-white))
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground waveAqua2 :bold t))
   (numbers                                       (:background sakuraPink))
@@ -267,20 +268,29 @@
   (company-template-field                        (:inherit 'match))
 
   ;; flycheck
-  (flycheck-posframe-background-face             (:background sumiInk-0))
-  (flycheck-posframe-face                        (:background sumiInk-0))
-  (flycheck-posframe-info-face                   (:background sumiInk-0 :foreground autumnGreen))
-  (flycheck-posframe-warning-face                (:background sumiInk-0 :foreground lightBlue))
-  (flycheck-posframe-error-face                  (:background sumiInk-0 :foreground samuraiRed))
-  (flycheck-fringe-warning                       (:foreground lightBlue))
-  (flycheck-fringe-error                         (:foreground samuraiRed))
-  (flycheck-fringe-info                          (:foreground autumnGreen))
-  (flycheck-error-list-warning                   (:foreground roninYellow :bold t))
-  (flycheck-error-list-error                     (:foreground samuraiRed :bold t))
-  (flycheck-error-list-info                      (:foreground waveAqua1 :bold t))
-  (flycheck-inline-error                         (:foreground samuraiRed :background winterRed :italic t :bold t :height 138))
-  (flycheck-inline-info                          (:foreground lightBlue :background winterBlue :italic t  :bold t :height 138))
-  (flycheck-inline-warning                       (:foreground winterYellow :background carpYellow :italic t :bold t :height 138))
+  ;; (flycheck-posframe-background-face             (:background sumiInk))
+  ;; (flycheck-posframe-face                        (:background sumiInk-0))
+
+
+  ;; (flycheck-posframe-info-face                   (:background sumiInk-0 :foreground autumnGreen))
+  ;; (flycheck-posframe-warning-face                (:background sumiInk-0 :foreground lightBlue))
+  ;; (flycheck-posframe-error-face                  (:background sumiInk-0 :foreground samuraiRed))
+
+  ;; (flycheck-fringe-warning                       (:foreground lightBlue))
+  ;; (flycheck-fringe-error                         (:foreground samuraiRed))
+  ;; (flycheck-fringe-info                          (:foreground autumnGreen))
+
+  ;; (flycheck-error-list-warning                   (:foreground roninYellow :bold t))
+  ;; (flycheck-error-list-error                     (:foreground samuraiRed :bold t))
+  ;; (flycheck-error-list-info                      (:foreground waveAqua1 :bold t))
+
+  ;; (flycheck-inline-warning (:foreground carpYellow))
+  ;; (flycheck-inline-error (:foreground autumnRed))
+
+
+  (flycheck-inline-error                         (:foreground sakuraPink :background winterRed :weight 'thin :height 130))
+  ;; (flycheck-inline-info                          (:foreground lightBlue :background winterBlue :weight 'thin :height 130))
+  ;; (flycheck-inline-warning                       (:foreground winterYellow :background carpYellow :weight 'thin :height 130))
 
   ;; indent dots
   (highlight-indent-guides-character-face        (:foreground sumiInk-3))
@@ -298,10 +308,10 @@
   
   ;; ivy
   (ivy-current-match                             (:background crystalBlue :foreground sumiInk-0 :bold t))
-  (ivy-action                                    (:background nil :foreground fujiWhite))
-  (ivy-grep-line-number                          (:background nil :foreground springGreen))
-  (ivy-minibuffer-match-face-1                   (:background nil :foreground waveRed))
-  (ivy-minibuffer-match-face-2                   (:background nil :foreground springGreen))
+  (ivy-action                                    (:foreground fujiWhite))
+  (ivy-grep-line-number                          (:foreground springGreen))
+  (ivy-minibuffer-match-face-1                   (:foreground waveRed))
+  (ivy-minibuffer-match-face-2                   (:foreground springGreen))
   (ivy-minibuffer-match-highlight                (:foreground lightBlue))
   (ivy-grep-info                                 (:foreground lightBlue))
   (ivy-grep-line-number                          (:foreground springViolet2))
@@ -337,7 +347,7 @@
 
   (lsp-ui-doc-background                         (:background sumiInk-0 :foreground peachRed))
   (lsp-ui-doc-header                             (:background sumiInk-0 :foreground peachRed))
-  (lsp-ui-doc-border                             (:background nil :foreground nil))
+  (lsp-ui-doc-border                             (:foreground nil))
   (lsp-ui-peek-filename                          (:foreground lightBlue))
   (lsp-ui-sideline-code-action                   (:foreground carpYellow))
   (lsp-ui-sideline-current-symbol                (:foreground springBlue))
@@ -345,7 +355,7 @@
 
   ;; dashboard
   (dashboard-heading                             (:foreground springViolet2 :bold t))
-  (dashboard-items-face                          (:bold nil :foreground fujiWhite))
+  (dashboard-items-face                          (:foreground fujiWhite))
   (dashboard-banner-logo-title                   (:bold t :height 200))
   (dashboard-no-items-face                       (:foreground sumiInk-4))
 
@@ -363,7 +373,7 @@
 
   ;; term
   (term                                          (:background sumiInk-0 :foreground fujiWhite))
-  (term-color-blue                               (:background crystalBlue :foreground crystalBlue))
+  (term-color-blue                               (:background dragonBlue :foreground dragonBlue))
   (term-color-bright-blue                        (:inherit 'term-color-blue))
   (term-color-green                              (:background waveAqua2 :foreground waveAqua2))
   (term-color-bright-green                       (:inherit 'term-color-green))
@@ -373,7 +383,7 @@
   (term-color-bright-white                       (:background old-white :foreground old-white))
   (term-color-red                                (:background peachRed :foreground peachRed))
   (term-color-bright-red                         (:background springGreen :foreground springGreen))
-  (term-color-yellow                             (:background carpYellow :foreground carpYellow))
+  (term-color-yellow                             (:background roninYellow :foreground roninYellow))
   (term-color-bright-yellow                      (:background carpYellow :foreground carpYellow))
   (term-color-cyan                               (:background springBlue :foreground springBlue))
   (term-color-bright-cyan                        (:background springBlue :foreground springBlue))
@@ -407,10 +417,14 @@
 
   (vertico-posframe-border                       (:background sumiInk))
   (vertico-posframe                              (:background sumiInk))
-  (orderless-match-face-0                        (:foreground crystalBlue :bold t))
-  
+
+  (orderless-match-face-0                        (:foreground sakuraPink :background winterRed :weight 'semi-bold))
+  (orderless-match-face-2                        (:foreground autumnGreen :background winterGreen :weight 'semi-bold))
+  (orderless-match-face-1                        (:foreground autumnYellow :background winterYellow :weight 'semi-bold))
+  (orderless-match-face-3                        (:foreground crystalBlue :background winterBlue :weight 'semi-bold))
+
   (comint-highlight-prompt                       (:background springViolet2 :foreground sumiInk-1))
-  (completions-annotations                       (:background nil :foreground dragonBlue :italic t))
+  (completions-annotations                       (:foreground dragonBlue :italic t))
   
   ;; hydra
   (hydra-face-amaranth                           (:foreground autumnRed))
@@ -487,8 +501,8 @@
   (tree-sitter-hl-face:variable.special          (:foreground oniViolet :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground peachRed :italic t))
 
-  (tree-sitter-hl-face:property                  (:foreground fujiWhite))
-  (tree-sitter-hl-face:property.definition       (:inherit 'tree-sitter-hl-face:property :italic t))
+  (tree-sitter-hl-face:property                  (:foreground springViolet2))
+  (tree-sitter-hl-face:property.definition       (:foreground sakuraPink :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
