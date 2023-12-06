@@ -120,7 +120,8 @@
      (when (and current-local-device-id run-on-device)
        (format "-destination 'generic/platform=iOS' \\" ))
      "-hideShellScriptEnvironment \\"
-     "-derivedDataPath build | xcode-build-server parse -avv")))
+     "-UseModernBuildSystem=NO \\"
+     "-derivedDataPath build | xcode-build-server parse -avv"))) ;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
 
 (cl-defun swift-additions:build-device-or-simulator-menu (&key title)
   "Build device or simulator menu (as TITLE)."
@@ -226,6 +227,7 @@
   (setq current-buildconfiguration-json-data nil)
   (setq current-local-device-id nil)
   (setq current-build-command nil)
+  (setq current-build-folder nil)
   (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
 
 (defun swift-additions:successful-build ()

@@ -4,8 +4,8 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
+(set-face-attribute 'default nil :font "JetBrainsMono NF" :height 170 :weight 'thin)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono NF" :height 170 :weight 'light)
 (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 170 :weight 'light)
 
 (custom-set-faces
@@ -45,6 +45,9 @@
       auto-mode-case-fold               nil
       truncate-lines                    t
       truncate-string-ellipsis          ".."
+      bidi-inhibit-bpa                  t
+      bidi-display-reordering           'left-to-right
+      bidi-paragraph-direction          'left-to-right
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
       undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
@@ -70,8 +73,6 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
-  ;; (set-fontset-font t nil "SF Pro Display" nil 'append)
-  ;; (set-fontset-font t nil "SF Mono" nil 'append)
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
         mac-command-modifier 'meta
@@ -88,6 +89,8 @@
 
 ;; Initialize package sources
 (require 'package)
+(require 'use-package)
+
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
@@ -99,37 +102,38 @@
     (package-refresh-contents))
   (package-install 'use-package))
 
-;; (unless (package-installed-p 'vc-use-package)
-;;   (package-vc-install "https://github.com/slotThe/vc-use-package"))
-;; (require 'vc-use-package)
+(use-package gcmh
+  :hook (after-init . gcmh-mode))
 
-(require 'use-package)
-
-(defconst jetbrains-ligature-mode--ligatures
-   '("-->" "//" "/**" "/*" "*/" "<!--" ":=" "->>" "<<-" "->" "<-"
-     "<=>" "==" "<=" ">=" "=:=" "!==" "&&" "||" "..." ".."
-     "|||" "///" "&&&" "===" "++" "--" "=>" "|>" "<|" "||>" "<||"
-     "|||>" "<|||" ">>" "<<" "::=" "|]" "[|" "{|" "|}"
-     "[<" ">]" ":?>" ":?" "/=" "[||]" "!!" "?:" "::"
-     "+++" "###" "##" ":::" "####" "?=" "=!=" "<|>"
-     "<:" ":<" ":>" ">:" "<>" "***" ";;" "/==" ".=" ".-" "__"
-     "=/=" "<-<" "<<<" ">>>" "<=<" "<<=" "<==" "<==>" "==>" "=>>"
-     ">=>" ">>=" ">>-" ">-" "<~>" "-<" "-<<" "=<<" "---" "<-|"
-     "<=|" "/\\" "\\/" "|=>" "|~>" "<~~" "<~" "~~" "~~>" "~>"
-     "<$>" "<$" "$>" "<+>" "<+" "+>" "<*>" "<*" "*>" "</>" "</" "/>"
-     "<->" "..<" "~=" "~-" "-~" "~@" "^=" "-|" "_|_" "|-" "||-"
-     "|=" "||=" "#{" "#[" "]#" "#(" "#?" "#_" "#_(" "#:" "#!" "#="
-     "&="))
-
-(sort jetbrains-ligature-mode--ligatures (lambda (x y) (> (length x) (length y))))
-
-(dolist (pat jetbrains-ligature-mode--ligatures)
-  (set-char-table-range composition-function-table
-                      (aref pat 0)
-                      (nconc (char-table-range composition-function-table (aref pat 0))
-                             (list (vector (regexp-quote pat)
-                                           0
-                                    'compose-gstring-for-graphic)))))
+(use-package ligature
+  :config
+  (ligature-set-ligatures
+   'prog-mode
+   '(
+     (";" (rx (+ ";")))
+     ("&" (rx (+ "&")))
+     ("%" (rx (+ "%")))
+     ("?" (rx (or ":" "=" "\." (+ "?"))))
+     ("!" (rx (+ (or "=" "!" "\." ":" "~"))))
+     ("\\" (rx (or "/" (+ "\\"))))
+     ("+" (rx (or ">" (+ "+"))))
+     (":" (rx (or ">" "<" "=" "//" ":=" (+ ":"))))
+     ("/" (rx (+ (or ">"  "<" "|" "/" "\\" "\*" ":" "!" "="))))
+     ("=" (rx (+ (or ">" "<" "|" "/" "~" ":" "!" "="))))
+     ("|" (rx (+ (or ">" "<" "|" "/" ":" "!" "}" "\]" "-" "=" ))))
+     ("*" (rx (or ">" "/" ")" (+ "*"))))
+     ("\." (rx (or "=" "-" "\?" "\.=" "\.<" (+ "\."))))
+     ("-" (rx (+ (or ">" "<" "|" "~" "-"))))
+     ("#" (rx (or ":" "=" "!" "(" "\?" "\[" "{" "_(" "_" (+ "#"))))
+     (">" (rx (+ (or ">" "<" "|" "/" ":" "=" "-"))))
+     ("<" (rx (+ (or "\+" "\*" "\$" "<" ">" ":" "~"  "!" "-"  "/" "|" "="))))
+     ("_" (rx (+ (or "_" "|"))))
+     ("~" (rx (or ">" "=" "-" "@" "~>" (+ "~"))))
+     "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="
+     ("w" (rx (+ "w")))
+     ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
+     "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft"))
+  :hook (prog-mode . ligature-mode))
 
 (use-package use-package
   :ensure nil
@@ -140,9 +144,6 @@
         use-package-compute-statistics t
         use-package-minimum-reported-time 0.1
         debug-on-error nil))
-
-(use-package gcmh
-  :hook (after-init . gcmh-mode))
 
 (use-package all-the-icons
   :defer t)
@@ -177,8 +178,7 @@
     ;; (load-theme 'oxocarbon t)
    ;;(load-theme 'oxographite t)
    ;; (load-theme 'kman t)
-    (load-theme 'kanagawa t)
-    )
+  (load-theme 'kanagawa t))
 
 (use-package saveplace
   :ensure nil
@@ -201,7 +201,7 @@
   :custom
   (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
-  (vertico-multiform-mode)
+  ;; (vertico-multiform-mode)
   (setq vertico-resize t
         vertico-count 8
         vertico-multiline nil
@@ -252,10 +252,9 @@
 (use-package orderless
   :after vertico
   :init
-  (setq
-        read-file-name-completion-ignore-case t
+  (setq read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
-        completion-styles '(orderless basic)
+        completion-styles '(orderless flex)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (orderless flex)))
                                         (eglot (styles . (orderless flex))))))
@@ -304,20 +303,23 @@
 (use-package recentf
   :hook (after-init . recentf-mode))
 
-(use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
+(use-package mood-line
   :config
-  (setq doom-modeline-buffer-encoding nil
-        doom-modeline-percent-position nil
-        doom-modeline-buffer-file-name-style 'file-name
-        doom-modeline-vcs-max-length 50
-        doom-modeline-project-detection 'projectile
-        doom-modeline-workspace-name nil
-        doom-modeline-persp-name nil
-        doom-modeline-bar-width 2
-        doom-modeline-height 37
-        doom-modeline-hud nil
-        doom-modeline-time-icon nil))
+  (setq mood-line-format
+      (mood-line-defformat
+       :left
+       (((mood-line-segment-buffer-status) . " ")
+        ((mood-line-segment-buffer-name)   . " ")
+        ((mood-line-segment-anzu) . " ")
+        ((mood-line-segment-multiple-cursors) . " "))
+       :right
+       (((mood-line-segment-process) . " ")
+        ((mood-line-segment-vc) . "  ")
+        ((when (mood-line-segment-checker) " ") . "  ")
+        ((mood-line-segment-checker)            . "  "))))
+  (mood-line-mode)
+  :custom
+  (mood-line-glyph-alist mood-line-glyphs-fira-code))
 
 (use-package helpful
   :commands (helpful-callable helpful-variable helpful-command helpful-key)
@@ -532,50 +534,50 @@
   :after corfu
   :custom
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.08)
+  (kind-icon-blend-frac 0.18)
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
-(setq kind-icon-use-icons nil)
-(setq kind-icon-mapping
-      `(
-        (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
-        (tabnine ,(nerd-icons-codicon "nf-cod-hubot") :face font-lock-warning-face)
-        (boolean ,(nerd-icons-codicon "nf-cod-symbol_boolean") :face font-lock-builtin-face)
-        (class ,(nerd-icons-codicon "nf-cod-symbol_class") :face font-lock-type-face)
-        (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
-        (command ,(nerd-icons-codicon "nf-cod-terminal") :face default)
-        (constant ,(nerd-icons-codicon "nf-cod-symbol_constant") :face font-lock-constant-face)
-        (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face font-lock-constant-face)
-        (enummember ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
-        (enum-member ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
-        (enum ,(nerd-icons-codicon "nf-cod-symbol_enum") :face font-lock-builtin-face)
-        (event ,(nerd-icons-codicon "nf-cod-symbol_event") :face font-lock-warning-face)
-        (field ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-variable-name-face)
-        (file ,(nerd-icons-codicon "nf-cod-symbol_file") :face font-lock-string-face)
-        (folder ,(nerd-icons-codicon "nf-cod-folder") :face font-lock-doc-face)
-        (interface ,(nerd-icons-codicon "nf-cod-symbol_interface") :face font-lock-type-face)
-        (keyword ,(nerd-icons-codicon "nf-cod-symbol_keyword") :face font-lock-keyword-face)
-        (macro ,(nerd-icons-codicon "nf-cod-symbol_misc") :face font-lock-keyword-face)
-        (magic ,(nerd-icons-codicon "nf-cod-wand") :face font-lock-builtin-face)
-        (method ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
-        (function ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
-        (module ,(nerd-icons-codicon "nf-cod-file_submodule") :face font-lock-preprocessor-face)
-        (numeric ,(nerd-icons-codicon "nf-cod-symbol_numeric") :face font-lock-builtin-face)
-        (operator ,(nerd-icons-codicon "nf-cod-symbol_operator") :face font-lock-comment-delimiter-face)
-        (param ,(nerd-icons-codicon "nf-cod-symbol_parameter") :face default)
-        (property ,(nerd-icons-codicon "nf-cod-symbol_property") :face font-lock-variable-name-face)
-        (reference ,(nerd-icons-codicon "nf-cod-references") :face font-lock-variable-name-face)
-        (snippet ,(nerd-icons-codicon "nf-cod-symbol_snippet") :face font-lock-string-face)
-        (string ,(nerd-icons-codicon "nf-cod-symbol_string") :face font-lock-string-face)
-        (struct ,(nerd-icons-codicon "nf-cod-symbol_structure") :face font-lock-variable-name-face)
-        (text ,(nerd-icons-codicon "nf-cod-text_size") :face font-lock-doc-face)
-        (typeparameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
-        (type-parameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
-        (unit ,(nerd-icons-codicon "nf-cod-symbol_ruler") :face font-lock-constant-face)
-        (value ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-builtin-face)
-        (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
-        (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
+  (setq kind-icon-use-icons nil)
+  (setq kind-icon-mapping
+        `(
+          (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
+          (tabnine ,(nerd-icons-codicon "nf-cod-hubot") :face font-lock-warning-face)
+          (boolean ,(nerd-icons-codicon "nf-cod-symbol_boolean") :face font-lock-builtin-face)
+          (class ,(nerd-icons-codicon "nf-cod-symbol_class") :face font-lock-type-face)
+          (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
+          (command ,(nerd-icons-codicon "nf-cod-terminal") :face default)
+          (constant ,(nerd-icons-codicon "nf-cod-symbol_constant") :face font-lock-constant-face)
+          (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face font-lock-constant-face)
+          (enummember ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
+          (enum-member ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
+          (enum ,(nerd-icons-codicon "nf-cod-symbol_enum") :face font-lock-builtin-face)
+          (event ,(nerd-icons-codicon "nf-cod-symbol_event") :face font-lock-warning-face)
+          (field ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-variable-name-face)
+          (file ,(nerd-icons-codicon "nf-cod-symbol_file") :face font-lock-string-face)
+          (folder ,(nerd-icons-codicon "nf-cod-folder") :face font-lock-doc-face)
+          (interface ,(nerd-icons-codicon "nf-cod-symbol_interface") :face font-lock-type-face)
+          (keyword ,(nerd-icons-codicon "nf-cod-symbol_keyword") :face font-lock-keyword-face)
+          (macro ,(nerd-icons-codicon "nf-cod-symbol_misc") :face font-lock-keyword-face)
+          (magic ,(nerd-icons-codicon "nf-cod-wand") :face font-lock-builtin-face)
+          (method ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
+          (function ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
+          (module ,(nerd-icons-codicon "nf-cod-file_submodule") :face font-lock-preprocessor-face)
+          (numeric ,(nerd-icons-codicon "nf-cod-symbol_numeric") :face font-lock-builtin-face)
+          (operator ,(nerd-icons-codicon "nf-cod-symbol_operator") :face font-lock-comment-delimiter-face)
+          (param ,(nerd-icons-codicon "nf-cod-symbol_parameter") :face default)
+          (property ,(nerd-icons-codicon "nf-cod-symbol_property") :face font-lock-variable-name-face)
+          (reference ,(nerd-icons-codicon "nf-cod-references") :face font-lock-variable-name-face)
+          (snippet ,(nerd-icons-codicon "nf-cod-symbol_snippet") :face font-lock-string-face)
+          (string ,(nerd-icons-codicon "nf-cod-symbol_string") :face font-lock-string-face)
+          (struct ,(nerd-icons-codicon "nf-cod-symbol_structure") :face font-lock-variable-name-face)
+          (text ,(nerd-icons-codicon "nf-cod-text_size") :face font-lock-doc-face)
+          (typeparameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
+          (type-parameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
+          (unit ,(nerd-icons-codicon "nf-cod-symbol_ruler") :face font-lock-constant-face)
+          (value ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-builtin-face)
+          (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
+          (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package corfu
@@ -590,7 +592,7 @@
         ("C-k" . corfu-previous))
   :custom
   (corfu-auto t)
-  (completion-styles '(flex orderless))
+  ;; (completion-styles '(flex orderless))
   :init
   (setq corfu-bar-width 2
         corfu-scroll-margin 2
@@ -644,7 +646,9 @@
   ;; (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
+  (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+  ;; (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+  )
 
 (use-package emacs
   :init
@@ -723,7 +727,6 @@
   :custom
   (setq flycheck-checker-error-threshold 15)
   ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
-  ;; (flycheck-check-syntax-automatically '(save mode-enabled new-line idle-change))
   )
 
 ;; (use-package tabnine
@@ -843,21 +846,6 @@
       (window-height . 0.2)
       (side . bottom)
       (slot . 2)))))
-
-;; Winum - select windows easy ---------------------------
-(use-package winum
-  :after doom-modeline
-  :bind
-  ("M-1" . winum-select-window-1)
-  ("M-2" . winum-select-window-2)
-  ("M-3" . winum-select-window-3)
-  ("M-4" . winum-select-window-4)
-  ("M-5" . winum-select-window-5)
-  ("M-6" . winum-select-window-6)
-  :config
-  (setq winum-auto-setup-mode-line t)
-  :init
-  (winum-mode 1))
 
 ;; darkroom (go to focus mode)
 (use-package darkroom
@@ -1019,9 +1007,7 @@
     "qr" '(restart-emacs :which-key "Restart emacs")))
 
 (use-package org
-  :hook (
-         ;;(org-mode . visual-line-mode)
-         (org-mode . org-display-inline-images))
+  :hook ((org-mode . org-display-inline-images))
   :config
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
@@ -1132,10 +1118,12 @@
         org-superstar-cycle-headline-bullets nil
         ;; org-superstar-headline-bullets-list '("› ")
         org-superstar-prettify-item-bullets t
-        ;; org-superstar-headline-bullets-list '("◉" "○" "⍟" "◈" "◇" "◈" "○" "▷")
-        org-superstar-headline-bullets-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
+        org-superstar-headline-bullets-list '("◉" "○" "⍟" "◈" "◇" "◈" "○" "▷")
+        ;; org-superstar-headline-bullets-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
         ))
 
+(use-package org-modern
+  :hook (org-mode . org-modern-mode))
 
 (use-package visual-fill-column
   :hook ((org-mode . visual-fill-column-mode))
@@ -1162,6 +1150,16 @@
   :hook (prog-mode . highlight-symbol-mode)
   :config
   (setq highlight-symbol-idle-delay 0.5))
+
+(use-package highlight-indentation
+  :hook ((prog-mode . highlight-indentation-current-column-mode))
+  :custom
+  (setq highlight-indentation-blank-lines t))
+
+;; (use-package highlight-indent-guides
+;;   :hook (prog-mode . highlight-indent-guides-mode)
+;;   :custom
+;;   (setq highlight-indent-guides-method 'character))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1212,15 +1210,15 @@
   ("C-c x c" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
 
-(use-package xcode-build
-  :ensure nil
-  :after swift-mode
-  :bind
-  ("M-r" . #'xcode-build:run)
-  ("M-s" . #'xcode-build:stop))
+;; (use-package xcode-build
+;;   :ensure nil
+;;   :after swift-mode
+;;   :bind
+;;   ("M-r" . #'xcode-build:run)
+;;   ("M-s" . #'xcode-build:stop))
 
 ;; (use-package overlay-usage
-;;   ;; :hook (swift-mode . overlay-usage-mode)
+;;   :hook (swift-mode . overlay-usage-mode)
 ;;   :ensure nil)
 
 (use-package swift-additions
@@ -1305,7 +1303,7 @@
 
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
-  (flymake-mode nil)
+  ;; (flymake-mode nil)
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
 
   (defun mk/eglot-capf ()
@@ -1326,16 +1324,11 @@
     (other-window 1)
     (xwidget-webkit-browse-url url)))
 
-(use-package smartparens
-  :hook (prog-mode . smartparens-mode)
-  :init
-  (require 'smartparens-swift))
-
-;; (use-package electric
-;;   :hook (prog-mode . electric-pair-mode)
-;;   :ensure nil
-;;   :config
-;;   (setq electric-pair-preserve-balance nil))
+(use-package electric
+  :hook (prog-mode . electric-pair-mode)
+  :ensure nil
+  :config
+  (setq electric-pair-preserve-balance nil))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
@@ -1397,7 +1390,7 @@
 
 (defun prog-fringe-hook ()
   "Setup fringes."
-  (setq left-fringe-width 80
+  (setq left-fringe-width 90
         right-fringe-width 0))
 
 (add-hook 'prog-mode-hook #'prog-fringe-hook)

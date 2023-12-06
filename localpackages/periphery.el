@@ -5,7 +5,6 @@
 
 ;;; Code:
 (require 'dash)
-(require 'transient)
 (require 'periphery-helper)
 
 (defface periphery-filename-face
@@ -59,7 +58,7 @@
   :group 'periphery)
 
 (defface periphery-note-face
-  '((t (:inherit compilation-info :bold nil)))
+  '((t (:inherit compilation-info)))
   "Info face."
   :group 'periphery)
 
@@ -104,7 +103,7 @@
   :group 'periphery)
 
 (defface periphery-mark-face-full
-  '((t (:foreground "#313244" :background "#9399b2" :distant-foreground "#9399b2" :box "#FF0000" :weight light)))
+  '((t (:foreground "#313244" :background "#9399b2" :distant-foreground "#9399b2" :weight light)))
   "Performance face."
   :group 'periphery)
 
