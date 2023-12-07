@@ -113,6 +113,8 @@
     (concat
      (swift-additions:xcodebuild-command)
      (swift-additions:get-workspace-or-project)
+     "-parallelizeTargets \\"
+     "-jobs 10 \\"
      (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
      (format "-sdk %s \\" (swift-additions:get-current-sdk))
      (when simulatorId
@@ -120,7 +122,7 @@
      (when (and current-local-device-id run-on-device)
        (format "-destination 'generic/platform=iOS' \\" ))
      "-hideShellScriptEnvironment \\"
-     "-UseModernBuildSystem=NO \\"
+     "-UseModernBuildSystem=YES \\"
      "-derivedDataPath build | xcode-build-server parse -avv"))) ;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
 
 (cl-defun swift-additions:build-device-or-simulator-menu (&key title)

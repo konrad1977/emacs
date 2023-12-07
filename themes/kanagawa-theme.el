@@ -125,9 +125,9 @@
   (font-lock-number-face                         (:foreground roninYellow))
   (elisp-shorthand-font-lock-face                (:foreground fujiWhite))
 
-  (info-xref                                     (:foreground carpYellow))
+  (info-xref                                     (:foreground peachRed))
   (minibuffer-prompt-end                         (:foreground autumnRed :background winterRed))
-  (minibuffer-prompt                             (:foreground carpYellow :background winterYellow))
+  (minibuffer-prompt                             (:foreground peachRed :background winterRed :bold t))
   (epa-mark                                      (:foreground waveRed))
   (dired-mark                                    (:foreground waveRed))
   (trailing-whitespace                           (:background comet))
@@ -413,17 +413,17 @@
   (ace-jump-face-foreground                      (:foreground peachRed :background sumiInk-0 :bold t))
   
   ;; vertico
-  (vertico-multiline                             (:background samuraiRed))
+  (vertico-multiline                             (:background winterBlue :foreground lightBlue))
   (vertico-group-title                           (:background winterBlue :foreground lightBlue :bold t))
   (vertico-group-separator                       (:background winterBlue :foreground lightBlue :strike-through t))
-  (vertico-current                               (:foreground carpYellow :bold t :italic t :background waveBlue-1))
+  (vertico-current                               (:background winterBlue :foreground lightBlue :bold t :italic t))
 
   (vertico-posframe-border                       (:background sumiInk))
   (vertico-posframe                              (:background sumiInk))
 
-  (orderless-match-face-0                        (:foreground sakuraPink :background winterRed :weight 'semi-bold))
-  (orderless-match-face-2                        (:foreground autumnGreen :background winterGreen :weight 'semi-bold))
-  (orderless-match-face-1                        (:foreground autumnYellow :background winterYellow :weight 'semi-bold))
+  (orderless-match-face-0                        (:foreground crystalBlue :background winterBlue :weight 'semi-bold))
+  (orderless-match-face-1                        (:foreground waveRed :background winterRed :weight 'semi-bold))
+  (orderless-match-face-2                        (:foreground springGreen :background winterGreen :weight 'semi-bold))
   (orderless-match-face-3                        (:foreground crystalBlue :background winterBlue :weight 'semi-bold))
 
   (comint-highlight-prompt                       (:background springViolet2 :foreground sumiInk-1))

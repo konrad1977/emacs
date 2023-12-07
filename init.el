@@ -1390,8 +1390,8 @@
 
 (defun prog-fringe-hook ()
   "Setup fringes."
-  (setq left-fringe-width 90
-        right-fringe-width 0))
+  (setq left-fringe-width 80
+        right-fringe-width 20))
 
 (add-hook 'prog-mode-hook #'prog-fringe-hook)
 
