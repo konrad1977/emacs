@@ -33,6 +33,13 @@
 (defvar current-app-name nil)
 (defvar use-rosetta nil)
 
+(defun ios-simulator:reset ()
+  "Reset current settings."
+  (setq current-simulator-name nil)
+  (setq current-app-name nil)
+  (setq current-app-identifier nil)
+  (setq current-simulator-id nil))
+
 (defun ios-simulator:current-sdk-version ()
   "Get the current simulator sdk-version."
   (clean-up-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
@@ -55,7 +62,6 @@
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
-  (ios-simulator:kill-buffer)
 
   (let* ((default-directory rootfolder)
          (simulator-id simulatorId)
@@ -95,7 +101,7 @@
   "Install and launch app (as SIMULATORID and BUILD-FOLDER and CALLBACK)."
   (let* ((folder build-folder)
          (install-path folder)
-         (command (format "xcrun simctl install %s %s%s.app\n" simulatorID install-path appname)))
+         (command (format "xcrun simctl install %s '%s%s'.app\n" simulatorID install-path appname)))
     (async-start-command
      :command command
      :callback callback)))

@@ -102,6 +102,15 @@
     (package-refresh-contents))
   (package-install 'use-package))
 
+(use-package spinner
+  :defer t)
+
+(use-package request
+  :defer t)
+
+(use-package async
+  :defer t)
+
 (use-package gcmh
   :hook (after-init . gcmh-mode))
 
@@ -148,6 +157,9 @@
 (use-package all-the-icons
   :defer t)
 
+(use-package nerd-icons
+  :defer t)
+
 (use-package welcome-dashboard
   :ensure nil
   :custom-face
@@ -178,7 +190,8 @@
     ;; (load-theme 'oxocarbon t)
    ;;(load-theme 'oxographite t)
    ;; (load-theme 'kman t)
-  (load-theme 'kanagawa t))
+  (load-theme 'kanagawa t)
+  )
 
 (use-package saveplace
   :ensure nil
@@ -263,6 +276,15 @@
   :after (vertico)
   :config (marginalia-mode))
 
+(use-package nerd-icons-completion
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package nerd-icons-corfu
+  :after corfu)
+
 ;; (use-package multiple-cursors
 ;;   :hook (prog-mode . multiple-cursors-mode)
 ;;   :bind
@@ -311,7 +333,9 @@
        (((mood-line-segment-buffer-status) . " ")
         ((mood-line-segment-buffer-name)   . " ")
         ((mood-line-segment-anzu) . " ")
-        ((mood-line-segment-multiple-cursors) . " "))
+        ((mood-line-segment-modal) . " ")
+        ((mood-line-segment-major-mode) . " ")
+        )
        :right
        (((mood-line-segment-process) . " ")
         ((mood-line-segment-vc) . "  ")
@@ -646,7 +670,7 @@
   ;; (add-to-list 'completion-at-point-functions #'cape-symbol)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   ;; (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   )
 
@@ -678,8 +702,6 @@
   (treemacs-git-modified-face ((t (:family "Iosevka Aile" :height 0.9))))
   (treemacs-tags-face ((t (:family "Iosevka Aile" :height 0.9))))
   :config
-  (setq doom-themes-treemacs-theme t
-        treemacs-window-background-color '("#221F22" . "#423f42"))
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
         treemacs-directory-name-transformer #'identity
@@ -698,6 +720,12 @@
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
         treemacs-width 30))
+
+(defun treemacs-mode-handler()
+  (set (make-local-variable 'face-remapping-alist)
+       '((default :background "#16161D"))))
+
+(add-hook 'treemacs-mode-hook 'treemacs-mode-handler)
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -1305,13 +1333,12 @@
   "Custom setting for swift programming."
   ;; (flymake-mode nil)
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
+  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
   (defun mk/eglot-capf ()
     (setq-local completion-at-point-functions
                 (list
-                 ;; (cape-super-capf #'tabnine-completion-at-point)
-                 (cape-super-capf #'eglot-completion-at-point))))
-
+                 (cape-capf-buster #'eglot-completion-at-point))))
   (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
 
 (defun mk/browser-split-window (url &optional new-window)
@@ -1328,7 +1355,7 @@
   :hook (prog-mode . electric-pair-mode)
   :ensure nil
   :config
-  (setq electric-pair-preserve-balance nil))
+  (setq electric-pair-preserve-balance t))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
@@ -1339,9 +1366,9 @@
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (hs-minor-mode)       ; Add support for folding code blocks
                                         ;// TODO:  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
-  ;; (which-function-mode)
+  (which-function-mode)
   ;; (setq-default header-line-format
-  ;;               '((which-func-mode ("\t\t   " which-func-current ""))))
+  ;;               '((which-func-mode ("\t\t\t" which-func-current ""))))
   ;; (setq-default mode-line-misc-info nil)
   
   (setq indicate-empty-lines t            ;; Show empty lines
@@ -1383,7 +1410,7 @@
               alpha
             (cdr alpha)) ; may also be nil
           100)
-         (set-frame-parameter nil 'alpha '(94 . 85))
+         (set-frame-parameter nil 'alpha '(97 . 97))
        (set-frame-parameter nil 'alpha '(100 . 100))))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
@@ -1419,9 +1446,9 @@
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot+dumb)) pattern)
   (xref-backend-apropos 'eglot pattern))
-
-
+;;
+;;
 (provide 'init)
 
-;;; init.el ends here
-;; (put 'narrow-to-region 'disabled nil)
+; init.el ends here
+(put 'narrow-to-region 'disabled nil)

@@ -9,6 +9,7 @@
 (require 'flycheck)
 (require 'projectile)
 (require 'periphery-helper)
+(require 'xcodebuildserver)
 (require 'periphery)
 (require 'ios-simulator)
 (require 'ios-device)
@@ -29,7 +30,6 @@
 (defvar current-build-folder nil)
 (defvar current-environment-x86 nil)
 (defvar current-simulator-id nil)
-(defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
 (defvar current-local-device-id nil)
 (defvar current-build-command nil)
@@ -79,13 +79,13 @@
   "Get build folder. If there are more than one let the user choose wich one to use."
   (unless current-build-folder
     (setq current-build-folder
-    (let* ((default-directory (concat (swift-additions:get-ios-project-root) "/build/Build/Products/"))
-           (choosen-folder (swift-additions:build-menu :title "Choose build folder" :list (swift-additions:parse-build-folder default-directory))))
-      (shell-quote-argument (concat default-directory choosen-folder "/")))))
+    (if-let* ((default-directory (concat (swift-additions:get-ios-project-root) "/build/Build/Products/"))
+              (choosen-folder (swift-additions:build-menu :title "Choose build folder" :list (swift-additions:parse-build-folder default-directory))))
+        (shell-quote-argument (concat default-directory choosen-folder "/")))))
   current-build-folder)
 
 (defun swift-additions:parse-build-folder (directory)
-  "Parse build folders."
+  "Parse build folders from (as DIRECTORY)."
   (let ((folders (directory-files directory nil "^[^.].*" t)))
     (mapc (lambda (folder)
             (when (file-directory-p folder)
@@ -103,18 +103,16 @@
   (let ((workspace (xcode-additions:workspace-name))
         (projectname (xcode-additions:project-name)))
     (if workspace
-        (format "-workspace %s.xcworkspace \\" workspace)
-      (format "-project %s.xcodeproj \\" projectname))))
+        (format "-workspace %s.xcworkspace" workspace)
+      (format "-project %s.xcodeproj" projectname))))
 
 (cl-defun build-app-command (&simulatorId simulatorId)
-  "Xcodebuild with (as SIMULATORID)."
+  "Xcodebuild with (as &SIMULATORID)."
   (if current-build-command
       current-build-command
     (concat
      (swift-additions:xcodebuild-command)
-     (swift-additions:get-workspace-or-project)
-     "-parallelizeTargets \\"
-     "-jobs 10 \\"
+     (format "%s \\" (swift-additions:get-workspace-or-project))
      (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
      (format "-sdk %s \\" (swift-additions:get-current-sdk))
      (when simulatorId
@@ -122,16 +120,19 @@
      (when (and current-local-device-id run-on-device)
        (format "-destination 'generic/platform=iOS' \\" ))
      "-hideShellScriptEnvironment \\"
-     "-UseModernBuildSystem=YES \\"
+     ;; "-UseModernBuildSystem=YES \\"
+     ;; (format "-packageCachePath %s/build/SourcePackages  \\" (swift-additions:get-ios-project-root))
+     ;; "-disableAutomaticPackageResolution \\"
+     ;; "-skipPackageUpdates \\"
+     ;; "-quiet \\"
      "-derivedDataPath build | xcode-build-server parse -avv"))) ;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
 
 (cl-defun swift-additions:build-device-or-simulator-menu (&key title)
   "Build device or simulator menu (as TITLE)."
-  (defconst languageList '(
-                           ("Simulator" nil)
-                           ("Physical device" t)))
-    (progn
-    (let* ((choices (seq-map (lambda (item) item) languageList))
+  (defconst deviceList '(("Simulator" nil)
+                         ("Physical device" t)))
+  (progn
+    (let* ((choices (seq-map (lambda (item) item) deviceList))
            (choice (completing-read title choices)))
       (car (cdr (assoc choice choices))))))
 
@@ -148,8 +149,11 @@
     nil))
 
 (defun swift-additions:run-app()
-  "Run app. Either in simulator or on physical."
-  (message-with-color :tag "[Build time]" :text (swift-additions:compilation-time) :attributes 'warning)
+  "Either in simulator or on physical."
+  (message-with-color
+   :tag "[Build time]"
+   :text (swift-additions:compilation-time)
+   :attributes 'warning)
 
   (ios-simulator:install-and-run-app
    :rootfolder current-project-root
@@ -163,30 +167,10 @@
        (not (string-match-p "BUILD INTERRUPTED" input-text))))
 
 (defun swift-additions:check-for-errors (output callback)
-  "Run periphery parser on TEXT (optional CALLBACK)."
+  "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
   (when (swift-additions:check-if-build-was-successful output)
     (funcall callback))
   (periphery-run-parser output))
-
-(defun swift-additions:filename-by-extension (extension)
-  "Get filename based on (as EXTENSION)."
-  (if-let ((name (directory-files current-project-root t extension)))
-      (file-name-sans-extension (file-name-nondirectory (car name)))))
-
-(cl-defun swift-additions:get-files-from (&key directory &key extension &key exclude)
-  "Get files from DIRECTORY by EXTENSION and EXCLUDE."
-  (let ((result '()))
-    (mapcar (lambda (x)
-              (cond
-               ((not (string-match-p exclude (expand-file-name x directory)))
-                (push x result))))
-            (directory-files-recursively directory (format "\\%s$" extension) t))
-    result))
-
-(defun swift-additions:check-if-build-server-exists ()
-  "Check if xcode-build-server config exists."
-  (when-let ((default-directory (periphery-helper:project-root-dir)))
-    (file-exists-p "buildServer.json")))
 
 (defun swift-additions:get-project-files ()
   "Get project files."
@@ -205,7 +189,7 @@
           (if-let* ((files (swift-additions:get-project-files))
                     (file (car-safe files))
                     (root (directory-file-name (file-name-directory file))))
-            root)))
+              root)))
     current-project-root)
 
 (defun swift-additions:get-current-sdk ()
@@ -219,13 +203,14 @@
   "Reset current settings.  Change current configuration."
   (interactive)
   (ios-simulator:kill-buffer)
+  (ios-simulator:reset)
   (periphery-kill-buffer)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
+  (setq current-app-name nil)
   (setq current-project-root nil)
   (setq current-build-configuration nil)
   (setq current-simulator-id nil)
-  (setq current-simulator-name nil)
   (setq current-buildconfiguration-json-data nil)
   (setq current-local-device-id nil)
   (setq current-build-command nil)
@@ -258,11 +243,12 @@
 
 (defun swift-additions:compile-and-run-silent (runApp)
   "Build project using xcodebuild (as RUNAPP)."
-  (save-some-buffers t)
-  (periphery-kill-buffer)
-  (ios-simulator:kill-buffer)
-  (setq current-local-device-id (ios-device:id))
-  (swift-addition:ask-for-device-or-simulator)
+   (let ((savings (save-some-buffers t))
+         (buffer (periphery-kill-buffer)))
+
+     (ios-simulator:kill-buffer)
+     (setq current-local-device-id (ios-device:id))
+     (swift-addition:ask-for-device-or-simulator)
 
   (if (swift-additions:is-xcodeproject)
       (progn
@@ -272,34 +258,45 @@
               (setq device-or-simulator "physical device")
               (swift-additions:compile-and-run-on-device))
           ;; Simulator
-          (progn
-            (ios-simulator:load-simulator-id)
-            (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
-            (setq device-or-simulator (ios-simulator:simulator-name))
+          (swift-additions:compile-app-for-simulator :run runApp)))
 
-            (let ((default-directory current-project-root)
-                  (build-command (build-app-command :simulatorId: current-simulator-id)))
-              (setq current-build-command build-command)
-              (setq compilation-time (current-time))
-              (when DEBUG
-                (message build-command))
-
-              (spinner-start 'progress-bar-filled)
-              (setq build-progress-spinner spinner-current)
-              (async-start-command-to-string
-               :command build-command
-               :callback '(lambda (text)
-                            (spinner-stop build-progress-spinner)
-                            (if run-app-on-build
-                                (swift-additions:check-for-errors text #'swift-additions:run-app)
-                              (swift-additions:check-for-errors text #'swift-additions:successful-build)))))))
-            (message-with-color
-             :tag (format "[Building '%s:%s' for %s]" (xcode-additions:project-name) current-xcode-scheme device-or-simulator)
-             :text "Please wait. Patience is a virtue!"
-             :attributes 'warning))
     (if (swift-additions:is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
-      (message "Not xcodeproject nor swift package"))))
+      (message "Not xcodeproject nor swift package")))))
+
+(cl-defun swift-additions:compile-app-for-simulator (&key run)
+  "Compile app"
+  (ios-simulator:load-simulator-id)
+  (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+  (setq simulatorName (ios-simulator:simulator-name))
+
+  (let ((default-directory current-project-root)
+        (build-command (build-app-command :simulatorId: current-simulator-id))
+        (run-app-on-build run))
+
+    (setq current-build-command build-command)
+    (setq compilation-time (current-time))
+
+    (xcodebuildserver:check-configuration :root current-project-root
+                                          :workspace (swift-additions:get-workspace-or-project)
+                                          :scheme current-xcode-scheme)
+    (when DEBUG
+      (message build-command))
+
+    (message-with-color
+     :tag "[Building]"
+     :text (format "%s scheme:%s for %s %s" (xcode-additions:project-name) current-xcode-scheme simulatorName "Please wait. Patience is a virtue!" )
+     :attributes 'warning)
+
+    (spinner-start 'progress-bar-filled)
+    (setq build-progress-spinner spinner-current)
+    (async-start-command-to-string
+     :command build-command
+     :callback '(lambda (text)
+                  (spinner-stop build-progress-spinner)
+                  (if run-app-on-build
+                      (swift-additions:check-for-errors text #'swift-additions:run-app)
+                    (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
 
 (defun swift-additions:compile-and-run-on-device ()
   "Compile and run on device."
@@ -315,9 +312,11 @@
         (build-folder (swift-additions:get-build-folder)))
     (setq current-build-command build-command)
     (setq current-build-folder build-folder)
+
     (when DEBUG
       (message current-build-command)
       (message "Build-folder: %s" current-build-folder))
+
     (async-start-command-to-string
      :command build-command
      :callback '(lambda (text)
@@ -352,13 +351,6 @@
       (message-with-color :tag "[Removing]" :text (format "Folder for %s" default-directory) :attributes '(:inherit warning))
       (delete-directory default-directory t nil)
       (message-with-color :tag "[Done]" :text "Ready to rumble." :attributes '(:inherit success)))))
-
-(defun swift-additions:buffer-contains-substring (string)
-  "Check if buffer contain (as STRING)."
-  (save-excursion
-    (save-match-data
-      (goto-char (point-max))
-      (search-backward string nil t))))
 
 (defun swift-additions:insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."

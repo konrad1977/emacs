@@ -71,7 +71,7 @@
   ;; Customize faces
   (
   (default                                       (:background sumiInk-1b :foreground fujiWhite))
-  (border                                        (:background sumiInk-1b :foreground sumiInk-0))
+  (border                                        (:foreground carpYellow))
   (button                                        (:foreground sakuraPink))
   (child-frame                                   (:foreground sumiInk-0))
   (child-frame-border                            (:foreground sumiInk-0))
@@ -84,7 +84,6 @@
   (highlight                                     (:background comet :foreground springViolet1))
   (hl-line                                       (:background sumiInk-2))
   (homoglyph                                     (:foreground lightBlue))
-  (internal-border                               (:background sumiInk-1b))
   (line-number                                   (:foreground sumiInk-4))
   (line-number-current-line                      (:foreground springViolet2 :background sumiInk-2 :bold t))
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
@@ -99,10 +98,8 @@
   (region                                        (:background waveBlue-2))
   (separator-line                                (:background sumiInk-0))
   (success                                       (:foreground waveAqua2))
-  (vertical-border                               (:foreground sumiInk-1))
+  (vertical-border                               (:foreground sumiInk-1b))
   (warning                                       (:foreground carpYellow))
-  (window-border                                 (:background sumiInk-1b))
-  (window-divider                                (:foreground sumiInk-2))
   (hi-yellow                                     (:background carpYellow :foreground sumiInk-1b))
 
   ;; Font lock
@@ -336,8 +333,8 @@
   (treemacs-git-ignored-face                     (:foreground sumiInk-5 :italic t))
   (treemacs-git-unmodified-face                  (:foreground sumiInk-5))
   (treemacs-git-renamed-face                     (:foreground carpYellow))
-  (treemacs-git-modified-face                    (:foreground autumnGreen :bold t))
-   
+  (treemacs-git-modified-face                    (:foreground springBlue :weight 'normal))
+
   ;; lsp and lsp-ui
   (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
   (lsp-headerline-breadcrumb-path-face           (:background sumiInk-0))

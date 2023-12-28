@@ -19,6 +19,7 @@
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
+  (padding 8)
   ;; Define our color palette
   (highlight-high   "#464646" "#d7d7ff")
   (highlight-med    "#363636" "#d7d7ff")
@@ -45,13 +46,14 @@
   (dark-green       "#03302F" "#F00000")
   (medium-green     "#365958" "#F00000")
   (overlay          "#292929" "#ffffff")
+  (surface-distant  "#181818" "#ffffff")
   (surface          "#161616" "#ffffff")
   (base             "#131313" "#ffffff")
   (crust            "#050505" "#ffffff"))
 
  ;; Customize faces
  (
-  (default                              (:background surface :foreground text))
+  (default                              (:background surface-distant :foreground text))
   (border                               (:foreground muted))
   (bookmark-face                        (:foreground love))
   (button                               (:foreground foam))
@@ -64,7 +66,8 @@
   (file-name-shadow                     (:foreground muted))
   (glyph-face                           (:background love :foreground muted))
   (glyphless-char                       (:foreground muted))
-  (header-line                          (:background base :foreground rose :weight 'semi-bold :italic t))
+  ;; (header-line                          (:background base :foreground rose :weight 'semi-bold :italic t) :box (:line-width padding))
+  (header-line                          (:background base :foreground subtle :box (:line-width padding :color base)))
   (highlight                            (:background base :foreground foam :distant-foreground base))
   (hl-line                              (:background dark-green))
   (homoglyph                            (:foreground foam))
@@ -74,10 +77,11 @@
   (menu                                 (:foreground rose))
   (fill-column-indicator                (:foreground overlay))
   (mode-line                            (:background base :foreground muted))
-  (mode-line-inactive                   (:background overlay))
-  (mode-line-active                     (:foreground muted :background base))
+  (mode-line                            (:background base :box (:line-width padding :color dark-iris)))
+  (mode-line-inactive                   (:background base :foreground muted :box (:line-width padding :color base)))
+  (mode-line-active                     (:background base :foreground unmuted :box (:line-width padding :color base)))
   (mode-line-highlight                  (:foreground rose))
-  (mode-line-buffer-id                  (:foreground text :bold t))
+  (mode-line-buffer-id                  (:foreground rose :bold t))
   (numbers                              (:background gold))
   (region                               (:background medium-green))
   (tooltip                              (:background medium-gold :foreground gold))
@@ -301,6 +305,8 @@
   (highlight-indent-guides-top-odd-face         (:foreground love :background love))
   (highlight-indent-guides-top-even-face        (:foreground love :background love))
 
+  (highlight-indentation-current-column-face     (:background overlay))
+  (highlight-indentation-face                    (:background overlay))
    ;;;; ivy
   (ivy-current-match                            (:background foam :foreground base :bold t))
   (ivy-action                                   (:background base :foreground iris))
