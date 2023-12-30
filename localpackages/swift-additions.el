@@ -2,7 +2,7 @@
 
 ;;; commentary:
 
-;;; package for building and runnning ios/macos apps from emacs
+;;; package for building and runnning ios/macos apps from Emacs
 
 ;;; code:
 
@@ -15,6 +15,7 @@
 (require 'ios-device)
 (require 'spinner)
 (require 'xcode-additions)
+(require 'mode-line-hud)
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
@@ -23,6 +24,7 @@
 
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
 
+(defvar current-root nil)
 (defvar current-xcode-scheme nil)
 (defvar current-app-identifier nil)
 (defvar current-project-root nil)
@@ -30,6 +32,7 @@
 (defvar current-build-folder nil)
 (defvar current-environment-x86 nil)
 (defvar current-simulator-id nil)
+(defvar current-simulator-name nil)
 (defvar current-buildconfiguration-json-data nil)
 (defvar current-local-device-id nil)
 (defvar current-build-command nil)
@@ -38,7 +41,7 @@
 (defvar run-on-device nil)
 (defvar run-app-on-build t)
 (defvar compilation-time nil)
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -145,15 +148,14 @@
 (defun swift-additions:compilation-time ()
   "Get the time of the compilation."
   (if-let ((end-time (current-time)))
-      (format "Compilation time: (%.1f seconds)" (float-time (time-subtract end-time compilation-time)))
+      (format "%.1f" (float-time (time-subtract end-time compilation-time)))
     nil))
 
 (defun swift-additions:run-app()
   "Either in simulator or on physical."
-  (message-with-color
-   :tag "[Build time]"
-   :text (swift-additions:compilation-time)
-   :attributes 'warning)
+  (mode-line-hud:update :message (format "Built %s in %s seconds"
+                                         (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
+                                         (propertize (swift-additions:compilation-time) 'face 'warning)))
 
   (ios-simulator:install-and-run-app
    :rootfolder current-project-root
@@ -185,12 +187,16 @@
 (defun swift-additions:get-ios-project-root ()
   "Get the ios-project root."
   (unless current-project-root
-    (setq current-project-root
-          (if-let* ((files (swift-additions:get-project-files))
-                    (file (car-safe files))
-                    (root (directory-file-name (file-name-directory file))))
-              root)))
-    current-project-root)
+    (setq current-project-root (cdr (project-current))))
+  current-project-root)
+
+  ;; (unless current-project-root
+  ;;   (setq current-project-root
+  ;;         (if-let* ((files (swift-additions:get-project-files))
+  ;;                   (file (car-safe files))
+  ;;                   (root (directory-file-name (file-name-directory file))))
+  ;;             root)))
+  ;;   current-project-root)
 
 (defun swift-additions:get-current-sdk ()
   "Return the current SDK."
@@ -215,7 +221,7 @@
   (setq current-local-device-id nil)
   (setq current-build-command nil)
   (setq current-build-folder nil)
-  (message-with-color :tag "[Resetting]" :text "Build configiration" :attributes 'warning))
+  (mode-line-hud:update :message "Resetting configuration"))
 
 (defun swift-additions:successful-build ()
   "Show that the build was successful."
@@ -245,7 +251,7 @@
   "Build project using xcodebuild (as RUNAPP)."
    (let ((savings (save-some-buffers t))
          (buffer (periphery-kill-buffer)))
-
+     (swift-additions:check-root)
      (ios-simulator:kill-buffer)
      (setq current-local-device-id (ios-device:id))
      (swift-addition:ask-for-device-or-simulator)
@@ -265,10 +271,11 @@
       (message "Not xcodeproject nor swift package")))))
 
 (cl-defun swift-additions:compile-app-for-simulator (&key run)
-  "Compile app"
+  "Compile app (RUN)."
+
   (ios-simulator:load-simulator-id)
   (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
-  (setq simulatorName (ios-simulator:simulator-name))
+  (setq current-simulator-name (ios-simulator:simulator-name))
 
   (let ((default-directory current-project-root)
         (build-command (build-app-command :simulatorId: current-simulator-id))
@@ -283,13 +290,13 @@
     (when DEBUG
       (message build-command))
 
-    (message-with-color
-     :tag "[Building]"
-     :text (format "%s scheme:%s for %s %s" (xcode-additions:project-name) current-xcode-scheme simulatorName "Please wait. Patience is a virtue!" )
-     :attributes 'warning)
-
     (spinner-start 'progress-bar-filled)
     (setq build-progress-spinner spinner-current)
+
+    (mode-line-hud:update :message (format "Compiling scheme: %s for %s"
+                                           (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
+                                           (propertize current-simulator-name 'face 'font-lock-negation-char-face)))
+
     (async-start-command-to-string
      :command build-command
      :callback '(lambda (text)
@@ -341,16 +348,28 @@
   "Clean app build folder."
   (interactive)
   (swift-additions:clean-build-folder-with (periphery-helper:project-root-dir) ".build" "swift package")
-  (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "/build" current-xcode-scheme))
+  (swift-additions:clean-build-folder-with (swift-additions:get-ios-project-root) "/build" (swift-additions:fetch-or-load-xcode-scheme)))
 
 (defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
   "Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
-  (message-with-color :tag "[Cleaning]" :text (format "Build folder for %s Standby..." projectName) :attributes '(:inherit warning))
+
+  (mode-line-hud:update
+   :message (format "Cleaning build folder for %s"
+                    (propertize projectName 'face 'warning)))
+
   (let ((default-directory (concat projectRoot buildFolder)))
     (when (file-directory-p default-directory)
-      (message-with-color :tag "[Removing]" :text (format "Folder for %s" default-directory) :attributes '(:inherit warning))
-      (delete-directory default-directory t nil)
-      (message-with-color :tag "[Done]" :text "Ready to rumble." :attributes '(:inherit success)))))
+      (delete-directory default-directory t nil)))
+
+  (mode-line-hud:update
+   :message (format "Cleaning done for %s"
+                    (propertize projectName 'face 'warning))))
+
+(defun swift-additions:check-root ()
+  "Check root of the project.  If its different reset the settings."
+  (when (not (string-equal current-root (cdr (project-current))))
+    (setq current-root (cdr (project-current)))
+    (swift-additions:reset-settings)))
 
 (defun swift-additions:insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."

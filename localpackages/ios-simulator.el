@@ -3,6 +3,7 @@
 ;;; Code:
 
 (require 'periphery-helper)
+(require 'mode-line-hud)
 
 (defgroup ios-simulator nil
   "IOS-SIMULATOR."
@@ -127,7 +128,7 @@
   (unless current-simulator-name
     (let ((simulator-name (ios-simulator:simulator-name-from :id current-simulator-id)))
       (if simulator-name
-          (setq current-simulator-name (format "%s(simulator)" simulator-name))
+          (setq current-simulator-name simulator-name)
         (setq current-simulator-name "Simulator (unknown)"))))
   current-simulator-name)
 
@@ -208,10 +209,7 @@
   (if current-simulator-id
       (ios-simulator:setup-simulator-dwim current-simulator-id)
     (progn
-    (message-with-color
-     :tag "[Fetching simulators]"
-     :text "Please stand by.."
-     :attributes '(:inherit success))
+      (mode-line-hud:update :message "Fetching simulators")
       (let ((device-id
              (or (ios-simulator:booted-simulator)
                  (ios-simulator:build-selection-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
@@ -247,7 +245,11 @@
 (cl-defun ios-simulator:launch-app (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
   "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
   (ios-simulator:setup-language)
-  (message-with-color :tag "[Running]" :text (format "%s on %s" applicationName simulatorName) :attributes 'success)
+
+  (mode-line-hud:updateWith :message (format "Running %s on %s"
+                                             (propertize applicationName 'face 'font-lock-builtin-face)
+                                             (propertize simulatorName 'face 'warning))
+                            :delay 3.0)
 
   (if-let ((simulatorID simulatorID))
       (format "xcrun simctl launch --console-pty %s %s -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)

@@ -285,14 +285,14 @@
 (use-package nerd-icons-corfu
   :after corfu)
 
-;; (use-package multiple-cursors
-;;   :hook (prog-mode . multiple-cursors-mode)
-;;   :bind
-;;   ("M-j" . 'mc/mark-all-dwim)
-;;   ("C-M-c" . 'mc/edit-lines))
+(use-package multiple-cursors
+  :hook (prog-mode . multiple-cursors-mode)
+  :bind
+  ("M-j" . 'mc/mark-all-dwim)
+  ("C-M-c" . 'mc/edit-lines))
 
-;; (global-unset-key (kbd "M-<down-mouse-1>"))
-;; (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
+(global-unset-key (kbd "M-<down-mouse-1>"))
+(global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
 
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -325,6 +325,11 @@
 (use-package recentf
   :hook (after-init . recentf-mode))
 
+(use-package mode-line-hud
+  :ensure nil
+  :config
+  (setq show-in-echo-area nil))
+
 (use-package mood-line
   :config
   (setq mood-line-format
@@ -337,10 +342,12 @@
         ((mood-line-segment-major-mode) . " ")
         )
        :right
-       (((mood-line-segment-process) . " ")
-        ((mood-line-segment-vc) . "  ")
-        ((when (mood-line-segment-checker) " ") . "  ")
-        ((mood-line-segment-checker)            . "  "))))
+       (
+        ((mood-line-segment-hud) . "  ")
+        ((mood-line-segment-process) . "  ")
+        ((mood-line-segment-vc) . " ")
+        ((when (mood-line-segment-checker) " ") . " ")
+        ((mood-line-segment-checker)            . " "))))
   (mood-line-mode)
   :custom
   (mood-line-glyph-alist mood-line-glyphs-fira-code))

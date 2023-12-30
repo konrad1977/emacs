@@ -6,6 +6,7 @@
 (require 'periphery-helper)
 (require 'periphery)
 (require 'thingatpt)
+(require 'mode-line-hud)
 
 (defvar current-query "")
 (defvar current-title "Search")
@@ -42,7 +43,6 @@
       (progn
         (let ((default-directory (periphery-helper:project-root-dir)))
           (setq current-query (regexp-quote text))
-          (message-with-color :tag "[SEARCHING]" :text (format "for %s" current-query) :attributes 'warning)
           (async-start-command-to-string
            :command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path" searcher current-query)
            :callback '(lambda (result) (send-search-result-to-periphery result)))))
@@ -65,8 +65,8 @@
   "Query todos and fixmes in the project."
   (interactive)
   (setq current-title "Fixme and todos")
-  (periphery-run-query "rg -e" "(NOTE|FIX|FIXME|TODO|HACK|PERF):"))
-
+  (periphery-run-query "rg -e" "(NOTE|FIX|FIXME|TODO|HACK|PERF):")
+  (mode-line-hud:update :message "Showing Todos"))
 ;;;###autoload
 (defun periphery-query-marks ()
   "Query mark in the project."

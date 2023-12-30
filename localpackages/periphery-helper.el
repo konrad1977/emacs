@@ -29,7 +29,7 @@
 
 
 (cl-defun async-start-shell-command-to-json (&key command &key callback)
-  "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
+  "Async shell command to JSON run async (as COMMAND CALLBACK)."
   (async-start-command-to-string
    :command command
    :callback (lambda (result)
@@ -156,7 +156,7 @@ ARGS are rest arguments, appended to the argument list."
                               (list t nil)
                               nil
                               args))
-      (error "%s: %s %s" "Cannot invoke executable" executable (buffer-string) default-directory))
+      (error "%s: %s %s %s" "Cannot invoke executable" executable (buffer-string) default-directory))
     (goto-char (point-min))
     (json-read)))
 
