@@ -421,14 +421,14 @@
 (defun swift-additions:get-buildconfiguration-json ()
   "Return a cached version or load the build configuration."
   (unless current-buildconfiguration-json-data
-    (message-with-color :tag "[Fetching]" :text "Build configuration" :attributes '(:inherit warning))
+    (mode-line-hud:update :message "Fetching build configuration")
     (setq current-buildconfiguration-json-data (call-process-to-json xcodebuild-list-config-command)))
   current-buildconfiguration-json-data)
 
 (defun swift-additions:get-target-list ()
   "Get list of project targets."
   (unless current-project-root
-    (message-with-color :tag "[Fetching]" :text "App targets.." :attributes '(:inherit warning))
+    (mode-line-hud:update :message "Fetching app targets")
     (setq current-project-root (swift-additions:get-ios-project-root)))
 
   (let* ((default-directory current-project-root)
@@ -440,7 +440,7 @@
 (defun swift-additions:get-scheme-list ()
   "Get list of project schemes."
   (unless current-project-root
-    (message-with-color :tag "[Fetching]" :text "Build schemes.." :attributes '(:inherit warning))
+    (mode-line-hud:update :message "Fetching build schemes")
     (setq current-project-root (swift-additions:get-ios-project-root)))
   (xcode-additions:list-scheme-files))
 
@@ -448,7 +448,7 @@
   "Get list of project configurations."
 
   (unless current-project-root
-    (message-with-color :tag "[Fetching]" :text "Build configurations.." :attributes '(:inherit warning))
+    (mode-line-hud:update :message "Fetching build configurations")
     (setq current-project-root (swift-additions:get-ios-project-root)))
   
   (let* ((default-directory current-project-root)
