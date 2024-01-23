@@ -6,6 +6,7 @@
 ;;; Code:
 (require 'dash)
 (require 'periphery-helper)
+(require 'mode-line-hud)
 
 (defface periphery-filename-face
   '((t (:inherit link)))
@@ -217,8 +218,8 @@
 
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
-           :tag "[Done]"
-           :text "Contains errors or warnings."
+           :tag ""
+           :text "Errors or warnings"
            :count (format "%d" (length tabulated-list-entries))
            :attributes 'error)))))
 
@@ -445,7 +446,7 @@
       (tabulated-list-print t)
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
-           :tag "[Matching]"
+           :tag "Found"
            :text filter
            :count (format "%d" (length tabulated-list-entries))
            :attributes 'success))))
@@ -550,14 +551,9 @@
 
 (cl-defun periphery-message-with-count (&key tag &key text &key count &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count."
-  (interactive)
-  (setq-local inhibit-message nil)
-  (message
-    "%s %s occurences found %s"
-    (propertize tag 'face attributes)
-    (propertize count 'face 'periphery-warning-face-full)
-    (propertize text 'face 'periphery-identifier-face))
-  (setq-local inhibit-message t))
+  (if (not (string= text ""))
+      (mode-line-hud:update :message (format "%s %s '%s'" tag count (propertize text 'face attributes)))
+    (mode-line-hud:update :message (format "%s %s" tag count ))))
 
 (defun parse--search-query (text query)
   "Parse error and notes (as TEXT) and QUERY."
@@ -605,7 +601,7 @@
                                :regex mark-strings-regex
                                :property '(face highlight))
                        :regex mark-inside-parenteses
-                       :property '(face periphery-warning-face))
+                       :property '(face periphery-warning-faceface))
                :regex regex
                :property '(face periphery-identifier-face)))))
 
@@ -643,8 +639,8 @@
       (periphery--listing-command periphery-errorList)
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
-           :tag "[Matches]"
-           :text query
+           :tag "Found"
+           :text ""
            :count (format "%d" (length periphery-errorList))
            :attributes 'success))
       (switch-to-buffer-other-window periphery-buffer-name))))
@@ -676,7 +672,7 @@
 (defun periphery-svg-tags ()
   "Get svg tags."
   ;; TODO: Make it work for elisp
-  '(("\\([\\/\|;]\\{1,3\\}\\W?[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
+  '(("\\([\\/\|;]\\{1,3\\}\\W+[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
                                                                                                            :face (svg-color-from-tag tag)
                                                                                                            :inverse t
                                                                                                            :crop-left t))))

@@ -4,12 +4,12 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono NF" :height 170 :weight 'thin)
+(set-face-attribute 'default nil :font "JetBrainsMonoNL Nerd Font" :height 170 :weight 'thin)
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono NF" :height 170 :weight 'light)
-(set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 170 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 170 :weight 'light)
 
-(custom-set-faces
- '(font-lock-comment-face ((t (:font "Iosevka Aile" :italic t :height 1.0)))))
+;; (custom-set-faces
+;;  '(font-lock-comment-face ((t (:font "SF Pro Display" :italic t :height 1.0)))))
 
 (display-battery-mode t)        ;; Show battery.
 (display-time-mode t)           ;; Show time.
@@ -185,12 +185,16 @@
  ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-frappe t)
    ;; (load-theme 'catppuccin-macchiato t)
-  ;; (load-theme 'catppuccin-macchiatotppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
     ;; (load-theme 'oxocarbon t)
    ;;(load-theme 'oxographite t)
    ;; (load-theme 'kman t)
+
+  ;; (load-theme 'kalmar-night t)
   (load-theme 'kanagawa t)
+
+  ;; (load-theme 'doom-tokyo-night)
   )
 
 (use-package saveplace
@@ -200,7 +204,8 @@
 (use-package auto-package-update
   :custom
   (setq auto-package-update-interval 7
-        auto-package-update-prompt-before-update t
+        ;; auto-package-update-delete-old-versions t
+        ;; auto-package-update-prompt-before-update t
         auto-package-update-hide-results nil))
 
 (use-package vertico
@@ -233,15 +238,12 @@
   (setq vertico-posframe-parameters
         '((left-fringe . 0)
           (right-fringe . 0)))
-  (setq ;; vertico-posframe-poshandler #'posframe-poshandler-frame-top-left-corner
-        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
-        ;; vertico-posframe-poshandler #'posframe-poshandler-frame-center ;
-        vertico-posframe-truncate-lines nil
-        vertico-posframe-min-width 120
-        vertico-posframe-width 155
+  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+        vertico-posframe-truncate-lines t
+        vertico-posframe-min-width 10
+        vertico-posframe-width 150
         vertico-posframe-min-height 2
-        vertico-posframe-border-width 15))
+        vertico-posframe-border-width 24))
 
 ;; Configure directory extension.
 (use-package vertico-directory
@@ -335,19 +337,20 @@
   (setq mood-line-format
       (mood-line-defformat
        :left
-       (((mood-line-segment-buffer-status) . " ")
-        ((mood-line-segment-buffer-name)   . " ")
-        ((mood-line-segment-anzu) . " ")
-        ((mood-line-segment-modal) . " ")
-        ((mood-line-segment-major-mode) . " ")
-        )
-       :right
        (
-        ((mood-line-segment-hud) . "  ")
+        ((mood-line-segment-modal) . " ")
+        ((file-name-sans-extension (mood-line-segment-buffer-name))   . " ")
+        ((mood-line-segment-major-mode) . " ")
+        ((mood-line-segment-project) . " "))
+       :right
+       (((mood-line-segment-hud) . "  ")
         ((mood-line-segment-process) . "  ")
         ((mood-line-segment-vc) . " ")
+        ;; (org-timer-mode-line-string . " ")
         ((when (mood-line-segment-checker) " ") . " ")
-        ((mood-line-segment-checker)            . " "))))
+        ((mood-line-segment-checker) . " • ")
+        (display-time-string . " ")))
+      )
   (mood-line-mode)
   :custom
   (mood-line-glyph-alist mood-line-glyphs-fira-code))
@@ -363,18 +366,20 @@
   :hook (after-init . evil-mode)
   ;; :bind ("<escape>" . keyboard-escape-quit)
   :init
+  (setq-default evil-symbol-word-search t
+                evil-shift-width 2)
   (setq evil-want-integration t
+        evil-want-keybinding nil
         evil-want-minibuffer t
         evil-want-fine-undo t
-        evil-want-keybinding nil
         evil-want-C-u-scroll t
         evil-undo-system 'undo-fu
         evil-search-module 'evil-search
         evil-vsplit-window-right t
-        ;; evil-normal-state-cursor '(hollow . 2)
         evil-split-window-below t
         evil-want-C-i-jump nil)
   :config
+
   (define-key evil-visual-state-map (kbd "C-u u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
 
@@ -443,21 +448,26 @@
   :hook (evil-mode . global-evil-mc-mode)
   :bind
   ("C-g" . evil-mc-undo-all-cursors)
+  ("<escape>" . evil-mc-undo-all-cursors)
   ("C-M-<down>" . (lambda () (interactive) (evil-mc-make-cursor-move-next-line 1)))
   ("C-M-<up>" . (lambda () (interactive) (evil-mc-make-cursor-move-prev-line 1)))
   ("C-c a" . (lambda () (interactive) (evil-mc-make-cursor-here)))
-  ;; ("C-M-e" . (lambda() (interactive) (evil-mc-make-all-cursors)))
+  ("C-M-e" . (lambda() (interactive) (evil-mc-make-all-cursors)))
   :config
   (setq evil-mc-undo-cursors-on-keyboard-quit t)
   (setq evil-mc-mode-line-text-inverse-colors t)
-  (setq evil-mc-mode-line-text-cursor-color t))
+  (setq evil-mc-mode-line-text-cursor-color t)
+  (evil-define-key 'visual evil-mc-key-map
+    "A" #'evil-mc-make-cursor-in-visual-selection-end
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
+  )
 
-(use-package evil-iedit-state
-  :after evil
-  :config
-  (setq iedit-only-at-symbol-boundaries t)
-  :bind
-  ("C-M-e" . evil-iedit-state/iedit-mode))
+;; (use-package evil-iedit-state
+;;   :after evil
+;;   :config
+;;   (setq iedit-only-at-symbol-boundaries t)
+;;   :bind
+;;   ("C-M-e" . evil-iedit-state/iedit-mode))
 
 (use-package evil-surround
   :after evil
@@ -495,6 +505,15 @@
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
 
+(use-package window-stool
+  :ensure nil
+  :config
+  (setq window-stool-n-from-top 2
+        window-stool-n-from-bottom 0)
+  (add-hook 'prog-mode-hook #'window-stool-mode)
+    ;; (package-vc-install "https://github.com/JasZhe/window-stool")
+  )
+
 (use-package minimap
   :commands (minimap-mode)
   :config
@@ -516,8 +535,8 @@
 ;; (use-package svg-tag-mode
 ;;   :hook (swift-mode . svg-tag-mode)
 ;;   :config
-;;   (plist-put svg-lib-style-default :font-family "Iosevka Aile")
-;;   (plist-put svg-lib-style-default :font-size 16)
+;;   ;; (plist-put svg-lib-style-default :font-family "SF Pro Display")
+;;   ;; (plist-put svg-lib-style-default :font-size 16)
 ;;   (require 'periphery)
 ;;   (setq svg-tag-tags (periphery-svg-tags)))
 
@@ -527,6 +546,9 @@
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
   :hook (emacs-lisp-mode . rainbow-mode))
+
+;; (use-package solaire-mode
+;;   :hook (prog-mode . solaire-global-mode))
 
 (use-package tree-sitter
   :hook (
@@ -549,27 +571,28 @@
   :bind ("C-x C-g" . google-this))
 
 (use-package eglot
-  :hook (swift-mode . eglot-ensure)
+  :hook ((swift-mode . eglot-ensure))
   :commands (eglot eglot-ensure)
   :ensure nil
   :config
-  (fset #'jsonrpc--log-event #'ignore)
   (setq eglot-stay-out-of '(corfu company)
-        eglot-send-changes-idle-time 0.2
+        ;; eglot-send-changes-idle-time 0.1
         eglot-autoshutdown t
-        eglot-ignored-server-capabilities '(:hoverProvider)
+        eglot-ignored-server-capabilities '(:hoverProvider :documentOnTypeFormattingProvider :documentFormattingProvider :documentRangeFormattingProvider)
         eglot-extend-to-xref t)
+  (advice-add 'jsonrpc--log-event :override #'ignore)
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package kind-icon
   :after corfu
   :custom
-  (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.18)
+  (kind-icon-extra-space t)
+  (kind-icon-blend-background nil)
+  (kind-icon-blend-frac 0.1)
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
-  (setq kind-icon-use-icons nil)
+  ;; (setq kind-icon-use-icons nil)
   (setq kind-icon-mapping
         `(
           (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
@@ -623,25 +646,24 @@
         ("C-k" . corfu-previous))
   :custom
   (corfu-auto t)
-  ;; (completion-styles '(flex orderless))
   :init
-  (setq corfu-bar-width 2
+  (setq corfu-bar-width 10
         corfu-scroll-margin 2
         corfu-auto-prefix 1
         corfu-min-width 40
-        corfu-max-width 130
-        corfu-left-margin-width 0.9
-        corfu-right-margin-width 0.9
-        corfu-count 10
-        corfu-auto-delay 0.2
+        corfu-max-width 140
+        corfu-left-margin-width 0.8
+        corfu-right-margin-width 0.8
+        corfu-count 12
+        corfu-auto-delay 0.1
         corfu-quit-no-match 'separator
-        corfu-popupinfo-resize t
-        corfu-popupinfo-hide nil
+        ;; corfu-popupinfo-resize t
+        ;; corfu-popupinfo-hide t
         ;; corfu-popupinfo-direction '(force-horizontal)
-        corfu-popupinfo-resize t
-        corfu-popupinfo-min-width corfu-min-width
-        corfu-popupinfo-max-width corfu-max-width
-        tab-always-indent 'complete))
+        ;; corfu-popupinfo-resize t
+        ;; corfu-popupinfo-min-width corfu-min-width
+        ;; corfu-popupinfo-max-width corfu-max-width)
+  ))
 
 ;; (use-package corfu-history
 ;;   :ensure nil
@@ -654,6 +676,11 @@
   :ensure nil
   :config
   (savehist-mode t))
+
+;; (use-package yasnippet-capf
+;;   :after cape
+;;   :init
+;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf))
 
 ;; Add extensions
 (use-package cape
@@ -674,12 +701,11 @@
         cape-dabbrev-min-length 4)
   :init
   ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  ;; (add-to-list 'completion-at-point-functions #'cape-symbol)
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
-  ;; (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  )
+  (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+  (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package emacs
   :init
@@ -692,22 +718,27 @@
   :config
   (setq avy-single-candidate-jump t))
 
+(use-package eglot-booster
+  :ensure nil
+  :after eglot
+  :config (eglot-booster-mode)
+    ;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
+  )
+
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
   :hook (treemacs-mode . treemacs-project-follow-mode)
-  :bind ("M-J" . treemacs-find-file)
+  :bind (("M-J" . treemacs-find-file))
   :custom-face
-  ;; (doom-themes-treemacs-file-face ((t (:weight semi-bold))))
-  ;; (treemacs-file-face ((t (:family "Iosevka Aile"))))
-  (treemacs-directory-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-directory-collapsed-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-git-ignored-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-git-unmodified-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-git-untracked-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-git-added-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-git-renamed-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-git-modified-face ((t (:family "Iosevka Aile" :height 0.9))))
-  (treemacs-tags-face ((t (:family "Iosevka Aile" :height 0.9))))
+  (treemacs-directory-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-directory-collapsed-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-git-ignored-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-git-unmodified-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-git-untracked-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-git-added-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-git-renamed-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-git-modified-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-tags-face ((t (:family "SF Pro Display" :height 0.9))))
   :config
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 1
@@ -730,7 +761,7 @@
 
 (defun treemacs-mode-handler()
   (set (make-local-variable 'face-remapping-alist)
-       '((default :background "#16161D"))))
+       '((default :background "#1c1c24"))))
 
 (add-hook 'treemacs-mode-hook 'treemacs-mode-handler)
 
@@ -795,6 +826,7 @@
 ;;         flycheck-posframe-warning-prefix " ⚠︎ "
 ;;         flycheck-posframe-error-prefix " ✘ "
 ;;         flycheck-posframe-info-prefix " ● "))
+
 
 (use-package flycheck-eglot
   :hook (swift-mode . global-flycheck-eglot-mode)
@@ -1065,6 +1097,9 @@
         org-cycle-separator-lines 2
         org-return-follows-link t))
 
+(use-package restclient
+  :defer t)
+
 (defun mk/play-sound (orgin-fn sound)
   (cl-destructuring-bind (_ _ file) sound
     (make-process :name (concat "play-sound-" file)
@@ -1102,7 +1137,7 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
+    (set-face-attribute (car face) nil :font "SF Pro Display" :weight 'medium :height (cdr face)))
 
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
 
@@ -1120,10 +1155,8 @@
   (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
 
   (org-babel-do-load-languages 'org-babel-load-languages
-                               '((emacs-lisp t)
-                                 ;; (swift t)
-                                 ;; (swiftui t)
-                                 ))
+                               '((emacs-lisp . t)
+                                 (shell . t)))
 
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("sw" . "src swift"))
@@ -1131,20 +1164,18 @@
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
 
-;; (use-package ob-swift
-;;   :config
-;;   (org-babel-do-load-languages 'org-babel-load-languages
-;;                                (append org-babel-load-languages
-;;                                         '((swift . t)))))
-;; (use-package ob-swiftui
-;;   :config
-;;   (add-hook 'org-babel-after-execute-hook (lambda ()
-;;                                             (when org-inline-image-overlays
-;;                                               (org-redisplay-inline-images))))
-;;   (add-to-list 'org-babel-tangle-lang-exts
-;;                '("swiftui" . "swift"))
-;;   (add-to-list 'org-src-lang-modes
-;;                '("swiftui" . swift)))
+(use-package ob-swift
+  :defer t)
+
+(use-package ob-swiftui
+  :config
+  (add-hook 'org-babel-after-execute-hook (lambda ()
+                                            (when org-inline-image-overlays
+                                              (org-redisplay-inline-images))))
+  (add-to-list 'org-babel-tangle-lang-exts
+               '("swiftui" . "swift"))
+  (add-to-list 'org-src-lang-modes
+               '("swiftui" . swift)))
 
 (use-package org-superstar
   :hook ((org-mode . org-superstar-mode))
@@ -1187,14 +1218,18 @@
   (setq highlight-symbol-idle-delay 0.5))
 
 (use-package highlight-indentation
-  :hook ((prog-mode . highlight-indentation-current-column-mode))
-  :custom
+  :hook (
+         (prog-mode . highlight-indentation-current-column-mode)
+         ;; (prog-mode . highlight-indendation-mode)
+         )
+  :config
   (setq highlight-indentation-blank-lines t))
 
-;; (use-package highlight-indent-guides
-;;   :hook (prog-mode . highlight-indent-guides-mode)
-;;   :custom
-;;   (setq highlight-indent-guides-method 'character))
+;; (use-package indent-guide
+;;   :hook ((prog-mode . indent-guide-mode))
+;;   :config
+;;   (setq indent-guide-threshold 0
+;;         indent-guide-char "⎮"))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1226,14 +1261,13 @@
   :config
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
-        swift-mode:multiline-statement-offset 4
+        swift-mode:multiline-statement-offset 0
         swift-mode:highlight-anchor t))
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
               ("C-c C-c" . #'swift-additions:compile-and-run-app)
-              ;; ("C-c C-r" . #'swift-additions:run-app)
               ("C-c C-k" . #'periphery-run-loco))
   :ensure nil)
 
@@ -1269,9 +1303,7 @@
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
   ("M-B" . #'swift-additions:run-without-compiling)
-  ("M-b" . #'swift-additions:compile-app)
-  ;; ("M-r" . #'swift-additions:compile-and-run-app)
-  )
+  ("M-b" . #'swift-additions:compile-app))
 
 (use-package swift-refactor
   :ensure nil
@@ -1339,14 +1371,14 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   ;; (flymake-mode nil)
-  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg)
-  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
+  ;; (defun my/eglot-cap-config ()
+  ;;   (setq-local completion-at-point-functions
+  ;;               (list (cape-super-capf
+  ;;                      #'eglot-completion-at-point
+  ;;                      (cape-company-to-capf #'yasnippet-capf)))))
+  ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-cap-config)
 
-  (defun mk/eglot-capf ()
-    (setq-local completion-at-point-functions
-                (list
-                 (cape-capf-buster #'eglot-completion-at-point))))
-  (add-hook 'eglot-managed-mode-hook #'mk/eglot-capf))
+  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg))
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
@@ -1372,12 +1404,7 @@
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (hs-minor-mode)       ; Add support for folding code blocks
-                                        ;// TODO:  (electric-pair-mode)  ; Auto insert pairs {} () [] etc
-  (which-function-mode)
-  ;; (setq-default header-line-format
-  ;;               '((which-func-mode ("\t\t\t" which-func-current ""))))
-  ;; (setq-default mode-line-misc-info nil)
-  
+
   (setq indicate-empty-lines t            ;; Show empty lines
         indicate-unused-lines t           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
@@ -1425,7 +1452,7 @@
 (defun prog-fringe-hook ()
   "Setup fringes."
   (setq left-fringe-width 80
-        right-fringe-width 20))
+        right-fringe-width 0))
 
 (add-hook 'prog-mode-hook #'prog-fringe-hook)
 

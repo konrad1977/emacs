@@ -43,6 +43,26 @@
                       (message message))
                     (force-mode-line-update))))
 
+;;;###autoload
+(cl-defun mode-line-hud:notification (&key message &key seconds)
+  "Update modeline as (MESSAGE SECONDS)."
+  (run-with-timer 0.025 nil
+                  (lambda ()
+                    (mode-line-hud:reset :message mood-line-segment-hud--text :delay seconds)
+                    (setq mood-line-segment-hud--text message)
+                    (when show-in-echo-area
+                      (message message))
+                    (force-mode-line-update))))
+
+(cl-defun mode-line-hud:reset (&key message &key delay)
+  "Reset to previous MESSAGE."
+  (run-with-timer delay nil
+                  (lambda ()
+                    (setq mood-line-segment-hud--text message)
+                    (when show-in-echo-area
+                      (message message))
+                    (force-mode-line-update))))
+
 (provide 'mode-line-hud)
 
 ;;; mode-line-hud.el ends here

@@ -9,15 +9,10 @@
 (require 'mode-line-hud)
 
 (defvar current-query "")
-(defvar current-title "Search")
 
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
-  (periphery-parse-search-result :title current-title :text text :query current-query))
-
-(defun setup-search-title ()
-  "Default search title."
-  (setq current-title "Search"))
+  (periphery-parse-search-result :title "" :text text :query current-query))
 
 (defun periphery--search-thing-at-point ()
   "Search thing at point."
@@ -50,35 +45,37 @@
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."
-  (setup-search-title)
-  (periphery-run-query searcher (read-string "Query: ")))
+  (let ((query (read-string "Query:")))
+    (periphery-run-query searcher query)
+    (mode-line-hud:update :message
+                          (format "Searching for '%s' with ripgrep"
+                                  (propertize query 'face 'font-lock-string-face)))))
 
 ;;;###autoload
 (defun periphery-search-rg ()
   "Search using RG (Ripgrep)."
   (interactive)
-  (setup-search-title)
   (periphery--search-for "rg -wS"))
 
 ;;;###autoload
 (defun periphery-query-todos-and-fixmes ()
   "Query todos and fixmes in the project."
   (interactive)
-  (setq current-title "Fixme and todos")
   (periphery-run-query "rg -e" "(NOTE|FIX|FIXME|TODO|HACK|PERF):")
-  (mode-line-hud:update :message "Showing Todos"))
+  (mode-line-hud:update :message (propertize "Showing Todo's" 'face 'font-lock-keyword-face)))
+
 ;;;###autoload
 (defun periphery-query-marks ()
   "Query mark in the project."
   (interactive)
-  (setq current-title "Marks")
+  (mode-line-hud:update :message (propertize "Showing marks" 'face 'font-lock-keyword-face))
   (periphery-run-query "rg -w" "\'MARK'"))
 
 ;;;###autoload
 (defun periphery-search-dwiw-rg ()
   "Search using rg (ripgrep)."
   (interactive)
-  (setup-search-title)
+  (mode-line-hud:update :message (propertize "Searching" 'face 'font-lock-keyword-face))
   (periphery--search-thing-at-point))
 
 (provide 'periphery-search)

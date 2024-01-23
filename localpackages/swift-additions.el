@@ -5,7 +5,7 @@
 ;;; package for building and runnning ios/macos apps from Emacs
 
 ;;; code:
-
+(require 'eglot)
 (require 'flycheck)
 (require 'projectile)
 (require 'periphery-helper)
@@ -101,6 +101,30 @@
       cores
     2))
 
+(defun swift-additions:debug-ios-simulator-app ()
+  "Debug ios app using LLDB."
+  (interactive)
+  (require 'lldb-comint)
+  (swift-additions:generate-debug-file)
+  (lldb-comint:runWith :path (swift-additions:get-ios-project-root)
+                       :args '("-s" "lldb.cmd")))
+
+(cl-defun swift-additions:generate-debug-file ()
+  "Generate lldb.cmd file in the root of the project and add text to it."
+  (interactive)
+  (let ((lldb-cmd-file (expand-file-name "lldb.cmd" (swift-additions:get-ios-project-root)))
+        (simulator (ios-simulator:load-simulator-id)))
+    (with-temp-buffer
+      ;; Add text to the buffer
+      (insert "platform select ios-simulator\n")
+      (insert (format "platform connect %s\n" simulator))
+      (insert (format "process attach -n '%s' -w\n" (ios-simulator:app-name-from :folder (swift-additions:get-build-folder))))
+      (insert (format "breakpoint set -f %s -l 25\n" "GreenfeeApp.swift"))
+      (insert "process continue")
+      ;; Save the buffer content to lldb.cmd file
+      (write-file lldb-cmd-file)
+      (message (concat "lldb.cmd file generated at: " lldb-cmd-file)))))
+
 (defun swift-additions:get-workspace-or-project ()
   "Check if there is workspace or project."
   (let ((workspace (xcode-additions:workspace-name))
@@ -118,17 +142,14 @@
      (format "%s \\" (swift-additions:get-workspace-or-project))
      (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
      (format "-sdk %s \\" (swift-additions:get-current-sdk))
+     (format "-jobs %s" (swift-additions:get-number-of-cores))
      (when simulatorId
        (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
      (when (and current-local-device-id run-on-device)
        (format "-destination 'generic/platform=iOS' \\" ))
      "-hideShellScriptEnvironment \\"
-     ;; "-UseModernBuildSystem=YES \\"
-     ;; (format "-packageCachePath %s/build/SourcePackages  \\" (swift-additions:get-ios-project-root))
-     ;; "-disableAutomaticPackageResolution \\"
-     ;; "-skipPackageUpdates \\"
-     ;; "-quiet \\"
-     "-derivedDataPath build | xcode-build-server parse -avv"))) ;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
+     "-derivedDataPath build | xcode-build-server parse -avv")))
+;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
 
 (cl-defun swift-additions:build-device-or-simulator-menu (&key title)
   "Build device or simulator menu (as TITLE)."

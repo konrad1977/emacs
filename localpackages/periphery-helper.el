@@ -1,6 +1,6 @@
 ;;; periphery-helper.el --- Process and text helping package ;;; -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;; Package for building and runnning iOS/macos apps from Emacs
+;;; Utility package for handling xcode-projects and json data.
 
 ;;; Code:
 
@@ -161,4 +161,5 @@ ARGS are rest arguments, appended to the argument list."
     (json-read)))
 
 (provide 'periphery-helper)
+
 ;;; periphery-helper.el ends here

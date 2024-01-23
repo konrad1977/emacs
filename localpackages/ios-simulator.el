@@ -248,7 +248,7 @@
 
   (mode-line-hud:updateWith :message (format "Running %s on %s"
                                              (propertize applicationName 'face 'font-lock-builtin-face)
-                                             (propertize simulatorName 'face 'warning))
+                                             (propertize simulatorName 'face 'success))
                             :delay 3.0)
 
   (if-let ((simulatorID simulatorID))

@@ -19,6 +19,7 @@
 
   ;; Define our color palette
 
+  (padding 8)
   (rosewater  "#dc8a78" "#ffffff")
   (flamingo   "#dd7878" "#ffd7df")
   (pink       "#ea76cb" "#d7afaf")
@@ -70,9 +71,12 @@
   (match                                (:background yellow :foreground crust))
   (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
-  (mode-line                            (:background crust :foreground overlay2))
-  (mode-line-inactive                   (:background surface0))
-  (mode-line-active                     (:foreground subtext0 :background crust))
+  (mode-line                                     (:background crust :box (:line-width padding :color crust)))
+  (mode-line-inactive                            (:background surface0 :foreground crust :box (:line-width padding :color crust)))
+  (mode-line-active                              (:background crust :foreground subtext0 :box (:line-width padding :color crust)))
+  ;; (mode-line                            (:background crust :foreground overlay2))
+  ;; (mode-line-inactive                   (:background surface0))
+  ;; (mode-line-active                     (:foreground subtext0 :background crust))
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground text :bold t))
   (numbers                              (:background peach))

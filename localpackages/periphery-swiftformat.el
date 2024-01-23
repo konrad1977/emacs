@@ -6,6 +6,7 @@
 (require 'periphery)
 (require 'periphery-helper)
 (require 'cl-lib)
+(require 'mode-line-hud)
 
 (defvar swiftformat-command "swiftformat")
 (defvar swift-version "5.8")
@@ -49,18 +50,19 @@
   "Run swiftformat for current buffer (as COMMAND FILE)."
   (if (executable-find swiftformat-command)
       (progn
-        (message-with-color
-         :tag "[Linting|swiftformat]"
-         :text (file-name-nondirectory file)
-         :attributes 'success)
+        (mode-line-hud:notification :message
+                                    (format "Formatting %s"
+                                            (propertize (file-name-nondirectory file) 'face 'success))
+                                    :seconds 3)
+
         (async-start-command-to-string
          :command command
          :callback '(lambda (result)
                       (send-swiftformat-result-to-periphery result))))
-    (message-with-color
-     :tag "[Failed]"
-     :text (format "Install %s to use this command." swiftformat-command)
-     :attributes 'warning)))
+
+    (mode-line-hud:notification
+     :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face)
+     :seconds 2)))
 
 (defun periphery-run-swiftformat-for-project()
   "Run LOCO linter."
@@ -72,15 +74,12 @@
            :command (concat swiftformat-command " . --lint " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
            :callback '(lambda (result)
                         (send-swiftformat-result-to-periphery result))))
-        (message-with-color
-         :tag "[Linting|swiftformat]"
-         :text (file-name-nondirectory (directory-file-name
-                                        (file-name-directory (vc-root-dir))))
-         :attributes 'success))
-    (message-with-color
-     :tag "[Swiftformat failed]"
-     :text (format "Install %s to use this command." swiftformat-command)
-     :attributes 'warning)))
+
+        (mode-line-hud:notification
+         :Message (format "Swiftformat linted %s" (propertize (file-name-nondirectory (directory-file-name (file-name-directory (vc-root-dir)))) 'face 'success)))
+         :seconds 2)
+
+    (mode-line-hud:update :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face))))
 
 (provide 'periphery-swiftformat)
 
