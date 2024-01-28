@@ -339,9 +339,9 @@
        :left
        (
         ((mood-line-segment-modal) . " ")
-        ((file-name-sans-extension (mood-line-segment-buffer-name))   . " ")
-        ((mood-line-segment-major-mode) . " ")
-        ((mood-line-segment-project) . " "))
+        ((mood-line-segment-project) . "/")
+        ((file-name-sans-extension (mood-line-segment-buffer-name))   . "/")
+        ((mood-line-segment-major-mode) . " "))
        :right
        (((mood-line-segment-hud) . "  ")
         ((mood-line-segment-process) . "  ")
@@ -532,13 +532,9 @@
   :config
   (treemacs-load-theme "nerd-icons"))
 
-;; (use-package svg-tag-mode
-;;   :hook (swift-mode . svg-tag-mode)
-;;   :config
-;;   ;; (plist-put svg-lib-style-default :font-family "SF Pro Display")
-;;   ;; (plist-put svg-lib-style-default :font-size 16)
-;;   (require 'periphery)
-;;   (setq svg-tag-tags (periphery-svg-tags)))
+(use-package lldb-breakpoints
+  :ensure nil
+  :bind (("C-c b b" . #'lldb-breakpoints:toggle-breakpoint)))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -578,7 +574,7 @@
   (setq eglot-stay-out-of '(corfu company)
         ;; eglot-send-changes-idle-time 0.1
         eglot-autoshutdown t
-        eglot-ignored-server-capabilities '(:hoverProvider :documentOnTypeFormattingProvider :documentFormattingProvider :documentRangeFormattingProvider)
+        eglot-ignored-server-capabilities '(:hoverProvider)
         eglot-extend-to-xref t)
   (advice-add 'jsonrpc--log-event :override #'ignore)
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
@@ -637,6 +633,7 @@
 (use-package corfu
   :hook ((prog-mode . corfu-mode)
          (localizeable-mode . corfu-mode)
+         (org-mode . corfu-mode)
          (corfu-mode . corfu-popupinfo-mode))
   :bind
   (:map corfu-map
@@ -696,12 +693,12 @@
          ("C-c p l" . cape-line)
          ("C-c p w" . cape-dict)
          ("C-c p r" . cape-rfc1345))
-  :custom
-  (setq cape-dabbrev-check-other-buffers t
-        cape-dabbrev-min-length 4)
+  ;; :custom
+  ;; (setq cape-dabbrev-check-other-buffers t
+  ;;       cape-dabbrev-min-length 2)
   :init
   ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
+  ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
@@ -863,6 +860,12 @@
           "xcodeproj"
           ".build")))
 
+(defun display-buffer-side-prefer-right (side)
+  "Prefer the specified side, but use 'bottom if *LLDB* is visible."
+  (if (get-buffer-window "*LLDB*" 'visible)
+      'bottom
+    side))
+
 (use-package window
   :ensure nil
   :bind
@@ -888,11 +891,17 @@
       (window-height . 0.2)
       (side . bottom)
       (slot . 1))
-     ("\\*Periphery\\*"
+     ("\\*Periphery\\*\\|\\*LLDB\\*"
       (display-buffer-reuse-window display-buffer-in-side-window)
       (reusable-frames . nil)
       (body-function . select-window)
       (window-height . 0.2)
+      (side . bottom)
+      (slot . 1))
+     ("\\*LLDB-breakpoints\\*"
+      (display-buffer-reuse-window display-buffer-in-side-window)
+      (window-height . 0.2)
+      (window-width . 0.23)
       (side . bottom)
       (slot . 0))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -1302,8 +1311,14 @@
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
   ("M-m" . #'swift-additions:insert-mark)
-  ("M-B" . #'swift-additions:run-without-compiling)
-  ("M-b" . #'swift-additions:compile-app))
+  ("M-B" . #'swift-additions:run-without-compiling))
+
+(use-package lldb-breakpoints
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("M-r" . #'lldb-breakpoints:debug-ios-simulator-app)
+  ("M-b" . #'lldb-breakpoints:toggle-show-breakpoints))
 
 (use-package swift-refactor
   :ensure nil

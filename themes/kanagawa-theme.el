@@ -91,7 +91,7 @@
   (mode-line-inactive                            (:background sumiInk-2 :foreground sumiInk-4 :box (:line-width padding :color sumiInk-2)))
   (mode-line-active                              (:background sumiInk-2 :foreground sumiInk-5 :box (:line-width padding :color sumiInk-2)))
   (mode-line-highlight                           (:foreground boatYellow2))
-  (mode-line-buffer-id                           (:foreground sumiInk-5))
+  (mode-line-buffer-id                           (:foreground crystalBlue))
   (numbers                                       (:background sakuraPink))
   (region                                        (:background waveBlue-1))
   (separator-line                                (:background sumiInk-0))

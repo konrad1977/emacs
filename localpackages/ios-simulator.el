@@ -29,6 +29,7 @@
 (defvar current-language-selection "sv-SE")
 (defvar current-simulator-name nil)
 (defvar current-simulator-id nil)
+(defvar-local current-root-folder-simulator nil)
 (defvar secondary-simulator-id nil)
 (defvar current-app-identifier nil)
 (defvar current-app-name nil)
@@ -72,6 +73,8 @@
     (setq simulatorName  (ios-simulator:simulator-name))
     (setq simulatorIdentifier simulator-id)
     (setq simulatorBuffer buffer)
+    (setq current-app-identifier appIdentifier)
+    (setq current-root-folder-simulator rootfolder)
 
     (ios-simulator:terminate-app-with
      :appIdentifier appIdentifier)
@@ -245,15 +248,32 @@
 (cl-defun ios-simulator:launch-app (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
   "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
   (ios-simulator:setup-language)
-
   (mode-line-hud:updateWith :message (format "Running %s on %s"
                                              (propertize applicationName 'face 'font-lock-builtin-face)
                                              (propertize simulatorName 'face 'success))
                             :delay 3.0)
 
   (if-let ((simulatorID simulatorID))
-      (format "xcrun simctl launch --console-pty %s %s -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)
-    (format "xcrun simctl launch --console-pty booted %s -AppleLanguages \"\(%s\)\"" appIdentifier current-language-selection)))
+      (format "xcrun simctl launch --console-pty %s %s --terminate-running-process -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)
+    (format "xcrun simctl launch --console-pty booted %s --terminate-running-process -AppleLanguages \"\(%s\)\"" appIdentifier current-language-selection)))
+
+(cl-defun ios-simulator:launch-wait-for-debugger (&key identifier)
+  "Launch the current configured simulator and wait for debugger."
+  (mode-line-hud:update :message "Debuggin on Simulator")
+  (setq current-app-identifier identifier)
+  (setq command
+        (format "xcrun simctl launch -w --terminate-running-process %s %s -AppleLanguages \"\(%s\)\""
+                (ios-simulator:load-simulator-id)
+                identifier
+                current-language-selection))
+  ;; (async-start-command :command command :callback callback))
+  (inhibit-sentinel-messages #'call-process-shell-command command))
+
+(defun ios-simulator:run-command-and-get-json (command)
+  "Run a shell command and return the JSON output as a string."
+  (let* ((json-output (shell-command-to-string command))
+         (json-data (json-read-from-string json-output)))
+    json-data))
 
 (cl-defun ios-simulator:terminate-app-with (&key appIdentifier)
   "Terminate runnings apps (as APPIDENTIFIER)."

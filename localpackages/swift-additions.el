@@ -101,29 +101,6 @@
       cores
     2))
 
-(defun swift-additions:debug-ios-simulator-app ()
-  "Debug ios app using LLDB."
-  (interactive)
-  (require 'lldb-comint)
-  (swift-additions:generate-debug-file)
-  (lldb-comint:runWith :path (swift-additions:get-ios-project-root)
-                       :args '("-s" "lldb.cmd")))
-
-(cl-defun swift-additions:generate-debug-file ()
-  "Generate lldb.cmd file in the root of the project and add text to it."
-  (interactive)
-  (let ((lldb-cmd-file (expand-file-name "lldb.cmd" (swift-additions:get-ios-project-root)))
-        (simulator (ios-simulator:load-simulator-id)))
-    (with-temp-buffer
-      ;; Add text to the buffer
-      (insert "platform select ios-simulator\n")
-      (insert (format "platform connect %s\n" simulator))
-      (insert (format "process attach -n '%s' -w\n" (ios-simulator:app-name-from :folder (swift-additions:get-build-folder))))
-      (insert (format "breakpoint set -f %s -l 25\n" "GreenfeeApp.swift"))
-      (insert "process continue")
-      ;; Save the buffer content to lldb.cmd file
-      (write-file lldb-cmd-file)
-      (message (concat "lldb.cmd file generated at: " lldb-cmd-file)))))
 
 (defun swift-additions:get-workspace-or-project ()
   "Check if there is workspace or project."
@@ -148,6 +125,7 @@
      (when (and current-local-device-id run-on-device)
        (format "-destination 'generic/platform=iOS' \\" ))
      "-hideShellScriptEnvironment \\"
+     "-configuration Debug \\"
      "-derivedDataPath build | xcode-build-server parse -avv")))
 ;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
 
@@ -210,14 +188,6 @@
   (unless current-project-root
     (setq current-project-root (cdr (project-current))))
   current-project-root)
-
-  ;; (unless current-project-root
-  ;;   (setq current-project-root
-  ;;         (if-let* ((files (swift-additions:get-project-files))
-  ;;                   (file (car-safe files))
-  ;;                   (root (directory-file-name (file-name-directory file))))
-  ;;             root)))
-  ;;   current-project-root)
 
 (defun swift-additions:get-current-sdk ()
   "Return the current SDK."
@@ -570,10 +540,8 @@
   "Get the lsp arguments to support UIKit."
   (let* ((sdk (ios-simulator:sdk-path))
          (target (ios-simulator:target)))
-    ;; (message "sdk: %s" sdk)
-    ;; (message "target: %s" target)
     (list
-     ;; "--completion-max-results" "20"
+     "--completion-max-results" "12"
      "-Xswiftc" "-sdk"
      "-Xswiftc" sdk
      "-Xswiftc" "-target"
