@@ -9,7 +9,7 @@
 (require 'mode-line-hud)
 
 (defvar swiftformat-command "swiftformat")
-(defvar swift-version "5.8")
+(defvar swift-version "5.9")
 (defvar disabled-rules-list '(
                               "blankLinesAroundMark"
                               "blankLinesAtStartOfScope"
@@ -52,7 +52,7 @@
       (progn
         (mode-line-hud:notification :message
                                     (format "Formatting %s"
-                                            (propertize (file-name-nondirectory file) 'face 'success))
+                                            (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'success))
                                     :seconds 3)
 
         (async-start-command-to-string

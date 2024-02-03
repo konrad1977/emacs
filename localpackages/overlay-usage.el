@@ -262,7 +262,7 @@
   "Add overlays for structs and classes."
   (save-excursion
     (let* ((extension (overlay-usage:extension-from-file))
-              (classes-regex (overlay-usage:find-classes-regex-for-file-type :extension extension)))
+           (classes-regex (overlay-usage:find-classes-regex-for-file-type :extension extension)))
         (goto-char (point-min))
       (while (search-forward-regexp classes-regex nil t)
         (let ((position (match-beginning 1))

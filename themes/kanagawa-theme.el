@@ -118,6 +118,9 @@
   (font-lock-preprocessor-face	                 (:foreground boatYellow2))
   (font-lock-regexp-grouping-backslash           (:foreground boatYellow2))
   (font-lock-number-face                         (:foreground roninYellow))
+  (font-lock-operator-face                       (:foreground waveRed))
+  (font-lock-misc-punctuation-face               (:foreground waveRed))
+  (font-lock-punctuation-face                    (:foreground waveRed))
   (elisp-shorthand-font-lock-face                (:foreground fujiWhite))
 
   (info-xref                                     (:foreground peachRed))
@@ -408,6 +411,9 @@
 
   (comint-highlight-prompt                       (:foreground crystalBlue :background winterBlue :italic t))
   (comint-highlight-input                        (:foreground peachRed :weight 'semi-bold))
+
+  (dape-stack-trace (:foreground sumiInk-5))
+
   (completions-annotations                       (:foreground dragonBlue :italic t))
 
   (corfu-current                                 (:inherit 'vertico-current))
@@ -504,7 +510,7 @@
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
   (tree-sitter-hl-face:keyword.compiler          (:foreground waveRed))
   (tree-sitter-hl-face:keyword.type              (:foreground crystalBlue))
-  (tree-sitter-hl-face:operator                  (:foreground carpYellow))
+  (tree-sitter-hl-face:operator                  (:inherit 'font-lock-operator-face))
   (tree-sitter-hl-face:label                     (:foreground sumiInk-4))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))

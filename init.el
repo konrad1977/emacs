@@ -4,8 +4,8 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMonoNL Nerd Font" :height 170 :weight 'thin)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono NF" :height 170 :weight 'light)
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin)
 (set-face-attribute 'variable-pitch nil :font "Work Sans" :height 170 :weight 'light)
 
 ;; (custom-set-faces
@@ -20,11 +20,10 @@
 
 
 (setq ad-redefinition-action            'accept
-      global-auto-revert-non-file-buffers t
+      ;; global-auto-revert-non-file-buffers t
       auto-revert-check-vc-info         t
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
-      blink-cursor-interval             0.3       ;; Little slower cursor blinking . default is 0.5
       cursor-in-non-selected-windows    nil
       byte-compile-warnings             '(ck-functions)
       confirm-kill-processes            nil
@@ -34,17 +33,14 @@
       find-file-visit-truename          t
       font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
-      fast-but-imprecise-scrolling      t
-      jit-lock-defer-time               nil
+      fast-but-imprecise-scrolling      nil
+      ;; jit-lock-defer-time               nil
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       scroll-margin                     0   ;; scroll N to screen edge
-      load-prefer-newer                 t
       use-dialog-box                    nil
       visible-bell                      nil
       word-wrap                         nil
       auto-mode-case-fold               nil
-      truncate-lines                    t
-      truncate-string-ellipsis          ".."
       bidi-inhibit-bpa                  t
       bidi-display-reordering           'left-to-right
       bidi-paragraph-direction          'left-to-right
@@ -58,7 +54,6 @@
               ediff-split-window-function   'split-window-horizontally
               tab-width                     4            ;: Use four tabs
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
-              truncate-lines                t
               indent-line-function          'insert-tab  ;; Use function to insert tabs
               history-length                100)
 
@@ -150,9 +145,9 @@
   (setq use-package-verbose t
         use-package-expand-minimally t
         use-package-always-ensure t
-        use-package-compute-statistics t
-        use-package-minimum-reported-time 0.1
-        debug-on-error nil))
+        use-package-compute-statistics nil
+        use-package-minimum-reported-time 0.2
+        debug-on-error t))
 
 (use-package all-the-icons
   :defer t)
@@ -287,14 +282,14 @@
 (use-package nerd-icons-corfu
   :after corfu)
 
-(use-package multiple-cursors
-  :hook (prog-mode . multiple-cursors-mode)
-  :bind
-  ("M-j" . 'mc/mark-all-dwim)
-  ("C-M-c" . 'mc/edit-lines))
+;; (use-package multiple-cursors
+;;   :hook (prog-mode . multiple-cursors-mode)
+;;   :bind
+;;   ("M-j" . 'mc/mark-all-dwim)
+;;   ("C-M-c" . 'mc/edit-lines))
 
-(global-unset-key (kbd "M-<down-mouse-1>"))
-(global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
+;; (global-unset-key (kbd "M-<down-mouse-1>"))
+;; (global-set-key (kbd "M-<mouse-1>") 'mc/add-cursor-on-click)
 
 (use-package consult
   :hook (completion-list-mode . consult-preview-at-point-mode)
@@ -304,6 +299,7 @@
   ("<backtab>" . consult-buffer)
   ("C-c C-a" . consult-apropos)
   ("C-c m m" . consult-imenu-multi)
+  ("C-c m b" . consult-imenu)
   ("M-O" . consult-projectile-find-file)
   ("M-f" . consult-line))
 
@@ -339,7 +335,7 @@
        :left
        (
         ((mood-line-segment-modal) . " ")
-        ((mood-line-segment-project) . "/")
+        ;; ((mood-line-segment-project) . "/")
         ((file-name-sans-extension (mood-line-segment-buffer-name))   . "/")
         ((mood-line-segment-major-mode) . " "))
        :right
@@ -505,14 +501,14 @@
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
 
-(use-package window-stool
-  :ensure nil
-  :config
-  (setq window-stool-n-from-top 2
-        window-stool-n-from-bottom 0)
-  (add-hook 'prog-mode-hook #'window-stool-mode)
-    ;; (package-vc-install "https://github.com/JasZhe/window-stool")
-  )
+;; (use-package window-stool
+;;   :ensure nil
+;;   :config
+;;   (setq window-stool-n-from-top 2
+;;         window-stool-n-from-bottom 0)
+;;   (add-hook 'prog-mode-hook #'window-stool-mode)
+;;     ;; (package-vc-install "https://github.com/JasZhe/window-stool")
+;;   )
 
 (use-package minimap
   :commands (minimap-mode)
@@ -531,10 +527,6 @@
   :after treemacs
   :config
   (treemacs-load-theme "nerd-icons"))
-
-(use-package lldb-breakpoints
-  :ensure nil
-  :bind (("C-c b b" . #'lldb-breakpoints:toggle-breakpoint)))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -584,7 +576,7 @@
   :custom
   (kind-icon-extra-space t)
   (kind-icon-blend-background nil)
-  (kind-icon-blend-frac 0.1)
+  ;; (kind-icon-blend-frac 0.1)
   :config
   (defconst kind-icon--unknown
     (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
@@ -657,17 +649,9 @@
         ;; corfu-popupinfo-resize t
         ;; corfu-popupinfo-hide t
         ;; corfu-popupinfo-direction '(force-horizontal)
-        ;; corfu-popupinfo-resize t
         ;; corfu-popupinfo-min-width corfu-min-width
         ;; corfu-popupinfo-max-width corfu-max-width)
   ))
-
-;; (use-package corfu-history
-;;   :ensure nil
-;;   :after (corfu savehist)
-;;   :config
-;;   (corfu-history-mode 1)
-;;   (add-to-list 'savehist-additional-variables 'corfu-history))
 
 (use-package savehist
   :ensure nil
@@ -708,7 +692,7 @@
   :init
   (setq completion-cycle-threshold 3)
   (setq tab-always-indent 'complete))
-  
+
 (use-package avy
   :defer t
   :bind ("M-g" . avy-goto-word-1)
@@ -721,6 +705,58 @@
   :config (eglot-booster-mode)
     ;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
   )
+
+(use-package dape
+  :defer t
+  :init
+  (setq dape-buffer-window-arrangement 'right)
+  :config
+  (remove-hook 'dape-on-start-hooks 'dape-repl)
+  (add-hook 'dape-on-stopped-hooks 'dape-repl)
+  (add-to-list 'dape-configs
+             `(ios
+               modes (swift-mode)
+               command-cwd dape-command-cwd
+               command ,(file-name-concat dape-adapter-dir
+                                          "codelldb"
+                                          "extension"
+                                          "adapter"
+                                          "codelldb")
+               command-args ("--port" :autoport
+                             "--settings" "{\"sourceLanguages\":[\"swift\"]}"
+                             "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
+               port :autoport
+               simulator-id "iPhone 14 Plus"
+               app-bundle-id ""
+               fn (dape-config-autoport
+                   ,(lambda (config)
+                      (with-temp-buffer
+                        (let* ((command
+                                (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S"
+                                        (plist-get config 'simulator-id)
+                                        (plist-get config 'app-bundle-id)))
+                               (code (call-process-shell-command command nil (current-buffer))))
+                          (dape--repl-message (format "* Running: %S *" command))
+                          (dape--repl-message (buffer-string))
+                          (save-match-data
+                            (if (and (zerop code)
+                                     (progn (goto-char (point-min))
+                                            (search-forward-regexp "[[:digit:]]+" nil t)))
+                                (plist-put config :pid (string-to-number (match-string 0)))
+                              (dape--repl-message (format "* Running: %S *" command))
+                              (dape--repl-message (format "Failed to start simulator:\n%s" (buffer-string)))
+                              (user-error "Failed to start simulator")))))
+                      config))
+               :type "lldb"
+               :request "attach"
+               :cwd ".")))
+
+(use-package repeat
+  :ensure nil
+  :hook (after-init . repeat-mode)
+  :custom
+  (repeat-too-dangerous '(kill-this-buffer))
+  (repeat-exit-timeout 5))
 
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
@@ -801,7 +837,7 @@
 ;;   (tabnine-minimum-prefix-length 0)
 ;;   :hook (kill-emacs . tabnine-kill-process)
 ;;   :config
-;;   ;; (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
+;;   (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
 ;;   (tabnine-start-process)
 ;;   :bind
 ;;   (:map  tabnine-completion-map
@@ -860,12 +896,6 @@
           "xcodeproj"
           ".build")))
 
-(defun display-buffer-side-prefer-right (side)
-  "Prefer the specified side, but use 'bottom if *LLDB* is visible."
-  (if (get-buffer-window "*LLDB*" 'visible)
-      'bottom
-    side))
-
 (use-package window
   :ensure nil
   :bind
@@ -888,22 +918,16 @@
      ("\\*IOS Simulator\\|*swift package\\|*ios-device"
       (display-buffer-in-side-window)
       (reusable-frames . nil)
-      (window-height . 0.2)
+      (window-height . 0.1)
       (side . bottom)
       (slot . 1))
-     ("\\*Periphery\\*\\|\\*LLDB\\*"
+     ("\\*Periphery\\*"
       (display-buffer-reuse-window display-buffer-in-side-window)
       (reusable-frames . nil)
       (body-function . select-window)
       (window-height . 0.2)
       (side . bottom)
       (slot . 1))
-     ("\\*LLDB-breakpoints\\*"
-      (display-buffer-reuse-window display-buffer-in-side-window)
-      (window-height . 0.2)
-      (window-width . 0.23)
-      (side . bottom)
-      (slot . 0))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
@@ -951,10 +975,12 @@
 (use-package blamer
   :commands (blamer-mode)
   :config
-  (setq blamer-view 'overlay-right
-        blamer-type 'visual
-        blamer-max-commit-message-length 70
-        blamer-force-truncate-long-line nil
+  (setq blamer-tooltip-function 'blamer-tooltip-author-info)
+  (setq blamer-view 'overlay
+        blamer-type 'both
+        ;; blamer-max-commit-message-length 70
+        ;; blamer-force-truncate-long-line nil
+        blamer-show-avatar-p t
         blamer-author-formatter " ✎ %s "
         blamer-commit-formatter "● \'%s\' ● ")
   :custom
@@ -1313,13 +1339,6 @@
   ("M-m" . #'swift-additions:insert-mark)
   ("M-B" . #'swift-additions:run-without-compiling))
 
-(use-package lldb-breakpoints
-  :ensure nil
-  :after swift-mode
-  :bind
-  ("M-r" . #'lldb-breakpoints:debug-ios-simulator-app)
-  ("M-b" . #'lldb-breakpoints:toggle-show-breakpoints))
-
 (use-package swift-refactor
   :ensure nil
   :after swift-mode
@@ -1420,8 +1439,8 @@
   (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (hs-minor-mode)       ; Add support for folding code blocks
 
-  (setq indicate-empty-lines t            ;; Show empty lines
-        indicate-unused-lines t           ;; Show unused lines
+  (setq indicate-empty-lines nil            ;; Show empty lines
+        indicate-unused-lines nil           ;; Show unused lines
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
         display-line-numbers 'relative))   ;; Show line numbers
@@ -1452,15 +1471,16 @@
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 
 (defun mk/toggle-transparency ()
-  (interactive
+  "Toggle transparency."
+  (interactive)
    (let ((alpha (frame-parameter nil 'alpha)))
      (if (eq
           (if (numberp alpha)
               alpha
             (cdr alpha)) ; may also be nil
           100)
-         (set-frame-parameter nil 'alpha '(97 . 97))
-       (set-frame-parameter nil 'alpha '(100 . 100))))))
+         (set-frame-parameter nil 'alpha '(90 . 100))
+       (set-frame-parameter nil 'alpha '(100 . 100)))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 

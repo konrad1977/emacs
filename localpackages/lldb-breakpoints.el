@@ -3,8 +3,9 @@
 
 (require 'tabulated-list)
 (require 'project)
-(require 'lldb-comint)
 (require 'ios-simulator)
+(require 'lldb-comint)
+(require 'breakpoints-overlay)
 
 (defconst lldb-breakpoints-buffer-name "*LLDB-breakpoints*")
 (defconst breakpoint-regex-parser "\\(\\/[^:]+\\):\\([0-9]+\\)$"
@@ -63,7 +64,7 @@
       (tabulated-list-print t))))
 
 (defun lldb-breakpoints:extract-info-from-text (text)
-  "Extracts file name and line number from breakpoint commands in LLDB text."
+  "Extract line and line number from TEXT and create a breakpoint list."
   (if (string-empty-p text)
       nil
       (progn
@@ -88,7 +89,7 @@
     nil))
 
 (defun lldb-breakpoints:check-saved-breakpoints ()
-  "Checks saved breakpoints."
+  "Check saved breakpoints."
   (if-let* ((breakpoint-file (expand-file-name "breakpoints.bp" (lldb-breakpoints:project-root)))
             (content (lldb-breakpoints:read-file-contents breakpoint-file))
             (breakpoint-data (lldb-breakpoints:extract-info-from-text content)))
@@ -124,10 +125,16 @@
   (interactive)
   (let ((buffer (get-buffer lldb-breakpoints-buffer-name)))
     (if (not buffer)
-        (lldb-breakpoints:show-current-breakpoints)
+        (progn
+          (lldb-breakpoints:show-current-breakpoints)
+          (breakpoints-overlay:add-overlays breakpoints))
       (if (get-buffer-window buffer)
-          (delete-window (get-buffer-window buffer))
-        (display-buffer buffer)))))
+          (progn
+            (delete-window (get-buffer-window buffer))
+            (breakpoints-overlay:remove-overlays))
+        (progn
+          (lldb-breakpoints:show-current-breakpoints)
+          (display-buffer buffer))))))
 
 (defun lldb-breakpoints:toggle-breakpoint ()
   "Add a breakpoint at location."
@@ -137,6 +144,7 @@
    :path buffer-file-name
    :number (line-number-at-pos))
   (lldb-breakpoints:update-breakpoints)
+  (breakpoints-overlay:add-overlays breakpoints)
   (lldb-breakpoints:generate-breakpoint-file (lldb-breakpoints:project-root)))
 
 (cl-defun lldb-breakpoints:generate-breakpoint-file (path)
@@ -209,7 +217,15 @@
   "Update breakpoints and show them."
   (interactive)
   (setq list '())
-  (dolist (item breakpoints)
+  (dolist (item (sort breakpoints
+                       (lambda (break1 break2)
+                         (let* ((path1 (car break1))
+                                (line1 (cdr break1))
+                                (path2 (car break2))
+                                (line2 (cdr break2)))
+                           (or (string< path1 path2)
+                               (and (string= path1 path2)
+                                    (> line1 line2)))))))
     (let ((path (car item))
           (linenumber (cdr item)))
       (setq item (list (format "%s:%d" path linenumber)
@@ -218,6 +234,7 @@
                                )))
       (push item list)))
   (lldb-breakpoints:show list))
+
 
 (provide 'lldb-breakpoints)
 ;;; lldb-breakpoints.el ends here

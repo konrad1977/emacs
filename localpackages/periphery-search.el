@@ -12,7 +12,8 @@
 
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
-  (periphery-parse-search-result :title "" :text text :query current-query))
+  (when (not (string-empty-p text))
+    (periphery-parse-search-result :title "" :text text :query current-query)))
 
 (defun periphery--search-thing-at-point ()
   "Search thing at point."
@@ -55,7 +56,7 @@
 (defun periphery-search-rg ()
   "Search using RG (Ripgrep)."
   (interactive)
-  (periphery--search-for "rg -wS"))
+  (periphery--search-for "rg -Sw"))
 
 ;;;###autoload
 (defun periphery-query-todos-and-fixmes ()

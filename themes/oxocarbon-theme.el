@@ -326,11 +326,11 @@
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground unmuted))
 
-  ;; (corfu-annotations                            (:foreground love :distant-foreground love :background crust))
-  ;; (corfu-current                                (:background pine :distant-foreground crust :foreground crust))
+  (corfu-current                                (:inherit 'vertico-current))
+  (corfu-annotations                            (:background medium-gold :foreground subtle))
   (corfu-bar                                    (:background gold))
-  (corfu-default                                (:background crust :foreground unmuted))
-  (corfu-popupinfo                              (:background crust :foreground love :weight 'light :italic t))
+  (corfu-default                                (:background dark-green))
+  (corfu-popupinfo                              (:background medium-green :weight 'light))
 
   ;; posframe's
   (ivy-posframe                                 (:background muted))

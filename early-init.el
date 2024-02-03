@@ -4,8 +4,6 @@
 
 ;;; Code:
 
-(setq package-enable-at-startup nil)
-
 (setq gc-cons-threshold-original gc-cons-threshold
       gc-cons-threshold (* 1024 1024 1024))
 
@@ -15,7 +13,7 @@
   (setq read-process-output-max (* 64 1024 1024)))
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
-(customize-set-variable 'native-comp-speed 3)
+(customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation nil)
 
 (setq kill-ring-max 100000)
@@ -45,13 +43,14 @@
       frame-title-format nil
       truncate-lines t
       truncate-partial-width-windows t
+      truncate-string-ellipsis          ".."
       package-enable-at-startup nil
       indicate-buffer-boundaries '((bottom . right))
       inhibit-splash-screen t
       inhibit-startup-buffer-menu t
       inhibit-startup-message t
       inhibit-startup-screen t
-      inhibit-compacting-font-caches t
+      ;; inhibit-compacting-font-caches t
       initial-major-mode 'fundamental-mode
       initial-scratch-message nil
       load-prefer-newer noninteractive

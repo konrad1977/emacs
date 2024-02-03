@@ -33,18 +33,23 @@
     "up" "var" "vo" "x" "trace")
   "List of verbs to highlight in `lldb-font-lock-keywords'.")
 
+(defconst lldb-operators-keywords
+  '("=" "{" "}" "_" "true" "false" "nil")
+  "List of operators to highlight 'lldb-font-lock-keywords'.")
+
 (defvar lldb-font-lock-keywords
   (list
    ;; highlight all the reserved commands.
    `(,(concat "\\_<" (regexp-opt lldb-keywords) "\\_>") . font-lock-keyword-face)
-   `(,(concat "\\_<" (regexp-opt lldb-verbs-keywords) "\\_>") . font-lock-constant-face))
+   `(,(concat "\\_<" (regexp-opt lldb-verbs-keywords) "\\_>") . font-lock-constant-face)
+   `(,(concat "\\_<" (regexp-opt lldb-operators-keywords) "\\_>") . font-lock-operator-face)
+   )
   "Additional expressions to highlight in `lldb-comint-mode'.")
 
 (define-derived-mode lldb-comint-mode comint-mode "lldb-comint"
   "Major mode for `lldb'."
   (setq comint-prompt-regexp lldb-comint:prompt-regexp
         comint-prompt-read-only t)
-  ;; (set (make-local-variable 'paragraph-separate) "\\'")
   (set (make-local-variable 'font-lock-defaults) '(lldb-font-lock-keywords t))
   (set (make-local-variable 'paragraph-start) lldb-comint:prompt-regexp))
 

@@ -101,7 +101,6 @@
       cores
     2))
 
-
 (defun swift-additions:get-workspace-or-project ()
   "Check if there is workspace or project."
   (let ((workspace (xcode-additions:workspace-name))
@@ -110,8 +109,8 @@
         (format "-workspace %s.xcworkspace" workspace)
       (format "-project %s.xcodeproj" projectname))))
 
-(cl-defun build-app-command (&simulatorId simulatorId)
-  "Xcodebuild with (as &SIMULATORID)."
+(cl-defun build-app-command (&key sim-id)
+  "Xcodebuild with (as SIM-ID)."
   (if current-build-command
       current-build-command
     (concat
@@ -119,13 +118,12 @@
      (format "%s \\" (swift-additions:get-workspace-or-project))
      (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
      (format "-sdk %s \\" (swift-additions:get-current-sdk))
-     (format "-jobs %s" (swift-additions:get-number-of-cores))
-     (when simulatorId
-       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" simulatorId))
+     ;; (format "-jobs %s" (swift-additions:get-number-of-cores))
+     (when sim-id
+       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" sim-id))
      (when (and current-local-device-id run-on-device)
        (format "-destination 'generic/platform=iOS' \\" ))
      "-hideShellScriptEnvironment \\"
-     "-configuration Debug \\"
      "-derivedDataPath build | xcode-build-server parse -avv")))
 ;; (format "BUILD_DIR=%s "  (swift-additions:get-build-folder))
 
@@ -200,7 +198,6 @@
   "Reset current settings.  Change current configuration."
   (interactive)
   (ios-simulator:kill-buffer)
-  (ios-simulator:reset)
   (periphery-kill-buffer)
   (setq current-xcode-scheme nil)
   (setq current-app-identifier nil)
@@ -264,12 +261,12 @@
 (cl-defun swift-additions:compile-app-for-simulator (&key run)
   "Compile app (RUN)."
 
-  (ios-simulator:load-simulator-id)
   (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
+  (ios-simulator:load-simulator-id)
   (setq current-simulator-name (ios-simulator:simulator-name))
 
   (let ((default-directory current-project-root)
-        (build-command (build-app-command :simulatorId: current-simulator-id))
+        (build-command (build-app-command :sim-id current-simulator-id))
         (run-app-on-build run))
 
     (setq current-build-command build-command)
@@ -284,7 +281,7 @@
     (spinner-start 'progress-bar-filled)
     (setq build-progress-spinner spinner-current)
 
-    (mode-line-hud:update :message (format "Compiling scheme: %s for %s"
+    (mode-line-hud:update :message (format "Compiling %s/%s"
                                            (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
                                            (propertize current-simulator-name 'face 'font-lock-negation-char-face)))
 
@@ -306,7 +303,7 @@
    :attributes '(:inherit warning))
 
   (let ((default-directory current-project-root)
-        (build-command (build-app-command :simulatorId: nil))
+        (build-command (build-app-command :sim-id nil))
         (build-folder (swift-additions:get-build-folder)))
     (setq current-build-command build-command)
     (setq current-build-folder build-folder)
@@ -359,8 +356,8 @@
 (defun swift-additions:check-root ()
   "Check root of the project.  If its different reset the settings."
   (when (not (string-equal current-root (cdr (project-current))))
-    (setq current-root (cdr (project-current)))
-    (swift-additions:reset-settings)))
+    (swift-additions:reset-settings)
+    (setq current-root (cdr (project-current)))))
 
 (defun swift-additions:insert-text-and-go-to-eol (text)
   "Function that that insert (as TEXT) and go to end of line."

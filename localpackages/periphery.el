@@ -5,8 +5,8 @@
 
 ;;; Code:
 (require 'dash)
-(require 'periphery-helper)
 (require 'mode-line-hud)
+(require 'periphery-helper)
 
 (defface periphery-filename-face
   '((t (:inherit link)))
@@ -113,9 +113,13 @@
   "Buffer background color."
   :group 'periphery)
 
-(defun periphery--buffer-setup-background ()
-  (setq buffer-face-mode-face 'periphery-background-face)
-  (buffer-face-mode 1))
+(defvar periphery-mode-map nil
+  "Keymap for periphery.")
+
+(setq periphery-mode-map (make-sparse-keymap))
+(define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
+(define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
+(define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
 
 (defconst periphery-buffer-name "*Periphery*")
 
@@ -123,14 +127,8 @@
 
 (defvar default-length 8)
 
-;; (defconst periphery-regex-parser "\\(^\/[^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\)?:?\w?\\([^:]+\\).\\(.*\\)"
-;;   "Parse vimgrep like strings (compilation).")
-
 (defconst periphery-regex-parser "\\(\\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\\s?\\(\\w+\\):\\(.*\\)\n\\s+\\(.*\\(?:\n\\s+.*\\)*\\)"
   "Parse vimgrep like strings (compilation).")
-
-(defconst periphery-note-and-errors-regex "\\(^[^\s:]\\w+\\):\s\\(.*\\)$"
-  "When we fail because of other errors than compilation errors.")
 
 (defconst mark-inside-parenteses "\\(\(.+?\)\\)"
   "Mark parenteses.")
@@ -141,9 +139,6 @@
 (defconst periphery-regex-mark-quotes "\\('[^']+'\\)"
   "Mark quotes in text.")
 
-(defconst bartycrouch-regex-parser "\\(\/+[^:]+\\):\\([0-9]+\\):[^:]+.\s[^:]+.\s+\\([^']+\\)\\('[^']+'\\)\\([^:]+:\\)\s\\(\[[0-9]+\]\\)"
-  "Parse bartycrouch regex.")
-
 (defconst xctest-regex-parser "^\\([^:]+\\):\\([0-9]+\\):\\w?\\([^:]*\\)[^.]+\\.\\([^:|]*\\)\s?:\\(.*\\)"
   "XCTest regex.")
 
@@ -153,7 +148,6 @@
 (defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
 (defvar-local periphery-errorList '())
-(defvar periphery-directory-root nil "DirectoryRoot for localizeable.")
 
 (define-derived-mode periphery-mode tabulated-list-mode "Periphery-mode"
   "Periphery mode.  A mode to show compile errors like Flycheck."
@@ -167,10 +161,6 @@
         tabulated-list-sort-key (cons "Line" nil))
   (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
-
-(defun periphery--get-all-errors (list)
-  "Get all error entries from LIST."
-  (--filter (string-match-p (regexp-quote "error") (aref (car (cdr it)) 2)) list))
 
 (defun periphery--go-to-first-error ()
   "Go to the first error in the periphery-errorList."
@@ -206,7 +196,6 @@
            (window (get-buffer-window buffer)))
       (pop-to-buffer buffer nil)
       (periphery-mode)
-      (periphery--buffer-setup-background)
 
       (unless (equal (current-buffer) buffer)
         (select-window window))
@@ -245,7 +234,7 @@
                 (result (match-string 4 line))
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s" file linenumber)))
-         
+
            (periphery--build-list
             :path fileWithLine
             :file result
@@ -273,27 +262,6 @@
             :result result
             :regex periphery-regex-mark-quotes)
            ))))
-
-(defun propertize-message (text)
-  "Colorize TEXT based on type."
-  (cond
-   ((string-match-p (regexp-quote "Function") text)
-    (propertize text 'face 'font-lock-function-name-face))
-   ((string-match-p (regexp-quote "Class") text)
-    (propertize text 'face 'font-lock-keyword-face))
-   ((string-match-p (regexp-quote "Enum") text)
-    (propertize text 'face 'font-lock-keyword-face))
-   ((string-match-p (regexp-quote "Struct") text)
-    (propertize text 'face 'font-lock-keyword-face))
-   ((string-match-p (regexp-quote "Parameter") text)
-    (propertize text 'face 'font-lock-type-face))
-   ((string-match-p (regexp-quote "Property") text)
-    (propertize text 'face 'font-lock-variable-name-face))
-   ((string-match-p (regexp-quote "Initializer") text)
-    (propertize text 'face 'font-lock-constant-face))
-   ((string-match-p (regexp-quote "Protocol") text)
-    (propertize text 'face 'font-lock-builtin-face))
-  (t (propertize text 'face 'periphery-message-face))))
 
 (defun periphery--propertize-severity (severity text)
   "Colorize TEXT using SEVERITY."
@@ -382,7 +350,7 @@
              (msg-part1 (s-trim-left (match-string 5 text)))
              (msg-part2 (s-trim-left (match-string 6 text)))
              (msg (clean-up-newlines (format "%s: %s" msg-part1 msg-part2))))
-        
+
         (push (periphery--build-list
                :path (format "%s:%s:%s" path line column)
                :file path
@@ -427,50 +395,6 @@
       (periphery--listing-command (delete-dups periphery-errorList))
     (funcall succesCallback)))
 
-(defun periphery-mode-all ()
-  "Show all."
-  (interactive)
-  (progn
-    (setq tabulated-list-entries (-non-nil periphery-errorList))
-    (tabulated-list-print t)))
-
-(defun periphery-mode-build-filter (filter index)
-  "Show only FILTER and INDEX."
-  (interactive "P")
-  (progn
-    (setq tabulated-list-entries
-          (--filter
-           (string-match-p filter
-                           (aref (car( cdr it)) index)) (-non-nil periphery-errorList)))
-
-      (tabulated-list-print t)
-      (if (proper-list-p tabulated-list-entries)
-          (periphery-message-with-count
-           :tag "Found"
-           :text filter
-           :count (format "%d" (length tabulated-list-entries))
-           :attributes 'success))))
-
-(defvar periphery-mode-map nil
-  "Keymap for periphery.")
-
-(setq periphery-mode-map (make-sparse-keymap))
-(define-key periphery-mode-map (kbd "a") 'periphery-mode-all)
-(define-key periphery-mode-map (kbd "e") #'(lambda () (interactive) (periphery-mode-build-filter "error" 1)))
-(define-key periphery-mode-map (kbd "t") #'(lambda () (interactive) (periphery-mode-build-filter "todo" 1)))
-(define-key periphery-mode-map (kbd "h") #'(lambda () (interactive) (periphery-mode-build-filter "hack" 1)))
-(define-key periphery-mode-map (kbd "n") #'(lambda () (interactive) (periphery-mode-build-filter "note" 1)))
-(define-key periphery-mode-map (kbd "w") #'(lambda () (interactive) (periphery-mode-build-filter "warning" 1)))
-(define-key periphery-mode-map (kbd "f") #'(lambda () (interactive) (periphery-mode-build-filter "Function\\|fix" 3)))
-(define-key periphery-mode-map (kbd "u") #'(lambda () (interactive) (periphery-mode-build-filter "Unused" 3)))
-(define-key periphery-mode-map (kbd "i") #'(lambda () (interactive) (periphery-mode-build-filter "Initializer" 3)))
-(define-key periphery-mode-map (kbd "I") #'(lambda () (interactive) (periphery-mode-build-filter "Protocol" 3)))
-(define-key periphery-mode-map (kbd "P") #'(lambda () (interactive) (periphery-mode-build-filter "Parameter" 3)))
-(define-key periphery-mode-map (kbd "p") #'(lambda () (interactive) (periphery-mode-build-filter "Property\\|perf" 1)))
-(define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
-(define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
-(define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
-
 (defun periphery-kill-buffer ()
   "Kill the periphery buffer."
   (interactive)
@@ -495,59 +419,6 @@
          (if-let* ((keyword (match-string 1 text))
                 (comment (match-string 2 text)))
              (list keyword comment)))))
-
-(defun periphery--parse-bartycrouch-line (line)
-  "Run regex over curent LINE."
-  (save-match-data
-    (and (string-match bartycrouch-regex-parser line)
-         (let* ((file (match-string 1 line))
-                (linenumber (match-string 2 line))
-                (message (match-string 3 line))
-                (failingAttribute (match-string 4 line))
-                (messageRest (match-string 5 line))
-                (otherEntries (match-string 6 line))
-                (fileWithLine (format "%s:%s:%s" file linenumber "0")))
-           
-             (list fileWithLine (vector
-                                 (propertize
-                                  (format "%s/%s"
-                                          (file-name-sans-extension (file-name-nondirectory (directory-file-name (file-name-directory file))))
-                                          (file-name-nondirectory file)
-                                          ) 'face 'periphery-filename-face)
-                                 (propertize linenumber 'face 'periphery-linenumber-face)
-                                 (propertize "warning" 'face 'periphery-warning-face)
-                                 (format "%s%s%s %s"
-                                         (propertize message 'face 'periphery-message-face)
-                                         (propertize failingAttribute 'face 'periphery-identifier-face)
-                                         (propertize messageRest 'face 'periphery-message-face)
-                                         (propertize otherEntries 'face 'periphery-linenumber-face)
-                                         )
-                                 ))))))
-
-(defun periphery-run-bartycrouch-parser (input directory)
-  "Run bartycrouchparsing as INPUT DIRECTORY."
-  (setq periphery-directory-root directory)
-  (setq periphery-errorList nil)
-  (dolist (line (split-string input "\n"))
-    (when-let ((entry (parse-bartycrouch-output-line (string-trim-left line))))
-      (push entry periphery-errorList)))
-  (when periphery-errorList
-      (periphery--listing-command periphery-errorList)))
-  
-(defun parse-xcodebuild-notes-and-errors (line)
-  "Parse error and notes (as LINE)."
-  (setq default-length 8)
-  (save-match-data
-    (and (string-match periphery-note-and-errors-regex line)
-         (let* ((note (match-string 1 line))
-                (message (match-string 2 line)))
-           (periphery--build-list
-            :path ""
-            :file ""
-            :line ""
-            :keyword note
-            :result message
-            :regex periphery-regex-mark-quotes)))))
 
 (cl-defun periphery-message-with-count (&key tag &key text &key count &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count."
@@ -601,7 +472,7 @@
                                :regex mark-strings-regex
                                :property '(face highlight))
                        :regex mark-inside-parenteses
-                       :property '(face periphery-warning-faceface))
+                       :property '(face periphery-warning-face))
                :regex regex
                :property '(face periphery-identifier-face)))))
 
@@ -645,17 +516,6 @@
            :attributes 'success))
       (switch-to-buffer-other-window periphery-buffer-name))))
 
-(defun periphery--remove-leading-keyword (tag)
-  "Remove leading keyword and C style -comment from (as TAG)."
-  (string-trim-left
-  (replace-regexp-in-string "[\\/\|;]\\{1,3\\}\\W?\\w+\\b:" "" tag)))
-
-(defun periphery--remove-comments-in-string (text)
-  "Remove comments from (as TEXT)."
-  (replace-regexp-in-string
-   ";" "" (replace-regexp-in-string
-           ":" "" (replace-regexp-in-string "\\/" "" text))))
-
 (defun svg-color-from-tag (tag)
   "Get color from (as TAG)."
   (cond
@@ -667,40 +527,6 @@
    ((string-match-p "FIX" tag) 'periphery-fix-face-full)
    ((string-match-p "MARK" tag) 'periphery-mark-face-full)
    (t 'periphery-hack-face-full)))
-
-;;;###autoload
-(defun periphery-svg-tags ()
-  "Get svg tags."
-  ;; TODO: Make it work for elisp
-  '(("\\([\\/\|;]\\{1,3\\}\\W+[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:.*\\)" . ((lambda (tag) (svg-tag-make (periphery--remove-leading-keyword tag)
-                                                                                                           :face (svg-color-from-tag tag)
-                                                                                                           :inverse t
-                                                                                                           :crop-left t))))
-    
-    ("\\([\\/\|;]\\{1,3\\}\\W?[TODO|NOTE|HACK|PERF|FIXME|FIX|MARK]*:\\)" . ((lambda (tag)
-                                                                               (svg-tag-make (periphery--remove-comments-in-string tag)
-                                                                                             :face (svg-color-from-tag tag)
-                                                                                             :inverse nil
-                                                                                             :margin 0
-                                                                                             :crop-right nil))))
-
-    ;; ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE"
-    ;;                                                               :face 'periphery-hack-face-full
-    ;;                                                               :margin 0
-    ;;                                                               :crop-right t))))
-    ;; ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
-    ;;                                                             :face 'periphery-hack-face-full
-    ;;                                                             :crop-left t
-    ;;                                                             :inverse t))))
-
-    ;; ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE"
-    ;;                                                              :face 'periphery-note-face-full
-    ;;                                                              :margin 0))))
-    ;; ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag
-    ;;                                                            :face 'periphery-note-face-full
-    ;;                                                            :crop-left t
-    ;;                                                            :inverse t))))
-    ))
 
 (provide 'periphery)
 
