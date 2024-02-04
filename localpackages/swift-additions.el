@@ -6,7 +6,6 @@
 
 ;;; code:
 (require 'eglot)
-(require 'flycheck)
 (require 'projectile)
 (require 'periphery-helper)
 (require 'xcodebuildserver)
@@ -434,7 +433,6 @@
 
 (defun swift-additions:get-configuration-list ()
   "Get list of project configurations."
-
   (unless current-project-root
     (mode-line-hud:update :message "Fetching build configurations")
     (setq current-project-root (swift-additions:get-ios-project-root)))
@@ -509,6 +507,7 @@
   (swift-additions:test-swift-package :root (swift-additions:detect-package-root)))
 
 (cl-defun swift-additions:test-swift-package (&key root)
+  "Test package in ROOT."
   (let ((default-directory root)
         (package-name (file-name-nondirectory (directory-file-name root))))
     (spinner-start 'progress-bar-filled)
