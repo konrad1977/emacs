@@ -111,10 +111,10 @@
   (font-lock-function-name-face                  (:foreground crystalBlue))
   (font-lock-variable-name-face                  (:foreground sakuraPink))
   (font-lock-negation-char-face                  (:foreground peachRed))
-  (font-lock-comment-face                        (:foreground fujiGray :italic t))
-  (font-lock-comment-delimiter-face              (:foreground fujiGray :italic t))
-  (font-lock-doc-face                            (:foreground comet))
-  (font-lock-doc-markup-face                     (:foreground comet))
+  (font-lock-comment-face                        (:foreground comet :italic t))
+  (font-lock-comment-delimiter-face              (:foreground comet :italic t))
+  (font-lock-doc-face                            (:foreground fujiGray))
+  (font-lock-doc-markup-face                     (:foreground fujiGray))
   (font-lock-preprocessor-face	                 (:foreground boatYellow2))
   (font-lock-regexp-grouping-backslash           (:foreground boatYellow2))
   (font-lock-number-face                         (:foreground roninYellow))
@@ -266,7 +266,9 @@
   (company-template-field                        (:inherit 'match))
 
  ;; flycheck
-  (flycheck-error-list-highlight (:weight 'thin))
+  (flycheck-error-list-error                     (:box (:color winterRed :line-width 2) :foreground peachRed :background winterRed :height 140 :weight 'bold))
+  (flycheck-error-list-warning                   (:box (:color winterYellow :line-width 2) :foreground carpYellow :background winterYellow :height 140 :weight 'bold))
+  (flycheck-error-list-info                      (:box (:color winterBlue :line-width 2) :foreground crystalBlue :background winterBlue :height 140 :weight 'bold))
 
   (flycheck-inline-error                         (:box (:color winterRed :line-width 5) :foreground peachRed :background winterRed :height 130 :weight 'semi-bold))
   (flycheck-inline-info                          (:box (:color waveBlue-2 :line-width 5) :foreground crystalBlue :background waveBlue-2 :height 130 :weight 'semi-bold))
@@ -420,7 +422,7 @@
   (corfu-annotations                             (:background winterGreen :foreground springGreen))
   (corfu-default                                 (:background waveBlue-1))
   (corfu-border                                  (:background waveBlue-2))
-  (corfu-popupinfo                               (:background sumiInk :foreground springBlue))
+  (corfu-popupinfo                               (:background sumiInk :foreground springBlue :box (:line-width 2 :color sumiInk)))
 
   ;; hydra
   (hydra-face-amaranth                           (:foreground autumnRed))

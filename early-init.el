@@ -9,9 +9,6 @@
 
 (setq gc-cons-threshold most-positive-fixnum)
 
-(when (boundp 'read-process-output-max)
-  (setq read-process-output-max (* 64 1024 1024)))
-
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
 (customize-set-variable 'native-comp-deferred-compilation nil)

@@ -34,15 +34,16 @@
 
 (defun periphery-run-query (searcher text)
   "Search using (SEARCHER) with (TEXT)."
-  (setq current-query nil)
-  (if (executable-find "rg")
-      (progn
-        (let ((default-directory (periphery-helper:project-root-dir)))
-          (setq current-query (regexp-quote text))
-          (async-start-command-to-string
-           :command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path" searcher current-query)
-           :callback '(lambda (result) (send-search-result-to-periphery result)))))
-    (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning)))
+  (when (> (length text) 1)
+    (setq current-query nil)
+    (if (and (executable-find "rg"))
+        (progn
+          (let ((default-directory (periphery-helper:project-root-dir)))
+            (setq current-query (regexp-quote text))
+            (async-start-command-to-string
+             :command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path" searcher current-query)
+             :callback '(lambda (result) (send-search-result-to-periphery result)))))
+      (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning))))
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."

@@ -8,9 +8,6 @@
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin)
 (set-face-attribute 'variable-pitch nil :font "Work Sans" :height 170 :weight 'light)
 
-;; (custom-set-faces
-;;  '(font-lock-comment-face ((t (:font "SF Pro Display" :italic t :height 1.0)))))
-
 (display-battery-mode t)        ;; Show battery.
 (display-time-mode t)           ;; Show time.
 (fset 'yes-or-no-p 'y-or-n-p)   ;; Set yes or no to y/n
@@ -20,7 +17,6 @@
 
 
 (setq ad-redefinition-action            'accept
-      ;; global-auto-revert-non-file-buffers t
       auto-revert-check-vc-info         t
       backup-by-copying                 t
       backup-directory-alist            '(("." . "~/.emacs.d/backups"))
@@ -29,7 +25,7 @@
       confirm-kill-processes            nil
       create-lockfiles                  nil
       echo-keystrokes                   0.2
-      confirm-kill-emacs                'y-or-n-p
+      confirm-kill-emacs                'y-or-n-pp
       find-file-visit-truename          t
       font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
@@ -97,6 +93,15 @@
     (package-refresh-contents))
   (package-install 'use-package))
 
+(use-package emacs
+  :config
+  (setq completion-cycle-threshold 3
+        max-lisp-eval-depth 10000
+        debug-on-error nil
+        read-process-output-max (* 16 1024 1024)
+        scroll-conservatively 10000
+        tab-always-indent 'complete))
+
 (use-package spinner
   :defer t)
 
@@ -105,9 +110,6 @@
 
 (use-package async
   :defer t)
-
-(use-package gcmh
-  :hook (after-init . gcmh-mode))
 
 (use-package ligature
   :config
@@ -146,8 +148,7 @@
         use-package-expand-minimally t
         use-package-always-ensure t
         use-package-compute-statistics nil
-        use-package-minimum-reported-time 0.2
-        debug-on-error t))
+        use-package-minimum-reported-time 0.2))
 
 (use-package all-the-icons
   :defer t)
@@ -295,13 +296,13 @@
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
-  ("M-l" . consult-goto-line)
-  ("<backtab>" . consult-buffer)
-  ("C-c C-a" . consult-apropos)
-  ("C-c m m" . consult-imenu-multi)
-  ("C-c m b" . consult-imenu)
-  ("M-O" . consult-projectile-find-file)
-  ("M-f" . consult-line))
+  ("M-f" . #'consult-ripgrep)
+  ("M-l" . #'consult-goto-line)
+  ("<backtab>" . #'consult-buffer)
+  ("C-c C-a" . #'consult-apropos)
+  ("C-c m m" . #'consult-imenu-multi)
+  ("C-c m b" . #'consult-imenu)
+  ("M-O" . #'consult-projectile-find-file))
 
 (use-package embark-consult
   :after (embark consult))
@@ -317,8 +318,6 @@
 (use-package consult-projectile
   :after projectile)
 
-(use-package consult-flycheck
-  :after flycheck)
 
 (use-package recentf
   :hook (after-init . recentf-mode))
@@ -578,9 +577,7 @@
   (kind-icon-blend-background nil)
   ;; (kind-icon-blend-frac 0.1)
   :config
-  (defconst kind-icon--unknown
-    (propertize "  " 'face '(:inherit font-lock-variable-name-face)))
-  ;; (setq kind-icon-use-icons nil)
+  (setq kind-icon-use-icons t)
   (setq kind-icon-mapping
         `(
           (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
@@ -644,14 +641,13 @@
         corfu-left-margin-width 0.8
         corfu-right-margin-width 0.8
         corfu-count 12
-        corfu-auto-delay 0.1
+        corfu-auto-delay 0.3
         corfu-quit-no-match 'separator
-        ;; corfu-popupinfo-resize t
-        ;; corfu-popupinfo-hide t
-        ;; corfu-popupinfo-direction '(force-horizontal)
-        ;; corfu-popupinfo-min-width corfu-min-width
-        ;; corfu-popupinfo-max-width corfu-max-width)
-  ))
+        corfu-popupinfo-resize t
+        corfu-popupinfo-hide t
+        corfu-popupinfo-direction '(force-horizontal)
+        corfu-popupinfo-min-width corfu-min-width
+        corfu-popupinfo-max-width corfu-max-width))
 
 (use-package savehist
   :ensure nil
@@ -665,6 +661,7 @@
 
 ;; Add extensions
 (use-package cape
+  :after evil
   :defer t
   :bind (("C-c p p" . completion-at-point) ;; capf
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
@@ -687,11 +684,6 @@
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
-
-(use-package emacs
-  :init
-  (setq completion-cycle-threshold 3)
-  (setq tab-always-indent 'complete))
 
 (use-package avy
   :defer t
@@ -824,45 +816,14 @@
   ("C-c e n" . flycheck-next-error)
   ("C-c e p" . flycheck-previous-error)
   :custom
-  (setq flycheck-checker-error-threshold 15)
-  ;; (setq flymake-show-diagnostics-at-end-of-line 'short)
-  )
-
-;; (use-package tabnine
-;;   :commands (tabnine-start-process)
-;;   :hook (prog-mode . tabnine-mode)
-;;   :diminish "⌬"
-;;   :custom
-;;   (tabnine-wait 3)
-;;   (tabnine-minimum-prefix-length 0)
-;;   :hook (kill-emacs . tabnine-kill-process)
-;;   :config
-;;   (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
-;;   (tabnine-start-process)
-;;   :bind
-;;   (:map  tabnine-completion-map
-;; 	 ("<tab>" . tabnine-accept-completion)
-;; 	 ("TAB" . tabnine-accept-completion)
-;; 	 ("M-<return>" . tabnine-accept-completion-by-line)
-;; 	 ("C-g" . tabnine-clear-overlay)
-;; 	 ("C-k" . tabnine-previous-completion)
-;; 	 ("C-j" . tabnine-next-completion)))
+  (setq flycheck-checker-error-threshold 20))
 
 (use-package flycheck-inline
   :hook (flycheck-mode . flycheck-inline-mode))
 
-;; (use-package flycheck-posframe
-;;   :hook (flycheck-mode . flycheck-posframe-mode)
-;;   :config
-;;   (setq flycheck-posframe-position 'point-bottom-left-corner
-;;         flycheck-posframe-border-width 2
-;;         flycheck-posframe-warning-prefix " ⚠︎ "
-;;         flycheck-posframe-error-prefix " ✘ "
-;;         flycheck-posframe-info-prefix " ● "))
-
-
 (use-package flycheck-eglot
   :hook (swift-mode . global-flycheck-eglot-mode)
+  :after flycheck
   :config
   (setq flycheck-eglot-exclusive t))
 
