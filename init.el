@@ -4,9 +4,27 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin)
+;; (set-face-attribute 'default nil
+;;                     :family "SF Mono"
+;;                     :weight 'thin
+;;                     ;; :width 'normal
+;;                     :height 160)
+
+;; (set-face-attribute 'default nil :family "Iosevka"
+;;                     :foundry "ss03"
+;;                     :slant 'normal
+;;                     :weight 'semi-light
+;;                     :height 170
+;;                     :width 'expanded)
+
+(set-face-attribute 'default nil
+                    :font "JetBrainsMono Nerd Font Mono"
+                    :height 160
+                    :weight 'thin
+                    :slant 'normal)
+
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin)
-(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 170 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 160 :weight 'light)
 
 (display-battery-mode t)        ;; Show battery.
 (display-time-mode t)           ;; Show time.
@@ -25,7 +43,7 @@
       confirm-kill-processes            nil
       create-lockfiles                  nil
       echo-keystrokes                   0.2
-      confirm-kill-emacs                'y-or-n-pp
+      confirm-kill-emacs                'y-or-n-p
       find-file-visit-truename          t
       font-lock-maximum-decoration      t
       highlight-nonselected-windows     t
@@ -86,19 +104,20 @@
                          ("elpa" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
-
-;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (unless package-archive-contents
-    (package-refresh-contents))
-  (package-install 'use-package))
+;;
+;; ;; ;; Initialize use-package on non-Linux platforms
+;; (unless (package-installed-p 'use-package)
+;;   (unless package-archive-contents
+;;     (package-refresh-contents))
+;;   (package-install 'use-package))
 
 (use-package emacs
   :config
   (setq completion-cycle-threshold 3
         max-lisp-eval-depth 10000
         debug-on-error nil
-        read-process-output-max (* 16 1024 1024)
+        process-adaptive-read-buffering nil
+        read-process-output-max (* 128 1024 1024)
         scroll-conservatively 10000
         tab-always-indent 'complete))
 
@@ -333,7 +352,7 @@
       (mood-line-defformat
        :left
        (
-        ((mood-line-segment-modal) . " ")
+         ;; (mood-line-segment-modal) . " ")
         ;; ((mood-line-segment-project) . "/")
         ((file-name-sans-extension (mood-line-segment-buffer-name))   . "/")
         ((mood-line-segment-major-mode) . " "))
@@ -448,14 +467,13 @@
   ("C-M-<up>" . (lambda () (interactive) (evil-mc-make-cursor-move-prev-line 1)))
   ("C-c a" . (lambda () (interactive) (evil-mc-make-cursor-here)))
   ("C-M-e" . (lambda() (interactive) (evil-mc-make-all-cursors)))
-  :config
-  (setq evil-mc-undo-cursors-on-keyboard-quit t)
-  (setq evil-mc-mode-line-text-inverse-colors t)
-  (setq evil-mc-mode-line-text-cursor-color t)
+  :custom
+  (setq evil-mc-mode-line-text-inverse-colors t
+        evil-mc-undo-cursors-on-keyboard-quit t
+        evil-mc-mode-line-text-cursor-color t)
   (evil-define-key 'visual evil-mc-key-map
     "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
-  )
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
 
 ;; (use-package evil-iedit-state
 ;;   :after evil
@@ -500,27 +518,29 @@
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
 
-;; (use-package window-stool
-;;   :ensure nil
-;;   :config
-;;   (setq window-stool-n-from-top 2
-;;         window-stool-n-from-bottom 0)
-;;   (add-hook 'prog-mode-hook #'window-stool-mode)
-;;     ;; (package-vc-install "https://github.com/JasZhe/window-stool")
-;;   )
+(use-package window-stool
+  :ensure nil
+  :config
+  (setq window-stool-n-from-top 2
+        window-stool-n-from-bottom 0)
+  (add-hook 'prog-mode-hook #'window-stool-mode)
+    ;; (package-vc-install "https://github.com/JasZhe/window-stool")
+  )
 
 (use-package minimap
   :commands (minimap-mode)
   :config
-  (setq minimap-width-fraction 0.05
+  (setq
+        minimap-width-fraction 0.0
         minimap-minimum-width 10
-        minimap-always-recenter t
+        minimap-always-recenter nil
         minimap-hide-fringes t
-        minimap-window-location 'right
+        minimap-dedicated-window t
         minimap-enlarge-certain-faces nil
-        minimap-dedicated-window t)
-  (custom-set-faces
-   '(minimap-font-face ((t (:family "Minimap" :height 0.2 :group 'minimap))))))
+        minimap-recenter-type 'relative
+        minimap-window-location 'right)
+  :custom-face
+  (minimap-font-face ((t (:family "Minimap" :height 0.15 :group 'minimap)))))
 
 (use-package treemacs-nerd-icons
   :after treemacs
@@ -548,6 +568,15 @@
   :config
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
+(use-package tree-sitter-langs
+  :defer t
+  :ensure nil)
+
+(use-package org-jira
+  :defer t
+  :config
+  (setq jiralib-url "https://mobileinteraction.atlassian.net/"))
+
 ;; ------------------ SEARCHING -------------------
 (use-package rg
   :defer t)
@@ -565,6 +594,7 @@
   (setq eglot-stay-out-of '(corfu company)
         ;; eglot-send-changes-idle-time 0.1
         eglot-autoshutdown t
+        eglot-events-buffer-size 0
         eglot-ignored-server-capabilities '(:hoverProvider)
         eglot-extend-to-xref t)
   (advice-add 'jsonrpc--log-event :override #'ignore)
@@ -682,7 +712,7 @@
   ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package avy
@@ -719,7 +749,7 @@
                              "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                port :autoport
                simulator-id "iPhone 14 Plus"
-               app-bundle-id ""
+               app-bundle-id "kalle.se"
                fn (dape-config-autoport
                    ,(lambda (config)
                       (with-temp-buffer
@@ -779,16 +809,9 @@
         treemacs-hide-gitignored-files-mode t
         treemacs-git-mode 'extended
         treemacs-indentation 1
-        treemacs-is-never-other-window t
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 30))
-
-(defun treemacs-mode-handler()
-  (set (make-local-variable 'face-remapping-alist)
-       '((default :background "#1c1c24"))))
-
-(add-hook 'treemacs-mode-hook 'treemacs-mode-handler)
+        treemacs-width 32))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -796,8 +819,8 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
-(use-package treemacs-projectile
-  :after (treemacs projectile))
+(use-package project-treemacs
+  :after treemacs)
 
 (use-package restclient
   :commands (restclient))
@@ -819,7 +842,9 @@
   (setq flycheck-checker-error-threshold 20))
 
 (use-package flycheck-inline
-  :hook (flycheck-mode . flycheck-inline-mode))
+  :ensure nil
+  :after flycheck
+  :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
 
 (use-package flycheck-eglot
   :hook (swift-mode . global-flycheck-eglot-mode)
@@ -865,28 +890,29 @@
   ("C-x C-x" . kill-buffer-and-window)
   :custom
   (display-buffer-alist
-   '(("\\*xwidget\\*\\|\\*xref\\*"
-      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
-      (body-function . select-window)
-      (window-width . 0.4)
-      (side . right))
+   '(("\\*Async Shell Command\\*"
+      (display-buffer-no-window))
+     ;; ("\\*xwidget\\*\\|\\*xref\\*"
+     ;;  (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+     ;;  (body-function . select-window)
+     ;;  (window-width . 0.4)
+     ;;  (side . right))
      ("\\*occur\\|evil-marks\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-width . 0.26)
+      (window-width . 0.10)
       (side . right)
       (slot . 0))
-     ("\\*IOS Simulator\\|*swift package\\|*ios-device"
-      (display-buffer-in-side-window)
-      (reusable-frames . nil)
-      (window-height . 0.1)
+     ("\\*iOS Simulator\\|*swift package\\|*ios-device"
+      (display-buffer-in-side-window display-buffer-reuse-window)
+      (window-height . 0.10)
+      (window-parameters . ((mode-line-format . none)))
       (side . bottom)
-      (slot . 1))
+      (slot . 2))
      ("\\*Periphery\\*"
-      (display-buffer-reuse-window display-buffer-in-side-window)
-      (reusable-frames . nil)
+      (display-buffer-in-side-window display-buffer-reuse-window)
       (body-function . select-window)
-      (window-height . 0.2)
+      (window-height . 0.15)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -899,14 +925,15 @@
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.25)
+      (window-parameters . ((mode-line-format . none)))
       (side . bottom)
-      (slot . -1))
-     ("simulator logs\\|Flycheck errors\\|Async Shell Command\\|[Cc]olors\\*\\|Warnings"
-      (display-buffer-in-side-window)
+      (slot . 10))
+     ("\\*Flycheck\\|[Cc]olors\\*\\|Warnings"
+      (display-buffer-in-side-window display-buffer-reuse-window)
       (display-buffer-at-bottom)
-      (window-height . 0.2)
+      (window-height . 0.15)
       (side . bottom)
-      (slot . 2)))))
+      (slot . 3)))))
 
 ;; darkroom (go to focus mode)
 (use-package darkroom
@@ -922,16 +949,6 @@
   :bind ("C-c C-d" . magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-;; (use-package magit-todos
-;;   :commands (magit-todos-mode)
-;;   :hook (magit-mode . magit-todos-mode)
-;;   :config
-;;   (setq magit-todos-recursive t
-;;         magit-todos-depth 10
-;;         magit-todos-exclude-globs '("*Pods*" ".git/" "*elpa*" "*var/lsp/*"))
-;;   (custom-set-variables
-;;    '(magit-todos-keywords (list "TODO" "FIXME" "HACK"))))
 
 (use-package blamer
   :commands (blamer-mode)
@@ -1056,7 +1073,7 @@
   (mk/leader-keys
     "pf" '(projectile-find-file-dwim :which-key "Find file")
     "pk" '(projectile-kill-buffers :which-key "Kill buffers")
-    "ps" '(projectile-switch-project :which-key "Switch project")
+    "ps" '(project-switch-project :which-key "Switch project")
     "pS" '(projectile-switch-open-project :which-key "Switch open project"))
 
   (mk/leader-keys
@@ -1069,29 +1086,51 @@
     "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
     "qr" '(restart-emacs :which-key "Restart emacs")))
 
+
+(setq org-custom-todo-faces '
+      (("TODO" :background "#FF5D62" :distant-foreground "#FF5D62" :foreground "#FFFFFF" :weight 'bold)
+       ("NEXT" :background "#7FB4CA" :distant-foreground "#7FB4CA" :foreground "#1c1c24" :weight 'bold)
+       ("STARTED" :background "#957FB8" :foreground "#FFFFFF" :weight 'bold)
+       ("DELEGATED" :background "#7AA89F" :foreground "#1c1c24" :weight 'bold)
+       ("QA" :background "#54536D" :weight 'bold)))
+
 (use-package org
   :hook ((org-mode . org-display-inline-images))
   :config
   (setq org-ellipsis " ▾"
+        org-auto-align-tags nil
+        org-tags-column 0
         org-hide-emphasis-markers t
+        org-pretty-entities t
         org-startup-with-inline-images t
         org-startup-folded nil
-        org-directory "~/Desktop/org"
-        org-agenda-files '("work.org")
+        org-directory "~/Desktop/org/Todo/"
+        org-agenda-files (list "~/Desktop/org/Todo/")
+        ;; org-agenda-files '("work.org" "projekt.org")
         org-hide-leading-stars t
         org-src-edit-src-content-indentation 0
+        org-src-preserve-indentation t
         org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "STARTED(s)" "|" "DONE(d)" "CANCELLED(c)"))
+        '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "STARTED(s)" "DELEGATED(d)" "QA(q)" "|" "DONE(d)" "CANCELLED(c)"))
         org-log-into-drawer t
+        org-todo-keyword-faces org-custom-todo-faces
         org-clock-sound "~/.emacs.d/etc/sound/bell.mp3"
         org-log-done 'time
         org-fontify-emphasized-text t
         org-fontify-whole-heading-line t
+        org-confirm-babel-evaluate nil
         org-src-fontify-natively t
         org-src-tab-acts-natively t
-        org-startup-with-inline-images t
         org-cycle-separator-lines 2
-        org-return-follows-link t))
+        org-return-follows-link t
+        org-agenda-tags-column 0
+        org-agenda-block-separator ?─
+        org-agenda-time-grid
+        '((daily today require-timed)
+          (800 1000 1200 1400 1600 1800 2000)
+          " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+        org-agenda-current-time-string
+        "◀── now ─────────────────────────────────────────────────"))
 
 (use-package restclient
   :defer t)
@@ -1118,26 +1157,26 @@
   (require 'org-tempo)
 
   (setq-local org-confirm-babel-evaluate nil)
-  (setq-local evil-auto-indent nil)
 
   ;; (auto-fill-mode nil)
-  ;; (org-indent-mode)
-  (variable-pitch-mode)
+  (org-indent-mode)
   ;; (visual-line-mode)
+  (variable-pitch-mode)
 
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.1)
-                  (org-level-6 . 1.1)
-                  (org-level-7 . 1.1)
-                  (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "SF Pro Display" :weight 'medium :height (cdr face)))
-
-  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  (dolist (face '((org-level-1 . (1.5 .  bold))
+                  (org-level-2 . (1.1 .  bold))
+                  (org-level-3 . (1.0 .  semi-bold))
+                  (org-level-4 . (1.0 .  semi-bold))
+                  (org-level-5 . (1.0 .  normal))
+                  (org-level-6 . (1.0 .  normal))
+                  (org-level-7 . (1.0 .  normal))
+                  (org-level-8 . (1.0 .  normal))))
+    (set-face-attribute (car face) nil :font "Iosevka Nerd Font"
+                        :weight (cdr (cdr face))
+                        :height (car (cdr face))))
 
   ;; Setup fonts for org-mode
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-block nil                :inherit 'fixed-pitch)
   (set-face-attribute 'org-table nil                :inherit 'fixed-pitch)
   (set-face-attribute 'org-formula nil              :inherit 'fixed-pitch)
@@ -1152,13 +1191,20 @@
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp . t)
-                                 (shell . t)))
+                                 (shell . t)
+                                 (swift . t)
+                                 (swiftui . t)
+                                 (restclient . t)))
 
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("sw" . "src swift"))
+  (add-to-list 'org-structure-template-alist '("sr" . "src restclient"))
   (add-to-list 'org-structure-template-alist '("swiftui" . "src swiftui :view CustomView"))
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
+
+(use-package ob-restclient
+  :defer t)
 
 (use-package ob-swift
   :defer t)
@@ -1173,24 +1219,18 @@
   (add-to-list 'org-src-lang-modes
                '("swiftui" . swift)))
 
-(use-package org-superstar
-  :hook ((org-mode . org-superstar-mode))
-  :init
-  (setq org-inlinetask-show-first-star t
-        org-superstar-cycle-headline-bullets nil
-        ;; org-superstar-headline-bullets-list '("› ")
-        org-superstar-prettify-item-bullets t
-        org-superstar-headline-bullets-list '("◉" "○" "⍟" "◈" "◇" "◈" "○" "▷")
-        ;; org-superstar-headline-bullets-list '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
-        ))
-
 (use-package org-modern
-  :hook (org-mode . org-modern-mode))
+  :hook ((org-mode . org-modern-mode)
+         (org-agenda-finalize-hook . org-modern-agenda))
+  :config
+  (setq org-modern-todo-faces org-custom-todo-faces
+        org-modern-hide-stars t
+        org-modern-star '("❶" "❷" "❸" "❹" "❺" "❻" "❼")))
 
 (use-package visual-fill-column
   :hook ((org-mode . visual-fill-column-mode))
   :config
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 90
         visual-fill-column-center-text t))
 
 (use-package elfeed
@@ -1214,10 +1254,7 @@
   (setq highlight-symbol-idle-delay 0.5))
 
 (use-package highlight-indentation
-  :hook (
-         (prog-mode . highlight-indentation-current-column-mode)
-         ;; (prog-mode . highlight-indendation-mode)
-         )
+  :hook ((prog-mode . highlight-indentation-current-column-mode))
   :config
   (setq highlight-indentation-blank-lines t))
 
@@ -1366,13 +1403,6 @@
 (defun setup-swift-programming ()
   "Custom setting for swift programming."
   ;; (flymake-mode nil)
-  ;; (defun my/eglot-cap-config ()
-  ;;   (setq-local completion-at-point-functions
-  ;;               (list (cape-super-capf
-  ;;                      #'eglot-completion-at-point
-  ;;                      (cape-company-to-capf #'yasnippet-capf)))))
-  ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-cap-config)
-
   (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg))
 
 (defun mk/browser-split-window (url &optional new-window)
@@ -1397,11 +1427,13 @@
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
-  (local-set-key (kbd "C-M-B") #'projectile-switch-to-buffer-other-window)
   (hs-minor-mode)       ; Add support for folding code blocks
 
   (setq indicate-empty-lines nil            ;; Show empty lines
         indicate-unused-lines nil           ;; Show unused lines
+        truncate-lines t
+        left-fringe-width 70
+        right-fringe-width 0
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
         display-line-numbers 'relative))   ;; Show line numbers
@@ -1444,13 +1476,6 @@
        (set-frame-parameter nil 'alpha '(100 . 100)))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
-
-(defun prog-fringe-hook ()
-  "Setup fringes."
-  (setq left-fringe-width 80
-        right-fringe-width 0))
-
-(add-hook 'prog-mode-hook #'prog-fringe-hook)
 
 (with-eval-after-load 'swift-mode
   (setup-swift-programming))

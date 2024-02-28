@@ -117,6 +117,7 @@
      (format "%s \\" (swift-additions:get-workspace-or-project))
      (format "-scheme '%s' \\" (swift-additions:fetch-or-load-xcode-scheme))
      (format "-sdk %s \\" (swift-additions:get-current-sdk))
+     (format "-configuration DEBUG \\")
      ;; (format "-jobs %s" (swift-additions:get-number-of-cores))
      (when sim-id
        (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" sim-id))
@@ -147,6 +148,15 @@
       (format "%.1f" (float-time (time-subtract end-time compilation-time)))
     nil))
 
+(defun swift-additions:re-run-app ()
+  "Rerun already compiled and installed app."
+  (interactive)
+  (ios-simulator:install-and-run-app
+   :rootfolder (swift-additions:get-ios-project-root)
+   :build-folder (swift-additions:get-build-folder)
+   :simulatorId (ios-simulator:load-simulator-id)
+   :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
+
 (defun swift-additions:run-app()
   "Either in simulator or on physical."
   (mode-line-hud:update :message (format "Built %s in %s seconds"
@@ -161,8 +171,10 @@
 
 (defun swift-additions:check-if-build-was-successful (input-text)
   "Check if INPUT-TEXT does not contain 'BUILD FAILED' or 'BUILD INTERRUPTED' from the end."
+  (when DEBUG (message input-text))
   (and (not (string-match-p "BUILD FAILED" input-text))
-       (not (string-match-p "BUILD INTERRUPTED" input-text))))
+       (not (string-match-p "BUILD INTERRUPTED" input-text))
+       (not (string-match-p "xcodebuild: error" input-text))))
 
 (defun swift-additions:check-for-errors (output callback)
   "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
@@ -204,6 +216,7 @@
   (setq current-project-root nil)
   (setq current-build-configuration nil)
   (setq current-simulator-id nil)
+  (setq current-simulator-name nil)
   (setq current-buildconfiguration-json-data nil)
   (setq current-local-device-id nil)
   (setq current-build-command nil)
@@ -474,7 +487,6 @@
        (string-match-p (regexp-quote "error:") text)
        (string-match-p (regexp-quote "warning:") text))
       (progn
-        ;; (periphery-run-parser text)
         (when (not (string-match-p (regexp-quote "error:") text))
           (swift-additions:run-async-swift-package)))
     (swift-additions:run-async-swift-package)))
@@ -537,7 +549,7 @@
   (let* ((sdk (ios-simulator:sdk-path))
          (target (ios-simulator:target)))
     (list
-     "--completion-max-results" "12"
+     ;; "--completion-max-results" "12"
      "-Xswiftc" "-sdk"
      "-Xswiftc" sdk
      "-Xswiftc" "-target"

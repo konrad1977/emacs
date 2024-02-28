@@ -57,7 +57,7 @@
 (defun periphery-search-rg ()
   "Search using RG (Ripgrep)."
   (interactive)
-  (periphery--search-for "rg -Sw"))
+  (periphery--search-for "rg "))
 
 ;;;###autoload
 (defun periphery-query-todos-and-fixmes ()

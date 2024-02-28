@@ -75,9 +75,10 @@
            :callback '(lambda (result)
                         (send-swiftformat-result-to-periphery result))))
 
-        (mode-line-hud:notification
-         :Message (format "Swiftformat linted %s" (propertize (file-name-nondirectory (directory-file-name (file-name-directory (vc-root-dir)))) 'face 'success)))
-         :seconds 2)
+        (mode-line-hud:notification :message
+                                    (format "Formatting %s"
+                                            (propertize (file-name-nondirectory (directory-file-name (file-name-directory (vc-root-dir))))))
+                                    :seconds 3))
 
     (mode-line-hud:update :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face))))
 

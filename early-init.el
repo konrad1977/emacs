@@ -7,7 +7,7 @@
 (setq gc-cons-threshold-original gc-cons-threshold
       gc-cons-threshold (* 1024 1024 1024))
 
-(setq gc-cons-threshold most-positive-fixnum)
+;; (setq gc-cons-threshold most-positive-fixnum)
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'native-comp-speed 2)
@@ -38,7 +38,7 @@
  (setq frame-inhibit-implied-resize t
       frame-resize-pixelwise t
       frame-title-format nil
-      truncate-lines t
+      truncate-lines nil
       truncate-partial-width-windows t
       truncate-string-ellipsis          ".."
       package-enable-at-startup nil

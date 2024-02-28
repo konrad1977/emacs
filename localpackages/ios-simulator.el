@@ -11,7 +11,7 @@
   :group 'ios-simulator)
 
 (defface ios-simulator-background-face
-  '((t (:inherit default)))
+  '((t (:inherit default :foreground "#9CABCA")))
   "Buffer background color."
   :group 'ios-simulator)
 
