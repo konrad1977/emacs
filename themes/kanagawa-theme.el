@@ -30,13 +30,14 @@
   (sumiInk-3		"#363646" "#303030")
   (sumiInk-4		"#54546D" "#303030")
   (sumiInk-5		"#888899" "#303030")
+  (sumiInk-6		"#a0a0ae" "#303030")
 
   (waveBlue-1		"#223249" "#4e4e4e")
   (waveBlue-2		"#2D4F67" "#585858")
   (waveAqua1		"#6A9589" "#6a9589")
   (waveAqua2		"#7AA89F" "#717C7C")
   
-  (samuraiRed          "#E82424" "#585858")
+  (samuraiRed       "#E82424" "#585858")
 
   (winterGreen		"#2B3328" "#585858")
   (winterYellow		"#49443C" "#585858")
@@ -57,7 +58,6 @@
   (crystalBlue		"#7E9CD8" "#717C7C")
   (springViolet2	"#9CABCA" "#717C7C")
   (springBlue		"#7FB4CA" "#717C7C")
-  (lightBlue		"#7aa89f" "#717C7C")
   (springGreen		"#98BB6C" "#717C7C")
   (boatYellow1		"#938056" "#717C7C")
   (boatYellow2		"#C0A36E" "#717C7C")
@@ -76,14 +76,14 @@
   (button                                        (:foreground sakuraPink))
   (child-frame-border                            (:foreground sumiInk-0))
   (cursor                                        (:background peachRed :foreground sumiInk-0 :bold t))
-  (error                                         (:foreground samuraiRed))
+  (error                                         (:foreground peachRed))
   (fringe                                        (:foreground sumiInk-2))
   (glyph-face                                    (:background sumiInk-4))
   (glyphless-char                                (:foreground sumiInk-4))
   (header-line                                   (:background sumiInk-2 :box (:line-width padding :color sumiInk-2)))
   (highlight                                     (:background comet :foreground springViolet1))
   (hl-line                                       (:background sumiInk-2))
-  (homoglyph                                     (:foreground lightBlue))
+  (homoglyph                                     (:foreground waveAqua2))
   (line-number                                   (:foreground sumiInk-4))
   (line-number-current-line                      (:background sumiInk-2 :foreground crystalBlue :weight 'semi-bold))
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
@@ -95,15 +95,18 @@
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground crystalBlue))
   (numbers                                       (:background sakuraPink))
-  (region                                        (:background waveBlue-1))
+  (region                                        (:background waveBlue-2))
   (separator-line                                (:background sumiInk-0))
   (success                                       (:foreground waveAqua2))
   (vertical-border                               (:foreground sumiInk-2))
-  (warning                                       (:foreground carpYellow :background winterYellow))
+  (window-divider                                (:background sumiInk-5 :foreground sumiInk-5))
+  (window-divider-first-pixel                    (:background sumiInk-5 :foreground sumiInk-5))
+  (window-divider-last-pixel                     (:background sumiInk-5 :foreground sumiInk-5))
+  (warning                                       (:foreground carpYellow ))
   (hi-yellow                                     (:background carpYellow :foreground sumiInk-1b))
 
   ;; Font lock
-  (font-lock-keyword-face                        (:foreground oniViolet :weight 'normal))
+  (font-lock-keyword-face                        (:foreground oniViolet :weight 'semi-bold))
   (font-lock-type-face                           (:foreground waveAqua2 :weight 'normal))
   (font-lock-warning-face                        (:foreground roninYellow))
   (font-lock-string-face                         (:foreground springGreen :italic t))
@@ -142,10 +145,10 @@
   (doom-modeline-battery-full                    (:foreground waveAqua2))
   
   ;; Doom visual state
-  (doom-modeline-evil-motion-state               (:foreground lightBlue))
+  (doom-modeline-evil-motion-state               (:foreground waveAqua2))
   (doom-modeline-evil-emacs-state                (:foreground crystalBlue))
   (doom-modeline-evil-insert-state               (:foreground peachRed))
-  (doom-modeline-evil-normal-state               (:foreground lightBlue))
+  (doom-modeline-evil-normal-state               (:foreground waveAqua2))
   (doom-modeline-evil-visual-state               (:foreground springGreen))
   (doom-modeline-evil-replace-state              (:foreground roninYellow))
   (doom-modeline-evil-operator-state             (:foreground crystalBlue))
@@ -156,7 +159,7 @@
   (doom-modeline-buffer-modified                 (:inherit 'bold :foreground carpYellow))
   (doom-modeline-error                           (:background peachRed))
   (doom-modeline-buffer-major-mode               (:foreground waveAqua2 :bold t))
-  (doom-modeline-info                            (:bold t :foreground lightBlue))
+  (doom-modeline-info                            (:bold t :foreground waveAqua2))
   (doom-modeline-project-dir                     (:bold t :foreground surimiOrange))
   (doom-modeline-bar                             (:bold t :background springViolet1))
   (doom-modeline-panel                           (:inherit 'bold :background boatYellow2 :foreground sumiInk-2))
@@ -242,9 +245,9 @@
   (rainbow-delimiters-depth-3-face               (:foreground crystalBlue))
   (rainbow-delimiters-depth-4-face               (:foreground sakuraPink))
   (rainbow-delimiters-depth-5-face               (:foreground carpYellow))
-  (rainbow-delimiters-depth-6-face               (:foreground crystalBlue))
+  (rainbow-delimiters-depth-6-face               (:foreground peachRed))
   (rainbow-delimiters-depth-7-face               (:foreground waveRed))
-  (rainbow-delimiters-depth-8-face               (:foreground lightBlue))
+  (rainbow-delimiters-depth-8-face               (:foreground waveAqua2))
   (rainbow-delimiters-depth-9-face               (:foreground springViolet2))
 
   ;; show-paren
@@ -299,7 +302,7 @@
   (highlight-operators-face                      (:foreground boatYellow2))
   (highlight-quoted-symbol                       (:foreground springGreen))
   (highlight-numbers-face                        (:foreground sakuraPink))
-  (highlight-symbol-face                         (:background waveBlue-1 :foreground lightBlue))
+  (highlight-symbol-face                         (:background winterBlue :foreground springBlue :weight 'normal))
   
   ;; ivy
   (ivy-current-match                             (:background crystalBlue :foreground sumiInk-0 :bold t))
@@ -307,8 +310,8 @@
   (ivy-grep-line-number                          (:foreground springGreen))
   (ivy-minibuffer-match-face-1                   (:foreground waveRed))
   (ivy-minibuffer-match-face-2                   (:foreground springGreen))
-  (ivy-minibuffer-match-highlight                (:foreground lightBlue))
-  (ivy-grep-info                                 (:foreground lightBlue))
+  (ivy-minibuffer-match-highlight                (:foreground waveAqua2))
+  (ivy-grep-info                                 (:foreground waveAqua2))
   (ivy-grep-line-number                          (:foreground springViolet2))
   (ivy-confirm-face                              (:foreground waveAqua2))
 
@@ -345,7 +348,7 @@
   (lsp-ui-doc-background                         (:background sumiInk-0 :foreground peachRed))
   (lsp-ui-doc-header                             (:background sumiInk-0 :foreground peachRed))
   (lsp-ui-doc-border                             (:foreground nil))
-  (lsp-ui-peek-filename                          (:foreground lightBlue))
+  (lsp-ui-peek-filename                          (:foreground waveAqua2))
   (lsp-ui-sideline-code-action                   (:foreground carpYellow))
   (lsp-ui-sideline-current-symbol                (:foreground springBlue))
   (lsp-ui-sideline-symbol                        (:foreground dragonBlue))
@@ -365,7 +368,7 @@
   (all-the-icons-purple                          (:foreground springViolet2))
 
   ;; evil
-  (evil-ex-lazy-highlight                        (:foreground winterGreen :background autumnGreen :bold t))
+  (evil-ex-lazy-highlight                        (:foreground winterRed :background sakuraPink :bold t))
   (evil-ex-substitute-matches                    (:foreground winterRed :background autumnRed :strike-through t))
   (evil-ex-substitute-replacement                (:foreground winterBlue :background crystalBlue :bold))
   (evil-search-highlight-persist-highlight-face  (:background carpYellow))
@@ -397,7 +400,7 @@
   ;; anzu
   (anzu-match-1                                  (:foreground waveAqua2 :background sumiInk-2))
   (anzu-match-2                                  (:foreground carpYellow :background sumiInk-2))
-  (anzu-match-3                                  (:foreground lightBlue :background sumiInk-2))
+  (anzu-match-3                                  (:foreground waveAqua2 :background sumiInk-2))
 
   (anzu-mode-line                                (:foreground sumiInk-0 :background springViolet2))
   (anzu-mode-no-match	                         (:foreground fujiWhite :background peachRed))
@@ -409,7 +412,7 @@
   (ace-jump-face-foreground                      (:foreground peachRed :background sumiInk-0 :bold t))
   
   ;; vertico
-  (vertico-multiline                             (:background winterBlue :foreground lightBlue))
+  (vertico-multiline                             (:background winterBlue :foreground waveAqua2))
   (vertico-group-title                           (:foreground sumiInk-5 :bold t))
   (vertico-group-separator                       (:foreground sumiInk-5 :strike-through t))
   (vertico-current                               (:background waveBlue-2 :weight 'normal))
@@ -417,10 +420,10 @@
   (vertico-posframe-border                       (:background sumiInk))
   (vertico-posframe                              (:background sumiInk))
 
-  (orderless-match-face-0                        (:foreground crystalBlue :background winterBlue :weight 'normal))
-  (orderless-match-face-1                        (:foreground peachRed :background winterRed :weight 'normal))
-  (orderless-match-face-2                        (:foreground springGreen :background winterGreen :weight 'normal))
-  (orderless-match-face-3                        (:foreground carpYellow :background winterYellow :weight 'normal))
+  (orderless-match-face-0                        (:foreground fujiWhite :weight 'bold))
+  (orderless-match-face-1                        (:foreground peachRed :weight 'bold))
+  (orderless-match-face-2                        (:foreground springGreen :weight 'bold))
+  (orderless-match-face-3                        (:foreground carpYellow :weight 'bold))
 
   (comint-highlight-prompt                       (:foreground crystalBlue :background winterBlue :italic t))
   (comint-highlight-input                        (:foreground peachRed :weight 'semi-bold))
@@ -431,7 +434,7 @@
 
   (corfu-current                                 (:inherit 'vertico-current))
   (corfu-annotations                             (:background winterGreen :foreground springGreen))
-  (corfu-default                                 (:background waveBlue-1))
+  (corfu-default                                 (:background waveBlue-1 :foreground springViolet2))
   (corfu-border                                  (:background waveBlue-2))
   (corfu-popupinfo                               (:background sumiInk :foreground springBlue :box (:line-width 2 :color sumiInk)))
 
@@ -440,7 +443,7 @@
   (hydra-face-blue                               (:foreground springBlue))
   (hydra-face-pink                               (:foreground sakuraPink))
   (hydra-face-red                                (:foreground peachRed))
-  (hydra-face-teal                               (:foreground lightBlue))
+  (hydra-face-teal                               (:foreground waveAqua2))
 
   ;; centaur-tabs
   (centaur-tabs-active-bar-face                  (:background springBlue :foreground fujiWhite))
@@ -463,6 +466,8 @@
   (git-gutter:added                              (:foreground autumnGreen))
   (git-gutter:deleted                            (:foreground waveRed))
   (git-gutter:modified                           (:foreground springBlue))
+
+  (marginalia-documentation (:foreground sumiInk-5 :italic t :weight 'thin))
 
   (diff-hl-margin-change                         (:foreground springBlue :background winterBlue))
   (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
@@ -488,7 +493,7 @@
   (tree-sitter-hl-face:annotation.type           (:foreground peachRed))
 
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
-  (tree-sitter-hl-face:function.call             (:foreground springBlue))
+  (tree-sitter-hl-face:function.call             (:foreground springBlue :weight 'thin))
   (tree-sitter-hl-face:function.builtin          (:foreground springGreen))
   (tree-sitter-hl-face:function.special          (:foreground springGreen :italic t :bold t))
   (tree-sitter-hl-face:function.macro            (:foreground waveAqua2))
@@ -501,16 +506,16 @@
   (tree-sitter-hl-face:type.parameter            (:foreground peachRed :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground sumiInk-4))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
-  (tree-sitter-hl-face:type.super                (:foreground waveAqua2))
-  (tree-sitter-hl-face:constructor               (:foreground waveAqua2 :weight 'normal))
+  (tree-sitter-hl-face:type.super                (:foreground peachRed))
+  (tree-sitter-hl-face:constructor               (:foreground waveAqua2 :weight 'semi-bold))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
   (tree-sitter-hl-face:variable.builtin          (:foreground springBlue :italic t))
   (tree-sitter-hl-face:variable.special          (:foreground oniViolet :italic t))
-  (tree-sitter-hl-face:variable.synthesized      (:foreground waveRed :weight 'normal))
+  (tree-sitter-hl-face:variable.synthesized      (:foreground waveRed))
 
-  (tree-sitter-hl-face:property                  (:foreground crystalBlue))
+  (tree-sitter-hl-face:property                  (:foreground crystalBlue :weight 'extra-light))
   (tree-sitter-hl-face:property.definition       (:foreground crystalBlue :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
@@ -537,15 +542,6 @@
   (tree-sitter-hl-face:case-pattern              (:foreground autumnYellow))
   (tree-sitter-hl-face:keyword.compiler          (:foreground sumiInk-4 :italic t :weight 'normal))
 
-  ;; ;; Custom for pinkus tree-sitter-swift
-  (tree-sitter-hl-face:include                   (:foreground sumiInk-4 :italic t :bold t))
-  (tree-sitter-hl-face:parameter                 (:foreground sumiInk-4 :italic t))
-  (tree-sitter-hl-face:repeat                    (:foreground springBlue))
-  (tree-sitter-hl-face:boolean                   (:inherit 'font-lock-constant-face))
-  (tree-sitter-hl-face:keyword.return            (:inherit 'tree-sitter-hl-face:keyword :italic t))
-  (tree-sitter-hl-face:keyword.operator          (:foreground waveAqua2 :bold t))
-  (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
-
   (focus-unfocused (:foreground sumiInk-4))
   (window-stool-face (:background sumiInk-2 :underline (:color sumiInk-3)))
 
@@ -556,6 +552,13 @@
 
   ;; (magit-filename (:foreground crystalBlue))
   (magit-diff-file-heading (:foreground fujiWhite :weight 'normal))
+
+  (copilot-overlay-face (:background sumiInk-3 :foreground springViolet2))
+
+  (transient-key (:foreground waveRed :bold t))
+  (transient-key-stay (:foreground springBlue :backgroud winterBlue :bold t))
+  (transient-key-exit (:foreground peachRed :background winterRed :bold t))
+
   ;; (magit-section-heading (:foreground carpYellow :background winterYellow :weight 'normal))
 
   ;; (magit-diff-base (:foreground crystalBlue :background winterBlue))

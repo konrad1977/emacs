@@ -80,6 +80,7 @@
       (when (fboundp 'function)
         (apply #'funcall function start end args)))))
 
+
 (defun swift-refactor:extract-function (method-name)
   "Extract active region to its own function (as METHOD-NAME)."
   (interactive "sEnter method name (optional): ")

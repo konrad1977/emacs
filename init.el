@@ -4,35 +4,24 @@
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
-;; (set-face-attribute 'default nil
-;;                     :family "SF Mono"
-;;                     :weight 'thin
-;;                     ;; :width 'normal
-;;                     :height 160)
-
-;; (set-face-attribute 'default nil :family "Iosevka"
-;;                     :foundry "ss03"
-;;                     :slant 'normal
-;;                     :weight 'semi-light
-;;                     :height 170
-;;                     :width 'expanded)
-
 (set-face-attribute 'default nil
                     :font "JetBrainsMono Nerd Font Mono"
                     :height 160
                     :weight 'thin
+                    :inverse-video nil
                     :slant 'normal)
 
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 170 :weight 'thin)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
 (set-face-attribute 'variable-pitch nil :font "Work Sans" :height 160 :weight 'light)
+
+(custom-set-faces
+ `(font-lock-comment-face ((t (:font "Work Sans" :italic t :height 1.05)))))
 
 (display-battery-mode t)        ;; Show battery.
 (display-time-mode t)           ;; Show time.
 (fset 'yes-or-no-p 'y-or-n-p)   ;; Set yes or no to y/n
 (global-auto-revert-mode)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)         ;; Highlight current line
-;; (pixel-scroll-precision-mode 1)
-
 
 (setq ad-redefinition-action            'accept
       auto-revert-check-vc-info         t
@@ -52,7 +41,6 @@
       kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
       scroll-margin                     0   ;; scroll N to screen edge
       use-dialog-box                    nil
-      visible-bell                      nil
       word-wrap                         nil
       auto-mode-case-fold               nil
       bidi-inhibit-bpa                  t
@@ -60,12 +48,14 @@
       bidi-paragraph-direction          'left-to-right
       undo-limit                        6710886400 ;; 64mb
       undo-strong-limit                 100663296 ;; x 1.5 (96mb)
-      undo-outer-limit                  1006632960) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
+      undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
+      )
 
 (setq-default display-line-numbers-width    5       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
               ediff-forward-word-function   'forward-char
               ediff-split-window-function   'split-window-horizontally
+              fringe-indicator-alist        (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist)
               tab-width                     4            ;: Use four tabs
               indent-tabs-mode              nil			 ;; Never use tabs. Use spaces instead
               indent-line-function          'insert-tab  ;; Use function to insert tabs
@@ -82,6 +72,8 @@
 
 ; On macos use our custom settings ---------------------
 (when (eq system-type 'darwin)
+  (set-fontset-font t nil "SF Pro Display" nil 'append)
+  (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
   (setq mac-option-key-is-meta nil
         mac-command-key-is-meta t
         mac-command-modifier 'meta
@@ -104,33 +96,52 @@
                          ("elpa" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
-;;
-;; ;; ;; Initialize use-package on non-Linux platforms
-;; (unless (package-installed-p 'use-package)
-;;   (unless package-archive-contents
-;;     (package-refresh-contents))
-;;   (package-install 'use-package))
 
+(setopt package-install-upgrade-built-in t)
+
+(use-package use-package
+  :ensure nil
+  :config
+  (setq use-package-verbose nil
+        use-package-expand-minimally t
+        use-package-always-ensure t
+        use-package-compute-statistics nil
+        use-package-minimum-reported-time 0.2))
+
+(use-package gcmh
+  :config
+  (setq gcmh-high-cons-threshold (* 128 1024 1024))
+  (add-hook 'after-init-hook (lambda ()
+                               (gcmh-mode))))
 (use-package emacs
   :config
   (setq completion-cycle-threshold 3
         max-lisp-eval-depth 10000
         debug-on-error nil
-        process-adaptive-read-buffering nil
-        read-process-output-max (* 128 1024 1024)
-        scroll-conservatively 10000
-        tab-always-indent 'complete))
+        visible-bell nil
+        auth-sources '((:source "~/.authinfo.gpg"))
+        warning-minimum-level :emergency
+        tab-always-indent 'complete
+        jit-lock-defer-time 0))
 
-(use-package spinner
-  :defer t)
+(when (fboundp 'set-message-beep)
+  (set-message-beep 'silent))
 
-(use-package request
-  :defer t)
+(use-package spinner :defer t)
+(use-package request :defer t)
+(use-package async :defer t)
+(use-package all-the-icons :defer t)
+(use-package rg :defer t)
 
-(use-package async
-  :defer t)
+(use-package nerd-icons
+  :defer t
+  :custom
+  (setq nerd-icons-scale-factor 1.0)
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package ligature
+  :hook (prog-mode . ligature-mode)
+  :defer t
   :config
   (ligature-set-ligatures
    'prog-mode
@@ -157,23 +168,9 @@
      "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="
      ("w" (rx (+ "w")))
      ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
-     "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft"))
-  :hook (prog-mode . ligature-mode))
+     "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft")))
 
-(use-package use-package
-  :ensure nil
-  :config
-  (setq use-package-verbose t
-        use-package-expand-minimally t
-        use-package-always-ensure t
-        use-package-compute-statistics nil
-        use-package-minimum-reported-time 0.2))
-
-(use-package all-the-icons
-  :defer t)
-
-(use-package nerd-icons
-  :defer t)
+(setq font-lock-maximum-decoration '((swift-mode . 2) (c++-mode . 2) (t . t)))
 
 (use-package welcome-dashboard
   :ensure nil
@@ -216,13 +213,6 @@
   :ensure nil
   :hook (after-init . save-place-mode))
 
-(use-package auto-package-update
-  :custom
-  (setq auto-package-update-interval 7
-        ;; auto-package-update-delete-old-versions t
-        ;; auto-package-update-prompt-before-update t
-        auto-package-update-hide-results nil))
-
 (use-package vertico
   :hook (after-init . vertico-mode)
   :bind
@@ -236,7 +226,7 @@
   :config
   ;; (vertico-multiform-mode)
   (setq vertico-resize t
-        vertico-count 8
+        vertico-count 12
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t
@@ -252,8 +242,8 @@
   :config
   (setq vertico-posframe-parameters
         '((left-fringe . 0)
-          (right-fringe . 0)))
-  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
+          (right-fringe . 0))
+        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         vertico-posframe-truncate-lines t
         vertico-posframe-min-width 10
         vertico-posframe-width 150
@@ -270,11 +260,6 @@
               ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word)))
 
-(use-package nerd-icons
-  :defer t
-  :custom
-  (setq nerd-icons-scale-factor 0.8)
-  (nerd-icons-font-family "Symbols Nerd Font Mono"))
 
 (use-package nerd-icons-dired
   :hook (dired-mode . nerd-icons-dired-mode))
@@ -315,8 +300,9 @@
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
+  ("M-S" . #'consult-line)
   ("M-f" . #'consult-ripgrep)
-  ("M-l" . #'consult-goto-line)
+  ;; ("M-l" . #'consult-goto-line)
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
@@ -337,7 +323,6 @@
 (use-package consult-projectile
   :after projectile)
 
-
 (use-package recentf
   :hook (after-init . recentf-mode))
 
@@ -354,7 +339,7 @@
        (
          ;; (mood-line-segment-modal) . " ")
         ;; ((mood-line-segment-project) . "/")
-        ((file-name-sans-extension (mood-line-segment-buffer-name))   . "/")
+        ((file-name-sans-extension (mood-line-segment-buffer-name))   . "|")
         ((mood-line-segment-major-mode) . " "))
        :right
        (((mood-line-segment-hud) . "  ")
@@ -385,17 +370,17 @@
   (setq evil-want-integration t
         evil-want-keybinding nil
         evil-want-minibuffer t
+        evil-undo-system 'undo-fu
         evil-want-fine-undo t
         evil-want-C-u-scroll t
-        evil-undo-system 'undo-fu
         evil-search-module 'evil-search
         evil-vsplit-window-right t
         evil-split-window-below t
         evil-want-C-i-jump nil)
   :config
-
-  (define-key evil-visual-state-map (kbd "C-u u") 'undo)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
+
+  (define-key evil-visual-state-map (kbd "u") 'undo)
 
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
   (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
@@ -405,6 +390,7 @@
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
+
 
   (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
@@ -433,7 +419,11 @@
         evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
         evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
         evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
-        evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple")))))
+        evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple"))))
+
+  (setq evil-normal-state-cursor '(box "#41a7fc")
+        evil-insert-state-cursor '(bar "#FF5D62")
+        evil-visual-state-cursor '(hollow "#FF5D62")))
 
 (use-package evil-args
   :after evil
@@ -443,10 +433,10 @@
   (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)
 
   ;; bind evil-forward/backward-args
-  (define-key evil-normal-state-map "L" 'evil-forward-arg)
-  (define-key evil-normal-state-map "H" 'evil-backward-arg)
-  (define-key evil-motion-state-map "L" 'evil-forward-arg)
-  (define-key evil-motion-state-map "H" 'evil-backward-arg)
+  ;; (define-key evil-normal-state-map "L" 'evil-forward-arg)
+  ;; (define-key evil-normal-state-map "H" 'evil-backward-arg)
+  ;; (define-key evil-motion-state-map "L" 'evil-forward-arg)
+  ;; (define-key evil-motion-state-map "H" 'evil-backward-arg)
 
   ;; bind evil-jump-out-args
   (define-key evil-normal-state-map "K" 'evil-jump-out-args))
@@ -518,16 +508,8 @@
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
 
-(use-package window-stool
-  :ensure nil
-  :config
-  (setq window-stool-n-from-top 2
-        window-stool-n-from-bottom 0)
-  (add-hook 'prog-mode-hook #'window-stool-mode)
-    ;; (package-vc-install "https://github.com/JasZhe/window-stool")
-  )
-
 (use-package minimap
+  ;; :hook (swift-mode . minimap-mode)
   :commands (minimap-mode)
   :config
   (setq
@@ -540,7 +522,7 @@
         minimap-recenter-type 'relative
         minimap-window-location 'right)
   :custom-face
-  (minimap-font-face ((t (:family "Minimap" :height 0.15 :group 'minimap)))))
+  (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
 
 (use-package treemacs-nerd-icons
   :after treemacs
@@ -553,9 +535,6 @@
 ;; rainbow-mode show hex as colors
 (use-package rainbow-mode
   :hook (emacs-lisp-mode . rainbow-mode))
-
-;; (use-package solaire-mode
-;;   :hook (prog-mode . solaire-global-mode))
 
 (use-package tree-sitter
   :hook (
@@ -572,14 +551,7 @@
   :defer t
   :ensure nil)
 
-(use-package org-jira
-  :defer t
-  :config
-  (setq jiralib-url "https://mobileinteraction.atlassian.net/"))
-
 ;; ------------------ SEARCHING -------------------
-(use-package rg
-  :defer t)
 
 ;; ------------------ EDITING -------------------
 (use-package google-this
@@ -594,7 +566,7 @@
   (setq eglot-stay-out-of '(corfu company)
         ;; eglot-send-changes-idle-time 0.1
         eglot-autoshutdown t
-        eglot-events-buffer-size 0
+        eglot-events-buffer-config 0
         eglot-ignored-server-capabilities '(:hoverProvider)
         eglot-extend-to-xref t)
   (advice-add 'jsonrpc--log-event :override #'ignore)
@@ -604,50 +576,55 @@
   :after corfu
   :custom
   (kind-icon-extra-space t)
-  (kind-icon-blend-background nil)
-  ;; (kind-icon-blend-frac 0.1)
+  (kind-icon-blend-background t)
+  (kind-icon-blend-frac 0.20)
   :config
+  (setq kind-icon-default-face 'corfu-default ; to compute blended backgrounds correctly
+        kind-icon-default-style '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 0.7 :scale 1.2))
   (setq kind-icon-use-icons t)
   (setq kind-icon-mapping
-        `(
-          (array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
-          (tabnine ,(nerd-icons-codicon "nf-cod-hubot") :face font-lock-warning-face)
-          (boolean ,(nerd-icons-codicon "nf-cod-symbol_boolean") :face font-lock-builtin-face)
-          (class ,(nerd-icons-codicon "nf-cod-symbol_class") :face font-lock-type-face)
-          (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
-          (command ,(nerd-icons-codicon "nf-cod-terminal") :face default)
-          (constant ,(nerd-icons-codicon "nf-cod-symbol_constant") :face font-lock-constant-face)
-          (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face font-lock-constant-face)
-          (enummember ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
-          (enum-member ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
-          (enum ,(nerd-icons-codicon "nf-cod-symbol_enum") :face font-lock-builtin-face)
-          (event ,(nerd-icons-codicon "nf-cod-symbol_event") :face font-lock-warning-face)
-          (field ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-variable-name-face)
-          (file ,(nerd-icons-codicon "nf-cod-symbol_file") :face font-lock-string-face)
-          (folder ,(nerd-icons-codicon "nf-cod-folder") :face font-lock-doc-face)
-          (interface ,(nerd-icons-codicon "nf-cod-symbol_interface") :face font-lock-type-face)
-          (keyword ,(nerd-icons-codicon "nf-cod-symbol_keyword") :face font-lock-keyword-face)
-          (macro ,(nerd-icons-codicon "nf-cod-symbol_misc") :face font-lock-keyword-face)
-          (magic ,(nerd-icons-codicon "nf-cod-wand") :face font-lock-builtin-face)
-          (method ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
-          (function ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
-          (module ,(nerd-icons-codicon "nf-cod-file_submodule") :face font-lock-preprocessor-face)
-          (numeric ,(nerd-icons-codicon "nf-cod-symbol_numeric") :face font-lock-builtin-face)
-          (operator ,(nerd-icons-codicon "nf-cod-symbol_operator") :face font-lock-comment-delimiter-face)
-          (param ,(nerd-icons-codicon "nf-cod-symbol_parameter") :face default)
-          (property ,(nerd-icons-codicon "nf-cod-symbol_property") :face font-lock-variable-name-face)
-          (reference ,(nerd-icons-codicon "nf-cod-references") :face font-lock-variable-name-face)
-          (snippet ,(nerd-icons-codicon "nf-cod-symbol_snippet") :face font-lock-string-face)
-          (string ,(nerd-icons-codicon "nf-cod-symbol_string") :face font-lock-string-face)
-          (struct ,(nerd-icons-codicon "nf-cod-symbol_structure") :face font-lock-variable-name-face)
-          (text ,(nerd-icons-codicon "nf-cod-text_size") :face font-lock-doc-face)
-          (typeparameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
-          (type-parameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
-          (unit ,(nerd-icons-codicon "nf-cod-symbol_ruler") :face font-lock-constant-face)
-          (value ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-builtin-face)
-          (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
-          (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+	  '((array          "a"   :icon "symbol-array"       :face font-lock-type-face              :collection "vscode")
+	    (boolean        "b"   :icon "symbol-boolean"     :face font-lock-builtin-face           :collection "vscode")
+	    (color          "#"   :icon "symbol-color"       :face success                          :collection "vscode")
+	    (command        "cm"  :icon "chevron-right"      :face default                          :collection "vscode")
+	    (constant       "co"  :icon "symbol-constant"    :face font-lock-constant-face          :collection "vscode")
+	    (class          "c"   :icon "symbol-class"       :face font-lock-type-face              :collection "vscode")
+	    (constructor    "cn"  :icon "symbol-method"      :face font-lock-function-name-face     :collection "vscode")
+	    (enum           "e"   :icon "symbol-enum"        :face font-lock-builtin-face           :collection "vscode")
+	    (enummember     "em"  :icon "symbol-enum-member" :face font-lock-builtin-face           :collection "vscode")
+	    (enum-member    "em"  :icon "symbol-enum-member" :face font-lock-builtin-face           :collection "vscode")
+	    (event          "ev"  :icon "symbol-event"       :face font-lock-warning-face           :collection "vscode")
+	    (field          "fd"  :icon "symbol-field"       :face font-lock-variable-name-face     :collection "vscode")
+	    (statement      "st"  :icon "symbol-field"       :face font-lock-variable-name-face     :collection "vscode")
+	    (file           "f"   :icon "symbol-file"        :face font-lock-string-face            :collection "vscode")
+	    (folder         "d"   :icon "folder"             :face font-lock-doc-face               :collection "vscode")
+	    (function       "f"   :icon "symbol-method"      :face font-lock-function-name-face     :collection "vscode")
+	    (interface      "if"  :icon "symbol-interface"   :face font-lock-type-face              :collection "vscode")
+	    (keyword        "kw"  :icon "symbol-keyword"     :face font-lock-keyword-face           :collection "vscode")
+	    (macro          "mc"  :icon "lambda"             :face font-lock-keyword-face)
+	    (magic          "ma"  :icon "lightbulb-autofix"  :face font-lock-builtin-face           :collection "vscode")
+	    (method         "m"   :icon "symbol-method"      :face font-lock-function-name-face     :collection "vscode")
+	    (module         "{"   :icon "file-code-outline"  :face font-lock-preprocessor-face)
+	    (namespace      "ns"  :icon "file-code-outline"  :face font-lock-preprocessor-face)
+	    (numeric        "nu"  :icon "symbol-numeric"     :face font-lock-builtin-face           :collection "vscode")
+	    (operator       "op"  :icon "symbol-operator"    :face font-lock-comment-delimiter-face :collection "vscode")
+	    (param          "pa"  :icon "gear"               :face default                          :collection "vscode")
+	    (property       "pr"  :icon "symbol-property"    :face font-lock-variable-name-face     :collection "vscode")
+	    (reference      "rf"  :icon "library"            :face font-lock-variable-name-face     :collection "vscode")
+	    (snippet        "S"   :icon "symbol-snippet"     :face font-lock-string-face            :collection "vscode")
+	    (string         "s"   :icon "symbol-string"      :face font-lock-string-face            :collection "vscode")
+	    (struct         "%"   :icon "symbol-structure"   :face font-lock-variable-name-face     :collection "vscode")
+	    (text           "tx"  :icon "symbol-key"         :face font-lock-doc-face               :collection "vscode")
+	    (typeparameter  "tp"  :icon "symbol-parameter"   :face font-lock-type-face              :collection "vscode")
+	    (type-parameter "tp"  :icon "symbol-parameter"   :face font-lock-type-face              :collection "vscode")
+	    (unit           "u"   :icon "symbol-ruler"       :face font-lock-constant-face          :collection "vscode")
+	    (value          "v"   :icon "symbol-enum"        :face font-lock-builtin-face           :collection "vscode")
+	    (variable       "va"  :icon "symbol-variable"    :face font-lock-variable-name-face     :collection "vscode")
+	    ;; add instance for python
+	    (instance       "in"  :icon "symbol-variable"    :face font-lock-variable-name-face     :collection "vscode")
+	    (t              "."   :icon "question"           :face font-lock-warning-face           :collection "vscode")))
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
+  (add-to-list 'kind-icon-mapping '(tabnine "ai" :icon "cloud" :face shadow) t))
 
 (use-package corfu
   :hook ((prog-mode . corfu-mode)
@@ -662,19 +639,22 @@
         ("C-k" . corfu-previous))
   :custom
   (corfu-auto t)
+  (corfu-preview-current 'insert)
   :init
   (setq corfu-bar-width 10
         corfu-scroll-margin 2
+        corfu-preselect-first t
+        corfu-quit-at-boundary t
         corfu-auto-prefix 1
         corfu-min-width 40
         corfu-max-width 140
         corfu-left-margin-width 0.8
         corfu-right-margin-width 0.8
-        corfu-count 12
+        corfu-count 15
         corfu-auto-delay 0.3
         corfu-quit-no-match 'separator
         corfu-popupinfo-resize t
-        corfu-popupinfo-hide t
+        ;; corfu-popupinfo-hide t
         corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-min-width corfu-min-width
         corfu-popupinfo-max-width corfu-max-width))
@@ -721,17 +701,10 @@
   :config
   (setq avy-single-candidate-jump t))
 
-(use-package eglot-booster
-  :ensure nil
-  :after eglot
-  :config (eglot-booster-mode)
-    ;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
-  )
-
 (use-package dape
-  :defer t
+  :commands (dape)
   :init
-  (setq dape-buffer-window-arrangement 'right)
+  (setq dape-buffer-window-arrangement 'left)
   :config
   (remove-hook 'dape-on-start-hooks 'dape-repl)
   (add-hook 'dape-on-stopped-hooks 'dape-repl)
@@ -748,8 +721,8 @@
                              "--settings" "{\"sourceLanguages\":[\"swift\"]}"
                              "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                port :autoport
-               simulator-id "iPhone 14 Plus"
-               app-bundle-id "kalle.se"
+               simulator-id "iPhone 14 crash"
+               app-bundle-id "se.mobileinteraction.greenfee-qa"
                fn (dape-config-autoport
                    ,(lambda (config)
                       (with-temp-buffer
@@ -775,7 +748,7 @@
 
 (use-package repeat
   :ensure nil
-  :hook (after-init . repeat-mode)
+  :hook (prog-mode. repeat-mode)
   :custom
   (repeat-too-dangerous '(kill-this-buffer))
   (repeat-exit-timeout 5))
@@ -892,11 +865,11 @@
   (display-buffer-alist
    '(("\\*Async Shell Command\\*"
       (display-buffer-no-window))
-     ;; ("\\*xwidget\\*\\|\\*xref\\*"
-     ;;  (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
-     ;;  (body-function . select-window)
-     ;;  (window-width . 0.4)
-     ;;  (side . right))
+     ("\\*xwidget\\*\\|\\*xref\\*"
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      (body-function . select-window)
+      (window-width . 0.4)
+      (side . left))
      ("\\*occur\\|evil-marks\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
@@ -905,14 +878,14 @@
       (slot . 0))
      ("\\*iOS Simulator\\|*swift package\\|*ios-device"
       (display-buffer-in-side-window display-buffer-reuse-window)
-      (window-height . 0.10)
+      (window-height . 0.2)
       (window-parameters . ((mode-line-format . none)))
       (side . bottom)
       (slot . 2))
      ("\\*Periphery\\*"
       (display-buffer-in-side-window display-buffer-reuse-window)
       (body-function . select-window)
-      (window-height . 0.15)
+      (window-height . 0.2)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -935,7 +908,6 @@
       (side . bottom)
       (slot . 3)))))
 
-;; darkroom (go to focus mode)
 (use-package darkroom
   :commands (darkroom-tentative-mode)
   :bind ("C-x C-d" . darkroom-tentative-mode)
@@ -973,7 +945,7 @@
   :hook (prog-mode . git-gutter-mode)
   :diminish git-gutter-mode
   :config
-  (setq git-gutter:update-interval 1))
+  (setq git-gutter:update-interval 2))
 
 (use-package git-gutter-fringe
   :after git-gutter
@@ -1027,6 +999,9 @@
 
   (mk/leader-keys
     "aa" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
+
+  (mk/leader-keys
+    "tt" '(lambda () (interactive) (mk/toggle-transparency) :which-key "Toggle transparenty"))
 
   (mk/leader-keys
     "gg" '(google-this :which-key "Google this"))
@@ -1227,11 +1202,11 @@
         org-modern-hide-stars t
         org-modern-star '("❶" "❷" "❸" "❹" "❺" "❻" "❼")))
 
-(use-package visual-fill-column
-  :hook ((org-mode . visual-fill-column-mode))
-  :config
-  (setq visual-fill-column-width 90
-        visual-fill-column-center-text t))
+;; (use-package visual-fill-column
+;;   :hook ((org-mode . visual-fill-column-mode))
+;;   :config
+;;   (setq visual-fill-column-width 120
+;;         visual-fill-column-center-text t))
 
 (use-package elfeed
   :commands elfeed
@@ -1253,16 +1228,11 @@
   :config
   (setq highlight-symbol-idle-delay 0.5))
 
-(use-package highlight-indentation
-  :hook ((prog-mode . highlight-indentation-current-column-mode))
-  :config
-  (setq highlight-indentation-blank-lines t))
-
-;; (use-package indent-guide
-;;   :hook ((prog-mode . indent-guide-mode))
+;; (use-package highlight-indentation
+;;   :hook ((prog-mode . highlight-indentation-current-column-mode))
 ;;   :config
-;;   (setq indent-guide-threshold 0
-;;         indent-guide-char "⎮"))
+;;   (setq highlight-indentation-blank-lines t))
+
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1295,7 +1265,9 @@
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
         swift-mode:multiline-statement-offset 0
-        swift-mode:highlight-anchor t))
+        swift-mode:highlight-anchor t
+        tree-sitter-hl-use-font-lock-keywords nil)
+  (setq font-lock-maximum-decoration '((swift-mode . 2) (c++-mode . 2) (t . t))))
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
@@ -1366,7 +1338,7 @@
   :ensure nil
   :after prog-mode
   :bind
-  ("M-f" . #'periphery-quick:find-ask)
+  ("C-c q a" . #'periphery-quick:find-ask)
   ("M-F" . #'periphery-quick:find)
   ("C-c f f" . #'periphery-quick:find-in-file)
   ("C-c f t" . #'periphery-quick:todos))
@@ -1379,6 +1351,7 @@
   ("C-c C-f" . #'periphery-search-dwiw-rg)
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
+
 
 (use-package periphery-swiftformat
   :ensure nil
@@ -1400,11 +1373,6 @@
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-(defun setup-swift-programming ()
-  "Custom setting for swift programming."
-  ;; (flymake-mode nil)
-  (define-key swift-mode-map (kbd "C-c C-f") #'periphery-search-dwiw-rg))
-
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
   (interactive)
@@ -1424,6 +1392,9 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
+
+  (local-set-key (kbd "C-c C-f") nil)
+  (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
@@ -1463,22 +1434,19 @@
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
 
+(setq mk-transparency-disabled-p t)
+
 (defun mk/toggle-transparency ()
-  "Toggle transparency."
+  "Toggle transparency"
   (interactive)
-   (let ((alpha (frame-parameter nil 'alpha)))
-     (if (eq
-          (if (numberp alpha)
-              alpha
-            (cdr alpha)) ; may also be nil
-          100)
-         (set-frame-parameter nil 'alpha '(90 . 100))
-       (set-frame-parameter nil 'alpha '(100 . 100)))))
+  (let* ((not-transparent-p (and (boundp 'mk-transparency-disabled-p) mk-transparency-disabled-p))
+         (alpha (if not-transparent-p 95 100)))
+    (setq mk-transparency-disabled-p (not not-transparent-p))
+    (progn
+      (set-frame-parameter (selected-frame) 'alpha `(,alpha . ,alpha))
+      (add-to-list 'default-frame-alist `(alpha . (,alpha . ,alpha))))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
-
-(with-eval-after-load 'swift-mode
-  (setup-swift-programming))
 
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
 
@@ -1503,7 +1471,58 @@
   (xref-backend-apropos 'eglot pattern))
 ;;
 ;;
+
+(put 'narrow-to-region 'disabled nil)
+
+(add-hook 'minibuffer-setup-hook 'my-minibuffer-setup)
+(defun my-minibuffer-setup ()
+  "Change the mini-buffer to a little bigger text."
+  (set (make-local-variable 'face-remapping-alist)
+       '((default :height 1.05))))
+
+(use-package copilot
+  :hook (prog-mode . copilot-mode)
+  :ensure nil
+  :bind
+  (:map copilot-completion-map
+        ("<tab>" . copilot-accept-completion)
+        ("TAB" . copilot-accept-completion)
+        ("C-c C-n" . copilot-next-completion)
+        ("C-c C-p" . copilot-previous-completion)))
+;; (package-vc-install "https://github.com/copilot-emacs/copilot.el.git")
+
+
+;; (use-package window-stool
+;;   :hook (prog-mode . window-stool-mode)
+;;   :ensure nil
+;;   :config
+;;   (setq window-stool-n-from-top 2
+;;         window-stool-n-from-bottom 0)
+;;     ;; (package-vc-install "https://github.com/JasZhe/window-stool")
+;;   )
+
+(use-package eglot-booster
+  :ensure nil
+  :after eglot
+  :config (eglot-booster-mode))
+;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
+
+(use-package indent-bars
+  :hook (prog-mode . indent-bars-mode)
+  :ensure nil
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.1))
+  (indent-bars-width-frac 0.3)
+  (indent-bars-pad-frac 0.3)
+  (indent-bars-zigzag nil)
+  (indent-bars-prefer-character t)
+  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
+  (indent-bars-highlight-current-depth '(:blend 0.4)) ; pump up the BG blend on current
+  (indent-bars-display-on-blank-lines t)
+  )
+;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
+
+
 (provide 'init)
 
-; init.el ends here
-(put 'narrow-to-region 'disabled nil)
+;;; init.el ends here
