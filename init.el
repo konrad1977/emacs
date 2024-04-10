@@ -22,34 +22,7 @@
 (fset 'yes-or-no-p 'y-or-n-p)   ;; Set yes or no to y/n
 (global-auto-revert-mode)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)         ;; Highlight current line
-
-(setq ad-redefinition-action            'accept
-      auto-revert-check-vc-info         t
-      backup-by-copying                 t
-      backup-directory-alist            '(("." . "~/.emacs.d/backups"))
-      cursor-in-non-selected-windows    nil
-      byte-compile-warnings             '(ck-functions)
-      confirm-kill-processes            nil
-      create-lockfiles                  nil
-      echo-keystrokes                   0.2
-      confirm-kill-emacs                'y-or-n-p
-      find-file-visit-truename          t
-      font-lock-maximum-decoration      t
-      highlight-nonselected-windows     t
-      fast-but-imprecise-scrolling      nil
-      ;; jit-lock-defer-time               nil
-      kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
-      scroll-margin                     0   ;; scroll N to screen edge
-      use-dialog-box                    nil
-      word-wrap                         nil
-      auto-mode-case-fold               nil
-      bidi-inhibit-bpa                  t
-      bidi-display-reordering           'left-to-right
-      bidi-paragraph-direction          'left-to-right
-      undo-limit                        6710886400 ;; 64mb
-      undo-strong-limit                 100663296 ;; x 1.5 (96mb)
-      undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
-      )
+;; (pixel-scroll-precision-mode 1)
 
 (setq-default display-line-numbers-width    5       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -117,11 +90,37 @@
   :config
   (setq completion-cycle-threshold 3
         max-lisp-eval-depth 10000
+        scroll-conservatively 101
+        scroll-margin 0
         debug-on-error nil
         visible-bell nil
         auth-sources '((:source "~/.authinfo.gpg"))
         warning-minimum-level :emergency
         tab-always-indent 'complete
+        ad-redefinition-action            'accept
+        auto-revert-check-vc-info         t
+        backup-by-copying                 t
+        backup-directory-alist            '(("." . "~/.emacs.d/backups"))
+        cursor-in-non-selected-windows    nil
+        byte-compile-warnings             '(ck-functions)
+        confirm-kill-processes            nil
+        create-lockfiles                  nil
+        echo-keystrokes                   0.2
+        confirm-kill-emacs                'y-or-n-p
+        find-file-visit-truename          t
+        font-lock-maximum-decoration      t
+        highlight-nonselected-windows     t
+        fast-but-imprecise-scrolling      t
+        kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
+        use-dialog-box                    nil
+        word-wrap                         nil
+        auto-mode-case-fold               nil
+        bidi-inhibit-bpa                  t
+        bidi-display-reordering           'left-to-right
+        bidi-paragraph-direction          'left-to-right
+        undo-limit                        6710886400 ;; 64mb
+        undo-strong-limit                 100663296 ;; x 1.5 (96mb)
+        undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
         jit-lock-defer-time 0))
 
 (when (fboundp 'set-message-beep)
@@ -748,7 +747,7 @@
 
 (use-package repeat
   :ensure nil
-  :hook (prog-mode. repeat-mode)
+  :hook (prog-mode . repeat-mode)
   :custom
   (repeat-too-dangerous '(kill-this-buffer))
   (repeat-exit-timeout 5))
@@ -1202,11 +1201,11 @@
         org-modern-hide-stars t
         org-modern-star '("❶" "❷" "❸" "❹" "❺" "❻" "❼")))
 
-;; (use-package visual-fill-column
-;;   :hook ((org-mode . visual-fill-column-mode))
-;;   :config
-;;   (setq visual-fill-column-width 120
-;;         visual-fill-column-center-text t))
+(use-package visual-fill-column
+  :hook ((org-mode . visual-fill-column-mode))
+  :config
+  (setq visual-fill-column-width 120
+        visual-fill-column-center-text t))
 
 (use-package elfeed
   :commands elfeed
@@ -1303,6 +1302,7 @@
   ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
   ("C-c C-c" . #'swift-additions:compile-and-run-app)
   ("C-c C-x" . #'swift-additions:reset-settings)
+  ("M-r" . #'swift-additions:run-without-compiling)
   ("M-K" .  #'swift-additions:clean-build-folder)
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
@@ -1403,7 +1403,7 @@
   (setq indicate-empty-lines nil            ;; Show empty lines
         indicate-unused-lines nil           ;; Show unused lines
         truncate-lines t
-        left-fringe-width 70
+        left-fringe-width 20
         right-fringe-width 0
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted

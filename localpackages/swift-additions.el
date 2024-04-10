@@ -7,9 +7,9 @@
 ;;; code:
 (require 'eglot)
 (require 'projectile)
-(require 'periphery-helper)
 (require 'xcodebuildserver)
 (require 'periphery)
+(require 'periphery-helper)
 (require 'ios-simulator)
 (require 'ios-device)
 (require 'spinner)
@@ -78,7 +78,7 @@
     "xcrun xcodebuild build \\"))
 
 (defun swift-additions:get-build-folder ()
-  "Get build folder. If there are more than one let the user choose wich one to use."
+  "Get build folder.  If there are more than one let the user choose wich one to use."
   (unless current-build-folder
     (setq current-build-folder
     (if-let* ((default-directory (concat (swift-additions:get-ios-project-root) "/build/Build/Products/"))
@@ -148,23 +148,24 @@
       (format "%.1f" (float-time (time-subtract end-time compilation-time)))
     nil))
 
-(defun swift-additions:re-run-app ()
+(defun swift-additions:run()
   "Rerun already compiled and installed app."
   (interactive)
+  (periphery-kill-buffer)
   (ios-simulator:install-and-run-app
    :rootfolder (swift-additions:get-ios-project-root)
    :build-folder (swift-additions:get-build-folder)
    :simulatorId (ios-simulator:load-simulator-id)
    :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
 
-(defun swift-additions:run-app()
+(defun swift-additions:run-app-after-build()
   "Either in simulator or on physical."
   (mode-line-hud:update :message (format "Built %s in %s seconds"
-                                         (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
+                                         (propertize (swift-additions:fetch-or-load-xcode-scheme) 'face 'font-lock-builtin-face)
                                          (propertize (swift-additions:compilation-time) 'face 'warning)))
 
   (ios-simulator:install-and-run-app
-   :rootfolder current-project-root
+   :rootfolder (swift-additions:get-ios-project-root)
    :build-folder (swift-additions:get-build-folder)
    :simulatorId (ios-simulator:load-simulator-id)
    :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
@@ -195,7 +196,8 @@
 (defun swift-additions:get-ios-project-root ()
   "Get the ios-project root."
   (unless current-project-root
-    (setq current-project-root (cdr (project-current))))
+    (setq current-project-root (cdr (project-current)))
+    (setq-local defualt-directory current-project-root))
   current-project-root)
 
 (defun swift-additions:get-current-sdk ()
@@ -228,15 +230,7 @@
   (message-with-color :tag "[Build]" :text "Successful" :attributes 'success))
 
 ;;;###autoload
-(defun swift-additions:run-without-compiling ()
-  "Run app in simulator/device without compiling."
-  (interactive)
-  (periphery-kill-buffer)
-  (ios-simulator:kill-buffer)
-  (swift-additions:run-app))
-
-;;;###autoload
-(defun swift-additions:compile-and-run-app ()
+(defun swift-additions:compile-and-run ()
   "Compile and run app."
   (interactive)
   (swift-additions:compile-and-run-silent t))
@@ -302,7 +296,7 @@
      :callback '(lambda (text)
                   (spinner-stop build-progress-spinner)
                   (if run-app-on-build
-                      (swift-additions:check-for-errors text #'swift-additions:run-app)
+                      (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
                     (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
 
 (defun swift-additions:compile-and-run-on-device ()
@@ -412,9 +406,10 @@
   "Get bundle identifier (as CONFIG)."
   (unless current-project-root
     (setq current-project-root (swift-additions:get-ios-project-root)))
-  
-  (let ((default-directory current-project-root)
-        (json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
+
+  (setq-local default-directory current-project-root)
+
+  (let ((json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
 
@@ -564,25 +559,25 @@
 
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match"
+  "Face for enum case names in a pattern match."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:comment.special
   '((t :inherit tree-sitter-hl-face:comment
        :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK"
+  "Face for comments with some markup-like meaning, like MARK."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:operator.special
   '((t :inherit font-lock-negation-char-face
        :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation"
+  "Face for operators that need to stand out, like unary negation."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:punctuation.type
   '((t :inherit tree-sitter-hl-face:type
        :weight normal))
-  "Face for punctuation in type names or annotations"
+  "Face for punctuation in type names or annotations."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:annotation
@@ -608,23 +603,22 @@
 (defface tree-sitter-hl-face:keyword.compiler
   '((t :inherit tree-sitter-hl-face:keyword
        :weight semi-bold))
-  "Face for compile-time keywords"
+  "Face for compile-time keywords."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.type
   '((t :inherit tree-sitter-hl-face:keyword))
-  "Face for keywords that appear in type annotations"
+  "Face for keywords that appear in type annotations."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:variable.synthesized
   '((t :inherit tree-sitter-hl-face:variable))
-  "Face for compiler-synthesized identifiers"
+  "Face for compiler-synthesized identifiers."
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:default
   '((t :inherit default))
-  "Face to override other faces, forcing the base display
-attributes."
+  "Face to override other faces, forcing the base display attributes."
   :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)
