@@ -115,8 +115,10 @@
 
 (cl-defun ios-simulator:app-name-from (&key folder)
   "Get compiled app name from (FOLDER)."
-  (when-let (binary-name (directory-files (replace-regexp-in-string "\\\\" "" folder) nil "\\.app$"))
-    (file-name-sans-extension (car binary-name))))
+  (if (file-exists-p folder)
+      (let ((binary-name (directory-files folder nil "\\.app$")))
+        (file-name-sans-extension (car binary-name)))
+    nil))
 
 (defun ios-simulator:kill-buffer ()
   "Kill the ios-simulator buffer."

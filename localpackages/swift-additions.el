@@ -88,11 +88,14 @@
 
 (defun swift-additions:parse-build-folder (directory)
   "Parse build folders from (as DIRECTORY)."
-  (let ((folders (directory-files directory nil "^[^.].*" t)))
-    (mapc (lambda (folder)
-            (when (file-directory-p folder)
-                 (expand-file-name folder directory)))
-          folders)))
+  ;; check if directory exists first
+    (if (file-directory-p directory)
+        (let* ((folders (directory-files directory nil "^[^.].*" t)))
+            (mapc (lambda (folder)
+                    (when (file-directory-p folder)
+                    (file-name-nondirectory folder)))
+                  folders))
+      nil))
 
 (defun swift-additions:get-number-of-cores ()
   "Fetch number of available cores."
@@ -152,11 +155,15 @@
   "Rerun already compiled and installed app."
   (interactive)
   (periphery-kill-buffer)
-  (ios-simulator:install-and-run-app
-   :rootfolder (swift-additions:get-ios-project-root)
-   :build-folder (swift-additions:get-build-folder)
-   :simulatorId (ios-simulator:load-simulator-id)
-   :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
+
+  (let ((appname (ios-simulator:app-name-from :folder (swift-additions:get-build-folder))))
+    (if appname
+        (ios-simulator:install-and-run-app
+         :rootfolder (swift-additions:get-ios-project-root)
+         :build-folder (swift-additions:get-build-folder)
+         :simulatorId (ios-simulator:load-simulator-id)
+         :appIdentifier (swift-additions:fetch-or-load-app-identifier))
+      (swift-additions:compile-and-run))))
 
 (defun swift-additions:run-app-after-build()
   "Either in simulator or on physical."

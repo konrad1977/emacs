@@ -17,7 +17,7 @@
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
-  (padding 8)
+  (padding 7)
   ;; Define our color palette
   (fujiWhite		"#DCD7BA" "#ffffff")
   (old-white		"#C8C093" "#ffffff")
@@ -207,7 +207,7 @@
   (org-level-8                                   (:foreground springGreen))
 
   (org-modern-statistics                         (:foreground crystalBlue :background winterBlue :height 0.8 :weight 'normal))
-  (org-modern-tag                                (:foreground comet :background sumiInk-2 :height 0.8 :weight 'semi-bold))
+  (org-modern-tag                                (:foreground sumiInk-4 :background winterBlue :height 0.8 :weight 'semi-bold))
 
   ;; which-key
   (which-key-key-face                            (:inherit 'font-lock-variable-name-face))

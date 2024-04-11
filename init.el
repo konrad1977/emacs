@@ -6,13 +6,13 @@
 
 (set-face-attribute 'default nil
                     :font "JetBrainsMono Nerd Font Mono"
-                    :height 160
+                    :height 150
                     :weight 'thin
                     :inverse-video nil
                     :slant 'normal)
 
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 160 :weight 'thin)
-(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 160 :weight 'light)
+(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'thin)
+(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 150 :weight 'light)
 
 (custom-set-faces
  `(font-lock-comment-face ((t (:font "Work Sans" :italic t :height 1.05)))))
@@ -135,8 +135,7 @@
 (use-package nerd-icons
   :defer t
   :custom
-  (setq nerd-icons-scale-factor 1.0)
-  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+  (setq nerd-icons-scale-factor 1.2))
 
 (use-package ligature
   :hook (prog-mode . ligature-mode)
@@ -306,7 +305,8 @@
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
   ("C-c m b" . #'consult-imenu)
-  ("M-O" . #'consult-projectile-find-file))
+  ;; ("M-O" . #'consult-projectile-find-file)
+  )
 
 (use-package embark-consult
   :after (embark consult))
@@ -330,18 +330,28 @@
   :config
   (setq show-in-echo-area nil))
 
+(defun mk/check-mode-active (mode)
+  "Check if MODE is active."
+  (bound-and-true-p (symbol-value mode)))
+
+(defun mk/hud-copilot ()
+  "HUD for Copilot."
+  (if (bound-and-true-p copilot-mode)
+      (concat (propertize "" 'face '(:inherit 'success)) " copilot")
+      (propertize (nerd-icons-octicon "nf-oct-copilot_warning") 'face '(:inherit 'error))))
+
 (use-package mood-line
   :config
   (setq mood-line-format
       (mood-line-defformat
        :left
-       (
-         ;; (mood-line-segment-modal) . " ")
-        ;; ((mood-line-segment-project) . "/")
-        ((file-name-sans-extension (mood-line-segment-buffer-name))   . "|")
-        ((mood-line-segment-major-mode) . " "))
+       (((file-name-sans-extension (mood-line-segment-buffer-name))   . "|")
+        ((mood-line-segment-major-mode) . " ")
+        )
        :right
-       (((mood-line-segment-hud) . "  ")
+       (
+        ((mk/hud-copilot) . " ")
+        ((mood-line-segment-hud) . "  ")
         ((mood-line-segment-process) . "  ")
         ((mood-line-segment-vc) . " ")
         ;; (org-timer-mode-line-string . " ")
@@ -531,10 +541,6 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-;; rainbow-mode show hex as colors
-(use-package rainbow-mode
-  :hook (emacs-lisp-mode . rainbow-mode))
-
 (use-package tree-sitter
   :hook (
          (swift-mode . tree-sitter-mode)
@@ -702,8 +708,10 @@
 
 (use-package dape
   :commands (dape)
+  :bind ("C-x C-d" . dape)
   :init
-  (setq dape-buffer-window-arrangement 'left)
+  (setq dape-buffer-window-arrangement 'right
+        dape-stack-trace-levels 10)
   :config
   (remove-hook 'dape-on-start-hooks 'dape-repl)
   (add-hook 'dape-on-stopped-hooks 'dape-repl)
@@ -721,7 +729,7 @@
                              "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                port :autoport
                simulator-id "iPhone 14 crash"
-               app-bundle-id "se.mobileinteraction.greenfee-qa"
+               app-bundle-id ""
                fn (dape-config-autoport
                    ,(lambda (config)
                       (with-temp-buffer
@@ -909,7 +917,7 @@
 
 (use-package darkroom
   :commands (darkroom-tentative-mode)
-  :bind ("C-x C-d" . darkroom-tentative-mode)
+  ;; :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
   (setq darkroom-text-scale-increase 1.5
         darkroom-margins '(15 . 0)))
@@ -1251,11 +1259,11 @@
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-(use-package yasnippet
-  :hook (swift-mode . yas-minor-mode)
-  :diminish yas-minor-mode
-  :commands (yas-reload-all)
-  :config (yas-reload-all))
+;; (use-package yasnippet
+;;   :hook (swift-mode . yas-minor-mode)
+;;   :diminish yas-minor-mode
+;;   :commands (yas-reload-all)
+;;   :config (yas-reload-all))
 
 (use-package swift-mode
   :defer t
@@ -1266,12 +1274,12 @@
         swift-mode:multiline-statement-offset 0
         swift-mode:highlight-anchor t
         tree-sitter-hl-use-font-lock-keywords nil)
-  (setq font-lock-maximum-decoration '((swift-mode . 2) (c++-mode . 2) (t . t))))
+  (setq font-lock-maximum-decoration '((swift-mode . 2) (emacs-lisp-mode . 2) (t . t))))
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
-              ("C-c C-c" . #'swift-additions:compile-and-run-app)
+              ("C-c C-c" . #'swift-additions:compile-and-run)
               ("C-c C-k" . #'periphery-run-loco))
   :ensure nil)
 
@@ -1300,9 +1308,9 @@
   :bind
   ("C-c t m" .  #'swift-additions:test-module-silent)
   ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
-  ("C-c C-c" . #'swift-additions:compile-and-run-app)
+  ("C-c C-c" . #'swift-additions:compile-and-run)
   ("C-c C-x" . #'swift-additions:reset-settings)
-  ("M-r" . #'swift-additions:run-without-compiling)
+  ("M-r" . #'swift-additions:run)
   ("M-K" .  #'swift-additions:clean-build-folder)
   ("M-P" .  #'swift-additions:print-thing-at-point)
   ("M-t" . #'swift-additions:insert-todo)
@@ -1352,7 +1360,6 @@
   ("C-x C-t" . #'periphery-query-todos-and-fixmes)
   ("C-x C-m" . #'periphery-query-marks))
 
-
 (use-package periphery-swiftformat
   :ensure nil
   :after swift-mode
@@ -1372,6 +1379,12 @@
   :after swift-mode
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
+
+(use-package filer
+  :ensure nil
+  :defer t
+  :bind
+  ("M-O" . filer:find-file))
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
@@ -1403,7 +1416,7 @@
   (setq indicate-empty-lines nil            ;; Show empty lines
         indicate-unused-lines nil           ;; Show unused lines
         truncate-lines t
-        left-fringe-width 20
+        left-fringe-width 32
         right-fringe-width 0
         show-trailing-whitespace nil      ;; Show or hide trailing whitespaces
         column-number-mode nil            ;; Show current line number highlighted
@@ -1469,8 +1482,6 @@
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot+dumb)) pattern)
   (xref-backend-apropos 'eglot pattern))
-;;
-;;
 
 (put 'narrow-to-region 'disabled nil)
 
@@ -1521,6 +1532,15 @@
   (indent-bars-display-on-blank-lines t)
   )
 ;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
+;; rainbow-mode show hex as colors
+;; (use-package rainbow-mode
+;;   :hook (emacs-lisp-mode . rainbow-mode))
+;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
+
+(use-package colorful-mode
+  :ensure nil
+  :hook (prog-mode . colorful-mode))
+;; (package-vc-install "https://github.com/DevelopmentCool2449/colorful-mode.git")
 
 
 (provide 'init)
