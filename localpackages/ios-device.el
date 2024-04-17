@@ -32,17 +32,12 @@
       (setq current-device-id (ios-device:format-id device-id))))
   current-device-id)
 
-(cl-defun ios-device:install-app (&key project-root &key buildfolder &key appname)
+(cl-defun ios-device:install-app (&key buildfolder &key appname)
   "Install an app on device (PROJECT-ROOT BUILDFOLDER APPNAME)."
   (ios-device:kill-buffer)
-  (let* ((folder buildfolder)
-         (app-name (ios-simulator:app-name-from :folder folder))
-         (install-path (concat current-project-root "/" folder))
-         (default-directory install-path)
-         (command (format "ios-deploy -b %s.app -d" app-name))
-         (buffer (get-buffer-create (concat ios-device:buffer-name app-name))))
-
-    (message-with-color :tag "[Installing]" :text (format "%s onto physical device. Will launch app when done." app-name) :attributes 'warning)
+  (let* ((default-directory buildfolder)
+         (command (format "ios-deploy -b '%s'.app -d" appname))
+         (buffer (get-buffer-create (concat ios-device:buffer-name appname))))
     (setq current-buffer-name buffer)
     (inhibit-sentinel-messages #'async-shell-command
                                command

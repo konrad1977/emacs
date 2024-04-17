@@ -81,7 +81,7 @@
   "Get build folder.  If there are more than one let the user choose wich one to use."
   (unless current-build-folder
     (setq current-build-folder
-    (if-let* ((default-directory (concat (swift-additions:get-ios-project-root) "/build/Build/Products/"))
+    (if-let* ((default-directory (concat (swift-additions:get-ios-project-root) "build/Build/Products/"))
               (choosen-folder (swift-additions:build-menu :title "Choose build folder" :list (swift-additions:parse-build-folder default-directory))))
         (shell-quote-argument (concat default-directory choosen-folder "/")))))
   current-build-folder)
@@ -282,22 +282,21 @@
         (build-command (build-app-command :sim-id current-simulator-id))
         (run-app-on-build run))
 
+    (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
     (setq compilation-time (current-time))
+    (setq build-progress-spinner spinner-current)
+
+    (when DEBUG
+      (message build-command))
 
     (xcodebuildserver:check-configuration :root current-project-root
                                           :workspace (swift-additions:get-workspace-or-project)
                                           :scheme current-xcode-scheme)
-    (when DEBUG
-      (message build-command))
-
-    (spinner-start 'progress-bar-filled)
-    (setq build-progress-spinner spinner-current)
 
     (mode-line-hud:update :message (format "Compiling %s/%s"
                                            (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
                                            (propertize current-simulator-name 'face 'font-lock-negation-char-face)))
-
     (async-start-command-to-string
      :command build-command
      :callback '(lambda (text)
@@ -310,27 +309,35 @@
   "Compile and run on device."
   (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
 
-  (message-with-color
-   :tag "[Preparing]"
-   :text "Fetching build information..."
-   :attributes '(:inherit warning))
-
   (let ((default-directory current-project-root)
         (build-command (build-app-command :sim-id nil))
         (build-folder (swift-additions:get-build-folder)))
+
     (setq current-build-command build-command)
     (setq current-build-folder build-folder)
+    (setq compilation-time (current-time))
+    (setq build-progress-spinner spinner-current)
+
+    (mode-line-hud:update :message (format "Compiling %s/%s"
+                                           (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
+                                           (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
     (when DEBUG
       (message current-build-command)
       (message "Build-folder: %s" current-build-folder))
 
+    (xcodebuildserver:check-configuration :root current-project-root
+                                          :workspace (swift-additions:get-workspace-or-project)
+                                          :scheme current-xcode-scheme)
+
+    (spinner-start 'progress-bar-filled)
+
     (async-start-command-to-string
      :command build-command
      :callback '(lambda (text)
+                  (spinner-stop build-progress-spinner)
                   (if run-app-on-build
                       (ios-device:install-app
-                       :project-root current-project-root
                        :buildfolder current-build-folder
                        :appname (ios-simulator:app-name-from :folder current-build-folder)))
                     (swift-additions:check-for-errors text #'swift-additions:successful-build)))))

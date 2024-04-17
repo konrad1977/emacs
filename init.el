@@ -202,10 +202,7 @@
    ;; (load-theme 'kman t)
 
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
-
-  ;; (load-theme 'doom-tokyo-night)
-  )
+  (load-theme 'kanagawa t))
 
 (use-package saveplace
   :ensure nil
@@ -337,8 +334,8 @@
 (defun mk/hud-copilot ()
   "HUD for Copilot."
   (if (bound-and-true-p copilot-mode)
-      (concat (propertize "" 'face '(:inherit 'success)) " copilot")
-      (propertize (nerd-icons-octicon "nf-oct-copilot_warning") 'face '(:inherit 'error))))
+      (concat (propertize "" 'face '(:inherit success)) " copilot")
+      (propertize (nerd-icons-octicon "nf-oct-copilot_warning") 'face '(:inherit error))))
 
 (use-package mood-line
   :config
@@ -518,7 +515,6 @@
   :hook (prog-mode . ws-butler-mode))
 
 (use-package minimap
-  ;; :hook (swift-mode . minimap-mode)
   :commands (minimap-mode)
   :config
   (setq
@@ -678,7 +674,10 @@
 (use-package cape
   :after evil
   :defer t
-  :bind (("C-c p p" . completion-at-point) ;; capf
+  :bind (
+         ("<Tab>" . cape-complete)
+         ("TAB" . cape-complete)
+         ("C-c p p" . completion-at-point) ;; capf
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
          ("C-c p f" . cape-file)
