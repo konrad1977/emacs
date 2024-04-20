@@ -40,7 +40,7 @@
 (defvar run-on-device nil)
 (defvar run-app-on-build t)
 (defvar compilation-time nil)
-(defvar DEBUG nil)
+(defvar DEBUG t)
 
 (defun swift-additions:fetch-or-load-xcode-scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -294,7 +294,7 @@
                                           :workspace (swift-additions:get-workspace-or-project)
                                           :scheme current-xcode-scheme)
 
-    (mode-line-hud:update :message (format "Compiling %s/%s"
+    (mode-line-hud:update :message (format "Compiling %s|%s"
                                            (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
                                            (propertize current-simulator-name 'face 'font-lock-negation-char-face)))
     (async-start-command-to-string
@@ -307,18 +307,19 @@
 
 (defun swift-additions:compile-and-run-on-device ()
   "Compile and run on device."
+  (setq current-build-command nil)
   (swift-additions:setup-current-project (swift-additions:get-ios-project-root))
 
   (let ((default-directory current-project-root)
         (build-command (build-app-command :sim-id nil))
         (build-folder (swift-additions:get-build-folder)))
 
+    (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
-    (setq current-build-folder build-folder)
     (setq compilation-time (current-time))
     (setq build-progress-spinner spinner-current)
 
-    (mode-line-hud:update :message (format "Compiling %s/%s"
+    (mode-line-hud:update :message (format "Compiling %s|%s"
                                            (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
                                            (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
@@ -339,7 +340,7 @@
                   (if run-app-on-build
                       (ios-device:install-app
                        :buildfolder current-build-folder
-                       :appname (ios-simulator:app-name-from :folder current-build-folder)))
+                       :appIdentifier (swift-additions:fetch-or-load-app-identifier)))
                     (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
 
 ;;;###autoload

@@ -11,6 +11,7 @@
                     :inverse-video nil
                     :slant 'normal)
 
+
 (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'thin)
 (set-face-attribute 'variable-pitch nil :font "Work Sans" :height 150 :weight 'light)
 
@@ -334,8 +335,17 @@
 (defun mk/hud-copilot ()
   "HUD for Copilot."
   (if (bound-and-true-p copilot-mode)
-      (concat (propertize "" 'face '(:inherit success)) " copilot")
-      (propertize (nerd-icons-octicon "nf-oct-copilot_warning") 'face '(:inherit error))))
+      (concat (propertize "" 'face '(:inherit success)) " Copilot")
+    ""))
+
+(defun mk/mood-separator ()
+  "Mood line separator."
+  (propertize " ⑊ " 'face '(:foreground "#5f5f6f")))
+
+(defun mk/add-mood-line-segment (segment)
+  "Add SEGMENT to mood line."
+  (when segment
+    (concat segment (mk/mood-separator))))
 
 (use-package mood-line
   :config
@@ -343,19 +353,19 @@
       (mood-line-defformat
        :left
        (((file-name-sans-extension (mood-line-segment-buffer-name))   . "|")
-        ((mood-line-segment-major-mode) . " ")
+        ((concat (mood-line-segment-major-mode) (mk/mood-separator)) . "")
+        ((mk/add-mood-line-segment (mood-line-segment-vc)) . "")
         )
        :right
-       (
-        ((mk/hud-copilot) . " ")
-        ((mood-line-segment-hud) . "  ")
-        ((mood-line-segment-process) . "  ")
-        ((mood-line-segment-vc) . " ")
-        ;; (org-timer-mode-line-string . " ")
-        ((when (mood-line-segment-checker) " ") . " ")
-        ((mood-line-segment-checker) . " • ")
-        (display-time-string . " ")))
-      )
+        (
+        ((mk/add-mood-line-segment (mood-line-segment-hud)) . "")
+        ((mk/add-mood-line-segment (mood-line-segment-client)) . "")
+        ((mk/add-mood-line-segment (mood-line-segment-process)) . "")
+        ((mk/add-mood-line-segment (mood-line-segment-project)) . "")
+        ((mk/add-mood-line-segment (mood-line-segment-anzu)) . "")
+        ((mk/add-mood-line-segment (mood-line-segment-checker)) . "")
+        ((mk/add-mood-line-segment (mk/hud-copilot)) . "")
+        (display-time-string . " "))))
   (mood-line-mode)
   :custom
   (mood-line-glyph-alist mood-line-glyphs-fira-code))
@@ -728,7 +738,7 @@
                              "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                port :autoport
                simulator-id "iPhone 14 crash"
-               app-bundle-id ""
+               app-bundle-id "se.mobileinteraction.greenfee-qa"
                fn (dape-config-autoport
                    ,(lambda (config)
                       (with-temp-buffer
@@ -1217,14 +1227,9 @@
 (use-package elfeed
   :commands elfeed
   :config
-  (setq elfeed-feeds '(("https://news.ycombinator.com/rss")
-                       ("http://nullprogram.com/feed/")
-                       ("https://planet.emacslife.com/atom.xml")
+  (setq elfeed-feeds '(("https://planet.emacslife.com/atom.xml")
                        ("https://www.reddit.com/r/emacs.rss")
-                       ("https://www.reddit.com/r/swift.rss")
-                       ("https://www.reddit.com/r/swiftui.rss")
-                       ("https://xenodium.com/rss")
-                       ("https://swiftbysundell.com/rss"))
+                       ("https://xenodium.com/rss"))
         elfeed-search-filter "@7-days-ago +unread"
         elfeed-search-title-max-width 100
         elfeed-search-title-min-width 100))
@@ -1490,6 +1495,40 @@
   (set (make-local-variable 'face-remapping-alist)
        '((default :height 1.05))))
 
+;; (use-package dirvish
+;;   :init
+;;   (dirvish-override-dired-mode)
+;;   :config
+;;   (setq dirvish-mode-line-format
+;;         '(:left (sort symlink) :right (omit yank index)))
+;;   (setq dirvish-attributes
+;;         '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
+;;   (setq delete-by-moving-to-trash t)
+;;   (setq dirvish-default-layout '(0 0.4 0.6))
+;;   ;; (setq dired-listing-switches
+;;   ;;       "-l --almost-all --human-readable --group-directories-first --no-group")
+;;   :bind
+;;   (("C-c f" . dirvish-fd)
+;;    :map dirvish-mode-map ; Dirvish inherits `dired-mode-map'
+;;    ("a"   . dirvish-quick-access)
+;;    ("f"   . dirvish-file-info-menu)
+;;    ("y"   . dirvish-yank-menu)
+;;    ("N"   . dirvish-narrow)
+;;    ("^"   . dirvish-history-last)
+;;    ("h"   . dirvish-history-jump) ; remapped `describe-mode'
+;;    ("s"   . dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
+;;    ("v"   . dirvish-vc-menu)      ; remapped `dired-view-file'
+;;    ("TAB" . dirvish-subtree-toggle)
+;;    ("M-f" . dirvish-history-go-forward)
+;;    ("M-b" . dirvish-history-go-backward)
+;;    ("M-l" . dirvish-ls-switches-menu)
+;;    ("M-m" . dirvish-mark-menu)
+;;    ("M-t" . dirvish-layout-toggle)
+;;    ("M-s" . dirvish-setup-menu)
+;;    ("M-e" . dirvish-emerge-menu)
+;;    ("M-j" . dirvish-fd-jump))
+;;   )
+
 (use-package copilot
   :hook (prog-mode . copilot-mode)
   :ensure nil
@@ -1523,24 +1562,18 @@
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.1))
   (indent-bars-width-frac 0.3)
-  (indent-bars-pad-frac 0.3)
+  (indent-bars-pad-frac 0.1)
   (indent-bars-zigzag nil)
+  (indent-bars-pattern ".")
   (indent-bars-prefer-character t)
   (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
-  (indent-bars-highlight-current-depth '(:blend 0.4)) ; pump up the BG blend on current
-  (indent-bars-display-on-blank-lines t)
-  )
+  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
+  (indent-bars-display-on-blank-lines nil))
 ;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
 ;; rainbow-mode show hex as colors
-;; (use-package rainbow-mode
-;;   :hook (emacs-lisp-mode . rainbow-mode))
-;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
 
-(use-package colorful-mode
-  :ensure nil
-  :hook (prog-mode . colorful-mode))
-;; (package-vc-install "https://github.com/DevelopmentCool2449/colorful-mode.git")
-
+(use-package rainbow-mode
+  :hook (emacs-lisp-mode . rainbow-mode))
 
 (provide 'init)
 
