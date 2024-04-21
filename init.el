@@ -1313,10 +1313,15 @@
   ("C-c t m" .  #'swift-additions:test-module-silent)
   ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
   ("C-c C-c" . #'swift-additions:compile-and-run)
-  ("C-c C-x" . #'swift-additions:reset-settings)
   ("M-r" . #'swift-additions:run)
-  ("M-K" .  #'swift-additions:clean-build-folder)
   ("M-B" . #'swift-additions:run-without-compiling))
+
+(use-package xcode-additions
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("M-K" .  #'xcode-additions:clean-build-folder)
+  ("C-c C-x" . #'xcode-additions:reset))
 
 (use-package swift-refactor
   :ensure nil

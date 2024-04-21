@@ -216,7 +216,7 @@
              (choice (completing-read title choices)))
         (cdr (assoc choice choices))))))
 
-(defun ios-simulator:load-simulator-id ()
+(defun ios-simulator:simulator-identifier ()
   "Get the booted simulator id or fetch a suiting one."
   (if current-simulator-id
       (ios-simulator:setup-simulator-dwim current-simulator-id)
@@ -272,7 +272,7 @@
   (setq current-app-identifier identifier)
   (setq command
         (format "xcrun simctl launch -w --terminate-running-process %s %s -AppleLanguages \"\(%s\)\""
-                (ios-simulator:load-simulator-id)
+                (ios-simulator:simulator-identifier)
                 identifier
                 current-language-selection))
   ;; (async-start-command :command command :callback callback))

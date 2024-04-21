@@ -184,6 +184,16 @@
                            (setq comma t)))))))))
       (error (user-error "Cannot parse function decl or call here")))))
 
+
+(defun swift-refactor:insert-text-and-go-to-eol (text)
+"Function that that insert (as TEXT) and go to end of line."
+(save-excursion
+  (indent-for-tab-command)
+  (insert text)
+  (move-end-of-line nil))
+(goto-char (point-at-eol))
+(evil-insert-state t))
+
 ;;;###autoload
 (defun swift-refactor:functions-and-pragmas ()
 "Show swift file compressed functions and pragmas."
@@ -204,14 +214,13 @@
 (defun swift-refactor:insert-mark ()
 "Insert a mark at line."
 (interactive)
-(swift-additions:insert-text-and-go-to-eol "// MARK: - "))
+(swift-refactor:insert-text-and-go-to-eol "// MARK: - "))
 
 ;;;###autoload
 (defun swift-refactor:insert-todo ()
 "Insert a Todo."
 (interactive)
-(swift-additions:insert-text-and-go-to-eol "// TODO: "))
-
+(swift-refactor:insert-text-and-go-to-eol "// TODO: "))
 
 (provide 'swift-refactor)
 ;;; swift-refactor.el ends here

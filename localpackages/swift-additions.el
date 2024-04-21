@@ -21,35 +21,15 @@
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
 
-(defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
-
-(defvar current-root nil)
-(defvar current-xcode-scheme nil)
-(defvar current-app-identifier nil)
-(defvar current-project-root nil)
 (defvar current-build-configuration nil)
 (defvar current-build-folder nil)
 (defvar current-environment-x86 nil)
-(defvar current-simulator-id nil)
-(defvar current-simulator-name nil)
-(defvar current-buildconfiguration-json-data nil)
 (defvar current-local-device-id nil)
 (defvar current-build-command nil)
 (defvar build-progress-spinner nil)
-(defvar current-is-xcode-project nil)
-(defvar run-on-device nil)
 (defvar run-app-on-build t)
 (defvar compilation-time nil)
 (defvar DEBUG t)
-
-(defun swift-additions:setup-current-project (project)
-"Check if we have a new project (as PROJECT).  If true reset settings."
-(unless current-project-root
-  (setq current-project-root project))
-(when (not (string= current-project-root project))
-    (progn
-      (swift-additions:reset-settings)
-      (setq current-project-root project))))
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -74,7 +54,7 @@
       (format "-destination 'generic/platform=iOS' \\" ))
     "-hideShellScriptEnvironment \\"
     "-derivedDataPath build | xcode-build-server parse -avv")))
-;; (format "BUILD_DIR=%s "  (xcode-additions:get-build-folder))
+;; (format "BUILD_DIR=%s "  (xcode-additions:build-folder))
 
 (defun swift-additions:compilation-time ()
 "Get the time of the compilation."
@@ -87,12 +67,12 @@
 (interactive)
 (periphery-kill-buffer)
 
-(let ((appname (ios-simulator:app-name-from :folder (xcode-additions:get-build-folder))))
+(let ((appname (ios-simulator:app-name-from :folder (xcode-additions:build-folder))))
   (if appname
       (ios-simulator:install-and-run-app
         :rootfolder (xcode-additions:project-root)
-        :build-folder (xcode-additions:get-build-folder)
-        :simulatorId (ios-simulator:load-simulator-id)
+        :build-folder (xcode-additions:build-folder)
+        :simulatorId (ios-simulator:simulator-identifier)
         :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
     (swift-additions:compile-and-run))))
 
@@ -104,8 +84,8 @@
 
 (ios-simulator:install-and-run-app
   :rootfolder (xcode-additions:project-root)
-  :build-folder (xcode-additions:get-build-folder)
-  :simulatorId (ios-simulator:load-simulator-id)
+  :build-folder (xcode-additions:build-folder)
+  :simulatorId (ios-simulator:simulator-identifier)
   :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:check-if-build-was-successful (input-text)
@@ -126,25 +106,6 @@
 (if current-local-device-id
     "iphoneos"
   "iphonesimulator"))
-
-;;;###autoload
-(defun swift-additions:reset-settings ()
-"Reset current settings.  Change current configuration."
-(interactive)
-(ios-simulator:kill-buffer)
-(periphery-kill-buffer)
-(setq current-xcode-scheme nil)
-(setq current-app-identifier nil)
-(setq current-app-name nil)
-(setq current-project-root nil)
-(setq current-build-configuration nil)
-(setq current-simulator-id nil)
-(setq current-simulator-name nil)
-(setq current-buildconfiguration-json-data nil)
-(setq current-local-device-id nil)
-(setq current-build-command nil)
-(setq current-build-folder nil)
-(mode-line-hud:update :message "Resetting configuration"))
 
 (defun swift-additions:successful-build ()
 "Show that the build was successful."
@@ -188,10 +149,9 @@
 "Compile app (RUN)."
 
 (xcode-additions:setup-project)
-(ios-simulator:load-simulator-id)
 
 (let ((default-directory (xcode-additions:project-root))
-      (build-command (build-app-command :sim-id current-simulator-id))
+      (build-command (build-app-command :sim-id (ios-simulator:simulator-identifier)))
       (run-app-on-build run))
 
   (spinner-start 'progress-bar-filled)
@@ -202,12 +162,12 @@
   (when DEBUG
     (message build-command))
 
-  (xcodebuildserver:check-configuration :root current-project-root
+  (xcodebuildserver:check-configuration :root default-directory
                                         :workspace (xcode-additions:get-workspace-or-project)
-                                        :scheme current-xcode-scheme)
+                                        :scheme (xcode-additions:scheme))
 
   (mode-line-hud:update :message (format "Compiling %s|%s"
-                                          (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
+                                          (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
                                           (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
   (async-start-command-to-string
     :command build-command
@@ -223,8 +183,7 @@
 (xcode-additions:setup-project)
 
 (let ((default-directory (xcode-additions:project-root))
-      (build-command (build-app-command :sim-id nil))
-      (build-folder (xcode-additions:get-build-folder)))
+      (build-command (build-app-command :sim-id nil)))
 
   (spinner-start 'progress-bar-filled)
   (setq current-build-command build-command)
@@ -232,16 +191,15 @@
   (setq build-progress-spinner spinner-current)
 
   (mode-line-hud:update :message (format "Compiling %s|%s"
-                                          (propertize current-xcode-scheme 'face 'font-lock-builtin-face)
-                                          (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
+                                         (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                         (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
   (when DEBUG
     (message current-build-command)
-    (message "Build-folder: %s" build-folder))
+    (message "Build-folder: %s" (xcode-additions:build-folder)))
 
-  (xcodebuildserver:check-configuration :root current-project-root
-                                        :workspace (xcode-additions:get-workspace-or-project)
-                                        :scheme current-xcode-scheme)
+  (xcodebuildserver:check-configuration :root default-directory
+                                        :workspace (xcode-additions:get-workspace-or-project))
 
   (spinner-start 'progress-bar-filled)
 
@@ -251,7 +209,7 @@
                 (spinner-stop build-progress-spinner)
                 (if run-app-on-build
                     (ios-device:install-app
-                      :buildfolder current-build-folder
+                      :buildfolder (xcode-additions:build-folder)
                       :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
 
@@ -263,46 +221,6 @@
 (periphery-kill-buffer)
 (ios-simulator:kill-buffer)
 (swift-additions:test-swift-package))
-
-;;;###autoload
-(defun swift-additions:clean-build-folder ()
-"Clean app build folder."
-(interactive)
-(swift-additions:clean-build-folder-with (periphery-helper:project-root-dir) ".build" "swift package")
-(swift-additions:clean-build-folder-with (xcode-additions:project-root) "/build" (xcode-additions:scheme)))
-
-(defun swift-additions:clean-build-folder-with (projectRoot buildFolder projectName)
-"Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
-
-(mode-line-hud:update
-  :message (format "Cleaning build folder for %s"
-                  (propertize projectName 'face 'warning)))
-
-(let ((default-directory (concat projectRoot buildFolder)))
-  (when (file-directory-p default-directory)
-    (delete-directory default-directory t nil)))
-
-(mode-line-hud:update
-  :message (format "Cleaning done for %s"
-                  (propertize projectName 'face 'warning))))
-
-(defun swift-additions:insert-text-and-go-to-eol (text)
-"Function that that insert (as TEXT) and go to end of line."
-(save-excursion
-  (indent-for-tab-command)
-  (insert text)
-  (move-end-of-line nil))
-(goto-char (point-at-eol))
-(evil-insert-state t))
-
-(cl-defun swift-additions:build-menu (&key title &key list)
-"Builds a widget menu from (as TITLE as LIST)."
-(if (<= (length list) 1)
-    (elt list 0)
-  (progn
-    (let* ((choices (seq-map (lambda (item) (cons item item)) list))
-            (choice (completing-read title choices)))
-      (cdr (assoc choice choices))))))
 
 (defun swift-additions:is-a-swift-package-base-project ()
   "Check if project is a swift package based."
@@ -331,7 +249,7 @@
   "Build swift package module."
   (interactive)
   (let ((default-directory (periphery-helper:project-root-dir)))
-    (swift-additions:reset-settings)
+    (xcode-additions:reset)
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[ Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
 

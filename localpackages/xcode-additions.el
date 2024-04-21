@@ -21,18 +21,6 @@
   :tag "xcode-additions:xcodebuild"
   :group 'xcode-additions)
 
-(defun xcode-additions:reset ()
-  "Reset the current project root."
-  (interactive)
-  (setq current-run-on-device nil)
-  (setq current-local-device-id nil)
-  (setq current-is-xcode-project nil)
-  (setq current-build-folder nil)
-  (setq current-app-identifier nil)
-  (setq current-build-configuration nil)
-  (setq current-project-root nil)
-  (setq current-xcode-scheme nil))
-
 (defconst xcodeproject-extension ".*\\.xcodeproj$"
   "Xcode project extensions.")
 
@@ -168,7 +156,7 @@
     (setq current-project-root (xcode-additions:project-root)))
   (xcode-additions:list-scheme-files))
 
-(defun xcode-additions:get-build-folder ()
+(defun xcode-additions:build-folder ()
   "Get build folder.  If there are more than one let the user choose wich one to use."
   (unless current-build-folder
     (setq current-build-folder
@@ -265,6 +253,43 @@
 (defun xcode-additions:run-in-simulator ()
   "Run the app in simulator."
   (not current-run-on-device))
+
+;;;###autoload
+(defun xcode-additions:reset ()
+  "Reset the current project root."
+  (interactive)
+  (ios-simulator:kill-buffer)
+  (periphery-kill-buffer)
+  (setq current-run-on-device nil)
+  (setq current-local-device-id nil)
+  (setq current-is-xcode-project nil)
+  (setq current-build-folder nil)
+  (setq current-app-identifier nil)
+  (setq current-build-configuration nil)
+  (setq current-project-root nil)
+  (setq current-xcode-scheme nil)
+  (mode-line-hud:update :message "Resetting configuration"))
+
+;;;###autoload
+(defun xcode-additions:clean-build-folder ()
+"Clean app build folder."
+(interactive)
+(xcode-additions:clean-build-folder-with (periphery-helper:project-root-dir) ".build" "swift package")
+(xcode-additions:clean-build-folder-with (xcode-additions:project-root) "/build" (xcode-additions:scheme)))
+
+(defun xcode-additions:clean-build-folder-with (projectRoot buildFolder projectName)
+"Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
+(mode-line-hud:update
+  :message (format "Cleaning build folder for %s"
+                  (propertize projectName 'face 'warning)))
+
+(let ((default-directory (concat projectRoot buildFolder)))
+  (when (file-directory-p default-directory)
+    (delete-directory default-directory t nil)))
+
+(mode-line-hud:update
+  :message (format "Cleaning done for %s"
+                  (propertize projectName 'face 'warning))))
 
 (provide 'xcode-additions)
 ;;; xcode-additions.el ends here
