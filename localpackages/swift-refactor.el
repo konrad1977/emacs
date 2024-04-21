@@ -184,5 +184,34 @@
                            (setq comma t)))))))))
       (error (user-error "Cannot parse function decl or call here")))))
 
+;;;###autoload
+(defun swift-refactor:functions-and-pragmas ()
+"Show swift file compressed functions and pragmas."
+(interactive)
+(let ((list-matching-lines-face nil))
+  (occur "\\(#pragma mark\\)\\|\\(MARK:\\)")))
+
+;;;###autoload
+(defun swift-refactor:print-thing-at-point ()
+"Print thing at point."
+(interactive)
+(let ((word (thing-at-point 'word)))
+  (end-of-line)
+  (newline-and-indent)
+  (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
+
+;;;###autoload
+(defun swift-refactor:insert-mark ()
+"Insert a mark at line."
+(interactive)
+(swift-additions:insert-text-and-go-to-eol "// MARK: - "))
+
+;;;###autoload
+(defun swift-refactor:insert-todo ()
+"Insert a Todo."
+(interactive)
+(swift-additions:insert-text-and-go-to-eol "// TODO: "))
+
+
 (provide 'swift-refactor)
 ;;; swift-refactor.el ends here

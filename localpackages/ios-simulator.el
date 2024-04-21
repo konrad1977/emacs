@@ -64,8 +64,6 @@
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
-  ;; (message "%s %s %s %s" rootfolder build-folder simulatorId appIdentifier)
-
   (ios-device:kill-buffer)
 
   (let* ((default-directory rootfolder)
@@ -105,7 +103,7 @@
                     (buffer-face-mode 1))))))
 
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder &key appname &key callback)
-  "Install and launch app (as SIMULATORID and BUILD-FOLDER and CALLBACK)."
+  "Install and launch app (as SIMULATORID and BUILD-FOLDER APPNAME and CALLBACK)."
   (let* ((folder build-folder)
          (install-path folder)
          (command (format "xcrun simctl install %s '%s%s'.app\n" simulatorID install-path appname)))

@@ -1316,9 +1316,6 @@
   ("C-c C-x" . #'swift-additions:reset-settings)
   ("M-r" . #'swift-additions:run)
   ("M-K" .  #'swift-additions:clean-build-folder)
-  ("M-P" .  #'swift-additions:print-thing-at-point)
-  ("M-t" . #'swift-additions:insert-todo)
-  ("M-m" . #'swift-additions:insert-mark)
   ("M-B" . #'swift-additions:run-without-compiling))
 
 (use-package swift-refactor
@@ -1330,6 +1327,9 @@
   ("C-c r i" . #'swift-refactor:tidy-up-constructor)
   ("C-c r s" . #'swift-refactor:split-function-list)
   ("C-c r r" . #'swift-refactor:extract-function)
+  ("M-P" .  #'swift-refactor:print-thing-at-point)
+  ("M-t" . #'swift-refactor:insert-todo)
+  ("M-m" . #'swift-refactor:insert-mark)
   ("C-c r t" . #'swift-refactor:add-try-catch))
 
 (use-package apple-docs-query

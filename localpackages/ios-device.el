@@ -62,7 +62,9 @@
     (with-current-buffer buffer
       (setq-local mode-line-format nil)
       (setq-local left-fringe-width 0)
-      (setq-local right-fringe-width 0))))
+      (setq-local right-fringe-width 0)))
+  t
+  )
 
 (defun ios-device:fetch-device-id ()
     "Fetch the device id."
@@ -90,7 +92,7 @@
 
 (cl-defun ios-device:run-cmd (&key identifier &key appIdentifier)
   "Run app on device (IDENTIFIER APPIDENTIFIER)."
-  (format "xcrun devicectl device process launch --device %s %s"
+  (format "xcrun devicectl device process launch --terminate-existing -v --device %s %s"
           identifier
           appIdentifier))
 
