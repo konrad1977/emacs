@@ -558,28 +558,16 @@
   (transient-key-stay (:foreground springBlue :backgroud winterBlue :bold t))
   (transient-key-exit (:foreground peachRed :background winterRed :bold t))
 
-  ;; (magit-section-heading (:foreground carpYellow :background winterYellow :weight 'normal))
+  (periphery-fix-face-full (:foreground winterBlue :background springBlue :bold t))
+  (periphery-note-face-full (:foreground winterGreen :background springGreen :bold t))
+  (periphery-mark-face-full (:foreground sumiInk-0 :background sumiInk-6 :bold t))
+  (periphery-todo-face-full (:foreground winterYellow :background carpYellow :bold t))
+  (periphery-hack-face-full (:foreground winterRed :background peachRed :bold t))
+  (periphery-performance-face-full (:foreground winterRed :background sakuraPink :bold t))
+  (periphery-warning-face-full (:foreground winterYellow :background boatYellow2 :bold t))
 
-  ;; (magit-diff-base (:foreground crystalBlue :background winterBlue))
-  ;; (magit-diff-base-highlight (:foreground crystalBlue :background winterBlue))
 
-  ;; (magit-diff-added (:foreground autumnGreen :background winterGreen))
-  ;; (magit-diff-added-highlight (:foreground springGreen :background winterGreen))
-
-  ;; (magit-our-added (:background winterRed))
-  ;; (magit-our-added-highlight (:background winterRed))
-
-  ;; (magit-removed-added (:background winterRed))
-  ;; (magit-removed-added-highlight (:background winterRed))
-
- ))
-
-;;;###autoload
-(and load-file-name
-     (boundp 'custom-theme-load-path)
-     (add-to-list 'custom-theme-load-path
-                  (file-name-as-directory
-                   (file-name-directory load-file-name))))
+  ))
 
 (provide-theme 'kanagawa)
 ;;; kanagawa-theme.el ends here

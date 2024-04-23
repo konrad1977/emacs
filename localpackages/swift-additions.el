@@ -27,9 +27,8 @@
 (defvar current-local-device-id nil)
 (defvar current-build-command nil)
 (defvar build-progress-spinner nil)
-(defvar run-app-on-build t)
 (defvar compilation-time nil)
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -50,11 +49,10 @@
     ;; (format "-jobs %s" (swift-additions:get-number-of-cores))
     (when sim-id
       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" sim-id))
-    (when (and current-local-device-id (not (xcode-additions:run-in-simulator)))
+    (when (not (xcode-additions:run-in-simulator))
       (format "-destination 'generic/platform=iOS' \\" ))
     "-hideShellScriptEnvironment \\"
     "-derivedDataPath build | xcode-build-server parse -avv")))
-;; (format "BUILD_DIR=%s "  (xcode-additions:build-folder))
 
 (defun swift-additions:compilation-time ()
 "Get the time of the compilation."
@@ -66,15 +64,17 @@
 "Rerun already compiled and installed app."
 (interactive)
 (periphery-kill-buffer)
+(ios-simulator:kill-buffer)
 
-(let ((appname (ios-simulator:app-name-from :folder (xcode-additions:build-folder))))
-  (if appname
-      (ios-simulator:install-and-run-app
-        :rootfolder (xcode-additions:project-root)
-        :build-folder (xcode-additions:build-folder)
-        :simulatorId (ios-simulator:simulator-identifier)
-        :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
-    (swift-additions:compile-and-run))))
+(if (xcode-additions:run-in-simulator)
+    (ios-simulator:install-and-run-app
+      :rootfolder (xcode-additions:project-root)
+      :build-folder (xcode-additions:build-folder)
+      :simulatorId (ios-simulator:simulator-identifier)
+      :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
+  (ios-device:install-app
+    :buildfolder (xcode-additions:build-folder)
+    :appIdentifier (xcode-additions:fetch-or-load-app-identifier))))
 
 (defun swift-additions:run-app-after-build()
 "Either in simulator or on physical."
@@ -115,102 +115,93 @@
 (defun swift-additions:compile-and-run ()
 "Compile and run app."
 (interactive)
-(swift-additions:compile-and-run-silent t))
+(swift-additions:compile :run t))
 
 ;;;###autoload
 (defun swift-additions:compile-app ()
 "Compile app."
 (interactive)
-(swift-additions:compile-and-run-silent nil))
+(swift-additions:compile :run nil))
 
-(defun swift-additions:compile-and-run-silent (runApp)
-"Build project using xcodebuild (as RUNAPP)."
-  (let ((savings (save-some-buffers t))
-        (buffer (periphery-kill-buffer)))
-    (ios-simulator:kill-buffer)
-    (setq current-local-device-id (ios-device:id))
-    (xcode-addition:ask-for-device-or-simulator)
+(cl-defun swift-additions:compile (&key run)
+  "Build project using xcodebuild (as RUN)."
+  (save-some-buffers t)
 
-(if (xcode-additions:is-xcodeproject)
-    (progn
-      (setq run-app-on-build runApp)
-      (if (not (xcode-additions:run-in-simulator))
-          (progn
-            (setq device-or-simulator "physical device")
-            (swift-additions:compile-and-run-on-device))
-        ;; Simulator
-        (swift-additions:compile-app-for-simulator :run runApp)))
+  (if (xcode-additions:is-xcodeproject)
+      (progn
+        (periphery-kill-buffer)
+        (ios-simulator:kill-buffer)
+        (xcode-addition:ask-for-device-or-simulator)
+        (if (not (xcode-additions:run-in-simulator))
+            (swift-additions:compile-for-device :run run)
+          (swift-additions:compile-for-simulator :run run)))
+    (if (swift-additions:is-a-swift-package-base-project)
+        (swift-additions:build-swift-package)
+      (message "Not xcodeproject nor swift package"))))
 
-  (if (swift-additions:is-a-swift-package-base-project)
-      (swift-additions:build-swift-package)
-    (message "Not xcodeproject nor swift package")))))
+(cl-defun swift-additions:compile-for-simulator (&key run)
+  "Compile app (RUN)."
+  (xcode-additions:setup-project)
+  (setq run-once-compiled run)
 
-(cl-defun swift-additions:compile-app-for-simulator (&key run)
-"Compile app (RUN)."
+  (let ((build-command (build-app-command :sim-id (ios-simulator:simulator-identifier))))
+    (spinner-start 'progress-bar-filled)
+    (setq current-build-command build-command)
+    (setq compilation-time (current-time))
+    (setq build-progress-spinner spinner-current)
 
-(xcode-additions:setup-project)
+    (when DEBUG
+      (message build-command))
 
-(let ((default-directory (xcode-additions:project-root))
-      (build-command (build-app-command :sim-id (ios-simulator:simulator-identifier)))
-      (run-app-on-build run))
+    (xcodebuildserver:check-configuration :root default-directory
+                                          :workspace (xcode-additions:get-workspace-or-project)
+                                          :scheme (xcode-additions:scheme))
 
-  (spinner-start 'progress-bar-filled)
-  (setq current-build-command build-command)
-  (setq compilation-time (current-time))
-  (setq build-progress-spinner spinner-current)
+    (mode-line-hud:update :message (format "Compiling %s|%s"
+                                           (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                           (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
+    (async-start-command-to-string
+     :command build-command
+     :callback '(lambda (text)
+                  (spinner-stop build-progress-spinner)
+                  (if run-once-compiled
+                      (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
+                    (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
 
-  (when DEBUG
-    (message build-command))
+(defun swift-additions:compile-for-device (&key run)
+  "Compile and RUN on device ."
+  (setq current-build-command nil)
+  (setq run-once-compiled run)
+  (xcode-additions:setup-project)
 
-  (xcodebuildserver:check-configuration :root default-directory
-                                        :workspace (xcode-additions:get-workspace-or-project)
-                                        :scheme (xcode-additions:scheme))
+  (let ((build-command (build-app-command :sim-id nil)))
 
-  (mode-line-hud:update :message (format "Compiling %s|%s"
-                                          (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                          (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
-  (async-start-command-to-string
-    :command build-command
-    :callback '(lambda (text)
-                (spinner-stop build-progress-spinner)
-                (if run-app-on-build
-                    (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
-                  (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
+    (spinner-start 'progress-bar-filled)
+    (setq current-build-command build-command)
+    (setq compilation-time (current-time))
+    (setq build-progress-spinner spinner-current)
 
-(defun swift-additions:compile-and-run-on-device ()
-"Compile and run on device."
-(setq current-build-command nil)
-(xcode-additions:setup-project)
+    (mode-line-hud:update :message (format "Compiling %s|%s"
+                                           (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                           (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
-(let ((default-directory (xcode-additions:project-root))
-      (build-command (build-app-command :sim-id nil)))
+    (when DEBUG
+      (message current-build-command)
+      (message "Build-folder: %s" (xcode-additions:build-folder)))
 
-  (spinner-start 'progress-bar-filled)
-  (setq current-build-command build-command)
-  (setq compilation-time (current-time))
-  (setq build-progress-spinner spinner-current)
+    (xcodebuildserver:check-configuration :root default-directory
+                                          :workspace (xcode-additions:get-workspace-or-project))
 
-  (mode-line-hud:update :message (format "Compiling %s|%s"
-                                         (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                         (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
+    (spinner-start 'progress-bar-filled)
 
-  (when DEBUG
-    (message current-build-command)
-    (message "Build-folder: %s" (xcode-additions:build-folder)))
-
-  (xcodebuildserver:check-configuration :root default-directory
-                                        :workspace (xcode-additions:get-workspace-or-project))
-
-  (spinner-start 'progress-bar-filled)
-
-  (async-start-command-to-string
-    :command build-command
-    :callback '(lambda (text)
-                (spinner-stop build-progress-spinner)
-                (if run-app-on-build
-                    (ios-device:install-app
-                      :buildfolder (xcode-additions:build-folder)
-                      :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
+    (async-start-command-to-string
+     :command build-command
+     :callback '(lambda (text)
+                  (spinner-stop build-progress-spinner)
+                  (if run-once-compiled
+                      (ios-device:install-app
+                       :buildfolder (xcode-additions:build-folder)
+                       :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
 
 ;;;###autoload
@@ -296,7 +287,6 @@
   (let* ((sdk (ios-simulator:sdk-path))
          (target (ios-simulator:target)))
     (list
-     ;; "--completion-max-results" "12"
      "-Xswiftc" "-sdk"
      "-Xswiftc" sdk
      "-Xswiftc" "-target"

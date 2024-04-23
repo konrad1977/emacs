@@ -227,7 +227,8 @@
 
 (defun xcode-additions:setup-project ()
   "Setup the current project."
-  (xcode-additions:setup-current-project (xcode-additions:project-root)))
+  (xcode-additions:setup-current-project (xcode-additions:project-root))
+  (setq default-directory current-project-root))
 
 (defun xcode-additions:check-root ()
 "Check root of the project.  If its different reset the settings."

@@ -16,7 +16,7 @@
 (defvar current-device-identifier nil)
 (defvar current-app-identifier nil)
 (defvar current-buffer nil)
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun ios-device:format-id (id)
   "Format device id (as ID)."

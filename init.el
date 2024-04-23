@@ -670,6 +670,13 @@
         corfu-popupinfo-min-width corfu-min-width
         corfu-popupinfo-max-width corfu-max-width))
 
+;; (use-package corfu-candidate-overlay
+;;   :after corfu
+;;   :config
+;;   (corfu-candidate-overlay-mode +1)
+;;   (global-set-key (kbd "C-<tab>") 'completion-at-point)
+;;   (global-set-key (kbd "C-<iso-lefttab>") 'corfu-candidate-overlay-complete-at-point))
+
 (use-package savehist
   :ensure nil
   :config
@@ -738,7 +745,7 @@
                              "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                port :autoport
                simulator-id "iPhone 14 crash"
-               app-bundle-id ""
+               app-bundle-id "se.mobileinteraction.greenfee-qa"
                fn (dape-config-autoport
                    ,(lambda (config)
                       (with-temp-buffer
@@ -970,6 +977,11 @@
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
+
+(use-package svg-tag-mode
+  :hook (prog-mode . svg-tag-mode)
+  :config
+  (setq svg-tag-tags (periphery-svg-tags)))
 
 (use-package vterm
   :commands vterm
@@ -1535,7 +1547,8 @@
 ;;   )
 
 (use-package copilot
-  :hook (prog-mode . copilot-mode)
+  :hook ((prog-mode . copilot-mode)
+         (localizeable-mode . copilot-mode))
   :ensure nil
   :bind
   (:map copilot-completion-map
