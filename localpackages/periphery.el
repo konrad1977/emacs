@@ -530,36 +530,29 @@
 
 (defun periphery--remove-leading-keyword (tag)
   "Remove leading keyword and C style -comment from (as TAG)."
-  (replace-regexp-in-string "^\/\/\\W?\\w+\\b:\\W?" "" tag))
+  (replace-regexp-in-string "^[;|\/]+\\W?\\w+\\b:\\W?" "" tag))
 
 (defun periphery--remove-comments (tag)
   "Remove comments from (as TAG)."
   (string-trim-left
     (replace-regexp-in-string ":" ""
-        (replace-regexp-in-string "^\/\/\\W?" "" tag))))
+                              (replace-regexp-in-string "^[;|\/]+\\W?" "" tag))))
 
+;;; TODO: Add support for swiftlint:disable and swiftlint:enable
 ;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
   '(
-
-    ("\\(\\/\\/\\W?\\w+\\b:.*\\)" . ((lambda (tag)
+    ("\\([;|\/]+\\W?\\w+\\b:.*\\)" . ((lambda (tag)
                                     (svg-tag-make (periphery--remove-leading-keyword tag)
                                                   :face (svg-color-from-tag tag)
                                                   :inverse t
                                                   ))))
 
-    ("\\(\\/\\/\\W?\\w+\\b:\\)" . ((lambda (tag) (svg-tag-make
+    ("\\([;|\/]+\\W?\\w+\\b:\\)" . ((lambda (tag) (svg-tag-make
                                                   (periphery--remove-comments tag)
                                                    :face (svg-color-from-tag tag)
-                                                   :crop-right t))))
-
-    ;; ("\\/\\/\\W?swiftlint:disable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|DISABLE" :face 'periphery-hack-face-full :margin 0))))
-    ;; ("swiftlint:disable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-hack-face-full :crop-left t :inverse t))))
-
-    ;; ("\\/\\/\\W?swiftlint:enable" . ((lambda (tag) (svg-tag-make "SWIFTLINT|ENABLE" :face 'periphery-note-face-full :margin 0))))
-    ;; ("swiftlint:enable\\(.*\\)" . ((lambda (tag) (svg-tag-make tag :face 'periphery-note-face-full :crop-left t :inverse t))))
-    ))
+                                                   :crop-right t))))))
 
 
 (provide 'periphery)
