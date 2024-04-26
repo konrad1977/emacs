@@ -125,6 +125,8 @@
 
 (defun ios-simulator:setup-simulator-dwim (id)
   "Setup simulator dwim (as ID)."
+  (when DEBUG
+    (message "Setting up simulator with id %s" id))
   (if (not (ios-simulator:is-simulator-app-running))
       (ios-simulator:start-simulator-with-id id)
     (ios-simulator:boot-simuator-with-id id)))
@@ -140,19 +142,23 @@
 
 (defun ios-simulator:boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
+  (when DEBUG
+    (message "Booting simulator with id %s" id))
   (inhibit-sentinel-messages
    #'call-process-shell-command (ios-simulator:boot-command :id id :rosetta use-rosetta)))
+
+(defun ios-simulator:start-simulator-with-id (id)
+  "Launch a specific simulator with (as ID)."
+  (when DEBUG
+    (message "Starting simulator with id: %s" id))
+  (inhibit-sentinel-messages
+   #'call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
 
 (cl-defun ios-simulator:boot-command (&key id &key rosetta)
   "Boot simulator with or without support for x86 (as ID and ROSETTA)."
   (if rosetta
       (format "xcrun simctl boot %s --arch=x86_64" id)
       (format "xcrun simctl boot %s " id)))
-
-(defun ios-simulator:start-simulator-with-id (id)
-  "Launch a specific simulator with (as ID)."
-  (inhibit-sentinel-messages
-   #'call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
 
 (defun ios-simulator:is-simulator-app-running ()
   "Check if simulator is running."
@@ -227,7 +233,7 @@
                  (ios-simulator:build-selection-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
         (progn
           (ios-simulator:setup-language)
-          (ios-simulator:setup-simulator-dwim current-simulator-id)
+          (ios-simulator:setup-simulator-dwim device-id)
           (setq current-simulator-id device-id)))))
   current-simulator-id)
 

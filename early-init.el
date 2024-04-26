@@ -5,11 +5,11 @@
 ;;; Code:
 
 (setq gc-cons-threshold most-positive-fixnum
-      read-process-output-max (* 8 1024 1024)
+      read-process-output-max (* 32 1024 1024)
       process-adaptive-read-buffering nil)
 
 (add-hook 'emacs-startup-hook
-          (lambda () (setq gc-cons-threshold (*  1024 1024))))
+          (lambda () (setq gc-cons-threshold (* 1024 1024))))
 
 (customize-set-variable 'native-comp-async-report-warnings-errors nil)
 (customize-set-variable 'comp-async-report-warnings-errors nil)

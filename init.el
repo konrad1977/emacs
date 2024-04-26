@@ -174,14 +174,16 @@
 (use-package welcome-dashboard
   :ensure nil
   :custom-face
-  (welcome-dashboard-path-face ((t (:height 0.8))))
+  (welcome-dashboard-path-face ((t (:height 0.7))))
   :config
   (setq welcome-dashboard-latitude 56.7365
         welcome-dashboard-longitude 16.2981
         welcome-dashboard-use-nerd-icons t
         welcome-dashboard-show-weather-info t
         welcome-dashboard-use-fahrenheit nil
-        welcome-dashboard-path-max-length 50
+        welcome-dashboard-max-left-padding 1
+        welcome-dashboard-max-number-of-todos 5
+        welcome-dashboard-path-max-length 70
         welcome-dashboard-min-left-padding 10
         welcome-dashboard-image-file "~/.emacs.d/themes/true.png"
         welcome-dashboard-image-width 200
@@ -271,7 +273,7 @@
                                         (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
-  :after (vertico)
+  :after vertico
   :config (marginalia-mode))
 
 (use-package nerd-icons-completion
@@ -328,10 +330,6 @@
   :config
   (setq show-in-echo-area nil))
 
-(defun mk/check-mode-active (mode)
-  "Check if MODE is active."
-  (bound-and-true-p (symbol-value mode)))
-
 (defun mk/hud-copilot ()
   "HUD for Copilot."
   (if (bound-and-true-p copilot-mode)
@@ -370,16 +368,8 @@
   :custom
   (mood-line-glyph-alist mood-line-glyphs-fira-code))
 
-(use-package helpful
-  :commands (helpful-callable helpful-variable helpful-command helpful-key)
-  :bind
-  ("C-x C-c" . describe-char)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-key] . helpful-key))
-
 (use-package evil
   :hook (after-init . evil-mode)
-  ;; :bind ("<escape>" . keyboard-escape-quit)
   :init
   (setq-default evil-symbol-word-search t
                 evil-shift-width 2)
@@ -548,8 +538,7 @@
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package tree-sitter
-  :hook (
-         (swift-mode . tree-sitter-mode)
+  :hook ((swift-mode . tree-sitter-mode)
          (kotlin-mode . tree-sitter-mode))
   :config
   (setq tsc-dyn-get-from nil)
@@ -571,11 +560,10 @@
 
 (use-package eglot
   :hook ((swift-mode . eglot-ensure))
-  :commands (eglot eglot-ensure)
   :ensure nil
   :config
   (setq eglot-stay-out-of '(corfu company)
-        ;; eglot-send-changes-idle-time 0.1
+        eglot-send-changes-idle-time 0.1
         eglot-autoshutdown t
         eglot-events-buffer-config 0
         eglot-ignored-server-capabilities '(:hoverProvider)
@@ -917,7 +905,7 @@
       (window-width . 0.4)
       (side . right)
       (slot . 1))
-     ("\\*e?shell\\|vterm*\\|*ellama\\*"
+     ("\\*e?shell\\|*ellama\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.25)
@@ -979,7 +967,8 @@
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package svg-tag-mode
-  :hook (prog-mode . svg-tag-mode)
+  :hook ((swift-mode . svg-tag-mode)
+         (localizeable-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
 
@@ -1314,9 +1303,9 @@
 ;;   ("M-r" . #'xcode-build:run)
 ;;   ("M-s" . #'xcode-build:stop))
 
-;; (use-package overlay-usage
-;;   :hook (swift-mode . overlay-usage-mode)
-;;   :ensure nil)
+(use-package overlay-usage
+  :commands (overlay-usage-mode)
+  :ensure nil)
 
 (use-package swift-additions
   :ensure nil
@@ -1558,15 +1547,12 @@
         ("C-c C-p" . copilot-previous-completion)))
 ;; (package-vc-install "https://github.com/copilot-emacs/copilot.el.git")
 
-
-;; (use-package window-stool
-;;   :hook (prog-mode . window-stool-mode)
-;;   :ensure nil
-;;   :config
-;;   (setq window-stool-n-from-top 2
-;;         window-stool-n-from-bottom 0)
-;;     ;; (package-vc-install "https://github.com/JasZhe/window-stool")
-;;   )
+(use-package window-stool
+  :hook (swift-mode . window-stool-mode)
+  :ensure nil
+  :config
+  (setq window-stool-n-from-top 2
+        window-stool-n-from-bottom 0))
 
 (use-package eglot-booster
   :ensure nil

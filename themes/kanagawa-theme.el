@@ -487,8 +487,8 @@
   (ansi-color-bright-white                       (:foreground old-white))
 
  ;; Tree sitter highlightning
-  (tree-sitter-hl-face:annotation                (:foreground crystalBlue :weight 'semi-bold))
-  (tree-sitter-hl-face:annotation.builtin        (:foreground sakuraPink :weight 'semi-bold))
+  (tree-sitter-hl-face:annotation                (:foreground springBlue :weight 'semi-bold))
+  (tree-sitter-hl-face:annotation.builtin        (:foreground crystalBlue :weight 'semi-bold))
   (tree-sitter-hl-face:annotation.type           (:foreground peachRed))
 
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
@@ -526,7 +526,7 @@
 
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
   (tree-sitter-hl-face:keyword.compiler          (:foreground waveRed))
-  (tree-sitter-hl-face:keyword.type              (:foreground crystalBlue))
+  (tree-sitter-hl-face:keyword.type              (:foreground sakuraPink))
   (tree-sitter-hl-face:operator                  (:inherit 'font-lock-operator-face))
   (tree-sitter-hl-face:label                     (:foreground sumiInk-4))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
