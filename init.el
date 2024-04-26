@@ -733,7 +733,7 @@
                              "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                port :autoport
                simulator-id "iPhone 14 crash"
-               app-bundle-id "se.mobileinteraction.greenfee-qa"
+               app-bundle-id ""
                fn (dape-config-autoport
                    ,(lambda (config)
                       (with-temp-buffer
