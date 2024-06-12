@@ -4,9 +4,9 @@
 ;;; Commentary: --- A simple package
 
 ;;; Code:
-(require 'dash)
-(require 'mode-line-hud)
-(require 'periphery-helper)
+;; (require 'dash)
+;; (require 'mode-line-hud)
+;; (require 'periphery-helper)
 
 (defface periphery-filename-face
   '((t (:inherit link)))
@@ -112,6 +112,9 @@
   '((t (:inherit default)))
   "Buffer background color."
   :group 'periphery)
+
+(defvar DEBUG t
+  "Debug mode.")
 
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
@@ -365,8 +368,9 @@
 
 (cl-defun periphery-run-parser (input)
   "Run parser (as INPUT as SUCCESSCALLBACK)."
-  ;; Filter lines that don't start with "/" only if it doesn't contain "BUILD FAILED" or "BUILD INTERRUPTED"
-  ;; (message input)
+  (when DEBUG
+    (message input))
+
   (setq input (mapconcat #'identity (seq-filter (lambda (line) (string-match-p "^/" line)) (split-string input "\n")) "\n"))
   (setq periphery-errorList (delete-dups (parse-compiler-errors input)))
 
@@ -542,8 +546,7 @@
 ;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
-  '(
-    ("\\([;|\/]+\\W?\\w+\\b:.*\\)" . ((lambda (tag)
+  '(("\\([;|\/]+\\W?\\w+\\b:.*\\)" . ((lambda (tag)
                                     (svg-tag-make (periphery--remove-leading-keyword tag)
                                                   :face (svg-color-from-tag tag)
                                                   :inverse t

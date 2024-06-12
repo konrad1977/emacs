@@ -5,16 +5,16 @@
 ;;; package for building and runnning ios/macos apps from Emacs
 
 ;;; code:
-(require 'eglot)
-(require 'projectile)
+;; (require 'eglot)
+;; (require 'projectile)
 (require 'xcodebuildserver)
-(require 'periphery)
-(require 'periphery-helper)
-(require 'ios-simulator)
 (require 'ios-device)
-(require 'spinner)
-(require 'xcode-additions)
-(require 'mode-line-hud)
+(require 'ios-simulator)
+;; (require 'periphery)
+;; (require 'periphery-helper)
+;; (require 'spinner)
+;; (require 'xcode-additions)
+;; (require 'mode-line-hud)
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
@@ -43,16 +43,21 @@
   (concat
     (swift-additions:xcodebuild-command)
     (format "%s \\" (xcode-additions:get-workspace-or-project))
-    (format "-scheme '%s' \\" (xcode-additions:scheme))
+    (format "-scheme %s \\" (shell-quote-argument (xcode-additions:scheme)))
     (format "-sdk %s \\" (swift-additions:get-current-sdk))
-    (format "-configuration DEBUG \\")
-    ;; (format "-jobs %s" (swift-additions:get-number-of-cores))
+    (format "-jobs %s \\" (swift-additions:get-number-of-cores))
     (when sim-id
       (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" sim-id))
     (when (not (xcode-additions:run-in-simulator))
       (format "-destination 'generic/platform=iOS' \\" ))
+    "-configuration Debug \\"
+    "-UseNewBuildSystem=YES \\"
     "-hideShellScriptEnvironment \\"
     "-derivedDataPath build | xcode-build-server parse -avv")))
+
+(defun swift-additions:get-number-of-cores ()
+  "Get the number of available CPU cores."
+  (number-to-string (string-to-number (shell-command-to-string "sysctl -n hw.ncpu"))))
 
 (defun swift-additions:compilation-time ()
 "Get the time of the compilation."
@@ -301,25 +306,25 @@
 
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match."
+  "Face for enum case names in a pattern match"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:comment.special
   '((t :inherit tree-sitter-hl-face:comment
        :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK."
+  "Face for comments with some markup-like meaning, like MARK"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:operator.special
   '((t :inherit font-lock-negation-char-face
        :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation."
+  "Face for operators that need to stand out, like unary negation"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:punctuation.type
   '((t :inherit tree-sitter-hl-face:type
        :weight normal))
-  "Face for punctuation in type names or annotations."
+  "Face for punctuation in type names or annotations"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:annotation
@@ -345,22 +350,23 @@
 (defface tree-sitter-hl-face:keyword.compiler
   '((t :inherit tree-sitter-hl-face:keyword
        :weight semi-bold))
-  "Face for compile-time keywords."
+  "Face for compile-time keywords"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:keyword.type
   '((t :inherit tree-sitter-hl-face:keyword))
-  "Face for keywords that appear in type annotations."
+  "Face for keywords that appear in type annotations"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:variable.synthesized
   '((t :inherit tree-sitter-hl-face:variable))
-  "Face for compiler-synthesized identifiers."
+  "Face for compiler-synthesized identifiers"
   :group 'tree-sitter-hl-faces)
 
 (defface tree-sitter-hl-face:default
   '((t :inherit default))
-  "Face to override other faces, forcing the base display attributes."
+  "Face to override other faces, forcing the base display
+attributes."
   :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)

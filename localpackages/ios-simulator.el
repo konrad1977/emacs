@@ -38,9 +38,11 @@
 (defun ios-simulator:reset ()
   "Reset current settings."
   (setq current-simulator-name nil)
-  (setq current-app-name nil)
+  (setq current-simulator-id nil)
   (setq current-app-identifier nil)
-  (setq current-simulator-id nil))
+  (setq current-app-name nil)
+  (ios-simulator:kill-buffer)
+  (ios-simulator:shut-down-all))
 
 (defun ios-simulator:current-sdk-version ()
   "Get the current simulator sdk-version."
@@ -53,6 +55,10 @@
 (defun ios-simulator:current-arch ()
   "Get the current arch."
   (clean-up-newlines (shell-command-to-string "clang -print-target-triple")))
+
+(defun ios-simulator:shut-down-all ()
+  "Shut down all simulators."
+  (call-process-shell-command "xcrun simctl shutdown all"))
 
 (defun ios-simulator:target ()
   "Get the current simulator sdk."

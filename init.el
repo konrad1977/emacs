@@ -1,4 +1,4 @@
-;;; init.el --- -*- lexical-binding: t -*-
+;;; init.el ---  -*- lexical-binding:t -*-
 ;;; Code:
 
 (eval-when-compile (defvar display-time-24hr-format t))
@@ -42,6 +42,7 @@
     (if (fboundp 'normal-top-level-add-subdirs-to-load-path)
         (normal-top-level-add-subdirs-to-load-path))))
 
+;; (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 
 ; On macos use our custom settings ---------------------
@@ -63,8 +64,8 @@
       custom-file (concat user-emacs-directory "var/custom.el"))
 
 ;; Initialize package sources
-(require 'package)
-(require 'use-package)
+;; (require 'package)
+;; (require 'use-package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")
@@ -84,9 +85,10 @@
 
 (use-package gcmh
   :config
-  (setq gcmh-high-cons-threshold (* 128 1024 1024))
+  (setq gcmh-high-cons-threshold (* 512 1024 1024))
   (add-hook 'after-init-hook (lambda ()
                                (gcmh-mode))))
+
 (use-package emacs
   :config
   (setq completion-cycle-threshold 3
@@ -182,14 +184,15 @@
         welcome-dashboard-show-weather-info t
         welcome-dashboard-use-fahrenheit nil
         welcome-dashboard-max-left-padding 1
-        welcome-dashboard-max-number-of-todos 5
+        welcome-dashboard-max-number-of-todos 0
         welcome-dashboard-path-max-length 70
         welcome-dashboard-min-left-padding 10
         welcome-dashboard-image-file "~/.emacs.d/themes/true.png"
         welcome-dashboard-image-width 200
         welcome-dashboard-image-height 169
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
-  (welcome-dashboard-create-welcome-hook))
+  (welcome-dashboard-create-welcome-hook)
+  )
 
 (use-package no-littering)
 
@@ -205,7 +208,8 @@
    ;; (load-theme 'kman t)
 
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t))
+ (load-theme 'kanagawa t)
+ )
 
 (use-package saveplace
   :ensure nil
@@ -298,15 +302,12 @@
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
-  ("M-S" . #'consult-line)
-  ("M-f" . #'consult-ripgrep)
-  ;; ("M-l" . #'consult-goto-line)
+  ("M-S" . #'consult-line-multi)
+  ;; ("M-f" . #'consult-ripgrep)
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
-  ("C-c m b" . #'consult-imenu)
-  ;; ("M-O" . #'consult-projectile-find-file)
-  )
+  ("C-c m b" . #'consult-imenu))
 
 (use-package embark-consult
   :after (embark consult))
@@ -323,6 +324,7 @@
   :after projectile)
 
 (use-package recentf
+  :defer 1
   :hook (after-init . recentf-mode))
 
 (use-package mode-line-hud
@@ -396,7 +398,6 @@
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
-
 
   (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
 
@@ -538,8 +539,7 @@
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package tree-sitter
-  :hook ((swift-mode . tree-sitter-mode)
-         (kotlin-mode . tree-sitter-mode))
+  :hook ((swift-mode . tree-sitter-mode))
   :config
   (setq tsc-dyn-get-from nil)
   (setq tree-sitter-hl-use-font-lock-keywords t
@@ -547,9 +547,9 @@
   :config
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-(use-package tree-sitter-langs
-  :defer t
-  :ensure nil)
+;; (use-package tree-sitter-langs
+;;   :defer t
+;;   :ensure nil)
 
 ;; ------------------ SEARCHING -------------------
 
@@ -565,7 +565,7 @@
   (setq eglot-stay-out-of '(corfu company)
         eglot-send-changes-idle-time 0.1
         eglot-autoshutdown t
-        eglot-events-buffer-config 0
+        eglot-events-buffer-config '(size: 20000 format: short)
         eglot-ignored-server-capabilities '(:hoverProvider)
         eglot-extend-to-xref t)
   (advice-add 'jsonrpc--log-event :override #'ignore)
@@ -579,7 +579,7 @@
   (kind-icon-blend-frac 0.20)
   :config
   (setq kind-icon-default-face 'corfu-default ; to compute blended backgrounds correctly
-        kind-icon-default-style '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 0.7 :scale 1.2))
+        kind-icon-default-style '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 1))
   (setq kind-icon-use-icons t)
   (setq kind-icon-mapping
 	  '((array          "a"   :icon "symbol-array"       :face font-lock-type-face              :collection "vscode")
@@ -711,55 +711,18 @@
   (setq avy-single-candidate-jump t))
 
 (use-package dape
-  :commands (dape)
-  :bind ("C-x C-d" . dape)
-  :init
+  :bind ("C-x C-d" . (lambda () (interactive)
+                       (xcode-additions:setup-dape)
+                       (call-interactively #'dape)))
+  :config
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10)
-  :config
-  (remove-hook 'dape-on-start-hooks 'dape-repl)
-  (add-hook 'dape-on-stopped-hooks 'dape-repl)
-  (add-to-list 'dape-configs
-             `(ios
-               modes (swift-mode)
-               command-cwd dape-command-cwd
-               command ,(file-name-concat dape-adapter-dir
-                                          "codelldb"
-                                          "extension"
-                                          "adapter"
-                                          "codelldb")
-               command-args ("--port" :autoport
-                             "--settings" "{\"sourceLanguages\":[\"swift\"]}"
-                             "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
-               port :autoport
-               simulator-id "iPhone 14 crash"
-               app-bundle-id ""
-               fn (dape-config-autoport
-                   ,(lambda (config)
-                      (with-temp-buffer
-                        (let* ((command
-                                (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S"
-                                        (plist-get config 'simulator-id)
-                                        (plist-get config 'app-bundle-id)))
-                               (code (call-process-shell-command command nil (current-buffer))))
-                          (dape--repl-message (format "* Running: %S *" command))
-                          (dape--repl-message (buffer-string))
-                          (save-match-data
-                            (if (and (zerop code)
-                                     (progn (goto-char (point-min))
-                                            (search-forward-regexp "[[:digit:]]+" nil t)))
-                                (plist-put config :pid (string-to-number (match-string 0)))
-                              (dape--repl-message (format "* Running: %S *" command))
-                              (dape--repl-message (format "Failed to start simulator:\n%s" (buffer-string)))
-                              (user-error "Failed to start simulator")))))
-                      config))
-               :type "lldb"
-               :request "attach"
-               :cwd ".")))
+  (add-hook 'dape-on-stopped-hooks 'dape-info)
+  (add-hook 'dape-on-stopped-hooks 'dape-repl))
 
 (use-package repeat
   :ensure nil
-  :hook (prog-mode . repeat-mode)
+  :config (add-hook 'dape-on-start-hooks #'repeat-mode)
   :custom
   (repeat-too-dangerous '(kill-this-buffer))
   (repeat-exit-timeout 5))
@@ -846,6 +809,7 @@
   :commands (json-mode))
 
 (use-package projectile
+  :defer 1
   :hook (prog-mode . projectile-mode)
   :bind
   ("C-M-r" . projectile-replace)
@@ -888,6 +852,7 @@
       (side . right)
       (slot . 0))
      ("\\*iOS Simulator\\|*swift package\\|*ios-device"
+      ;; (display-buffer-at-bottom display-buffer-use-some-window)
       (display-buffer-in-side-window display-buffer-reuse-window)
       (window-height . 0.2)
       (window-parameters . ((mode-line-format . none)))
@@ -905,10 +870,10 @@
       (window-width . 0.4)
       (side . right)
       (slot . 1))
-     ("\\*e?shell\\|*ellama\\*"
+     ("\\*e?shell\\|*ellama\\|\\*vterm\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.25)
+      (window-height . 0.13)
       (window-parameters . ((mode-line-format . none)))
       (side . bottom)
       (slot . 10))
@@ -953,6 +918,7 @@
                    :italic t))))
 
 (use-package git-gutter
+  :defer 2
   :hook (prog-mode . git-gutter-mode)
   :diminish git-gutter-mode
   :config
@@ -967,7 +933,7 @@
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package svg-tag-mode
-  :hook ((swift-mode . svg-tag-mode)
+  :hook ((prog-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
@@ -988,12 +954,14 @@
                  (list 'vc backend root)))))
 
 (use-package project
+  :defer 1
   :ensure nil
   :config
   (add-hook 'project-find-functions #'project-root-override))
 
 ;; general
 (use-package general
+  :defer 2
   :config
   (general-create-definer mk/leader-keys
     :keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
@@ -1421,7 +1389,7 @@
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
-  (hs-minor-mode)       ; Add support for folding code blocks
+  ;; (hs-minor-mode)       ; Add support for folding code blocks
 
   (setq indicate-empty-lines nil            ;; Show empty lines
         indicate-unused-lines nil           ;; Show unused lines
@@ -1501,40 +1469,6 @@
   (set (make-local-variable 'face-remapping-alist)
        '((default :height 1.05))))
 
-;; (use-package dirvish
-;;   :init
-;;   (dirvish-override-dired-mode)
-;;   :config
-;;   (setq dirvish-mode-line-format
-;;         '(:left (sort symlink) :right (omit yank index)))
-;;   (setq dirvish-attributes
-;;         '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
-;;   (setq delete-by-moving-to-trash t)
-;;   (setq dirvish-default-layout '(0 0.4 0.6))
-;;   ;; (setq dired-listing-switches
-;;   ;;       "-l --almost-all --human-readable --group-directories-first --no-group")
-;;   :bind
-;;   (("C-c f" . dirvish-fd)
-;;    :map dirvish-mode-map ; Dirvish inherits `dired-mode-map'
-;;    ("a"   . dirvish-quick-access)
-;;    ("f"   . dirvish-file-info-menu)
-;;    ("y"   . dirvish-yank-menu)
-;;    ("N"   . dirvish-narrow)
-;;    ("^"   . dirvish-history-last)
-;;    ("h"   . dirvish-history-jump) ; remapped `describe-mode'
-;;    ("s"   . dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
-;;    ("v"   . dirvish-vc-menu)      ; remapped `dired-view-file'
-;;    ("TAB" . dirvish-subtree-toggle)
-;;    ("M-f" . dirvish-history-go-forward)
-;;    ("M-b" . dirvish-history-go-backward)
-;;    ("M-l" . dirvish-ls-switches-menu)
-;;    ("M-m" . dirvish-mark-menu)
-;;    ("M-t" . dirvish-layout-toggle)
-;;    ("M-s" . dirvish-setup-menu)
-;;    ("M-e" . dirvish-emerge-menu)
-;;    ("M-j" . dirvish-fd-jump))
-;;   )
-
 (use-package copilot
   :hook ((prog-mode . copilot-mode)
          (localizeable-mode . copilot-mode))
@@ -1548,7 +1482,7 @@
 ;; (package-vc-install "https://github.com/copilot-emacs/copilot.el.git")
 
 (use-package window-stool
-  :hook (swift-mode . window-stool-mode)
+  :hook (prog-mode . window-stool-mode)
   :ensure nil
   :config
   (setq window-stool-n-from-top 2
@@ -1573,11 +1507,14 @@
   (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
   (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
   (indent-bars-display-on-blank-lines nil))
-;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
+;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
 ;; rainbow-mode show hex as colors
 
 (use-package rainbow-mode
+  :defer t
   :hook (emacs-lisp-mode . rainbow-mode))
+
+;; (setq gc-cons-threshold (* 64 1000 1000))
 
 (provide 'init)
 

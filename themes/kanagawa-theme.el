@@ -419,8 +419,8 @@
   (vertico-posframe-border                       (:background sumiInk))
   (vertico-posframe                              (:background sumiInk))
 
-  (orderless-match-face-0                        (:foreground fujiWhite :weight 'bold))
-  (orderless-match-face-1                        (:foreground peachRed :weight 'bold))
+  (orderless-match-face-0                        (:foreground peachRed :weight 'bold))
+  (orderless-match-face-1                        (:foreground springBlue :weight 'bold))
   (orderless-match-face-2                        (:foreground springGreen :weight 'bold))
   (orderless-match-face-3                        (:foreground carpYellow :weight 'bold))
 
@@ -566,6 +566,12 @@
   (periphery-performance-face-full (:foreground winterRed :background sakuraPink :bold t))
   (periphery-warning-face-full (:foreground winterYellow :background boatYellow2 :bold t))
 
+  (markdown-header-delimiter-face (:foreground sumiInk-4))
+  (markdown-header-face-1 (:height 1.8 :foreground peachRed :weight 'extra-bold))
+  (markdown-header-face-2 (:height 1.5 :foreground waveAqua1 :weight 'bold))
+  (markdown-header-face-3 (:height 1.5 :foreground carpYellow :weight 'bold))
+  (markdown-header-face-4 (:height 1.2 :foreground waveBlue-2 :weight 'bold))
+  (markdown-markup-face (:foreground sumiInk-4 :weight 'bold))
 
   ))
 

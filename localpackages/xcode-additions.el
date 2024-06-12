@@ -70,7 +70,8 @@
 
 (defun xcode-additions:list-xcscheme-files (folder)
   "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of FOLDER."
-  (let ((xcscheme-names '()))
+  (let ((project-name (xcode-additions:project-name))
+        (xcscheme-names '()))
     (setq folder (expand-file-name folder))
     (setq xcshemes-folder (concat folder "xcshareddata/xcschemes/"))
     (when (file-directory-p xcshemes-folder)
@@ -80,20 +81,19 @@
           (setq xcscheme-names (cons (file-name-sans-extension (file-name-nondirectory item)) xcscheme-names)))))
     (if xcscheme-names
         (setq xcscheme-names (nreverse xcscheme-names))
-      (message "No '.xcscheme' files found in %s" xcshemes-folder))
+      (setq xcscheme-names (list project-name)))
     xcscheme-names))
 
 (defun xcode-additions:list-scheme-files ()
   "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of the current Xcode project or workspace directory."
-  (let* ((xcshemes '())
-         (project-name (concat (xcode-additions:project-name) ".xcodeproj/"))
+  (let* ((project-name (concat (xcode-additions:project-name) ".xcodeproj/"))
          (project-directory (concat (xcode-additions:find-xcode-project-directory) project-name)))
     (cond
      (project-directory
       (let ((xcscheme-files (xcode-additions:list-xcscheme-files project-directory)))
         (if xcscheme-files
             xcscheme-files
-          nil))))))
+          ))))))
 
 (defun xcode-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
@@ -170,8 +170,8 @@
   (let ((workspace (xcode-additions:workspace-name))
         (projectname (xcode-additions:project-name)))
     (if workspace
-        (format "-workspace %s.xcworkspace" workspace)
-      (format "-project %s.xcodeproj" projectname))))
+        (format "-workspace %s.xcworkspace" (shell-quote-argument workspace))
+      (format "-project %s.xcodeproj" (shell-quote-argument projectname)))))
 
 (defun xcode-additions:get-configuration-list ()
   "Get list of project configurations."
@@ -248,7 +248,7 @@
 (defun xcode-addition:ask-for-device-or-simulator ()
 "Show menu for runnings on simulator or device."
 (interactive)
-(when current-local-device-id
+(when (ios-device:id)
   (setq current-run-on-device (xcode-additions:device-or-simulator-menu :title "Run on simulator or device?"))))
 
 (defun xcode-additions:run-in-simulator ()
@@ -259,8 +259,9 @@
 (defun xcode-additions:reset ()
   "Reset the current project root."
   (interactive)
-  (ios-simulator:kill-buffer)
+  (ios-simulator:reset)
   (periphery-kill-buffer)
+  (spinner-stop build-progress-spinner)
   (setq current-run-on-device nil)
   (setq current-local-device-id nil)
   (setq current-is-xcode-project nil)
@@ -270,6 +271,48 @@
   (setq current-project-root nil)
   (setq current-xcode-scheme nil)
   (mode-line-hud:update :message "Resetting configuration"))
+
+(defun xcode-additions:setup-dape()
+  "Setup dape."
+  (interactive)
+  (require 'dape)
+  (add-to-list 'dape-configs
+             `(ios
+               modes (swift-mode)
+               command-cwd dape-command-cwd
+               command ,(file-name-concat dape-adapter-dir
+                                          "codelldb"
+                                          "extension"
+                                          "adapter"
+                                          "codelldb")
+               command-args ("--port" :autoport
+                             "--settings" "{\"sourceLanguages\":[\"swift\"]}"
+                             "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
+               port :autoport
+               simulator-id ,(ios-simulator:simulator-identifier)
+               app-bundle-id ,(xcode-additions:fetch-or-load-app-identifier)
+               fn (dape-config-autoport
+                   ,(lambda (config)
+                      (with-temp-buffer
+                        (let* ((command
+                                (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S"
+                                        (plist-get config 'simulator-id)
+                                        (plist-get config 'app-bundle-id)))
+                               (code (call-process-shell-command command nil (current-buffer))))
+                          (dape--repl-message (format "* Running: %S *" command))
+                          (dape--repl-message (buffer-string))
+                          (save-match-data
+                            (if (and (zerop code)
+                                     (progn (goto-char (point-min))
+                                            (search-forward-regexp "[[:digit:]]+" nil t)))
+                                (plist-put config :pid (string-to-number (match-string 0)))
+                              (dape--repl-message (format "* Running: %S *" command))
+                              (dape--repl-message (format "Failed to start simulator:\n%s" (buffer-string)))
+                              (user-error "Failed to start simulator")))))
+                      config))
+               :type "lldb"
+               :request "attach"
+               :cwd ".")))
 
 ;;;###autoload
 (defun xcode-additions:clean-build-folder ()
