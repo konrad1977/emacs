@@ -852,8 +852,9 @@
       (side . right)
       (slot . 0))
      ("\\*iOS Simulator\\|*swift package\\|*ios-device"
-      ;; (display-buffer-at-bottom display-buffer-use-some-window)
       (display-buffer-in-side-window display-buffer-reuse-window)
+      ;; (display-buffer-at-bottom display-buffer-reuse-mode-window)
+      ;; (display-buffer-in-side-window display-buffer-reuse-window)
       (window-height . 0.2)
       (window-parameters . ((mode-line-format . none)))
       (side . bottom)

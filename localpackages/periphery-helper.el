@@ -36,13 +36,26 @@
                (let* ((json-object (json-read-from-string result)))
                  (funcall ,callback json-object)))))
 
+
 (cl-defun async-start-command-to-string (&key command &key callback)
-  "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
-  (async-start
-   `(lambda ()
-      (shell-command-to-string ,command))
-   `(lambda (result)
-      (funcall ,callback result))))
+  "Run COMMAND asynchronously and call CALLBACK with the result."
+  (let ((output-buffer (generate-new-buffer "*async-command-output*")))
+    (set-process-sentinel
+     (start-process-shell-command "async-command" output-buffer command)
+     (lambda (_ event)
+       (when (string= event "finished\n")
+         (with-current-buffer output-buffer
+           (let ((result (buffer-string)))
+             (funcall callback result))
+           (kill-buffer output-buffer)))))))
+
+;; (cl-defun async-start-command-to-string (&key command &key callback)
+;;   "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
+;;   (async-start
+;;    `(lambda ()
+;;       (shell-command-to-string ,command))
+;;    `(lambda (result)
+;;       (funcall ,callback result))))
 
 (cl-defun async-start-command (&key command &key callback)
   "Async shell command run async (as COMMAND) and call (as CALLBACK)."
