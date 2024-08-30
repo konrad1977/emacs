@@ -1,5 +1,5 @@
-;;; Periphery --- A simple package to parse output from compile commands
 ;;; -*- lexical-binding: t -*-
+;;; Periphery --- A simple package to parse output from compile commands
 
 ;;; Commentary: --- A simple package
 
@@ -221,7 +221,7 @@
                (startPosition (string-match regex normalizedInput position)))
           (setq position (match-end 1))
           (add-text-properties startPosition position property normalizedInput)))
-  normalizedInput)))
+      normalizedInput)))
 
 (defun periphery--parse-xctest-putput (line)
   "Run regex for xctest case."
@@ -363,15 +363,18 @@
   tempList)
 
 (cl-defun periphery-run-parser (input)
-  "Run parser (as INPUT as SUCCESSCALLBACK)."
+  "Run parser on INPUT more efficiently."
   (when DEBUG
     (message input))
 
-  (setq input (mapconcat #'identity (seq-filter (lambda (line) (string-match-p "^/" line)) (split-string input "\n")) "\n"))
-  (setq periphery-errorList (delete-dups (parse-compiler-errors input)))
+  (let* ((relevant-lines (seq-filter (lambda (line) (string-match-p "^/" line))
+                                     (split-string input "\n")))
+         (filtered-input (string-join relevant-lines "\n")))
 
-  (when (or (periphery--is-buffer-visible) periphery-errorList)
-    (periphery--listing-command periphery-errorList)))
+    (setq periphery-errorList (delete-dups (parse-compiler-errors filtered-input)))
+
+    (when (or (periphery--is-buffer-visible) periphery-errorList)
+      (periphery--listing-command periphery-errorList))))
 
 (defun periphery--is-buffer-visible ()
   "Check if a buffer is visible."
