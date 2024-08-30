@@ -6,14 +6,13 @@
 
 (set-face-attribute 'default nil
                     :font "JetBrainsMono Nerd Font Mono"
-                    :height 150
+                    :height 160
                     :weight 'thin
-                    :inverse-video nil
                     :slant 'normal)
 
 
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font Mono" :height 150 :weight 'thin)
-(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 150 :weight 'light)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 160)
+(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 160 :weight 'light)
 
 (custom-set-faces
  `(font-lock-comment-face ((t (:font "Work Sans" :italic t :height 1.05)))))
@@ -24,6 +23,9 @@
 (global-auto-revert-mode)       ;; refresh a buffer if changed on disk
 (global-hl-line-mode 1)         ;; Highlight current line
 ;; (pixel-scroll-precision-mode 1)
+
+;;; Hide the dollar sign at the end of the line
+(set-display-table-slot standard-display-table 0 ?\ )
 
 (setq-default display-line-numbers-width    5       ;; Set so we can display thousands of lines
               c-basic-offset                4            ;; Set tab indent for c/c++ to 4 tabs
@@ -95,8 +97,14 @@
         max-lisp-eval-depth 10000
         scroll-conservatively 101
         scroll-margin 0
-        debug-on-error nil
+        fast-but-imprecise-scrolling        t
+        scroll-conservatively               10
+        scroll-preserve-screen-position     t
+        hscroll-step                        1
+        hscroll-margin                      2
+        debug-on-error                      nil
         visible-bell nil
+        auto-window-vscroll nil
         auth-sources '((:source "~/.authinfo.gpg"))
         warning-minimum-level :emergency
         tab-always-indent 'complete
@@ -113,18 +121,17 @@
         find-file-visit-truename          t
         font-lock-maximum-decoration      t
         highlight-nonselected-windows     t
-        fast-but-imprecise-scrolling      t
         kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
         use-dialog-box                    nil
         word-wrap                         nil
         auto-mode-case-fold               nil
-        bidi-inhibit-bpa                  t
-        bidi-display-reordering           'left-to-right
-        bidi-paragraph-direction          'left-to-right
         undo-limit                        6710886400 ;; 64mb
         undo-strong-limit                 100663296 ;; x 1.5 (96mb)
         undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
         jit-lock-defer-time 0))
+
+(setq-default indicate-buffer-boundaries nil)
+(setq-default indicate-empty-lines nil)
 
 (when (fboundp 'set-message-beep)
   (set-message-beep 'silent))
@@ -171,8 +178,6 @@
      ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
      "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft")))
 
-(setq font-lock-maximum-decoration '((swift-mode . 2) (c++-mode . 2) (t . t)))
-
 (use-package welcome-dashboard
   :ensure nil
   :custom-face
@@ -191,25 +196,22 @@
         welcome-dashboard-image-width 200
         welcome-dashboard-image-height 169
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
-  (welcome-dashboard-create-welcome-hook)
-  )
+  (welcome-dashboard-create-welcome-hook))
 
 (use-package no-littering)
 
 (use-package autothemer
-  :config
- ;; (load-theme 'catppuccin-latte t)
+  :init
+  ;; (load-theme 'catppuccin-latte t)
+  ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-frappe t)
-   ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-    ;; (load-theme 'oxocarbon t)
-   ;;(load-theme 'oxographite t)
-   ;; (load-theme 'kman t)
-
+  ;; (load-theme 'oxocarbon t)
+  ;; (load-theme 'oxographite t)
+  ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
- (load-theme 'kanagawa t)
- )
+  (load-theme 'kanagawa t))
 
 (use-package saveplace
   :ensure nil
@@ -335,12 +337,11 @@
 (defun mk/hud-copilot ()
   "HUD for Copilot."
   (if (bound-and-true-p copilot-mode)
-      (concat (propertize "" 'face '(:inherit success)) " Copilot")
-    ""))
+      (propertize " " 'face '(:inherit success)) ""))
 
 (defun mk/mood-separator ()
   "Mood line separator."
-  (propertize " ⑊ " 'face '(:foreground "#5f5f6f")))
+  (propertize " ⑊ " 'face '(:foreground "#54536D" :weight bold)))
 
 (defun mk/add-mood-line-segment (segment)
   "Add SEGMENT to mood line."
@@ -489,9 +490,9 @@
   :init
   (evil-commentary-mode 1))
 
-(use-package evil-quickscope
-  :after evil
-  :hook (prog-mode . evil-quickscope-mode))
+;; (use-package evil-quickscope
+;;   :after evil
+;;   :hook (prog-mode . evil-quickscope-mode))
 
 (use-package evil-goggles
   :init
@@ -538,19 +539,6 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package tree-sitter
-  :hook ((swift-mode . tree-sitter-mode))
-  :config
-  (setq tsc-dyn-get-from nil)
-  (setq tree-sitter-hl-use-font-lock-keywords t
-        tree-sitter-hl-enable-query-region-extension nil)
-  :config
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-
-;; (use-package tree-sitter-langs
-;;   :defer t
-;;   :ensure nil)
-
 ;; ------------------ SEARCHING -------------------
 
 ;; ------------------ EDITING -------------------
@@ -562,14 +550,26 @@
   :hook ((swift-mode . eglot-ensure))
   :ensure nil
   :config
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
   (setq eglot-stay-out-of '(corfu company)
-        eglot-send-changes-idle-time 0.1
+        eglot-send-changes-idle-time 0.3
         eglot-autoshutdown t
-        eglot-events-buffer-config '(size: 20000 format: short)
-        eglot-ignored-server-capabilities '(:hoverProvider)
+        ;; eglot-events-buffer-config '(size: 20000 format: short)
+        ;; eglot-ignored-server-capabilities '(:hoverProvider)
         eglot-extend-to-xref t)
   (advice-add 'jsonrpc--log-event :override #'ignore)
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
+
+(use-package eldoc-box
+  :defer t
+  :custom
+  (setq eldoc-box-max-pixel-width 500
+        eldoc-box-max-pixel-height 850))
+
+(use-package eldoc
+  :ensure nil
+  :config
+  (setq eldoc-idle-delay 1))
 
 (use-package kind-icon
   :after corfu
@@ -653,7 +653,7 @@
         corfu-auto-delay 0.3
         corfu-quit-no-match 'separator
         corfu-popupinfo-resize t
-        ;; corfu-popupinfo-hide t
+        corfu-popupinfo-hide t
         corfu-popupinfo-direction '(force-horizontal)
         corfu-popupinfo-min-width corfu-min-width
         corfu-popupinfo-max-width corfu-max-width))
@@ -700,7 +700,7 @@
   ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;; (add-to-list 'completion-at-point-functions #'cape-keyword)
   ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
@@ -758,7 +758,7 @@
         treemacs-indentation 1
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 32))
+        treemacs-width 26))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -772,12 +772,12 @@
 (use-package restclient
   :commands (restclient))
 
-(use-package flyspell
-  :ensure nil
-  :config
-  (setq flyspell-issue-message-flag nil
-      ispell-local-dictionary "sv-SE"
-      ispell-program-name "aspell"))
+;; (use-package flyspell
+;;   :ensure nil
+;;   :config
+;;   (setq flyspell-issue-message-flag nil
+;;       ispell-local-dictionary "sv-SE"
+;;       ispell-program-name "aspell"))
 
 (use-package flycheck
  :hook (prog-mode . flycheck-mode)
@@ -788,14 +788,14 @@
   :custom
   (setq flycheck-checker-error-threshold 20))
 
-(use-package flycheck-inline
-  :ensure nil
-  :after flycheck
-  :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
+;; (use-package flycheck-inline
+;;   :ensure nil
+;;   :after flycheck
+;;   :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
 
 (use-package flycheck-eglot
-  :hook (swift-mode . global-flycheck-eglot-mode)
-  :after flycheck
+  :hook (eglot-mode . global-flycheck-eglot-mode)
+  :after eglot
   :config
   (setq flycheck-eglot-exclusive t))
 
@@ -805,8 +805,8 @@
 (use-package yaml-mode
   :commands (yaml-mode))
 
-(use-package json-mode
-  :commands (json-mode))
+;; (use-package json-mode
+;;   :commands (json-mode))
 
 (use-package projectile
   :defer 1
@@ -830,6 +830,24 @@
           "xcodeproj"
           ".build")))
 
+(use-package pulsar
+  :hook (after-init . pulsar-global-mode)
+  :config
+  (setq pulsar-pulse t
+        pulsar-delay 0.1
+        pulsar-iterations 6
+        pulsar-face 'pulsar-cyan
+        pulsar-highlight-face 'pulsar-face
+        pulsar-pulse-functions '(evil-window-up
+                                 evil-window-rotate-upwards
+                                 evil-window-rotate-downwards
+                                 evil-window-down
+                                 evil-window-left
+                                 evil-window-right
+                                 evil-window-vsplit
+                                 evil-window-split))
+  )
+
 (use-package window
   :ensure nil
   :bind
@@ -852,7 +870,7 @@
       (side . right)
       (slot . 0))
      ("\\*iOS Simulator\\|*swift package\\|*ios-device"
-      (display-buffer-in-side-window display-buffer-reuse-window)
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       ;; (display-buffer-at-bottom display-buffer-reuse-mode-window)
       ;; (display-buffer-in-side-window display-buffer-reuse-window)
       (window-height . 0.2)
@@ -860,7 +878,7 @@
       (side . bottom)
       (slot . 2))
      ("\\*Periphery\\*"
-      (display-buffer-in-side-window display-buffer-reuse-window)
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       (body-function . select-window)
       (window-height . 0.2)
       (side . bottom)
@@ -884,6 +902,13 @@
       (window-height . 0.15)
       (side . bottom)
       (slot . 3)))))
+
+(use-package imenu-list
+  :bind
+  ("C-c i" . 'imenu-list-smart-toggle)
+  :custom
+  (imenu-list-focus-after-activation t)
+  (imenu-list-auto-resize t))
 
 (use-package darkroom
   :commands (darkroom-tentative-mode)
@@ -1008,6 +1033,7 @@
   (mk/leader-keys
     "fs" '(save-buffer :which-key "Save file")
     "ff" '(find-file :which-key "Find file")
+    "fp" '(consult-git-grep :which-key "Find symbol in project")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
     "fR" '(dired-rename-file :which-key "Rename file")
@@ -1029,7 +1055,7 @@
   (mk/leader-keys
     "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
     "wp" '(previous-window-any-frame :which-key "Previous window")
-    "wx" '(delete-window :which-key "Delete window"))
+    "wx" '(delete-window :hich-key "Delete window"))
 
   (mk/leader-keys
     "pf" '(projectile-find-file-dwim :which-key "Find file")
@@ -1132,7 +1158,7 @@
                   (org-level-6 . (1.0 .  normal))
                   (org-level-7 . (1.0 .  normal))
                   (org-level-8 . (1.0 .  normal))))
-    (set-face-attribute (car face) nil :font "Iosevka Nerd Font"
+    (set-face-attribute (car face) nil :font "Iosevka Term SS14"
                         :weight (cdr (cdr face))
                         :height (car (cdr face))))
 
@@ -1214,7 +1240,6 @@
 ;;   :config
 ;;   (setq highlight-indentation-blank-lines t))
 
-
 ;; Drag lines and regions around
 (use-package drag-stuff
   :hook (prog-mode . drag-stuff-mode)
@@ -1233,11 +1258,28 @@
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-;; (use-package yasnippet
-;;   :hook (swift-mode . yas-minor-mode)
-;;   :diminish yas-minor-mode
-;;   :commands (yas-reload-all)
-;;   :config (yas-reload-all))
+(use-package indent-bars
+  :ensure nil
+  :hook (prog-mode . indent-bars-mode)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.05))
+  (indent-bars-width-frac 0.3)
+  (indent-bars-pad-frac 0.1)
+  (indent-bars-zigzag nil)
+  (indent-bars-pattern ".")
+  (indent-bars-prefer-character t)
+  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
+  (indent-bars-highlight-current-depth '(:blend 0.3)) ; pump up the BG blend on current
+  (indent-bars-display-on-blank-lines t))
+;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
+
+(use-package c++-mode
+  :ensure nil
+  :mode ("\\.metal\\'" . c++-mode)
+  :config
+  (setq c-basic-offset 4
+        c-default-style "linux"
+        c-offsets-alist '((innamespace . 0))))
 
 (use-package swift-mode
   :defer t
@@ -1245,10 +1287,17 @@
   :config
   (setq swift-mode:basic-offset 4
         swift-mode:parenthesized-expression-offset 4
-        swift-mode:multiline-statement-offset 0
-        swift-mode:highlight-anchor t
-        tree-sitter-hl-use-font-lock-keywords nil)
-  (setq font-lock-maximum-decoration '((swift-mode . 2) (emacs-lisp-mode . 2) (t . t))))
+        swift-mode:multiline-statement-offset 4
+        swift-mode:highlight-anchor t)
+  (setq font-lock-maximum-decoration '((swift-mode . 3) (emacs-lisp-mode . 3) (t . t))))
+
+(use-package tree-sitter
+  :defer 10
+  :hook ((prog-mode . tree-sitter-mode)
+         (tree-sitter-after-on . tree-sitter-hl-mode)))
+
+(use-package tree-sitter-langs
+  :after tree-sitter)
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
@@ -1265,12 +1314,12 @@
   ("C-c x c" . #'ios-simulator:appcontainer)
   ("C-c x l" . #'ios-simulator:change-language))
 
-;; (use-package xcode-build
-;;   :ensure nil
-;;   :after swift-mode
-;;   :bind
-;;   ("M-r" . #'xcode-build:run)
-;;   ("M-s" . #'xcode-build:stop))
+(use-package xcode-build
+  :ensure nil
+  :after swift-mode
+  :bind
+  ("M-r" . #'xcode-build:run)
+  ("M-s" . #'xcode-build:stop))
 
 (use-package overlay-usage
   :commands (overlay-usage-mode)
@@ -1292,6 +1341,11 @@
   :bind
   ("M-K" .  #'xcode-additions:clean-build-folder)
   ("C-c C-x" . #'xcode-additions:reset))
+
+;; (use-package smartparens-mode
+;;   :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
+;;   :config
+;;   (require 'smartparens-config))
 
 (use-package swift-refactor
   :ensure nil
@@ -1325,7 +1379,7 @@
   :ensure nil
   :after prog-mode
   :bind
-  ("C-c q a" . #'periphery-quick:find-ask)
+  ("C-c S" . #'periphery-quick:find-ask)
   ("M-F" . #'periphery-quick:find)
   ("C-c f f" . #'periphery-quick:find-in-file)
   ("C-c f t" . #'periphery-quick:todos))
@@ -1375,11 +1429,11 @@
     (other-window 1)
     (xwidget-webkit-browse-url url)))
 
-(use-package electric
-  :hook (prog-mode . electric-pair-mode)
-  :ensure nil
-  :config
-  (setq electric-pair-preserve-balance t))
+;; (use-package electric
+;;   :hook (prog-mode . electric-pair-mode)
+;;   :ensure nil
+;;   :config
+;;   (setq electric-pair-preserve-balance t))
 
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
@@ -1392,8 +1446,7 @@
   (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
   ;; (hs-minor-mode)       ; Add support for folding code blocks
 
-  (setq indicate-empty-lines nil            ;; Show empty lines
-        indicate-unused-lines nil           ;; Show unused lines
+  (setq indicate-unused-lines nil           ;; Show unused lines
         truncate-lines t
         left-fringe-width 32
         right-fringe-width 0
@@ -1488,34 +1541,18 @@
   :config
   (setq window-stool-n-from-top 2
         window-stool-n-from-bottom 0))
+;; (package-vc-install "https://github.com/JasZhe/window-stool.git")
 
 (use-package eglot-booster
   :ensure nil
   :after eglot
   :config (eglot-booster-mode))
 ;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
-
-(use-package indent-bars
-  :hook (prog-mode . indent-bars-mode)
-  :ensure nil
-  :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.1))
-  (indent-bars-width-frac 0.3)
-  (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag nil)
-  (indent-bars-pattern ".")
-  (indent-bars-prefer-character t)
-  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
-  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
-  (indent-bars-display-on-blank-lines nil))
-;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
 ;; rainbow-mode show hex as colors
 
 (use-package rainbow-mode
   :defer t
   :hook (emacs-lisp-mode . rainbow-mode))
-
-;; (setq gc-cons-threshold (* 64 1000 1000))
 
 (provide 'init)
 

@@ -1,20 +1,13 @@
 ;;; swift-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
 
-;;; commentary:
+;;; Commentary:
 
-;;; package for building and runnning ios/macos apps from Emacs
+;; Package for building and running iOS/macOS apps from Emacs
 
-;;; code:
-;; (require 'eglot)
-;; (require 'projectile)
+;;; Code:
 (require 'xcodebuildserver)
 (require 'ios-device)
 (require 'ios-simulator)
-;; (require 'periphery)
-;; (require 'periphery-helper)
-;; (require 'spinner)
-;; (require 'xcode-additions)
-;; (require 'mode-line-hud)
 
 (defgroup swift-additions:xcodebuild nil
   "REPL."
@@ -44,12 +37,10 @@
     (swift-additions:xcodebuild-command)
     (format "%s \\" (xcode-additions:get-workspace-or-project))
     (format "-scheme %s \\" (shell-quote-argument (xcode-additions:scheme)))
-    (format "-sdk %s \\" (swift-additions:get-current-sdk))
     (format "-jobs %s \\" (swift-additions:get-number-of-cores))
-    (when sim-id
-      (format "-destination 'generic/platform=iOS Simulator,id=%s' \\" sim-id))
-    (when (not (xcode-additions:run-in-simulator))
-      (format "-destination 'generic/platform=iOS' \\" ))
+    (if sim-id
+        (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
+      (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
     "-configuration Debug \\"
     "-UseNewBuildSystem=YES \\"
     "-hideShellScriptEnvironment \\"
@@ -106,9 +97,9 @@
   (funcall callback))
 (periphery-run-parser output))
 
-(defun swift-additions:get-current-sdk ()
-"Return the current SDK."
-(if current-local-device-id
+(cl-defun swift-additions:get-current-sdk (&key sim-id)
+"Return the current SDK with SIM-ID."
+(if sim-id
     "iphoneos"
   "iphonesimulator"))
 
@@ -146,6 +137,7 @@
 
 (cl-defun swift-additions:compile-for-simulator (&key run)
   "Compile app (RUN)."
+  (setq current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
@@ -154,7 +146,6 @@
     (setq current-build-command build-command)
     (setq compilation-time (current-time))
     (setq build-progress-spinner spinner-current)
-
     (when DEBUG
       (message build-command))
 
@@ -176,8 +167,8 @@
 (defun swift-additions:compile-for-device (&key run)
   "Compile and RUN on device ."
   (setq current-build-command nil)
-  (setq run-once-compiled run)
   (xcode-additions:setup-project)
+  (setq run-once-compiled run)
 
   (let ((build-command (build-app-command :sim-id nil)))
 
@@ -186,16 +177,17 @@
     (setq compilation-time (current-time))
     (setq build-progress-spinner spinner-current)
 
-    (mode-line-hud:update :message (format "Compiling %s|%s"
-                                           (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                           (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
+    ;; (mode-line-hud:update :message (format "Compiling %s|%s"
+    ;;                                        (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+    ;;                                        (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
     (when DEBUG
       (message current-build-command)
       (message "Build-folder: %s" (xcode-additions:build-folder)))
 
     (xcodebuildserver:check-configuration :root default-directory
-                                          :workspace (xcode-additions:get-workspace-or-project))
+                                          :workspace (xcode-additions:get-workspace-or-project)
+                                          :scheme (xcode-additions:scheme))
 
     (spinner-start 'progress-bar-filled)
 

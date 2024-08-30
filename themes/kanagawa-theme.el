@@ -16,7 +16,7 @@
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
-  (padding 7)
+  (padding 8)
   ;; Define our color palette
   (fujiWhite		"#DCD7BA" "#ffffff")
   (old-white		"#C8C093" "#ffffff")
@@ -76,21 +76,21 @@
   (child-frame-border                            (:foreground sumiInk-0))
   (cursor                                        (:background peachRed :foreground sumiInk-0 :bold t))
   (error                                         (:foreground peachRed))
-  (fringe                                        (:foreground sumiInk-2))
   (glyph-face                                    (:background sumiInk-4))
   (glyphless-char                                (:foreground sumiInk-4))
-  (header-line                                   (:background sumiInk-2 :box (:line-width padding :color sumiInk-2)))
+  (header-line                                   (:background winterBlue :box (:line-width padding :color winterBlue)))
   (highlight                                     (:background comet :foreground springViolet1))
-  (hl-line                                       (:background sumiInk-2))
+  (hl-line                                       (:background winterBlue))
   (homoglyph                                     (:foreground waveAqua2))
+  (fringe                                        (:background sumiInk-1))
   (line-number                                   (:foreground sumiInk-4))
-  (line-number-current-line                      (:background sumiInk-2 :foreground crystalBlue :weight 'semi-bold))
+  (line-number-current-line                      (:background winterBlue :foreground carpYellow :weight 'semi-bold :italic t))
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
   (match                                         (:background carpYellow :foreground sumiInk-0))
   (menu                                          (:foreground fujiWhite))
-  (mode-line                                     (:background sumiInk-2 :box (:line-width padding :color sumiInk-2)))
-  (mode-line-inactive                            (:background sumiInk-2 :foreground sumiInk-4 :box (:line-width padding :color sumiInk-2)))
-  (mode-line-active                              (:background sumiInk-2 :foreground sumiInk-5 :box (:line-width padding :color sumiInk-2)))
+  ;; (mode-line                                     (:background sumiInk-4 :box (:line-width padding :color winterBlue)))
+  (mode-line-inactive                            (:background sumiInk-3 :foreground sumiInk-5 :box (:line-width padding :color sumiInk-3)))
+  (mode-line-active                              (:background winterBlue :foreground crystalBlue :box (:line-width padding :color winterBlue)))
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground crystalBlue))
   (numbers                                       (:background sakuraPink))
@@ -105,7 +105,7 @@
   (hi-yellow                                     (:background carpYellow :foreground sumiInk-1b))
 
   ;; Font lock
-  (font-lock-keyword-face                        (:foreground oniViolet :weight 'semi-bold))
+  (font-lock-keyword-face                        (:foreground oniViolet :weight 'normal))
   (font-lock-type-face                           (:foreground waveAqua2 :weight 'normal))
   (font-lock-warning-face                        (:foreground roninYellow))
   (font-lock-string-face                         (:foreground springGreen :italic t))
@@ -434,7 +434,7 @@
   (corfu-current                                 (:inherit 'vertico-current))
   (corfu-annotations                             (:background winterGreen :foreground springGreen))
   (corfu-default                                 (:background waveBlue-1 :foreground springViolet2))
-  (corfu-border                                  (:background waveBlue-2))
+  (corfu-border                                  (:background dragonBlue))
   (corfu-popupinfo                               (:background sumiInk :foreground springBlue :box (:line-width 2 :color sumiInk)))
 
   ;; hydra
@@ -494,7 +494,7 @@
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:foreground springBlue :weight 'thin))
   (tree-sitter-hl-face:function.builtin          (:foreground springGreen))
-  (tree-sitter-hl-face:function.special          (:foreground springGreen :italic t :bold t))
+  (tree-sitter-hl-face:function.special          (:foreground springGreen :italic t))
   (tree-sitter-hl-face:function.macro            (:foreground waveAqua2))
   (tree-sitter-hl-face:function.label            (:foreground autumnYellow))
 
@@ -506,7 +506,7 @@
   (tree-sitter-hl-face:type.argument             (:foreground sumiInk-4))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
   (tree-sitter-hl-face:type.super                (:foreground peachRed))
-  (tree-sitter-hl-face:constructor               (:foreground waveAqua2 :weight 'semi-bold))
+  (tree-sitter-hl-face:constructor               (:foreground waveAqua2 :weight 'normal))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
@@ -514,8 +514,8 @@
   (tree-sitter-hl-face:variable.special          (:foreground oniViolet :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground waveRed))
 
-  (tree-sitter-hl-face:property                  (:foreground crystalBlue :weight 'extra-light))
-  (tree-sitter-hl-face:property.definition       (:foreground crystalBlue :italic t))
+  (tree-sitter-hl-face:property                  (:foreground springBlue :weight 'extra-light))
+  (tree-sitter-hl-face:property.definition       (:foreground springViolet2 :italic t))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
@@ -542,7 +542,7 @@
   (tree-sitter-hl-face:keyword.compiler          (:foreground sumiInk-4 :italic t :weight 'normal))
 
   (focus-unfocused (:foreground sumiInk-4))
-  (window-stool-face (:background sumiInk-2 :underline (:color sumiInk-3)))
+  (window-stool-face (:background sumiInk-2)) ; :underline (:color sumiInk-3)))
 
   (solaire-default-face (:background sumiInk-2 :foreground sumiInk-5))
   (solaire-fringe-face (:background sumiInk-2 :foreground sumiInk-5))
@@ -567,11 +567,16 @@
   (periphery-warning-face-full (:foreground winterYellow :background boatYellow2 :bold t))
 
   (markdown-header-delimiter-face (:foreground sumiInk-4))
-  (markdown-header-face-1 (:height 1.8 :foreground peachRed :weight 'extra-bold))
-  (markdown-header-face-2 (:height 1.5 :foreground waveAqua1 :weight 'bold))
-  (markdown-header-face-3 (:height 1.5 :foreground carpYellow :weight 'bold))
-  (markdown-header-face-4 (:height 1.2 :foreground waveBlue-2 :weight 'bold))
-  (markdown-markup-face (:foreground sumiInk-4 :weight 'bold))
+  (markdown-header-face-1 (:height 1.2 :foreground peachRed :weight 'extra-bold))
+  (markdown-header-face-2 (:height 1.25 :foreground waveAqua1 :weight 'bold))
+  (markdown-header-face-3 (:height 1.3 :foreground dragonBlue :weight 'bold))
+  (markdown-header-face-4 (:height 1.35 :foreground waveBlue-2 :weight 'bold))
+  (markdown-markup-face (:foreground sumiInk-4))
+  (markdown-inline-code-face (:foreground peachRed :weight 'thin))
+  (markdown-pre-face (:foreground springViolet2 :weight 'thin))
+
+  (eldoc-box-body (:background sumiInk-2))
+  (eldoc-box-border (:box (:line-width padding :color sumiInk-2)))
 
   ))
 

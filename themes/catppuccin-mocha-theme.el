@@ -20,6 +20,8 @@
 
   ;; Define our color palette
 
+  (padding 7)
+
   (rosewater  "#f5e0dc" "#ffffff")
   (flamingo   "#f2cdcd" "#ffd7df")
   (pink       "#f5c2e7" "#d7afaf")
@@ -62,7 +64,7 @@
   (file-name-shadow                     (:foreground overlay2))
   (glyph-face                           (:background red :foreground overlay0))
   (glyphless-char                       (:foreground overlay2))
-  (header-line                          (:background mantle :foreground maroon :weight 'semi-bold :italic t))
+  (header-line                          (:background surface0 :foreground subtext0 :bold t :box (:line-width padding :color surface0)))
   (highlight                            (:background mantle :foreground blue :distant-foreground crust))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
@@ -71,9 +73,9 @@
   (match                                (:background yellow :foreground crust))
   (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
-  (mode-line                            (:background crust :foreground overlay2))
-  (mode-line-inactive                   (:background surface0))
-  (mode-line-active                     (:foreground subtext0 :background crust))
+  (mode-line                            (:background surface0 :box (:line-width padding :color surface0)))
+  (mode-line-inactive                   (:background surface1 :box (:line-width padding :color surface1)))
+  (mode-line-active                     (:background surface0 :box (:line-width padding :color surface0)))
   (mode-line-highlight                  (:foreground flamingo))
   (mode-line-buffer-id                  (:foreground text :bold t))
   (numbers                              (:background peach))
@@ -294,31 +296,31 @@
   (vertico-multiline                            (:background crust))
   (vertico-group-title                          (:foreground subtext1 :weight 'semi-bold :height 180))
   (vertico-group-separator                      (:foreground overlay1 :strike-through t))
-  (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
+  (vertico-current                              (:background blue :distant-foreground crust :bold t :foreground base))
 
-  (vertico-posframe-border                      (:background crust))
-  (vertico-posframe                             (:background crust :foreground subtext0))
+  (vertico-posframe-border                      (:background surface0))
+  (vertico-posframe                             (:background surface0 :foreground text))
 
-  (corfu-annotations                            (:foreground overlay0))
+  (corfu-annotations                            (:foreground red))
   (corfu-current                                (:inherit 'vertico-current))
-  (corfu-border                                 (:background surface1))
-  (corfu-bar                                    (:background yellow))
-  (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background "#2e344c" :foreground blue :italic t :bold t))
-  
+  (corfu-bar                                    (:background mauve))
+  (corfu-border                                 (:background surface2))
+  (corfu-default                                (:background surface1))
+  (corfu-popupinfo                              (:background surface1 :italic t :bold t))
+
   ;; posframe's
   (ivy-posframe                                 (:background surface2))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (orderless-match-face-0                       (:foreground pink :background "#211A1F" :weight 'semi-bold))
-  (orderless-match-face-1                       (:foreground blue :background "#222d3e" :weight 'semi-bold))
-  (orderless-match-face-2                       (:foreground yellow :background "#221F18" :weight 'semi-bold))
-  (orderless-match-face-3                       (:foreground mauve :background "#292233" :weight 'semi-bold))
+  (orderless-match-face-0                       (:foreground pink :weight 'semi-bold))
+  (orderless-match-face-1                       (:foreground blue :weight 'semi-bold))
+  (orderless-match-face-2                       (:foreground yellow :weight 'semi-bold))
+  (orderless-match-face-3                       (:foreground mauve :weight 'semi-bold))
 
   (comint-highlight-prompt                      (:background peach :foreground crust))
 
-  (completions-annotations                      (:foreground subtext0 :italic t))
-  (completions-highlight                        (:foreground blue :italic t))
+  ;; (completions-annotations                      (:foreground subtext0 :italic t))
+  ;; (completions-highlight                        (:foreground blue :italic t))
   (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
   (completions-first-difference                 (:foreground red))
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))

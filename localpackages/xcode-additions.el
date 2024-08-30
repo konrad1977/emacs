@@ -272,6 +272,7 @@
   (setq current-xcode-scheme nil)
   (mode-line-hud:update :message "Resetting configuration"))
 
+;;;###autoload
 (defun xcode-additions:setup-dape()
   "Setup dape."
   (interactive)

@@ -113,7 +113,7 @@
   "Buffer background color."
   :group 'periphery)
 
-(defvar DEBUG t
+(defvar DEBUG nil
   "Debug mode.")
 
 (defvar periphery-mode-map nil
@@ -180,19 +180,16 @@
   (open-current-line-with (tabulated-list-get-id)))
 
 (defun periphery--listing-command (errorList)
-  "Create an ERRORLIST for the current mode."
-  (let ((errors '())
-        (warnings '()))
-    ;; Separate errors from warnings
-    (dolist (entry errorList)
-      (let ((severity (aref (car (cdr entry)) 0)))
-        (if (string-prefix-p "error" severity)
-            (setq errors (cons entry errors))
-          (setq warnings (cons entry warnings)))))
-    ;; Sort errors and warnings separately and combine them
-    (setq errors (sort errors (lambda (a b) (string< (aref (car (cdr a)) 1) (aref (car (cdr b)) 1)))))
-    (setq warnings (sort warnings (lambda (a b) (string< (aref (car (cdr a)) 1) (aref (car (cdr b)) 1)))))
-    (setq errorList (append errors warnings)))
+  "Create an ERRORLIST for the current mode, prioritizing errors."
+  (let ((sorted-list (sort errorList
+                           (lambda (a b)
+                             (let ((severity-a (aref (car (cdr a)) 0))
+                                   (severity-b (aref (car (cdr b)) 0))
+                                   (file-a (aref (car (cdr a)) 1))
+                                   (file-b (aref (car (cdr b)) 1)))
+                               (if (string= severity-a severity-b)
+                                   (string< file-a file-b)
+                                 (string-prefix-p "error" severity-b)))))))
 
   (save-selected-window
     (let* ((buffer (get-buffer-create periphery-buffer-name))
@@ -203,17 +200,16 @@
       (unless (equal (current-buffer) buffer)
         (select-window window))
 
-      (setq tabulated-list-entries (nreverse (-non-nil errorList)))
+      (setq tabulated-list-entries (-non-nil sorted-list))
 
       (tabulated-list-print t)
-      ;; (periphery--go-to-first-error tabulated-list-entries)
 
       (if (proper-list-p tabulated-list-entries)
           (periphery-message-with-count
            :tag ""
            :text "Errors or warnings"
            :count (format "%d" (length tabulated-list-entries))
-           :attributes 'error)))))
+           :attributes 'error))))))
 
 (cl-defun periphery--mark-all-symbols (&key input &key regex &key property)
   "Highlight all quoted symbols (as INPUT REGEX PROPERTY)."
@@ -277,7 +273,7 @@
       (progn
         (setq padding  (/ (- default-length (string-width word)) 3))
         (setq copy (concat (make-string padding ?\s) word))
-        
+
         (while (< (string-width copy) (- default-length 1))
           (setq copy (concat copy " ")))
         copy
@@ -542,8 +538,6 @@
     (replace-regexp-in-string ":" ""
                               (replace-regexp-in-string "^[;|\/]+\\W?" "" tag))))
 
-;;; TODO: Add support for swiftlint:disable and swiftlint:enable
-;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
   '(("\\([;|\/]+\\W?\\w+\\b:.*\\)" . ((lambda (tag)

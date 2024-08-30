@@ -70,7 +70,7 @@
     "Fetch the device id."
   (clean-up-newlines
    (shell-command-to-string
-    "xcrun devicectl list devices | awk 'NR>3 { match($0, /[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}/); print substr($0, RSTART, RLENGTH) }'")))
+    "xcrun devicectl list devices | awk 'NR>3 && /iPhone/ { match($0, /[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}/); print substr($0, RSTART, RLENGTH) }'")))
 
 (defun ios-device:identifier ()
   "Get iOS device identifier."
