@@ -1,21 +1,25 @@
-;;; init.el ---  -*- lexical-binding:t -*-
-;;; Code:
+;;; -*- lexical-binding: t -*-
+;;; init.el
 
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
 (set-face-attribute 'default nil
-                    :font "JetBrainsMono Nerd Font Mono"
+                    :font "Iosevka Term SS14"
                     :height 160
-                    :weight 'thin
-                    :slant 'normal)
+                    :weight 'extra-light
+                    :width 'expanded)
 
+(set-face-attribute 'fixed-pitch nil
+                    :font "Iosevka Term SS14"
+                    :height 160
+                    :weight 'extra-light
+                    :width 'expanded)
 
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 160)
-(set-face-attribute 'variable-pitch nil :font "Work Sans" :height 160 :weight 'light)
+(set-face-attribute 'variable-pitch nil :font "Work Sans" :weight 'light)
 
-(custom-set-faces
- `(font-lock-comment-face ((t (:font "Work Sans" :italic t :height 1.05)))))
+;; (custom-set-faces
+;;  `(font-lock-comment-face ((t (:font "Fira Code" :italic t :height 1.05)))))
 
 (display-battery-mode t)        ;; Show battery.
 (display-time-mode t)           ;; Show time.
@@ -65,17 +69,6 @@
       auto-save-file-name-transforms `((".*", my-auto-save-folder t))
       custom-file (concat user-emacs-directory "var/custom.el"))
 
-;; Initialize package sources
-;; (require 'package)
-;; (require 'use-package)
-
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")
-                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-(package-initialize)
-
-(setopt package-install-upgrade-built-in t)
-
 (use-package use-package
   :ensure nil
   :config
@@ -84,12 +77,6 @@
         use-package-always-ensure t
         use-package-compute-statistics nil
         use-package-minimum-reported-time 0.2))
-
-(use-package gcmh
-  :config
-  (setq gcmh-high-cons-threshold (* 512 1024 1024))
-  (add-hook 'after-init-hook (lambda ()
-                               (gcmh-mode))))
 
 (use-package emacs
   :config
@@ -102,7 +89,7 @@
         scroll-preserve-screen-position     t
         hscroll-step                        1
         hscroll-margin                      2
-        debug-on-error                      nil
+        debug-on-error                      t
         visible-bell nil
         auto-window-vscroll nil
         auth-sources '((:source "~/.authinfo.gpg"))
@@ -218,6 +205,7 @@
   :hook (after-init . save-place-mode))
 
 (use-package vertico
+  :defer t
   :hook (after-init . vertico-mode)
   :bind
   (:map vertico-map
@@ -279,8 +267,8 @@
                                         (eglot (styles . (orderless flex))))))
 
 (use-package marginalia
-  :after vertico
-  :config (marginalia-mode))
+  :defer t
+  :hook (after-init . marginalia-mode))
 
 (use-package nerd-icons-completion
   :after marginalia
@@ -309,7 +297,28 @@
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
-  ("C-c m b" . #'consult-imenu))
+  ("C-c m b" . #'consult-imenu)
+  :init
+  ;; Optionally configure the register formatting. This improves the register
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format)
+
+  ;; Optionally tweak the register preview window.
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+
+  :config
+  (consult-customize
+   consult-theme :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
+   consult--source-recent-file consult--source-project-recent-file
+   :preview-key '(:debounce 0.4 any))
+  (setq consult-narrow-key "<"))
 
 (use-package embark-consult
   :after (embark consult))
@@ -317,7 +326,8 @@
 (use-package consult-project-extra
   :after consult
   :bind
-  ("C-<tab>" . #'consult-projectile-switch-to-buffer))
+  ("C-<tab>" . #'consult-projectile-switch-to-buffer)
+  ("M-R" . #'consult-projectile-recentf))
 
 (use-package consult-ls-git
   :after consult)
@@ -374,8 +384,7 @@
 (use-package evil
   :hook (after-init . evil-mode)
   :init
-  (setq-default evil-symbol-word-search t
-                evil-shift-width 2)
+  (setq-default evil-symbol-word-search t)
   (setq evil-want-integration t
         evil-want-keybinding nil
         evil-want-minibuffer t
@@ -385,53 +394,42 @@
         evil-search-module 'evil-search
         evil-vsplit-window-right t
         evil-split-window-below t
-        evil-want-C-i-jump nil)
+        evil-want-C-i-jump t)
   :config
-  (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
-
-  (define-key evil-visual-state-map (kbd "u") 'undo)
-
   (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
-  (define-key evil-motion-state-map (kbd "C-M-<left>")  #'(lambda () (interactive) (evil-jump-backward)))
-  (define-key evil-motion-state-map (kbd "C-M-<right>") #'(lambda () (interactive) (evil-jump-forward)))
-
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
-
-  (define-key evil-motion-state-map (kbd "C-x C-b") #'(lambda () (interactive) (evil-show-marks nil)))
-
-  ;; window resizing
+  ;; (define-key evil-visual-state-map (kbd "u") 'undo)
   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
-
-  (define-key evil-motion-state-map (kbd "C-w C-s") #'mk/split-window-below)
-  (define-key evil-motion-state-map (kbd "C-w C-v") #'mk/split-window-right)
-  (define-key evil-motion-state-map (kbd "C-w C-b") #'evil-split-buffer)
-
-  (define-key evil-motion-state-map (kbd "M-R") #'consult-projectile-recentf)
-  (define-key evil-motion-state-map (kbd "M-0") #'treemacs)
-  (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
-  (define-key evil-normal-state-map (kbd "<escape>") #'evil-ex-nohighlight)
-  
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+  (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
+  (evil-select-search-module 'evil-search-module 'evil-search)
+  (evil-mode 1))
 
-  (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+  ;; ;; window resizing
+  ;; (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
+  ;; (define-key evil-normal-state-map (kbd "<escape>") #'evil-ex-nohighlight)
 
-  (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
-        evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
-        evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
-        evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
-        evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
-        evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple"))))
+  ;; (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
-  (setq evil-normal-state-cursor '(box "#41a7fc")
-        evil-insert-state-cursor '(bar "#FF5D62")
-        evil-visual-state-cursor '(hollow "#FF5D62")))
+  ;; (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+
+  ;; (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
+  ;;       evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
+  ;;       evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
+  ;;       evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
+  ;;       evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
+  ;;       evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple"))))
+
+  ;; (setq evil-normal-state-cursor '(box "#41a7fc")
+  ;;       evil-insert-state-cursor '(bar "#FF5D62")
+  ;;       evil-visual-state-cursor '(hollow "#FF5D62"))
 
 (use-package evil-args
   :after evil
@@ -546,30 +544,18 @@
   :commands (google-this)
   :bind ("C-x C-g" . google-this))
 
-(use-package eglot
-  :hook ((swift-mode . eglot-ensure))
-  :ensure nil
-  :config
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-  (setq eglot-stay-out-of '(corfu company)
-        eglot-send-changes-idle-time 0.3
-        eglot-autoshutdown t
-        ;; eglot-events-buffer-config '(size: 20000 format: short)
-        ;; eglot-ignored-server-capabilities '(:hoverProvider)
-        eglot-extend-to-xref t)
-  (advice-add 'jsonrpc--log-event :override #'ignore)
-  (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package eldoc-box
   :defer t
-  :custom
-  (setq eldoc-box-max-pixel-width 500
-        eldoc-box-max-pixel-height 850))
+  :config
+  (setq eldoc-box-max-pixel-width 650
+        eldoc-box-max-pixel-height 1050))
 
 (use-package eldoc
   :ensure nil
   :config
-  (setq eldoc-idle-delay 1))
+  (setq eldoc-idle-delay 0.1
+        flycheck-display-errors-delay 0.2))
 
 (use-package kind-icon
   :after corfu
@@ -639,6 +625,7 @@
   :custom
   (corfu-auto t)
   (corfu-preview-current 'insert)
+  (tab-always-indent 'complete)
   :init
   (setq corfu-bar-width 10
         corfu-scroll-margin 2
@@ -711,7 +698,7 @@
   (setq avy-single-candidate-jump t))
 
 (use-package dape
-  :bind ("C-x C-d" . (lambda () (interactive)
+  :bind ("C-c C-d" . (lambda () (interactive)
                        (xcode-additions:setup-dape)
                        (call-interactively #'dape)))
   :config
@@ -730,7 +717,8 @@
 (use-package treemacs
   :commands (treemacs treemacs-select-window)
   :hook (treemacs-mode . treemacs-project-follow-mode)
-  :bind (("M-J" . treemacs-find-file))
+  :bind (("M-J" . treemacs-find-file)
+         ("M-0" . #'treemacs))
   :custom-face
   (treemacs-directory-face ((t (:family "SF Pro Display" :height 0.9))))
   (treemacs-directory-collapsed-face ((t (:family "SF Pro Display" :height 0.9))))
@@ -758,7 +746,7 @@
         treemacs-indentation 1
         treemacs-silent-refresh	t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 26))
+        treemacs-width 35))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -780,9 +768,9 @@
 ;;       ispell-program-name "aspell"))
 
 (use-package flycheck
- :hook (prog-mode . flycheck-mode)
- :diminish t
- :bind
+  :hook (prog-mode . flycheck-mode)
+  :diminish t
+  :bind
   ("C-c e n" . flycheck-next-error)
   ("C-c e p" . flycheck-previous-error)
   :custom
@@ -794,8 +782,7 @@
 ;;   :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
 
 (use-package flycheck-eglot
-  :hook (eglot-mode . global-flycheck-eglot-mode)
-  :after eglot
+  :defer t
   :config
   (setq flycheck-eglot-exclusive t))
 
@@ -911,16 +898,15 @@
   (imenu-list-auto-resize t))
 
 (use-package darkroom
-  :commands (darkroom-tentative-mode)
-  ;; :bind ("C-x C-d" . darkroom-tentative-mode)
+  :defer t
+  :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
   (setq darkroom-text-scale-increase 1.5
-        darkroom-margins '(15 . 0)))
+        darkroom-margins '(12 . 0)))
 
 ;; Use git
 (use-package magit
   :commands (magit-status magit-ediff-show-working-tree)
-  :bind ("C-c C-d" . magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
@@ -929,9 +915,9 @@
   :config
   (setq blamer-tooltip-function 'blamer-tooltip-author-info)
   (setq blamer-view 'overlay
-        blamer-type 'both
-        ;; blamer-max-commit-message-length 70
-        ;; blamer-force-truncate-long-line nil
+        blamer-type 'overlay-popup
+        blamer-max-commit-message-length 270
+        blamer-force-truncate-long-line nil
         blamer-show-avatar-p t
         blamer-author-formatter " ✎ %s "
         blamer-commit-formatter "● \'%s\' ● ")
@@ -958,17 +944,13 @@
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
-(use-package svg-tag-mode
-  :hook ((prog-mode . svg-tag-mode)
-         (localizeable-mode . svg-tag-mode))
-  :config
-  (setq svg-tag-tags (periphery-svg-tags)))
 
 (use-package vterm
+  :defer t
   :commands vterm
   :config
   (add-hook 'vterm-mode-hook (lambda () (setq-local global-hl-line-mode nil)))
-  (setq vterm-timer-delay nil))
+  (setq vterm-timer-delay 0.01))
 
 (defun project-root-override (dir)
   "Find DIR's project root by searching for a '.project.el' file."
@@ -980,7 +962,7 @@
                  (list 'vc backend root)))))
 
 (use-package project
-  :defer 1
+  :defer t
   :ensure nil
   :config
   (add-hook 'project-find-functions #'project-root-override))
@@ -1231,6 +1213,7 @@
         elfeed-search-title-min-width 100))
 
 (use-package highlight-symbol
+  :defer t
   :hook (prog-mode . highlight-symbol-mode)
   :config
   (setq highlight-symbol-idle-delay 0.5))
@@ -1242,6 +1225,7 @@
 
 ;; Drag lines and regions around
 (use-package drag-stuff
+  :defer t
   :hook (prog-mode . drag-stuff-mode)
   :bind
   ("C-j" . drag-stuff-down)
@@ -1249,6 +1233,7 @@
 
 ;; Quickly jump to definition or usage
 (use-package dumb-jump
+  :defer t
   :hook (prog-mode . dumb-jump-mode)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
@@ -1258,24 +1243,12 @@
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-(use-package indent-bars
-  :ensure nil
-  :hook (prog-mode . indent-bars-mode)
-  :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.05))
-  (indent-bars-width-frac 0.3)
-  (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag nil)
-  (indent-bars-pattern ".")
-  (indent-bars-prefer-character t)
-  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
-  (indent-bars-highlight-current-depth '(:blend 0.3)) ; pump up the BG blend on current
-  (indent-bars-display-on-blank-lines t))
-;; ;; (package-vc-install "https://github.com/jdtsmith/indent-bars")
-
 (use-package c++-mode
+  :defer t
   :ensure nil
-  :mode ("\\.metal\\'" . c++-mode)
+  :mode (("\\.metal\\'" . c++-mode)
+         ("\\.cpp\\'" . c++-mode)
+         ("\\.h\\'" . c++-mode))
   :config
   (setq c-basic-offset 4
         c-default-style "linux"
@@ -1291,38 +1264,35 @@
         swift-mode:highlight-anchor t)
   (setq font-lock-maximum-decoration '((swift-mode . 3) (emacs-lisp-mode . 3) (t . t))))
 
-(use-package tree-sitter
-  :defer 10
-  :hook ((prog-mode . tree-sitter-mode)
-         (tree-sitter-after-on . tree-sitter-hl-mode)))
-
-(use-package tree-sitter-langs
-  :after tree-sitter)
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
               ("C-c C-c" . #'swift-additions:compile-and-run)
               ("C-c C-k" . #'periphery-run-loco))
+  :defer t
   :ensure nil)
 
 (use-package ios-simulator
   :ensure nil
   :after swift-mode
+  :defer t
   :bind
   ("M-s" . #'ios-simulator:terminate-current-app)
-  ("C-c x c" . #'ios-simulator:appcontainer)
-  ("C-c x l" . #'ios-simulator:change-language))
+  ("C-x a c" . #'ios-simulator:appcontainer)
+  ("C-x c l" . #'ios-simulator:change-language))
 
-(use-package xcode-build
-  :ensure nil
-  :after swift-mode
-  :bind
-  ("M-r" . #'xcode-build:run)
-  ("M-s" . #'xcode-build:stop))
+;; (use-package xcode-build
+;;   :ensure nil
+;;   :after swift-mode
+;;   :bind
+;;   ("M-r" . #'xcode-build:run)
+;;   ;; ("M-s" . #'xcode-build:stop)
+;;   )
 
 (use-package overlay-usage
   :commands (overlay-usage-mode)
+  :defer t
   :ensure nil)
 
 (use-package swift-additions
@@ -1332,8 +1302,29 @@
   ("C-c t m" .  #'swift-additions:test-module-silent)
   ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
   ("C-c C-c" . #'swift-additions:compile-and-run)
+  ("C-c C-b" . #'swift-additions:compile-app)
   ("M-r" . #'swift-additions:run)
   ("M-B" . #'swift-additions:run-without-compiling))
+
+(use-package swift-lsp
+  :ensure nil)
+
+(use-package eglot
+  :hook ((swift-mode . eglot-ensure))
+  :ensure nil
+  :custom
+  (eglot-report-progress nil)
+  :config
+  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  (add-hook 'eglot-managed-mode-hook #'flycheck-eglot-mode t)
+  (setq eglot-stay-out-of '(corfu company flycheck)
+        eglot-send-changes-idle-time 0.3
+        eglot-autoshutdown t
+        ;; eglot-events-buffer-config '(size: 20000 format: short)
+        ;; eglot-ignored-server-capabilities '(:hoverProvider)
+        eglot-extend-to-xref t)
+  (advice-add 'jsonrpc--log-event :override #'ignore)
+  (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package xcode-additions
   :ensure nil
@@ -1341,11 +1332,6 @@
   :bind
   ("M-K" .  #'xcode-additions:clean-build-folder)
   ("C-c C-x" . #'xcode-additions:reset))
-
-;; (use-package smartparens-mode
-;;   :hook (prog-mode text-mode markdown-mode) ;; add `smartparens-mode` to these hooks
-;;   :config
-;;   (require 'smartparens-config))
 
 (use-package swift-refactor
   :ensure nil
@@ -1363,14 +1349,14 @@
 
 (use-package apple-docs-query
   :ensure nil
-  :after swift-mode
+  :defer t
   :bind
   ("C-c C-a" . #'apple-docs/query)
   ("C-c C-A" . #'apple-docs/query-thing-at-point))
 
 (use-package hacking-with-swift
   :ensure nil
-  :after swift-mode
+  :defer t
   :bind
   ("C-c C-h" . #'hacking-ws/query)
   ("C-c C-H" . #'hacking-ws/query-thing-at-point))
@@ -1403,11 +1389,13 @@
 
 (use-package periphery-loco
   :ensure nil
+  :defer t
   :after swift-mode
   :bind
   ("C-c C-k" . #'periphery-run-loco))
 
 (use-package periphery-swiftlint
+  :defer t
   :ensure nil
   :after swift-mode
   :bind
@@ -1417,7 +1405,23 @@
   :ensure nil
   :defer t
   :bind
-  ("M-O" . filer:find-file))
+  ("M-O" . filer-find-file))
+
+(use-package tree-sitter
+  :defer t
+  :hook ((swift-mode . tree-sitter-mode)
+         (tree-sitter-after-on . tree-sitter-hl-mode)))
+
+(use-package tree-sitter-langs
+  :defer t
+  :after tree-sitter)
+
+(use-package svg-tag-mode
+  :defer 10
+  :hook ((prog-mode . svg-tag-mode)
+         (localizeable-mode . svg-tag-mode))
+  :config
+  (setq svg-tag-tags (periphery-svg-tags)))
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
@@ -1438,7 +1442,6 @@
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
-
   (local-set-key (kbd "C-c C-f") nil)
   (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
@@ -1461,18 +1464,6 @@
       (kill-buffer "*Flycheck errors*")
     (list-flycheck-errors)))
 
-(defun mk/split-window-below ()
-  "Split window below and select that."
-  (interactive)
-  (split-window-below)
-  (other-window 1))
-
-(defun mk/split-window-right ()
-  "Split window to the right and select window."
-  (interactive)
-  (split-window-right)
-  (other-window 1))
-
 (defun mk/recompile (&optional force)
   "Recompile files (as FORCE) force compilation."
   (interactive "p")
@@ -1493,11 +1484,15 @@
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
 
+
+(defun xref-eglot+dumb-backend ()
+  "Return the xref backend for eglot+dumb."
+  'eglot+dumb)
+
 (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
 
-(defun xref-eglot+dumb-backend () 'eglot+dumb)
-
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot+dumb)))
+  "Return the identifier at point for eglot+dumb."
   (cons (xref-backend-identifier-at-point 'eglot)
         (xref-backend-identifier-at-point 'dumb-jump)))
 
@@ -1517,42 +1512,50 @@
 
 (put 'narrow-to-region 'disabled nil)
 
-(add-hook 'minibuffer-setup-hook 'my-minibuffer-setup)
-(defun my-minibuffer-setup ()
-  "Change the mini-buffer to a little bigger text."
-  (set (make-local-variable 'face-remapping-alist)
-       '((default :height 1.05))))
-
 (use-package copilot
+  :vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
   :hook ((prog-mode . copilot-mode)
          (localizeable-mode . copilot-mode))
-  :ensure nil
+  :defer t
   :bind
   (:map copilot-completion-map
         ("<tab>" . copilot-accept-completion)
         ("TAB" . copilot-accept-completion)
         ("C-c C-n" . copilot-next-completion)
         ("C-c C-p" . copilot-previous-completion)))
-;; (package-vc-install "https://github.com/copilot-emacs/copilot.el.git")
 
 (use-package window-stool
+  :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
   :hook (prog-mode . window-stool-mode)
-  :ensure nil
+  :defer t
   :config
   (setq window-stool-n-from-top 2
         window-stool-n-from-bottom 0))
-;; (package-vc-install "https://github.com/JasZhe/window-stool.git")
 
 (use-package eglot-booster
-  :ensure nil
+  :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
   :after eglot
+  :defer t
   :config (eglot-booster-mode))
-;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
-;; rainbow-mode show hex as colors
 
 (use-package rainbow-mode
   :defer t
   :hook (emacs-lisp-mode . rainbow-mode))
+
+(use-package indent-bars
+  :vc (:url "https://github.com/jdtsmith/indent-bars" :rev :newest)
+  :hook (prog-mode . indent-bars-mode)
+  :defer t
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.05))
+  (indent-bars-width-frac 0.3)
+  (indent-bars-pad-frac 0.1)
+  (indent-bars-zigzag nil)
+  (indent-bars-pattern ".")
+  (indent-bars-prefer-character t)
+  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
+  (indent-bars-highlight-current-depth '(:blend 0.3)) ; pump up the BG blend on current
+  (indent-bars-display-on-blank-lines t))
 
 (provide 'init)
 

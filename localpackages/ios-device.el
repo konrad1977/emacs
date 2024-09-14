@@ -1,22 +1,33 @@
 ;;; ios-device.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
 
-;;; commentary:
+;;; Commentary:
 
-;;; package for handling a ios device.
-;;; code:
+;;; Package for handling an iOS device.
+
+;;; Code:
 
 (require 'periphery-helper)
 
-(defconst ios-device:buffer-name "*ios-device-"
-  "Name of the buffer.")
+(defgroup ios-device nil
+  "Customization group for ios-device package."
+  :group 'tools)
 
-(defvar current-buffer-name nil)
-(defvar current-device-id nil)
-(defvar current-install-command nil)
-(defvar current-device-identifier nil)
-(defvar current-app-identifier nil)
-(defvar current-buffer nil)
-(defvar DEBUG nil)
+(defcustom ios-device:buffer-name "*ios-device-"
+  "Base name of the buffer used for iOS device operations."
+  :type 'string
+  :group 'ios-device)
+
+(defcustom ios-device:debug t
+  "Enable debug output for ios-device operations."
+  :type 'boolean
+  :group 'ios-device)
+
+(defvar ios-device-current-buffer-name nil)
+(defvar ios-device-current-device-id nil)
+(defvar ios-device-current-install-command nil)
+(defvar ios-device-current-device-identifier nil)
+(defvar ios-device-current-app-identifier nil)
+(defvar ios-device-current-buffer nil)
 
 (defun ios-device:format-id (id)
   "Format device id (as ID)."
@@ -29,60 +40,67 @@
 (defun ios-device:id ()
   "Get the id of the connected device."
   (let ((device-id
-         (clean-up-newlines
+         (string-trim
           (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
     (if (= (length device-id) 0)
-        (setq current-device-id nil)
-      (setq current-device-id (ios-device:format-id device-id))))
-  current-device-id)
+        (setq ios-device-current-device-id nil)
+      (setq ios-device-current-device-id (ios-device:format-id device-id))))
+  ios-device-current-device-id)
 
 (cl-defun ios-device:install-app (&key buildfolder &key appIdentifier)
   "Install app on device (BUILDFOLDER APPIDENTIFIER)."
-  (ios-device:kill-buffer)
-  (setq current-app-identifier appIdentifier)
   (let* ((default-directory buildfolder)
          (appname (ios-device:app-name-from :buildfolder buildfolder))
-         (command (ios-device:install-cmd :identifier (ios-device:identifier) :appname appname))
-         (buffer (get-buffer-create (concat ios-device:buffer-name appname))))
+         (buffer-name (concat ios-device:buffer-name appname))
+         (buffer (get-buffer-create buffer-name))
+         (device-id (ios-device:identifier))
+         (command (ios-device:install-cmd :identifier device-id :appname appname)))
 
-    (setq current-buffer buffer)
-    (when DEBUG
+    (when ios-device:debug
       (message "install-app: %s" command)
       (message "build-folder: %s" buildfolder)
       (message "app-name: %s" appname))
 
-    (async-start-command-to-string
-     :command command
-     :callback '(lambda (output)
-                  (let ((run-command (ios-device:run-cmd :identifier (ios-device:identifier) :appIdentifier current-app-identifier)))
-                    (inhibit-sentinel-messages #'async-shell-command
-                                               run-command
-                                               current-buffer))))
-
     (with-current-buffer buffer
+      (erase-buffer)
       (setq-local mode-line-format nil)
       (setq-local left-fringe-width 0)
-      (setq-local right-fringe-width 0)))
-  t
-  )
+      (setq-local right-fringe-width 0)
+      (setq-local ios-device-current-device-id device-id)
+      (setq-local ios-device-current-app-identifier appIdentifier)
+      (add-hook 'kill-buffer-hook #'ios-device:cleanup nil t))
+
+    (async-start-command-to-string
+     :command command
+     :callback (lambda (output)
+                 (let ((run-command (ios-device:run-cmd :identifier device-id :appIdentifier appIdentifier)))
+                   (with-current-buffer buffer
+                     (erase-buffer)
+                     (insert output)
+                     (insert "\n\nRunning app...\n\n")
+                     (inhibit-sentinel-messages #'async-shell-command
+                                                run-command
+                                                buffer)))))
+
+    (pop-to-buffer buffer)))
 
 (defun ios-device:fetch-device-id ()
     "Fetch the device id."
-  (clean-up-newlines
+  (string-trim
    (shell-command-to-string
     "xcrun devicectl list devices | awk 'NR>3 && /iPhone/ { match($0, /[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}/); print substr($0, RSTART, RLENGTH) }'")))
 
 (defun ios-device:identifier ()
   "Get iOS device identifier."
-  (if current-device-identifier
-      current-device-identifier
-    (setq current-device-identifier (ios-device:fetch-device-id))
-    current-device-identifier))
+  (if ios-device-current-device-identifier
+      ios-device-current-device-identifier
+    (setq ios-device-current-device-identifier (ios-device:fetch-device-id))
+    ios-device-current-device-identifier))
 
 (defun ios-device:kill-buffer ()
   "Kill the ios-device buffer."
-  (when (and current-buffer-name (get-buffer current-buffer-name))
-    (kill-buffer current-buffer-name)))
+  (when (and ios-device-current-buffer-name (get-buffer ios-device-current-buffer-name))
+    (kill-buffer ios-device-current-buffer-name)))
 
 (cl-defun ios-device:install-cmd (&key identifier &key appname)
   "Install app on device (IDENTIFIER APPNAME)."
@@ -90,11 +108,36 @@
           identifier
           appname))
 
-(cl-defun ios-device:run-cmd (&key identifier &key appIdentifier)
-  "Run app on device (IDENTIFIER APPIDENTIFIER)."
-  (format "xcrun devicectl device process launch --terminate-existing -v --device %s %s"
+(cl-defun ios-device:run-cmd (&key identifier appIdentifier)
+  "Generate run command for device IDENTIFIER and APP-IDENTIFIER."
+  (when ios-device:debug
+    (message "xcrun devicectl device process launch --terminate-existing --device %s %s" identifier appIdentifier))
+  (format "sh -c '\
+    trap \"xcrun devicectl device process terminate --device %s %s; exit\" EXIT INT TERM; \
+    xcrun devicectl device process launch --terminate-existing --device %s %s & \
+    echo \"App launched, capturing log...\"; \
+    idevicesyslog | grep --line-buffered %s'"
           identifier
-          appIdentifier))
+          appIdentifier
+          identifier
+          appIdentifier
+          (file-name-base appIdentifier)))
+
+(defun ios-device:cleanup ()
+  "Cleanup function to terminate the app when the buffer is closed."
+  (when (and ios-device-current-device-id ios-device-current-app-identifier)
+    (message "Cleaning up iOS device session...")
+    (let ((cleanup-command
+           (format "xcrun devicectl device process terminate --device %s %s"
+                   ios-device-current-device-id
+                   ios-device-current-app-identifier)))
+      (message "Executing cleanup command: %s" cleanup-command)
+      (shell-command cleanup-command)
+      (message "Cleanup completed for device %s and app %s"
+               ios-device-current-device-id
+               ios-device-current-app-identifier))
+    (setq ios-device-current-device-id nil)
+    (setq ios-device-current-app-identifier nil)))
 
 (cl-defun ios-device:install-app-async (&key buildfolder &key appIdentifier)
   "Install app on device (PROJECT-ROOT BUILDFOLDER APPNAME)."
@@ -102,7 +145,7 @@
   (let* ((default-directory buildfolder)
          (identifier (ios-device:identifier))
          (buffer (get-buffer-create (concat ios-device:buffer-name appname))))
-    (setq current-buffer-name buffer)
+    (setq ios-device-current-buffer-name buffer)
     (async-shell-command command buffer)))
 
 (cl-defun ios-device:app-name-from (&key buildfolder)

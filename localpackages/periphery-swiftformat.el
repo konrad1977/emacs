@@ -29,6 +29,7 @@
       (concat "--disable " (mapconcat 'identity list ","))
       ""))
 
+;;;###autoload
 (defun periphery-swiftformat-lint-buffer()
   "Lint current buffer using swiftsyntax."
   (interactive)
@@ -37,6 +38,7 @@
        :command (concat swiftformat-command " " file " --lint " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
        :file file)))
 
+;;;###autoload
 (defun periphery-swiftformat-autocorrect-buffer()
   "Autocorrect current buffer using swiftsyntax."
   (interactive)
@@ -64,6 +66,7 @@
      :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face)
      :seconds 2)))
 
+;;;###autoload
 (defun periphery-run-swiftformat-for-project()
   "Run LOCO linter."
   (interactive)
@@ -78,7 +81,7 @@
         (mode-line-hud:notification :message
                                     (format "Formatting %s"
                                             (propertize (file-name-nondirectory (directory-file-name (file-name-directory (vc-root-dir))))))
-                                    :seconds 3))
+                                    :seconds 2))
 
     (mode-line-hud:update :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face))))
 

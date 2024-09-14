@@ -29,7 +29,7 @@
     "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
   "xcrun xcodebuild build \\"))
 
-(cl-defun build-app-command (&key sim-id)
+(cl-defun build-app-command (&key sim-id (nil))
 "Xcodebuild with (as SIM-ID)."
 (if current-build-command
     current-build-command
@@ -42,9 +42,12 @@
         (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
       (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
     "-configuration Debug \\"
-    "-UseNewBuildSystem=YES \\"
-    "-hideShellScriptEnvironment \\"
-    "-derivedDataPath build | xcode-build-server parse -avv")))
+    "-parallelizeTargets \\"
+    (format "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=%s \\" (swift-additions:get-number-of-cores))
+    "-UseModernBuildSystem=YES \\"
+    "-derivedDataPath build | xcode-build-server parse -avv"
+    ;; "COMPILER_INDEX_STORE_ENABLE=NO"
+    )))
 
 (defun swift-additions:get-number-of-cores ()
   "Get the number of available CPU cores."
@@ -65,12 +68,22 @@
 (if (xcode-additions:run-in-simulator)
     (ios-simulator:install-and-run-app
       :rootfolder (xcode-additions:project-root)
-      :build-folder (xcode-additions:build-folder)
+      :build-folder (xcode-additions:build-folder :device-type :simulator)
       :simulatorId (ios-simulator:simulator-identifier)
       :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
   (ios-device:install-app
-    :buildfolder (xcode-additions:build-folder)
+    :buildfolder (xcode-additions:build-folder :device-type :device)
     :appIdentifier (xcode-additions:fetch-or-load-app-identifier))))
+
+(defun swift-additions:run-app-on-device-after-build ()
+  "Run app on device after build."
+  (mode-line-hud:update :message (format "Built %s in %s seconds"
+                                         (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                         (propertize (swift-additions:compilation-time) 'face 'warning)))
+
+  (ios-device:install-app
+   :buildfolder (xcode-additions:build-folder :device-type :device)
+   :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:run-app-after-build()
 "Either in simulator or on physical."
@@ -80,16 +93,14 @@
 
 (ios-simulator:install-and-run-app
   :rootfolder (xcode-additions:project-root)
-  :build-folder (xcode-additions:build-folder)
+  :build-folder (xcode-additions:build-folder :device-type :simulator)
   :simulatorId (ios-simulator:simulator-identifier)
   :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:check-if-build-was-successful (input-text)
-"Check if INPUT-TEXT does not contain 'BUILD FAILED' or 'BUILD INTERRUPTED' from the end."
-(when DEBUG (message input-text))
-(and (not (string-match-p "BUILD FAILED" input-text))
-      (not (string-match-p "BUILD INTERRUPTED" input-text))
-      (not (string-match-p "xcodebuild: error" input-text))))
+  "Check if INPUT-TEXT does not contain build failure indicators."
+  (when DEBUG (message input-text))
+  (not (string-match-p "\\(BUILD FAILED\\|BUILD INTERRUPTED\\|xcodebuild: error\\)" input-text)))
 
 (defun swift-additions:check-for-errors (output callback)
 "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
@@ -104,8 +115,9 @@
   "iphonesimulator"))
 
 (defun swift-additions:successful-build ()
-"Show that the build was successful."
-(message-with-color :tag "[Build]" :text "Successful" :attributes 'success))
+  "Show that the build was successful."
+  (mode-line-hud:update :message (format "Successful build %s"
+                                         (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face))))
 
 ;;;###autoload
 (defun swift-additions:compile-and-run ()
@@ -113,7 +125,6 @@
 (interactive)
 (swift-additions:compile :run t))
 
-;;;###autoload
 (defun swift-additions:compile-app ()
 "Compile app."
 (interactive)
@@ -170,7 +181,7 @@
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
-  (let ((build-command (build-app-command :sim-id nil)))
+  (let ((build-command (build-app-command)))
 
     (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
@@ -183,7 +194,7 @@
 
     (when DEBUG
       (message current-build-command)
-      (message "Build-folder: %s" (xcode-additions:build-folder)))
+      (message "Build-folder: %s" (xcode-additions:build-folder :device-type :device)))
 
     (xcodebuildserver:check-configuration :root default-directory
                                           :workspace (xcode-additions:get-workspace-or-project)
@@ -196,10 +207,8 @@
      :callback '(lambda (text)
                   (spinner-stop build-progress-spinner)
                   (if run-once-compiled
-                      (ios-device:install-app
-                       :buildfolder (xcode-additions:build-folder)
-                       :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
-                  (swift-additions:check-for-errors text #'swift-additions:successful-build)))))
+                      (swift-additions:check-for-errors text #'swift-additions:run-app-on-device-after-build)
+                    (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
 
 ;;;###autoload
 (defun swift-additions:test-module-silent ()
@@ -232,7 +241,6 @@
                              "swift run"
                              "*Swift Package*"))
 
-;;;###autoload
 (defun swift-additions:build-swift-package ()
   "Build swift package module."
   (interactive)
@@ -241,13 +249,11 @@
     (async-shell-command-to-string :process-name "periphery" :command "swift build" :callback #'swift-additions:check-for-spm-build-errors)
     (message-with-color :tag "[ Package]" :text (format "%s. Please wait. Patience is a virtue!" (periphery-helper:project-root-dir)) :attributes 'warning)))
 
-;;;###autoload
 (defun swift-additions:test-swift-package ()
   "Test swift package module."
   (interactive)
   (swift-additions:test-swift-package :root (periphery-helper:project-root-dir)))
 
-;;;###autoload
 (defun swift-additions:test-swift-package-from-file ()
   "Test swift package module."
   (interactive)
@@ -279,87 +285,6 @@
   (let ((buffer-dir (file-name-directory (or (buffer-file-name) default-directory))))
     (locate-dominating-file buffer-dir "Package.swift")))
 
-(defun swift-additions:lsp-arguments ()
-  "Get the lsp arguments to support UIKit."
-  (let* ((sdk (ios-simulator:sdk-path))
-         (target (ios-simulator:target)))
-    (list
-     "-Xswiftc" "-sdk"
-     "-Xswiftc" sdk
-     "-Xswiftc" "-target"
-     "-Xswiftc" target)))
-
-(defun my-swift-mode:eglot-server-contact (_ignored)
-  "Construct the list that eglot needs to start sourcekit-lsp."
-  (setq arglist (swift-additions:lsp-arguments))
-  (add-to-list 'arglist (clean-up-newlines (shell-command-to-string "xcrun --find sourcekit-lsp"))))
-
-(require 'tree-sitter-hl)
-
-(defface tree-sitter-hl-face:case-pattern
-  '((t :inherit tree-sitter-hl-face:property))
-  "Face for enum case names in a pattern match"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:comment.special
-  '((t :inherit tree-sitter-hl-face:comment
-       :weight semi-bold))
-  "Face for comments with some markup-like meaning, like MARK"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:operator.special
-  '((t :inherit font-lock-negation-char-face
-       :weight semi-bold))
-  "Face for operators that need to stand out, like unary negation"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:punctuation.type
-  '((t :inherit tree-sitter-hl-face:type
-       :weight normal))
-  "Face for punctuation in type names or annotations"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:annotation
-  '((t :inherit font-lock-keyword-face))
-  "Face for annotations or attributes attached to declarations."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:annotation.builtin
-  '((t :inherit tree-sitter-hl-face:annotation))
-  "Face for declaration annotations which are built in to the language."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:annotation.type
-  '((t :inherit tree-sitter-hl-face:annotation))
-  "Face for annotations attached to type descriptors."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:keyword.annotation
-  '((t :inherit tree-sitter-hl-face:annotation.builtin))
-  "Face for subelements of annotations which are built in to the language."
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:keyword.compiler
-  '((t :inherit tree-sitter-hl-face:keyword
-       :weight semi-bold))
-  "Face for compile-time keywords"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:keyword.type
-  '((t :inherit tree-sitter-hl-face:keyword))
-  "Face for keywords that appear in type annotations"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:variable.synthesized
-  '((t :inherit tree-sitter-hl-face:variable))
-  "Face for compiler-synthesized identifiers"
-  :group 'tree-sitter-hl-faces)
-
-(defface tree-sitter-hl-face:default
-  '((t :inherit default))
-  "Face to override other faces, forcing the base display
-attributes."
-  :group 'tree-sitter-hl-faces)
 
 (provide 'swift-additions)
 

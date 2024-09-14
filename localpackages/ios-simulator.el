@@ -1,14 +1,17 @@
 ;;; Simulator --- A small package for viewing iOS simulator logs -*- lexical-binding: t -*-
 ;;; Commentary: This package provides some support for iOS Simulator
 ;;; Code:
-
 (require 'periphery-helper)
 (require 'mode-line-hud)
+(require 'json)
+
+(defvar-local ios-simulator--installation-process nil
+  "Process object for the current app installation.")
 
 (defgroup ios-simulator nil
   "IOS-SIMULATOR."
   :tag "ios-simulator"
-  :group 'ios-simulator)
+  :group 'applications)
 
 (defface ios-simulator-background-face
   '((t (:inherit default :foreground "#9CABCA")))
@@ -26,46 +29,50 @@
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
   "Get booted simulator id if any.")
 
-(defvar current-language-selection "sv-SE")
 (defvar current-simulator-name nil)
 (defvar current-simulator-id nil)
-(defvar-local current-root-folder-simulator nil)
-(defvar secondary-simulator-id nil)
 (defvar current-app-identifier nil)
 (defvar current-app-name nil)
 (defvar use-rosetta nil)
 
+(defvar-local current-root-folder-simulator nil)
+(defvar current-language-selection "sv-SE"
+  "Current language selection for the simulator.")
+
+(defvar secondary-simulator-id nil)
+
 (defun ios-simulator:reset ()
   "Reset current settings."
-  (setq current-simulator-name nil)
-  (setq current-simulator-id nil)
-  (setq current-app-identifier nil)
-  (setq current-app-name nil)
+  (setq current-simulator-name nil
+        current-simulator-id nil
+        current-app-identifier nil
+        current-app-name nil)
   (ios-simulator:kill-buffer)
   (ios-simulator:shut-down-all))
 
-(defun ios-simulator:current-sdk-version ()
+(defun ios-simulator-current-sdk-version ()
   "Get the current simulator sdk-version."
-  (clean-up-newlines (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
+  (string-trim (shell-command-to-string "xcrun --sdk iphonesimulator --show-sdk-version")))
 
-(defun ios-simulator:sdk-path ()
+;;;###autoload
+(defun ios-simulator-sdk-path ()
   "Get the current simulator sdk-path."
-  (clean-up-newlines (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
+  (string-trim (shell-command-to-string "xcrun --show-sdk-path --sdk iphonesimulator")))
 
-(defun ios-simulator:current-arch ()
+(defun ios-simulator-current-arch ()
   "Get the current arch."
-  (clean-up-newlines (shell-command-to-string "clang -print-target-triple")))
+  (string-trim (shell-command-to-string "clang -print-target-triple")))
 
 (defun ios-simulator:shut-down-all ()
   "Shut down all simulators."
   (call-process-shell-command "xcrun simctl shutdown all"))
 
-(defun ios-simulator:target ()
+(defun ios-simulator-target ()
   "Get the current simulator sdk."
-  (let* ((target-components (split-string (ios-simulator:current-arch) "-"))
+  (let* ((target-components (split-string (ios-simulator-current-arch) "-"))
          (arch (nth 0 target-components))
          (vendor (nth 1 target-components))
-         (version (ios-simulator:current-sdk-version)))
+         (version (ios-simulator-current-sdk-version)))
     (format "%s-%s-ios%s-simulator" arch vendor version)))
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
@@ -74,48 +81,44 @@
 
   (let* ((default-directory rootfolder)
          (simulator-id simulatorId)
-         (buffer (get-buffer-create ios-simulator-buffer-name)))
+         (buffer (get-buffer-create ios-simulator-buffer-name))
+         (applicationName (ios-simulator:app-name-from :folder build-folder))
+         (simulatorName (ios-simulator:simulator-name)))
 
-    (setq applicationName (ios-simulator:app-name-from :folder build-folder))
-    (setq simulatorName  (ios-simulator:simulator-name))
-    (setq simulatorIdentifier simulator-id)
-    (setq simulatorBuffer buffer)
-    (setq current-app-identifier appIdentifier)
-    (setq current-root-folder-simulator rootfolder)
+    (setq current-simulator-id simulator-id
+          current-app-identifier appIdentifier
+          current-root-folder-simulator rootfolder
+          current-app-name applicationName)
 
-    (ios-simulator:terminate-app-with
-     :appIdentifier appIdentifier)
+    (ios-simulator:terminate-app-with :appIdentifier appIdentifier)
 
     (ios-simulator:install-app
-     :simulatorID simulatorIdentifier
+     :simulatorID simulator-id
      :build-folder build-folder
      :appname applicationName
-     :callback '(lambda ()
-                  (inhibit-sentinel-messages #'async-shell-command
-                                             (ios-simulator:launch-app
-                                              :appIdentifier current-app-identifier
-                                              :applicationName applicationName
-                                              :simulatorName simulatorName
-                                              :simulatorID simulatorIdentifier)
-                                             simulatorBuffer)
-
-                  (with-current-buffer simulatorBuffer
-                    (setq-local mode-line-format nil)
-                    (read-only-mode)
-                    (setq-local visual-line-mode t)
-                    (setq left-fringe-width 0)
-                    (setq right-fringe-width 0)
-                    (setq buffer-face-mode-face 'ios-simulator-background-face)
-                    (buffer-face-mode 1))))))
+     :callback (lambda ()
+                 (ios-simulator:launch-app
+                  :appIdentifier appIdentifier
+                  :applicationName applicationName
+                  :simulatorName simulatorName
+                  :simulatorID simulator-id
+                  :buffer buffer)))))
 
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder &key appname &key callback)
-  "Install and launch app (as SIMULATORID and BUILD-FOLDER APPNAME and CALLBACK)."
+  "Install app (as SIMULATORID and BUILD-FOLDER APPNAME) and call CALLBACK when done."
   (let* ((folder build-folder)
          (install-path folder)
-         (command (format "xcrun simctl install %s '%s%s'.app\n" simulatorID install-path appname)))
-    (async-start-command
-     :command command
-     :callback callback)))
+         (command (format "xcrun simctl install %s '%s%s'.app" simulatorID install-path appname)))
+    (setq ios-simulator--installation-process
+          (make-process
+           :name "ios-simulator-install"
+           :command (list "sh" "-c" command)
+           :buffer nil
+           :sentinel (lambda (process event)
+                       (when (string= event "finished\n")
+                         (mode-line-hud:update :message "App installation completed.")
+                         (when callback (funcall callback))))))))
+
 
 (cl-defun ios-simulator:app-name-from (&key folder)
   "Get compiled app name from (FOLDER)."
@@ -173,7 +176,7 @@
 
 (cl-defun ios-simulator:simulator-name-from (&key id)
   "Get simulator name (as ID)."
-  (clean-up-newlines
+  (string-trim
    (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))))
 
 (defun ios-simulator:available-simulators ()
@@ -247,7 +250,7 @@
   "Get booted simulator if any."
   (let ((device-id (shell-command-to-string get-booted-simulator-command)))
     (if (not (string= "" device-id))
-        (clean-up-newlines device-id)
+        (string-trim device-id)
       nil)))
 
 (defun ios-simulator:terminate-current-app ()
@@ -266,20 +269,59 @@
   (unless current-language-selection
     (setq current-language-selection (ios-simulator:build-language-menu :title "Choose simulator language"))))
 
-(cl-defun ios-simulator:launch-app (&key appIdentifier &key applicationName &key simulatorName &key simulatorID)
-  "Command to filter and log the simulator (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID)."
+(cl-defun ios-simulator:launch-app (&key appIdentifier &key applicationName &key simulatorName &key simulatorID &key buffer)
+  "Launch app (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID) and display output in BUFFER."
   (ios-simulator:setup-language)
-  (mode-line-hud:updateWith :message (format "Running %s|%s"
-                                             (propertize applicationName 'face 'font-lock-builtin-face)
-                                             (propertize simulatorName 'face 'success))
-                            :delay 2.0)
+  (mode-line-hud:updateWith
+   :message (format "Running %s|%s"
+                    (propertize applicationName 'face 'font-lock-builtin-face)
+                    (propertize simulatorName 'face 'success))
+   :delay 2.0)
 
-  (if-let ((simulatorID simulatorID))
-      (format "xcrun simctl launch --console-pty %s %s --terminate-running-process -AppleLanguages \"\(%s\)\"" simulatorID appIdentifier current-language-selection)
-    (format "xcrun simctl launch --console-pty booted %s --terminate-running-process -AppleLanguages \"\(%s\)\"" appIdentifier current-language-selection)))
+  (let ((command (format "xcrun simctl launch --console-pty %s %s --terminate-running-process -AppleLanguages \"(%s)\""
+                         (or simulatorID "booted")
+                         appIdentifier
+                         current-language-selection)))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (setq-local mode-line-format nil)
+      (setq-local left-fringe-width 0
+                  right-fringe-width 0
+                  buffer-face-mode-face 'ios-simulator-background-face
+                  window-point-insertion-type t)  ; Enable point to stay at the end of inserted text
+      (buffer-face-mode 1)
+      (read-only-mode -1)  ; Temporarily make the buffer writable
+      (visual-line-mode 1))
+
+    (display-buffer buffer '(display-buffer-pop-up-window))
+
+    (make-process
+     :name "ios-simulator-launch"
+     :command (list "sh" "-c" command)
+     :buffer buffer
+     :filter (lambda (proc string)
+               (when (buffer-live-p (process-buffer proc))
+                 (with-current-buffer (process-buffer proc)
+                   (let ((inhibit-read-only t)
+                         (at-end (= (point) (point-max))))
+                     (save-excursion
+                       (goto-char (point-max))
+                       (insert (ios-simulator:remove-control-m string)))
+                     (when at-end
+                       (goto-char (point-max))
+                       (dolist (window (get-buffer-window-list (current-buffer) nil t))
+                         (set-window-point window (point-max))))))))
+     :sentinel (lambda (process event)
+                 (when (and (string= event "finished\n")
+                            (buffer-live-p (process-buffer process)))
+                   (with-current-buffer (process-buffer process)
+                     (let ((inhibit-read-only t))
+                       (goto-char (point-max))
+                       (insert "\n\nProcess finished\n"))
+                     (read-only-mode 1)))))))
 
 (cl-defun ios-simulator:launch-wait-for-debugger (&key identifier)
-  "Launch the current configured simulator and wait for debugger."
+  "Launch the current configured simulator (as IDENTIFIER) and wait for debugger."
   (mode-line-hud:update :message "Debuggin on Simulator")
   (setq current-app-identifier identifier)
   (setq command
@@ -304,11 +346,14 @@
 
 (cl-defun ios-simulator:terminate-app (&key simulatorID &key appIdentifier)
   "Terminate app (as APPIDENTIFIER as SIMULATORID)."
+  (when DEBUG
+    (message "%s %s" simulatorID appIdentifier))
   (inhibit-sentinel-messages #'call-process-shell-command
-   (concat
-    (if simulatorID
-        (format "xcrun simctl terminate %s %s" simulatorID appIdentifier)
-      (format "xcrun simctl terminate booted %s" appIdentifier)))))
+                             (string-trim
+                              (concat
+                               (if simulatorID
+                                   (format "xcrun simctl terminate %s %s" simulatorID appIdentifier)
+                                 (format "xcrun simctl terminate booted %s" appIdentifier))))))
 
 (defun ios-simulator:appcontainer ()
   "Get the app container of the current app (as SIMULATORID, APPIDENTIFIER)."
@@ -326,6 +371,10 @@
          (available-devices
           (seq-filter (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
          ) available-devices))
+
+(defun ios-simulator:remove-control-m (string)
+  "Remove ^M characters from STRING."
+  (replace-regexp-in-string "\r" "" string))
 
 (provide 'ios-simulator)
 ;;; ios-simulator.el ends here

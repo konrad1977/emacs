@@ -19,13 +19,13 @@
 
 (font-lock-add-keywords
  'localizeable-mode '(
-                 ("\\(\\/\\/.*\\)" 0 'font-lock-comment-face t)
-                 ("\\(\"[^\"]+\"\\)\s+=\s+\\(\".+\"\\)\\(;\\)"
-                  (1 'font-lock-type-face t)
-                  (2 'font-lock-string-face t)
-                  (3 'font-lock-delimiter-face t)
-                  )
-                 ("\\(=\\)" 0 'font-lock-operator-face t)))
+                      ("\\(//.*\\|/\\*[^*]*\\*+\\(?:[^/*][^*]*\\*+\\)*/\\)" 0 'font-lock-comment-face t)
+                      ("\\(\"[^\"]+\"\\)\s+=\s+\\(\".+\"\\)\\(;\\)"
+                       (1 'font-lock-type-face t)
+                       (2 'font-lock-string-face t)
+                       (3 'font-lock-delimiter-face t)
+                       )
+                      ("\\(=\\)" 0 'font-lock-operator-face t)))
 
 (provide 'localizeable-mode)
 

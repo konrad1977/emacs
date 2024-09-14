@@ -4,9 +4,6 @@
 ;;; Commentary: --- A simple package
 
 ;;; Code:
-;; (require 'dash)
-;; (require 'mode-line-hud)
-;; (require 'periphery-helper)
 
 (defface periphery-filename-face
   '((t (:inherit link)))
@@ -44,7 +41,7 @@
   :group 'periphery)
 
 (defface periphery-message-face
-  '((t (:foreground "#9399b2" :font-weight thin)))
+  '((t (:foreground "#fbfafb" :font-weight thin)))
   "Message face."
   :group 'periphery)
 
@@ -108,9 +105,9 @@
   "Performance face."
   :group 'periphery)
 
-(defface periphery-background-face
-  '((t (:inherit default)))
-  "Buffer background color."
+(defface periphery-first-sentence-face
+  '((t (:foreground "#9399b2" :weight normal :height 0.9)))
+  "Face for the first sentence of the message (up to the first colon)."
   :group 'periphery)
 
 (defvar DEBUG nil
@@ -119,11 +116,15 @@
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
 
+(defcustom periphery-trim-message-prefix nil
+  "When non-nil, trim the message prefix (up to the first colon) in error messages."
+  :type 'boolean
+  :group 'periphery)
+
 (setq periphery-mode-map (make-sparse-keymap))
 (define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
-
 (defconst periphery-buffer-name "*Periphery*")
 
 (defvar periphery-mode-map nil "Keymap for periphery.")
@@ -165,15 +166,6 @@
   (use-local-map periphery-mode-map)
   (tabulated-list-init-header))
 
-(defun periphery--go-to-first-error ()
-  "Go to the first error in the periphery-errorList."
-  (interactive)
-  (when (and periphery-errorList (> (length periphery-errorList) 0))
-    (let* ((first-error (car periphery-errorList))
-           (file (nth 1 first-error))
-           (line (string-to-number (nth 2 first-error)))))
-    (message "%s" file)))
-
 (defun periphery--open-current-line ()
   "Open current current line."
   (interactive)
@@ -211,25 +203,12 @@
            :count (format "%d" (length tabulated-list-entries))
            :attributes 'error))))))
 
-(cl-defun periphery--mark-all-symbols (&key input &key regex &key property)
-  "Highlight all quoted symbols (as INPUT REGEX PROPERTY)."
-  (save-match-data
-    (let* ((position 0)
-           (normalizedInput (replace-regexp-in-string "’" "'"  input)))
-      (while (string-match regex normalizedInput position)
-        (let* ((ref (match-string 1 normalizedInput))
-               (startPosition (string-match regex normalizedInput position)))
-          (setq position (match-end 1))
-          (add-text-properties startPosition position property normalizedInput)))
-      normalizedInput)))
-
 (defun periphery--parse-xctest-putput (line)
   "Run regex for xctest case."
   (save-match-data
     (and (string-match xctest-regex-parser line)
          (let* ((file (match-string 1 line))
                 (linenumber (match-string 2 line))
-                (type (match-string 3 line))
                 (result (match-string 4 line))
                 (message (match-string 5 line))
                 (fileWithLine (format "%s:%s" file linenumber)))
@@ -306,24 +285,37 @@
      ((or (string= type "PERF") (string= type "PERFORMANCE")) 'periphery-performance-face)
      (t 'periphery-info-face))))
 
-(defun periphery--is-list-empty-alt (lst)
-  "Alternative method to check if the given list is empty."
-  (and (listp lst) (null lst)))
-(defun parse-compiler-errors-async (text callback)
-  "Parse compiler error messages from LOG (as TEXT) asynchronously and call CALLBACK with the result."
-  (async-start
-   `(lambda ()
-      ,(async-inject-variables "\\`tempList\\'")
-      (let ((regex "\\(^/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\\s+\\([^:]+\\):\\(.*\\)\\([^^|/]*\\)"))
-        (while (string-match regex ,text)
-          (let* ((path (match-string 1 ,text))
-                 (line (match-string 2 ,text))
-                 (column (match-string 3 ,text))
-                 (error-type (match-string 4 ,text))
-                 (msg-part1 (s-trim-left (match-string 5 ,text)))
-                 (msg-part2 (s-trim-left (match-string 6 ,text)))
-                 (msg (clean-up-newlines (format "%s: %s" msg-part1 msg-part2))))
+(cl-defun periphery--mark-all-symbols (&key input regex property)
+  "Highlight all quoted symbols (as INPUT REGEX PROPERTY)."
+  (with-temp-buffer
+    (insert input)
+    (goto-char (point-min))
+    (while (re-search-forward regex nil t)
+      (let ((match-start (match-beginning 0))
+            (match-end (match-end 0)))
+        (when (< match-start match-end)  ; Ensure non-zero-width match
+          (add-text-properties match-start match-end property)
+          (goto-char match-end))))  ; Move point past the match
+    (buffer-string)))
 
+(defun parse-compiler-errors (text)
+  "Parse compiler error messages from LOG (as TEXT)."
+  (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
+        (errors '()))
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+      (while (re-search-forward regex nil t)
+        (let* ((path (or (match-string 1) ""))
+               (line (or (match-string 2) ""))
+               (column (or (match-string 3) ""))
+               (error-type (or (match-string 4) ""))
+               (msg-part1 (string-trim-left (or (match-string 5) "")))
+               (msg-part2 (string-trim-left (or (match-string 6) "")))
+               (msg (string-trim (format "%s: %s" msg-part1 msg-part2))))
+          (when (and (not (string-empty-p path))
+                     (not (string-empty-p line))
+                     (not (string-empty-p error-type)))
             (push (periphery--build-list
                    :path (format "%s:%s:%s" path line column)
                    :file path
@@ -331,47 +323,20 @@
                    :keyword error-type
                    :result msg
                    :regex periphery-regex-mark-quotes)
-                  tempList)
-            ;; Update the text to the remaining unmatched portion
-            (setq ,text (substring ,text (match-end 6))))))
-      tempList)
-   callback))
-
-(defun parse-compiler-errors (text)
-  "Parse compiler error messages from LOG (as TEXT)."
-  (setq tempList nil)
-  (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)"))
-    (while (string-match regex text)
-      (let* ((path (match-string 1 text))
-             (line (match-string 2 text))
-             (column (match-string 3 text))
-             (error-type (match-string 4 text))
-             (msg-part1 (s-trim-left (match-string 5 text)))
-             (msg-part2 (s-trim-left (match-string 6 text)))
-             (msg (clean-up-newlines (format "%s: %s" msg-part1 msg-part2))))
-
-        (push (periphery--build-list
-               :path (format "%s:%s:%s" path line column)
-               :file path
-               :line line
-               :keyword error-type
-               :result msg
-               :regex periphery-regex-mark-quotes)
-              tempList)
-      ;; Update the text to the remaining unmatched portion
-        (setq text (substring text (match-end 6))))))
-  tempList)
+                  errors)))))
+    (nreverse errors)))
 
 (cl-defun periphery-run-parser (input)
   "Run parser on INPUT more efficiently."
   (when DEBUG
     (message input))
 
-  (let* ((relevant-lines (seq-filter (lambda (line) (string-match-p "^/" line))
-                                     (split-string input "\n")))
-         (filtered-input (string-join relevant-lines "\n")))
+  (let* ((relevant-lines (seq-filter (lambda (line) (string-prefix-p "/" line))
+                                     (split-string input "\n" t)))
+         (filtered-input (string-join relevant-lines "\n"))
+         (errors (parse-compiler-errors filtered-input)))
 
-    (setq periphery-errorList (delete-dups (parse-compiler-errors filtered-input)))
+    (setq periphery-errorList (delete-dups errors))
 
     (when (or (periphery--is-buffer-visible) periphery-errorList)
       (periphery--listing-command periphery-errorList))))
@@ -458,8 +423,7 @@
               :result message
               :regex (format "\\(%s\\)" query)))))))
 
-
-(cl-defun periphery--build-list (&key path &key file &key line &key keyword &key result &key regex)
+(cl-defun periphery--build-list (&key path file line keyword result regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
               (periphery--propertize-severity keyword (string-trim-left keyword))
@@ -468,16 +432,41 @@
               (periphery--mark-all-symbols
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols
-                               :input (propertize
-                                       (string-trim-left result)
-                                       'face
-                                       'periphery-message-face)
+                               :input (periphery--process-message result)
                                :regex mark-strings-regex
                                :property '(face highlight))
                        :regex mark-inside-parenteses
                        :property '(face periphery-warning-face))
                :regex regex
                :property '(face periphery-identifier-face)))))
+
+(defun periphery--process-message (message)
+  "Process MESSAGE, optionally trimming the prefix and applying face properties."
+  (let* ((trimmed-message (if periphery-trim-message-prefix
+                              (periphery--trim-message-prefix message)
+                            message))
+         (propertized-message (propertize trimmed-message 'face 'periphery-message-face)))
+    (if periphery-trim-message-prefix
+        propertized-message
+      (periphery--highlight-first-sentence propertized-message))))
+
+(defun periphery--trim-message-prefix (message)
+  "Trim the prefix of MESSAGE up to the first colon, if there's text after it."
+  (if-let* ((colon-pos (string-match ":" message))
+            (rest (string-trim (substring message (1+ colon-pos))))
+            ((not (string-empty-p rest))))
+      rest
+    message))
+
+(defun periphery--highlight-first-sentence (text)
+  "Highlight the first sentence (up to the first colon) in TEXT."
+  (let ((colon-pos (string-match ":" text)))
+    (if colon-pos
+        (concat
+         (propertize (substring text 0 (1+ colon-pos))
+                     'face 'periphery-first-sentence-face)
+         (substring text (1+ colon-pos)))
+      text)))
 
 (cl-defun periphery--build-todo-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
@@ -519,41 +508,52 @@
            :attributes 'success))
       (switch-to-buffer-other-window periphery-buffer-name))))
 
+;;;###autoload
 (defun svg-color-from-tag (tag)
   "Get color from (as TAG)."
   (cond
    ((string-match-p "TODO" tag) 'periphery-todo-face-full)
-   ((string-match-p "NOTE" tag) 'periphery-note-face-full)
+   ((string-match-p "NOTE\\|enable" tag) 'periphery-note-face-full)
    ((string-match-p "HACK" tag) 'periphery-hack-face-full)
    ((string-match-p "PERF" tag) 'periphery-performance-face-full)
-   ((string-match-p "FIXME" tag) 'periphery-fix-face-full)
-   ((string-match-p "FIX" tag) 'periphery-fix-face-full)
-   ((string-match-p "MARK" tag) 'periphery-mark-face-full)
+   ((string-match-p "FIXME\\|FIX\\|disable" tag) 'periphery-fix-face-full)
+   ((string-match-p "MARK\\|swiftlint" tag) 'periphery-mark-face-full)
    (t 'periphery-hack-face-full)))
 
+;;;###autoload
 (defun periphery--remove-leading-keyword (tag)
   "Remove leading keyword and C style -comment from (as TAG)."
-  (replace-regexp-in-string "^[;|\/]+\\W?\\w+\\b:\\W?" "" tag))
+  (replace-regexp-in-string "^[;|\/]+\\W+\\w+\\b:\\W?" "" tag))
 
+;;;###autoload
 (defun periphery--remove-comments (tag)
   "Remove comments from (as TAG)."
   (string-trim-left
-    (replace-regexp-in-string ":" ""
-                              (replace-regexp-in-string "^[;|\/]+\\W?" "" tag))))
-
+   (replace-regexp-in-string ":" ""
+                             (replace-regexp-in-string "^[;|\/]+\\W+" "" tag))))
+;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
-  '(("\\([;|\/]+\\W?\\w+\\b:.*\\)" . ((lambda (tag)
-                                    (svg-tag-make (periphery--remove-leading-keyword tag)
-                                                  :face (svg-color-from-tag tag)
-                                                  :inverse t
-                                                  ))))
-
-    ("\\([;|\/]+\\W?\\w+\\b:\\)" . ((lambda (tag) (svg-tag-make
-                                                  (periphery--remove-comments tag)
-                                                   :face (svg-color-from-tag tag)
-                                                   :crop-right t))))))
-
+  '(("\\([;|\/]+\\W+\\w+\\b:.*\\)" . ((lambda (tag)
+                                        (svg-tag-make (periphery--remove-leading-keyword tag)
+                                                      :face (svg-color-from-tag tag)
+                                                      :inverse t))))
+    ("\\([;|\/]+\\W+\\w+\\b:\\)" . ((lambda (tag)
+                                      (svg-tag-make (periphery--remove-comments tag)
+                                                    :face (svg-color-from-tag tag)
+                                                    :crop-right t))))
+    ("// swiftlint:\\(enable\\|disable\\) .*" . ((lambda (tag)
+                                                  (let* ((parts (split-string tag " " t))
+                                                         (action (nth 1 parts))
+                                                         (text (string-join (cddr parts) " ")))
+                                                    (svg-tag-make (concat "SwiftLint: " action)
+                                                                  :face (if (string= action "enable")
+                                                                            'periphery-note-face-full
+                                                                          'periphery-fix-face-full)
+                                                                  :inverse t)
+                                                    (svg-tag-make text
+                                                                  :face 'periphery-mark-face-full
+                                                                  :crop-left t)))))))
 
 (provide 'periphery)
 

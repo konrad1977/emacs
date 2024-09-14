@@ -9,7 +9,7 @@
 (require 'mode-line-hud)
 
 (defvar current-query "")
-(defvar DEBUG t)
+(defvar DEBUG nil)
 
 (defun run-async-command (command callback)
   "Run COMMAND asynchronously and call CALLBACK with the result."

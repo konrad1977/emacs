@@ -8,6 +8,13 @@
       process-adaptive-read-buffering nil
       gc-cons-threshold most-positive-fixnum)
 
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 32 1024 1024))))
+
+(set-language-environment "UTF-8")
+
+
 ;; (setq default-input-method nil)
 ;; (setq ad-redefinition-action 'accept)
 ;; (setq idle-update-delay 1.0)
@@ -38,10 +45,17 @@
 ;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
 ;; (setq ffip-use-rust-fd t)
 
-;; (prefer-coding-system 'utf-8)
+;; (prefer-coding-system 'utf-8
 ;; (set-default-coding-systems 'utf-8)
 ;; (set-terminal-coding-system 'utf-8)
 ;; (set-keyboard-coding-system 'utf-8)
+
+(setq ffap-machine-p-known 'reject)
+(setq idle-update-delay 1.0)
+(setq auto-mode-case-fold nil)
+
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
 
 (push '(ns-use-native-fullscreen . t) default-frame-alist)
 (push '(ns-transparent-titlebar . t) default-frame-alist)
@@ -74,6 +88,20 @@
 
 ;; (advice-add #'display-startup-echo-area-message :override #'ignore)
 ;; (advice-add #'display-startup-screen :override #'ignore)
+
+(setq package-enable-at-startup nil)
+(setq package-quickstart nil)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("gnu" . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+(customize-set-variable 'package-archive-priorities '(("gnu"    . 99)
+                                                      ("nongnu" . 80)
+                                                      ("stable" . 70)
+                                                      ("melpa"  . 0)))
+
+(package-initialize)
+(setopt package-install-upgrade-built-in t)
 
 (provide 'early-init)
 ;;; early-init.el ends here

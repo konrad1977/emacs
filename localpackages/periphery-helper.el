@@ -36,26 +36,19 @@
                (let* ((json-object (json-read-from-string result)))
                  (funcall ,callback json-object)))))
 
-
-(cl-defun async-start-command-to-string (&key command &key callback)
+(cl-defun async-start-command-to-string (&key command callback)
   "Run COMMAND asynchronously and call CALLBACK with the result."
-  (let ((output-buffer (generate-new-buffer "*async-command-output*")))
-    (set-process-sentinel
-     (start-process-shell-command "async-command" output-buffer command)
-     (lambda (_ event)
-       (when (string= event "finished\n")
-         (with-current-buffer output-buffer
-           (let ((result (buffer-string)))
-             (funcall callback result))
-           (kill-buffer output-buffer)))))))
-
-;; (cl-defun async-start-command-to-string (&key command &key callback)
-;;   "Async shell command to JSON run async (as COMMAND) and parse it json and call (as CALLBACK)."
-;;   (async-start
-;;    `(lambda ()
-;;       (shell-command-to-string ,command))
-;;    `(lambda (result)
-;;       (funcall ,callback result))))
+  (let ((output-buffer (generate-new-buffer " *async-command-output*")))
+    (make-process
+     :name "async-command"
+     :buffer output-buffer
+     :command (list shell-file-name shell-command-switch command)
+     :sentinel (lambda (process event)
+                 (when (string= event "finished\n")
+                   (let ((result (with-current-buffer (process-buffer process)
+                                   (buffer-string))))
+                     (funcall callback result))
+                   (kill-buffer output-buffer))))))
 
 (cl-defun async-start-command (&key command &key callback)
   "Async shell command run async (as COMMAND) and call (as CALLBACK)."
@@ -64,11 +57,6 @@
       (shell-command ,command))
    `(lambda (result)
       (funcall ,callback))))
-
-(defun clean-up-newlines (text)
-  "Clean up new lines (as TEXT)."
-  (string-trim-left
-   (replace-regexp-in-string "\n" "" text)))
 
 (cl-defun message-with-color (&key tag &key text &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES."

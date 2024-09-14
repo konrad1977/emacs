@@ -156,13 +156,30 @@
     (setq current-project-root (xcode-additions:project-root)))
   (xcode-additions:list-scheme-files))
 
-(defun xcode-additions:build-folder ()
-  "Get build folder.  If there are more than one let the user choose wich one to use."
+(cl-defun xcode-additions:build-folder (&key (device-type :device))
+  "Get build folder. Automatically choose based on device type (iphoneos or iphonesimulator), or let the user choose if there are multiple options."
   (unless current-build-folder
-    (setq current-build-folder
-    (if-let* ((default-directory (concat (xcode-additions:project-root) "build/Build/Products/"))
-              (choosen-folder (xcode-additions:build-menu :title "Choose build folder" :list (xcode-additions:parse-build-folder default-directory))))
-        (shell-quote-argument (concat default-directory choosen-folder "/")))))
+    (let* ((default-directory (concat (xcode-additions:project-root) "build/Build/Products/"))
+           (all-folders (xcode-additions:parse-build-folder default-directory))
+           (target-suffix (if (eq device-type :simulator) "iphonesimulator" "iphoneos"))
+           (matching-folders (seq-filter (lambda (folder) (string-match-p target-suffix folder)) all-folders)))
+      (setq current-build-folder
+            (cond
+             ;; Only one matching folder, use it
+             ((= (length matching-folders) 1)
+              (car matching-folders))
+             ;; Multiple matching folders, let user choose
+             ((> (length matching-folders) 1)
+              (xcode-additions:build-menu
+               :title "Choose build folder"
+               :list matching-folders))
+             ;; No matching folders, show all options
+             (t
+              (xcode-additions:build-menu
+               :title "Choose build folder"
+               :list all-folders))))
+      (when current-build-folder
+        (setq current-build-folder (shell-quote-argument (concat default-directory current-build-folder "/"))))))
   current-build-folder)
 
 (defun xcode-additions:get-workspace-or-project ()
@@ -204,14 +221,22 @@
          (targets (cdr (assoc 'targets project))))
     targets))
 
+;; (defun xcode-additions:is-xcodeproject ()
+;;   "Check if its an xcode-project."
+;;   (unless current-is-xcode-project
+;;     (if-let ((default-directory (xcode-additions:project-root)))
+;;         (setq current-is-xcode-project
+;;         (or
+;;          (directory-files-recursively default-directory "\\xcworkspace$" t)
+;;          (directory-files-recursively default-directory "\\xcodeproj$" t)))))
+;;   current-is-xcode-project)
+
 (defun xcode-additions:is-xcodeproject ()
-  "Check if its an xcode-project."
+  "Check if it's an Xcode project."
   (unless current-is-xcode-project
-    (if-let ((default-directory (xcode-additions:project-root)))
-        (setq current-is-xcode-project
-        (or
-         (directory-files-recursively default-directory "\\xcworkspace$" t)
-         (directory-files-recursively default-directory "\\xcodeproj$" t)))))
+    (when-let ((root (xcode-additions:project-root)))
+      (setq current-is-xcode-project
+            (directory-files root nil "\\(?:\\.xcworkspace\\|\\.xcodeproj\\)$" t 1))))
   current-is-xcode-project)
 
 (defun xcode-additions:setup-current-project (project)
@@ -334,7 +359,13 @@
 
 (mode-line-hud:update
   :message (format "Cleaning done for %s"
-                  (propertize projectName 'face 'warning))))
+                   (propertize projectName 'face 'warning))))
+
+(defun xcode-additions:open-project-in-xcode ()
+  "Open project in xcode."
+  (if-let ((default-directory (xcode-additions:project-root))
+           (command "xed ."))
+      (inhibit-sentinel-messages #'call-process-shell-command command)))
 
 (provide 'xcode-additions)
 ;;; xcode-additions.el ends here
