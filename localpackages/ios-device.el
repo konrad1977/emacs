@@ -17,7 +17,7 @@
   :type 'string
   :group 'ios-device)
 
-(defcustom ios-device:debug t
+(defcustom ios-device:debug nil
   "Enable debug output for ios-device operations."
   :type 'boolean
   :group 'ios-device)

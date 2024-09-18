@@ -110,7 +110,7 @@
   "Face for the first sentence of the message (up to the first colon)."
   :group 'periphery)
 
-(defvar DEBUG nil
+(defvar periphery-debug nil
   "Debug mode.")
 
 (defvar periphery-mode-map nil
@@ -328,7 +328,7 @@
 
 (cl-defun periphery-run-parser (input)
   "Run parser on INPUT more efficiently."
-  (when DEBUG
+  (when periphery-debug
     (message input))
 
   (let* ((relevant-lines (seq-filter (lambda (line) (string-prefix-p "/" line))

@@ -26,8 +26,9 @@
 ;;;###autoload
 (defun my-swift-mode:eglot-server-contact (_ignored)
   "Construct the list that eglot needs to start sourcekit-lsp."
-  (setq arglist (lsp-arguments))
-  (add-to-list 'arglist (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
+  (let ((arglist (lsp-arguments))
+        (sourcekit-lsp-path (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
+    (add-to-list 'arglist sourcekit-lsp-path)))
 
 (defface tree-sitter-hl-face:case-pattern
   '((t :inherit tree-sitter-hl-face:property))

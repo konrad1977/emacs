@@ -1,18 +1,19 @@
-;;; -*- lexical-binding: t -*-
-;;; init.el
+;;; init.el --- my init file  -*- lexical-binding: t -*-
+
+;;; code:
 
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
 (set-face-attribute 'default nil
                     :font "Iosevka Term SS14"
-                    :height 160
+                    :height 170
                     :weight 'extra-light
                     :width 'expanded)
 
 (set-face-attribute 'fixed-pitch nil
                     :font "Iosevka Term SS14"
-                    :height 160
+                    :height 170
                     :weight 'extra-light
                     :width 'expanded)
 
@@ -130,9 +131,8 @@
 (use-package rg :defer t)
 
 (use-package nerd-icons
-  :defer t
   :custom
-  (setq nerd-icons-scale-factor 1.2))
+  (setq nerd-icons-scale-factor 0.9))
 
 (use-package ligature
   :hook (prog-mode . ligature-mode)
@@ -198,7 +198,8 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t))
+  (load-theme 'kanagawa t)
+  )
 
 (use-package saveplace
   :ensure nil
@@ -645,22 +646,10 @@
         corfu-popupinfo-min-width corfu-min-width
         corfu-popupinfo-max-width corfu-max-width))
 
-;; (use-package corfu-candidate-overlay
-;;   :after corfu
-;;   :config
-;;   (corfu-candidate-overlay-mode +1)
-;;   (global-set-key (kbd "C-<tab>") 'completion-at-point)
-;;   (global-set-key (kbd "C-<iso-lefttab>") 'corfu-candidate-overlay-complete-at-point))
-
 (use-package savehist
   :ensure nil
   :config
   (savehist-mode t))
-
-;; (use-package yasnippet-capf
-;;   :after cape
-;;   :init
-;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf))
 
 ;; Add extensions
 (use-package cape
@@ -858,16 +847,14 @@
       (slot . 0))
      ("\\*iOS Simulator\\|*swift package\\|*ios-device"
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
-      ;; (display-buffer-at-bottom display-buffer-reuse-mode-window)
-      ;; (display-buffer-in-side-window display-buffer-reuse-window)
-      (window-height . 0.2)
+      (window-height . 0.3)
       (window-parameters . ((mode-line-format . none)))
       (side . bottom)
       (slot . 2))
      ("\\*Periphery\\*"
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       (body-function . select-window)
-      (window-height . 0.2)
+      (window-height . 0.3)
       (side . bottom)
       (slot . 1))
      ("\\*Faces\\|[Hh]elp\\*"
@@ -1315,7 +1302,7 @@
   :custom
   (eglot-report-progress nil)
   :config
-  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
   (add-hook 'eglot-managed-mode-hook #'flycheck-eglot-mode t)
   (setq eglot-stay-out-of '(corfu company flycheck)
         eglot-send-changes-idle-time 0.3
@@ -1416,6 +1403,10 @@
   :defer t
   :after tree-sitter)
 
+(use-package rainbow-mode
+  :defer t
+  :hook (emacs-lisp-mode . rainbow-mode))
+
 (use-package svg-tag-mode
   :defer 10
   :hook ((prog-mode . svg-tag-mode)
@@ -1443,6 +1434,11 @@
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
   (local-set-key (kbd "C-c C-f") nil)
+  (local-set-key (kbd "C-x c d") #'copilot-chat-doc)
+  (local-set-key (kbd "C-x c e") #'copilot-chat-explain)
+  (local-set-key (kbd "C-x c f") #'copilot-chat-fix)
+  (local-set-key (kbd "C-x c r") #'copilot-chat-review)
+  (local-set-key (kbd "C-x c o") #'copilot-chat-optimize)
   (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
@@ -1535,17 +1531,16 @@
 (use-package eglot-booster
   :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
   :after eglot
-  :defer t
   :config (eglot-booster-mode))
 
-(use-package rainbow-mode
-  :defer t
-  :hook (emacs-lisp-mode . rainbow-mode))
+(use-package copilot-chat
+  :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
+  :after request)
 
 (use-package indent-bars
   :vc (:url "https://github.com/jdtsmith/indent-bars" :rev :newest)
-  :hook (prog-mode . indent-bars-mode)
-  :defer t
+  :hook ((emacs-lisp-mode . indent-bars-mode)
+         (tree-sitter-hl-mode . indent-bars-mode))
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.05))
   (indent-bars-width-frac 0.3)

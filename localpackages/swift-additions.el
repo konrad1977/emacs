@@ -5,7 +5,6 @@
 ;; Package for building and running iOS/macOS apps from Emacs
 
 ;;; Code:
-(require 'xcodebuildserver)
 (require 'ios-device)
 (require 'ios-simulator)
 
@@ -21,7 +20,8 @@
 (defvar current-build-command nil)
 (defvar build-progress-spinner nil)
 (defvar compilation-time nil)
-(defvar DEBUG nil)
+(defvar swift-additions:debug nil
+  "Debug")
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -29,8 +29,8 @@
     "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
   "xcrun xcodebuild build \\"))
 
-(cl-defun build-app-command (&key sim-id (nil))
-"Xcodebuild with (as SIM-ID)."
+(cl-defun build-app-command (&key sim-id (nil) derived-path)
+"Xcodebuild with (as SIM-ID DERIVED-PATH)."
 (if current-build-command
     current-build-command
   (concat
@@ -43,10 +43,11 @@
       (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
     "-configuration Debug \\"
     "-parallelizeTargets \\"
-    (format "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=%s \\" (swift-additions:get-number-of-cores))
     "-UseModernBuildSystem=YES \\"
     "-derivedDataPath build | xcode-build-server parse -avv"
-    ;; "COMPILER_INDEX_STORE_ENABLE=NO"
+    ;; "-resultBundlePath .bundle \\"
+    ;; (format "-derivedDataPath %s | xcode-build-server parse -av" derived-path)
+    ;; (format "-derivedDataPath %s" derived-path)
     )))
 
 (defun swift-additions:get-number-of-cores ()
@@ -99,7 +100,7 @@
 
 (defun swift-additions:check-if-build-was-successful (input-text)
   "Check if INPUT-TEXT does not contain build failure indicators."
-  (when DEBUG (message input-text))
+  (when swift-additions:debug (message input-text))
   (not (string-match-p "\\(BUILD FAILED\\|BUILD INTERRUPTED\\|xcodebuild: error\\)" input-text)))
 
 (defun swift-additions:check-for-errors (output callback)
@@ -152,24 +153,27 @@
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
-  (let ((build-command (build-app-command :sim-id (ios-simulator:simulator-identifier))))
+  (let ((build-command (build-app-command
+                        :sim-id (ios-simulator:simulator-identifier)
+                        :derived-path (xcode-additions:derived-data-path))))
     (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
     (setq compilation-time (current-time))
     (setq build-progress-spinner spinner-current)
-    (when DEBUG
+    (when swift-additions:debug
       (message build-command))
 
-    (xcodebuildserver:check-configuration :root default-directory
-                                          :workspace (xcode-additions:get-workspace-or-project)
-                                          :scheme (xcode-additions:scheme))
+    (mode-line-hud:update :message
+                          (format "Compiling %s|%s"
+                                  (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                  (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
 
-    (mode-line-hud:update :message (format "Compiling %s|%s"
-                                           (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                           (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
+    (xcode-additions:setup-xcodebuildserver)
+
     (async-start-command-to-string
      :command build-command
      :callback '(lambda (text)
+                  (when swift-additions:debug (message text))
                   (spinner-stop build-progress-spinner)
                   (if run-once-compiled
                       (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
@@ -181,25 +185,21 @@
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
-  (let ((build-command (build-app-command)))
-
+  (let ((build-command (build-app-command :derived-path (xcode-additions:derived-data-path))))
     (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
     (setq compilation-time (current-time))
     (setq build-progress-spinner spinner-current)
 
-    ;; (mode-line-hud:update :message (format "Compiling %s|%s"
-    ;;                                        (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-    ;;                                        (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
-    (when DEBUG
+    (when swift-additions:debug
       (message current-build-command)
-      (message "Build-folder: %s" (xcode-additions:build-folder :device-type :device)))
+      (message "Build-folder: %s" (xcode-additions:derived-data-path)))
 
-    (xcodebuildserver:check-configuration :root default-directory
-                                          :workspace (xcode-additions:get-workspace-or-project)
-                                          :scheme (xcode-additions:scheme))
-
+    (xcode-additions:setup-xcodebuildserver)
+    (mode-line-hud:update :message (format "Compiling %s|%s"
+                                           (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                           (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
     (spinner-start 'progress-bar-filled)
 
     (async-start-command-to-string
@@ -226,7 +226,7 @@
 
 (defun swift-additions:check-for-spm-build-errors (text)
   "Check for Swift package build erros in TEXT."
-  (when DEBUG (message text))
+  (when swift-additions:debug (message text))
   (if (or
        (string-match-p (regexp-quote "error:") text)
        (string-match-p (regexp-quote "warning:") text))

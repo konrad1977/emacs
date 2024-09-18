@@ -13,8 +13,8 @@
 
 (defvar-local mood-line-segment-hud--text "")
 
-(defcustom show-in-echo-area t
-  "Show weather temperature in fahrenheit."
+(defcustom show-in-echo-area nil
+  "show messages in echo area"
   :group 'mode-line-hud
   :type '(boolean))
 

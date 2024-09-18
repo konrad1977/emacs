@@ -8,6 +8,9 @@
 (defvar-local ios-simulator--installation-process nil
   "Process object for the current app installation.")
 
+(defvar ios-simulator:debug nil
+  "Debug mode.")
+
 (defgroup ios-simulator nil
   "IOS-SIMULATOR."
   :tag "ios-simulator"
@@ -77,8 +80,9 @@
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
+  ;; (when ios-device:debug
+  ;;   (message "%root: %s build:%s" rootfolder build-folder))
   (ios-device:kill-buffer)
-
   (let* ((default-directory rootfolder)
          (simulator-id simulatorId)
          (buffer (get-buffer-create ios-simulator-buffer-name))
@@ -122,6 +126,8 @@
 
 (cl-defun ios-simulator:app-name-from (&key folder)
   "Get compiled app name from (FOLDER)."
+  (when ios-simulator:debug
+    (message "Fetching app name from %s" folder))
   (if (file-exists-p folder)
       (let ((binary-name (directory-files folder nil "\\.app$")))
         (file-name-sans-extension (car binary-name)))
@@ -134,7 +140,7 @@
 
 (defun ios-simulator:setup-simulator-dwim (id)
   "Setup simulator dwim (as ID)."
-  (when DEBUG
+  (when ios-simulator:debug
     (message "Setting up simulator with id %s" id))
   (if (not (ios-simulator:is-simulator-app-running))
       (ios-simulator:start-simulator-with-id id)
@@ -151,14 +157,14 @@
 
 (defun ios-simulator:boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
-  (when DEBUG
+  (when ios-simulator:debug
     (message "Booting simulator with id %s" id))
   (inhibit-sentinel-messages
    #'call-process-shell-command (ios-simulator:boot-command :id id :rosetta use-rosetta)))
 
 (defun ios-simulator:start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
-  (when DEBUG
+  (when ios-simulator:debug
     (message "Starting simulator with id: %s" id))
   (inhibit-sentinel-messages
    #'call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
@@ -346,7 +352,7 @@
 
 (cl-defun ios-simulator:terminate-app (&key simulatorID &key appIdentifier)
   "Terminate app (as APPIDENTIFIER as SIMULATORID)."
-  (when DEBUG
+  (when ios-simulator:debug
     (message "%s %s" simulatorID appIdentifier))
   (inhibit-sentinel-messages #'call-process-shell-command
                              (string-trim

@@ -121,10 +121,10 @@
   (font-lock-doc-markup-face                     (:foreground fujiGray))
   (font-lock-preprocessor-face	                 (:foreground boatYellow2))
   (font-lock-regexp-grouping-backslash           (:foreground boatYellow2))
-  (font-lock-number-face                         (:foreground roninYellow :weight 'normal))
-  (font-lock-operator-face                       (:foreground waveRed))
-  (font-lock-misc-punctuation-face               (:foreground waveRed))
-  (font-lock-punctuation-face                    (:foreground waveRed))
+  (font-lock-number-face                         (:foreground sakuraPink :weight 'normal))
+  (font-lock-operator-face                       (:foreground roninYellow))
+  (font-lock-misc-punctuation-face               (:foreground roninYellow))
+  (font-lock-punctuation-face                    (:foreground surimiOrange :weight 'normal))
   (elisp-shorthand-font-lock-face                (:foreground fujiWhite))
 
   (info-xref                                     (:foreground peachRed))
@@ -504,8 +504,8 @@
   (tree-sitter-hl-face:type.parameter            (:foreground peachRed :italic t))
   (tree-sitter-hl-face:type.argument             (:foreground sumiInk-4))
   (tree-sitter-hl-face:type.builtin              (:inherit 'font-lock-builtin-face))
-  (tree-sitter-hl-face:type.super                (:foreground peachRed))
-  (tree-sitter-hl-face:constructor               (:foreground waveAqua2 :weight 'normal))
+  (tree-sitter-hl-face:type.super                (:foreground sakuraPink))
+  (tree-sitter-hl-face:constructor               (:foreground waveAqua1 :weight 'normal))
 
   (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
@@ -532,9 +532,9 @@
   (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))
   (tree-sitter-hl-face:number                    (:inherit 'font-lock-number-face))
 
-  (tree-sitter-hl-face:punctuation               (:foreground crystalBlue :weight 'normal))
-  (tree-sitter-hl-face:punctuation.bracket       (:foreground springBlue))
-  (tree-sitter-hl-face:punctuation.delimiter     (:foreground old-white))
+  (tree-sitter-hl-face:punctuation               (:inherit 'font-lock-punctuation-face))
+  (tree-sitter-hl-face:punctuation.bracket       (:foreground peachRed))
+  (tree-sitter-hl-face:punctuation.delimiter     (:foreground peachRed))
   (tree-sitter-hl-face:punctuation.special       (:foreground surimiOrange))
 
   (tree-sitter-hl-face:case-pattern              (:foreground autumnYellow))
@@ -575,6 +575,10 @@
 
   (eldoc-box-body (:background winterBlue :foreground crystalBlue))
   (eldoc-box-border (:background sumiInk-4))
+
+  ;; (eglot-inlay-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
+  ;; (eglot-parameter-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
+  ;; (eglot-type-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
   ))
 
 (provide-theme 'kanagawa)
