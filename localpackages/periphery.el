@@ -299,12 +299,14 @@
     (buffer-string)))
 
 (defun parse-compiler-errors (text)
-  "Parse compiler error messages from LOG (as TEXT)."
+  "Parse compiler error messages and build failures from LOG (as TEXT)."
   (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
+        (regex-build-failure "^The following build commands failed:")
         (errors '()))
     (with-temp-buffer
       (insert text)
       (goto-char (point-min))
+      ;; Parse compiler errors/warnings
       (while (re-search-forward regex nil t)
         (let* ((path (or (match-string 1) ""))
                (line (or (match-string 2) ""))
@@ -323,23 +325,67 @@
                    :keyword error-type
                    :result msg
                    :regex periphery-regex-mark-quotes)
-                  errors)))))
-    (nreverse errors)))
+                  errors))))
+
+      ;; Parse build failures
+      (goto-char (point-min))
+      (when (re-search-forward regex-build-failure nil t)
+        (let ((failure-msg (buffer-substring-no-properties (point) (point-at-eol))))
+          (forward-line)
+          (while (and (not (eobp)) (looking-at "\t"))
+            (setq failure-msg (concat failure-msg "\n" (buffer-substring-no-properties (point) (point-at-eol))))
+            (forward-line))
+          ;; Shorten the path in the failure message
+          (setq failure-msg
+                (replace-regexp-in-string
+                 "\\(/Users/[^/]+/.*?/\\)\\([^/]+/[^/]+\\.build/.*\\)"
+                 "\\2"
+                 failure-msg))
+          (push (periphery--build-list
+                 :path "Build Failure"
+                 :file "Build Failure"
+                 :line "1"
+                 :keyword "error"
+                 :result failure-msg
+                 :regex periphery-regex-mark-quotes)
+                errors))))
+    ;; Sort errors before warnings
+    (sort (nreverse errors)
+          (lambda (a b)
+            (let ((a-type (downcase (aref (cadr a) 0)))
+                  (b-type (downcase (aref (cadr b) 0))))
+              (cond
+               ((and (string-prefix-p "error" a-type)
+                     (not (string-prefix-p "error" b-type)))
+                t)
+               ((and (not (string-prefix-p "error" a-type))
+                     (string-prefix-p "error" b-type))
+                nil)
+               (t (string< (car a) (car b)))))))))
 
 (cl-defun periphery-run-parser (input)
   "Run parser on INPUT more efficiently."
   (when periphery-debug
     (message input))
-
-  (let* ((relevant-lines (seq-filter (lambda (line) (string-prefix-p "/" line))
-                                     (split-string input "\n" t)))
-         (filtered-input (string-join relevant-lines "\n"))
-         (errors (parse-compiler-errors filtered-input)))
-
-    (setq periphery-errorList (delete-dups errors))
-
+  (let ((errors (parse-compiler-errors input)))
+    (setq periphery-errorList (nreverse (delete-dups errors)))
     (when (or (periphery--is-buffer-visible) periphery-errorList)
       (periphery--listing-command periphery-errorList))))
+
+;; (cl-defun periphery-run-parser (input)
+;;   "Run parser on INPUT more efficiently."
+;;   (when periphery-debug
+;;     (message input))
+
+;;   (let* ((relevant-lines (seq-filter (lambda (line) (string-prefix-p "/" line))
+;;                                      (split-string input "\n" t)))
+;;          (filtered-input (string-join relevant-lines "\n"))
+;;          (errors (parse-compiler-errors filtered-input)))
+
+;;     (setq periphery-errorList (delete-dups errors))
+
+;;     (when (or (periphery--is-buffer-visible) periphery-errorList)
+;;       (periphery--listing-command periphery-errorList))))
 
 (defun periphery--is-buffer-visible ()
   "Check if a buffer is visible."

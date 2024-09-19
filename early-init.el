@@ -19,43 +19,39 @@
 ;; (setq ad-redefinition-action 'accept)
 ;; (setq idle-update-delay 1.0)
 ;; (setq inhibit-compacting-font-caches t)
-
-;; (add-hook 'emacs-startup-hook (lambda ()
-;;                                 (setq gc-cons-threshold (* 32 1024 1024))))
-
 ;; (set-language-environment "UTF-8")
 
 ;; (setq-default bidi-display-reordering 'left-to-right
 ;;               bidi-paragraph-direction 'left-to-right)
 
-;; (customize-set-variable 'native-comp-async-report-warnings-errors nil)
-;; (customize-set-variable 'comp-async-report-warnings-errors nil)
-;; (customize-set-variable 'native-comp-async-query-on-exit t)
-;; (customize-set-variable 'comp-async-query-on-exit t)
-;; (customize-set-variable 'native-comp-speed 3)
-;; (customize-set-variable 'comp-speed 3)
+;(customize-set-variable 'native-comp-async-report-warnings-errors nil)
+;(customize-set-variable 'comp-async-report-warnings-errors nil)
+;(customize-set-variable 'native-comp-async-query-on-exit t)
+;(customize-set-variable 'comp-async-query-on-exit t)
+;(customize-set-variable 'native-comp-speed 3)
+;(customize-set-variable 'comp-speed 3)
 
-;; (setq kill-ring-max 100000)
-;; (custom-set-variables '(savehist-additional-variables '(kill-ring)))
+; (setq kill-ring-max 100000)
+; (custom-set-variables '(savehist-additional-variables '(kill-ring)))
 
-;; (setq ffap-machine-p-known 'reject)
-;; (setq ffap-alist nil)                ; faster, dumber prompting
-;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
-;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
-;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
-;; (setq ffip-use-rust-fd t)
+; (setq ffap-machine-p-known 'reject)
+; (setq ffap-alist nil)                ; faster, dumber prompting
+; (setq ffap-url-regexp nil)           ; disable URL features in ffap
+; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
+; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
+; (setq ffip-use-rust-fd t)
 
-;; (prefer-coding-system 'utf-8
-;; (set-default-coding-systems 'utf-8)
-;; (set-terminal-coding-system 'utf-8)
-;; (set-keyboard-coding-system 'utf-8)
-
-(setq ffap-machine-p-known 'reject)
-(setq idle-update-delay 1.0)
-(setq auto-mode-case-fold nil)
-
-(setq-default bidi-display-reordering 'left-to-right
-              bidi-paragraph-direction 'left-to-right)
+;(prefer-coding-system 'utf-8
+;(set-default-coding-systems 'utf-8)
+;(set-terminal-coding-system 'utf-8)
+;(set-keyboard-coding-system 'utf-8)
+;
+;(setq ffap-machine-p-known 'reject)
+;(setq idle-update-delay 1.0)
+;(setq auto-mode-case-fold nil)
+;
+;(setq-default bidi-display-reordering 'left-to-right
+;              bidi-paragraph-direction 'left-to-right)
 
 (push '(ns-use-native-fullscreen . t) default-frame-alist)
 (push '(ns-transparent-titlebar . t) default-frame-alist)

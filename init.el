@@ -6,16 +6,22 @@
 (eval-when-compile (defvar display-time-default-load-average nil))
 
 (set-face-attribute 'default nil
-                    :font "Iosevka Term SS14"
-                    :height 170
-                    :weight 'extra-light
+                    :font "Jetbrains Mono"
+                    :height 160
+                    :weight 'thin
                     :width 'expanded)
 
-(set-face-attribute 'fixed-pitch nil
-                    :font "Iosevka Term SS14"
-                    :height 170
-                    :weight 'extra-light
-                    :width 'expanded)
+;; (set-face-attribute 'default nil
+;;                     :font "Iosevka Term SS14"
+;;                     :height 170
+;;                     :weight 'extra-light
+;;                     :width 'expanded)
+
+;; (set-face-attribute 'fixed-pitch nil
+;;                     :font "Iosevka Term SS14"
+;;                     :height 170
+;;                     :weight 'extra-light
+;;                     :width 'expanded)
 
 (set-face-attribute 'variable-pitch nil :font "Work Sans" :weight 'light)
 
@@ -1414,6 +1420,19 @@
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
 
+(use-package indent-bars
+  :hook ((emacs-lisp-mode tree-sitter-hl-mode) . indent-bars-mode)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.05))
+  (indent-bars-width-frac 0.3)
+  (indent-bars-pad-frac 0.1)
+  (indent-bars-zigzag nil)
+  (indent-bars-pattern ".")
+  (indent-bars-prefer-character t)
+  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
+  (indent-bars-highlight-current-depth '(:blend 0.3)) ; pump up the BG blend on current
+  (indent-bars-display-on-blank-lines t))
+
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
   (interactive)
@@ -1537,20 +1556,6 @@
   :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
   :after request)
 
-(use-package indent-bars
-  :vc (:url "https://github.com/jdtsmith/indent-bars" :rev :newest)
-  :hook ((emacs-lisp-mode . indent-bars-mode)
-         (tree-sitter-hl-mode . indent-bars-mode))
-  :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.05))
-  (indent-bars-width-frac 0.3)
-  (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag nil)
-  (indent-bars-pattern ".")
-  (indent-bars-prefer-character t)
-  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
-  (indent-bars-highlight-current-depth '(:blend 0.3)) ; pump up the BG blend on current
-  (indent-bars-display-on-blank-lines t))
 
 (provide 'init)
 
