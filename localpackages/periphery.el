@@ -110,7 +110,7 @@
   "Face for the first sentence of the message (up to the first colon)."
   :group 'periphery)
 
-(defvar periphery-debug nil
+(defvar periphery-debug t
   "Debug mode.")
 
 (defvar periphery-mode-map nil
@@ -297,7 +297,6 @@
           (add-text-properties match-start match-end property)
           (goto-char match-end))))  ; Move point past the match
     (buffer-string)))
-
 (defun parse-compiler-errors (text)
   "Parse compiler error messages and build failures from LOG (as TEXT)."
   (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
@@ -330,10 +329,10 @@
       ;; Parse build failures
       (goto-char (point-min))
       (when (re-search-forward regex-build-failure nil t)
-        (let ((failure-msg (buffer-substring-no-properties (point) (point-at-eol))))
+        (let ((failure-msg (buffer-substring-no-properties (point) (pos-eol))))
           (forward-line)
           (while (and (not (eobp)) (looking-at "\t"))
-            (setq failure-msg (concat failure-msg "\n" (buffer-substring-no-properties (point) (point-at-eol))))
+            (setq failure-msg (concat failure-msg "\n" (buffer-substring-no-properties (point) (pos-eol))))
             (forward-line))
           ;; Shorten the path in the failure message
           (setq failure-msg
@@ -349,43 +348,41 @@
                  :result failure-msg
                  :regex periphery-regex-mark-quotes)
                 errors))))
-    ;; Sort errors before warnings
-    (sort (nreverse errors)
+    ;; Sort errors before warnings, and ensure build failures are treated as errors
+    (periphery-sort-error errors)))
+
+(defun periphery-sort-error (errors)
+  "Sort ERRORS."
+ (sort (nreverse errors)
           (lambda (a b)
             (let ((a-type (downcase (aref (cadr a) 0)))
                   (b-type (downcase (aref (cadr b) 0))))
               (cond
-               ((and (string-prefix-p "error" a-type)
-                     (not (string-prefix-p "error" b-type)))
+               ;; If both are errors or both are warnings, sort by path
+               ((and (or (string-prefix-p "error" a-type)
+                         (string= (car a) "Build Failure"))
+                     (or (string-prefix-p "error" b-type)
+                         (string= (car b) "Build Failure")))
+                (string< (car a) (car b)))
+               ;; If a is an error (including build failure) and b is not, a comes first
+               ((or (string-prefix-p "error" a-type)
+                    (string= (car a) "Build Failure"))
                 t)
-               ((and (not (string-prefix-p "error" a-type))
-                     (string-prefix-p "error" b-type))
+               ;; If b is an error (including build failure) and a is not, b comes first
+               ((or (string-prefix-p "error" b-type)
+                    (string= (car b) "Build Failure"))
                 nil)
-               (t (string< (car a) (car b)))))))))
+               ;; Otherwise, sort by path
+               (t (string< (car a) (car b))))))))
 
 (cl-defun periphery-run-parser (input)
   "Run parser on INPUT more efficiently."
   (when periphery-debug
     (message input))
   (let ((errors (parse-compiler-errors input)))
-    (setq periphery-errorList (nreverse (delete-dups errors)))
+    (setq periphery-errorList (delete-dups errors))
     (when (or (periphery--is-buffer-visible) periphery-errorList)
       (periphery--listing-command periphery-errorList))))
-
-;; (cl-defun periphery-run-parser (input)
-;;   "Run parser on INPUT more efficiently."
-;;   (when periphery-debug
-;;     (message input))
-
-;;   (let* ((relevant-lines (seq-filter (lambda (line) (string-prefix-p "/" line))
-;;                                      (split-string input "\n" t)))
-;;          (filtered-input (string-join relevant-lines "\n"))
-;;          (errors (parse-compiler-errors filtered-input)))
-
-;;     (setq periphery-errorList (delete-dups errors))
-
-;;     (when (or (periphery--is-buffer-visible) periphery-errorList)
-;;       (periphery--listing-command periphery-errorList))))
 
 (defun periphery--is-buffer-visible ()
   "Check if a buffer is visible."

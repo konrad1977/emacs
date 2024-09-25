@@ -1,4 +1,4 @@
-;;; xcode-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
+;;; xcode-additions.el --- package for compiling and running swift apps in  -*- lexical-binding: t; -*-
 ;;; commentary:
 ;;; code:
 
@@ -22,7 +22,7 @@
   :tag "xcode-additions:xcodebuild"
   :group 'xcode-additions)
 
-(defvar xcode-additions:debug nil
+(defvar xcode-additions:debug t
   "Debug flag.")
 
 (defconst xcodeproject-extension ".*\\.xcodeproj$"
@@ -167,9 +167,11 @@
           (all-folders (xcode-additions:parse-build-folder default-directory))
           (target-suffix (if (eq device-type :simulator) "iphonesimulator" "iphoneos"))
           (matching-folders (seq-filter (lambda (folder) (string-match-p target-suffix folder)) all-folders)))
+
       (when xcode-additions:debug
-        (message "All folders: %s" all-folders)
+        (message "xcode-additions:build-folder:\nAll folders: %s" all-folders)
         (message "Matching folders: %s" matching-folders))
+
       (setq current-build-folder
             (cond
              ;; Only one matching folder, use it
@@ -346,29 +348,55 @@
 
 ;;;###autoload
 (defun xcode-additions:clean-build-folder ()
-"Clean app build folder."
-(interactive)
-(xcode-additions:clean-build-folder-with (periphery-helper:project-root-dir) ".build" "swift package")
-(xcode-additions:clean-build-folder-with (xcode-additions:project-root) "/build" (xcode-additions:scheme)))
+  "Clean app build folder."
+  (interactive)
+  (xcode-additions:clean-build-folder-with
+   :root (xcode-additions:project-root)
+   :build-folder "build"
+ :project-name (xcode-additions:scheme)))
 
-(defun xcode-additions:clean-build-folder-with (projectRoot buildFolder projectName)
-"Clean build folder with PROJECTROOT BUILDFOLDER and PROJECTNAME."
-(mode-line-hud:update
-  :message (format "Cleaning build folder for %s"
-                  (propertize projectName 'face 'warning)))
+(cl-defun xcode-additions:clean-build-folder-with (&key root build-folder project-name)
+  "Clean build folder with (as ROOT) (as BUILD-FOLDER) (as PROJECT-NAME) asynchronously."
+  (when xcode-additions:debug
+    (message "Cleaning build %s folder for %s" build-folder project-name))
 
-(let ((default-directory (concat projectRoot buildFolder)))
-  (when (file-directory-p default-directory)
-    (delete-directory default-directory t nil)))
+  (let ((default-directory (concat root build-folder)))
+    (if (file-directory-p default-directory)
+        (progn
+          (mode-line-hud:update
+           :message (format "Cleaning build folder for %s"
+                            (propertize project-name 'face 'warning)))
+          (async-start
+           `(lambda ()
+              ,(async-inject-variables "default-directory")
+              (defun delete-directory-recursive (dir)
+                "Delete DIR and all files and directories under it."
+                (cond
+                 ((file-symlink-p dir) (delete-file dir))
+                 ((file-directory-p dir)
+                  (mapc #'delete-directory-recursive
+                        (directory-files dir t "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
+                  (delete-directory dir))
+                 (t (delete-file dir))))
+              (condition-case err
+                  (progn
+                    (delete-directory-recursive ,default-directory)
+                    "Cleaning completed successfully")
+                (error (format "Error during cleaning: %s" (error-message-string err)))))
+           `(lambda (result)
+              (mode-line-hud:notification
+               :message (format "Cleaning result for %s: %s"
+                                (propertize ,project-name 'face 'warning)
+                                result)
+               :seconds 5))))
+      (mode-line-hud:notification
+       :message (propertize "Build folder is empty or does not exist." 'face 'warning)
+       :seconds 2))))
 
-(mode-line-hud:update
-  :message (format "Cleaning done for %s"
-                   (propertize projectName 'face 'warning))))
-
-(defun xcode-additions:open-project-in-xcode ()
+(defun xcode-additions:open-in-xcode ()
   "Open project in xcode."
-  (if-let (
-           (default-directory (xcode-additions:project-root))
+  (interactive)
+  (if-let ((default-directory (xcode-additions:project-root))
            (command "xed ."))
       (inhibit-sentinel-messages #'call-process-shell-command command)))
 

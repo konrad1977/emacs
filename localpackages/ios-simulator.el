@@ -38,6 +38,9 @@
 (defvar current-app-name nil)
 (defvar use-rosetta nil)
 
+(defvar ios-simulator-ready-hook nil
+  "Hook run when the simulator is ready for app installation.")
+
 (defvar-local current-root-folder-simulator nil)
 (defvar current-language-selection "sv-SE"
   "Current language selection for the simulator.")
@@ -80,14 +83,21 @@
 
 (cl-defun ios-simulator:install-and-run-app (&key rootfolder &key build-folder &key simulatorId &key appIdentifier)
   "Install app in simulator with ROOTFOLDER BUILD-FOLDER SIMULATORID, APPIDENTIFIER BUFFER."
-  ;; (when ios-device:debug
-  ;;   (message "%root: %s build:%s" rootfolder build-folder))
+  (when ios-simulator:debug
+    (message "Install-and-run root: %s build:%s" rootfolder build-folder))
+
   (ios-device:kill-buffer)
   (let* ((default-directory rootfolder)
-         (simulator-id simulatorId)
+         (simulator-id (or simulatorId (ios-simulator:simulator-identifier)))
          (buffer (get-buffer-create ios-simulator-buffer-name))
          (applicationName (ios-simulator:app-name-from :folder build-folder))
-         (simulatorName (ios-simulator:simulator-name)))
+         (simulatorName (ios-simulator:simulator-name-from :id simulator-id)))
+
+  (when ios-simulator:debug
+    (message "Installing app: %s for simulator: %s (ID: %s)"
+             (or applicationName "Unknown")
+             (or simulatorName "Unknown")
+             (or simulator-id "Unknown")))
 
     (setq current-simulator-id simulator-id
           current-app-identifier appIdentifier
@@ -96,32 +106,54 @@
 
     (ios-simulator:terminate-app-with :appIdentifier appIdentifier)
 
-    (ios-simulator:install-app
-     :simulatorID simulator-id
-     :build-folder build-folder
-     :appname applicationName
-     :callback (lambda ()
-                 (ios-simulator:launch-app
-                  :appIdentifier appIdentifier
-                  :applicationName applicationName
-                  :simulatorName simulatorName
-                  :simulatorID simulator-id
-                  :buffer buffer)))))
+  (condition-case err
+      (ios-simulator:install-app
+       :simulatorID simulator-id
+       :build-folder build-folder
+       :appname applicationName
+       :callback (lambda ()
+                   (when ios-simulator:debug
+                     (message "App installation completed, launching app"))
+                   (mode-line-hud:update :message "App installation completed. Launching app")
+                   (ios-simulator:launch-app
+                    :appIdentifier appIdentifier
+                    :applicationName applicationName
+                    :simulatorName simulatorName
+                    :simulatorID simulator-id
+                    :buffer buffer)))
+    (error
+     (message "Error during app installation: %s" (error-message-string err))))))
 
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder &key appname &key callback)
   "Install app (as SIMULATORID and BUILD-FOLDER APPNAME) and call CALLBACK when done."
   (let* ((folder build-folder)
          (install-path folder)
-         (command (format "xcrun simctl install %s '%s%s'.app" simulatorID install-path appname)))
+         (app-path (format "%s%s.app" install-path appname))
+         (command (format "xcrun simctl install %s \"%s\"" simulatorID app-path)))
+    (when ios-simulator:debug
+      (message "Installing app with command: %s" command)
+      (message "App path exists: %s" (file-exists-p app-path)))
     (setq ios-simulator--installation-process
           (make-process
            :name "ios-simulator-install"
            :command (list "sh" "-c" command)
-           :buffer nil
+           :buffer (get-buffer-create "*iOS Simulator Install*")
            :sentinel (lambda (process event)
-                       (when (string= event "finished\n")
-                         (mode-line-hud:update :message "App installation completed.")
-                         (when callback (funcall callback))))))))
+                       (when ios-simulator:debug
+                         (message "Installation process event: %s" event))
+                       (cond
+                        ((string= event "finished\n")
+                         (if (= 0 (process-exit-status process))
+                             (progn
+                               (mode-line-hud:update :message "App installation completed.")
+                               (when callback (funcall callback)))
+                           (message "App installation failed with exit code: %d" (process-exit-status process))
+                           (with-current-buffer (process-buffer process)
+                             (message "Installation output: %s" (buffer-string)))))
+                        ((string-prefix-p "exited abnormally" event)
+                         (message "Installation process crashed: %s" event)
+                         (with-current-buffer (process-buffer process)
+                           (message "Installation output: %s" (buffer-string))))))))))
 
 
 (cl-defun ios-simulator:app-name-from (&key folder)
@@ -159,15 +191,23 @@
   "Simulator app is running.  Boot simulator (as ID)."
   (when ios-simulator:debug
     (message "Booting simulator with id %s" id))
-  (inhibit-sentinel-messages
-   #'call-process-shell-command (ios-simulator:boot-command :id id :rosetta use-rosetta)))
+  (make-process
+   :name "boot-simulator"
+   :command (list "sh" "-c" (ios-simulator:boot-command :id id :rosetta use-rosetta))
+   :sentinel (lambda (proc event)
+               (when (string= event "finished\n")
+                 (message "Simulator booted successfully")))))
 
 (defun ios-simulator:start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
   (when ios-simulator:debug
     (message "Starting simulator with id: %s" id))
-  (inhibit-sentinel-messages
-   #'call-process-shell-command (format "open --background -a simulator --args -CurrentDeviceUDID %s" id)))
+  (make-process
+   :name "start-simulator"
+   :command (list "sh" "-c" (format "open --background -a simulator --args -CurrentDeviceUDID %s" id))
+   :sentinel (lambda (proc event)
+               (when (string= event "finished\n")
+                 (mode-line-hud:update :message "Simulator app started")))))
 
 (cl-defun ios-simulator:boot-command (&key id &key rosetta)
   "Boot simulator with or without support for x86 (as ID and ROSETTA)."
@@ -238,19 +278,42 @@
         (cdr (assoc choice choices))))))
 
 (defun ios-simulator:simulator-identifier ()
-  "Get the booted simulator id or fetch a suiting one."
+  "Get the booted simulator id or fetch a suitable one."
   (if current-simulator-id
-      (ios-simulator:setup-simulator-dwim current-simulator-id)
+      (progn
+        (ios-simulator:setup-simulator-dwim current-simulator-id)
+        current-simulator-id)
     (progn
       (mode-line-hud:update :message "Fetching simulators")
-      (let ((device-id
-             (or (ios-simulator:booted-simulator)
-                 (ios-simulator:build-selection-menu :title "Choose a simulator:" :list (ios-simulator:available-simulators)))))
+      (let ((device-id (ios-simulator:get-or-choose-simulator)))
+        (when ios-simulator:debug
+          (message "Selected simulator ID: %s" device-id))
+        device-id))))
+
+(defun ios-simulator:get-or-choose-simulator ()
+  "Get booted simulator or let user choose one."
+  (let ((booted-id (ios-simulator:booted-simulator)))
+    (if booted-id
         (progn
+          (setq current-simulator-id booted-id)
           (ios-simulator:setup-language)
-          (ios-simulator:setup-simulator-dwim device-id)
-          (setq current-simulator-id device-id)))))
-  current-simulator-id)
+          (ios-simulator:setup-simulator-dwim booted-id)
+          booted-id)
+      (ios-simulator:choose-simulator))))
+
+(defun ios-simulator:choose-simulator ()
+  "Choose a simulator."
+  (let* ((available-simulators (ios-simulator:fetch-available-simulators))
+         (choices (mapcar (lambda (device)
+                            (cons (cdr (assoc 'name device))
+                                  (cdr (assoc 'udid device))))
+                          available-simulators))
+         (choice (completing-read "Choose a simulator:" choices nil t))
+         (device-id (cdr (assoc choice choices))))
+    (setq current-simulator-id device-id)
+    (ios-simulator:setup-language)
+    (ios-simulator:setup-simulator-dwim device-id)
+    device-id))
 
 (defun ios-simulator:booted-simulator ()
   "Get booted simulator if any."
@@ -279,7 +342,7 @@
   "Launch app (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID) and display output in BUFFER."
   (ios-simulator:setup-language)
   (mode-line-hud:updateWith
-   :message (format "Running %s|%s"
+   :message (format "%s|%s"
                     (propertize applicationName 'face 'font-lock-builtin-face)
                     (propertize simulatorName 'face 'success))
    :delay 2.0)

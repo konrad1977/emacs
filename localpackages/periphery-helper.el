@@ -36,19 +36,45 @@
                (let* ((json-object (json-read-from-string result)))
                  (funcall ,callback json-object)))))
 
-(cl-defun async-start-command-to-string (&key command callback)
-  "Run COMMAND asynchronously and call CALLBACK with the result."
-  (let ((output-buffer (generate-new-buffer " *async-command-output*")))
-    (make-process
-     :name "async-command"
-     :buffer output-buffer
-     :command (list shell-file-name shell-command-switch command)
-     :sentinel (lambda (process event)
-                 (when (string= event "finished\n")
-                   (let ((result (with-current-buffer (process-buffer process)
-                                   (buffer-string))))
-                     (funcall callback result))
-                   (kill-buffer output-buffer))))))
+(cl-defun async-start-command-to-string (&key command callback (update-callback nil) (debug nil))
+  "Run COMMAND asynchronously, optionally call UPDATE-CALLBACK with incremental output, and CALLBACK with the final result."
+  (when debug
+    (message "Starting async-start-command-to-string with command: %s" command))
+  (let ((output-buffer (generate-new-buffer " *async-command-output*"))
+        (process nil))
+    (setq process
+          (make-process
+           :name "async-command"
+           :buffer output-buffer
+           :command (list shell-file-name shell-command-switch command)
+           :filter (lambda (proc string)
+                     (when debug (message "Received output (length %d): %s" (length string) string))
+                     (when (functionp update-callback)
+                       (condition-case err
+                           (funcall update-callback string)
+                         (error (message "Error in update-callback: %S" err))))
+                     (with-current-buffer (process-buffer proc)
+                       (goto-char (point-max))
+                       (insert string)))
+           :sentinel (lambda (process event)
+                       (when debug (message "Process event: %s" event))
+                       (when (string= event "finished\n")
+                         (when debug (message "Process finished, preparing to call callback"))
+                         (let ((result (with-current-buffer (process-buffer process)
+                                         (buffer-string))))
+                           (when debug
+                             (message "Result length: %d" (length result))
+                             (message "Result content: %s" result))
+                           (if (functionp callback)
+                               (condition-case err
+                                   (progn
+                                     (when debug (message "Calling callback"))
+                                     (funcall callback result))
+                                 (error (message "Error in callback: %S" err)))))
+                         (kill-buffer output-buffer)))))
+    (when debug
+      (message "Process started with PID: %s" (process-id process)))
+    process))
 
 (cl-defun async-start-command (&key command &key callback)
   "Async shell command run async (as COMMAND) and call (as CALLBACK)."

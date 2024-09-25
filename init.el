@@ -1,4 +1,4 @@
-;;; init.el --- my init file  -*- lexical-binding: t -*-
+;; init.el --- my init file  -*- lexical-binding: t -*-
 
 ;;; code:
 
@@ -9,7 +9,8 @@
                     :font "Jetbrains Mono"
                     :height 160
                     :weight 'thin
-                    :width 'expanded)
+                    ;; :width 'expanded
+                    )
 
 ;; (set-face-attribute 'default nil
 ;;                     :font "Iosevka Term SS14"
@@ -85,9 +86,16 @@
         use-package-compute-statistics nil
         use-package-minimum-reported-time 0.2))
 
+ (use-package exec-path-from-shell
+   :init
+   (exec-path-from-shell-initialize))
+
 (use-package emacs
   :config
   (setq completion-cycle-threshold 3
+        completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        read-file-name-completion-ignore-case t
         max-lisp-eval-depth 10000
         scroll-conservatively 101
         scroll-margin 0
@@ -229,9 +237,7 @@
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t
-        read-buffer-completion-ignore-case t
-        read-file-name-completion-ignore-case t
-        completion-ignore-case t))
+        ))
 
 (use-package vertico-posframe
   :after vertico
@@ -266,9 +272,7 @@
 (use-package orderless
   :after vertico
   :init
-  (setq read-file-name-completion-ignore-case t
-        read-buffer-completion-ignore-case t
-        completion-styles '(orderless flex)
+  (setq completion-styles '(orderless flex)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (orderless flex)))
                                         (eglot (styles . (orderless flex))))))
@@ -683,7 +687,7 @@
   ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
   ;; (add-to-list 'completion-at-point-functions #'cape-keyword)
-  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+  (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package avy
@@ -769,12 +773,14 @@
   ("C-c e n" . flycheck-next-error)
   ("C-c e p" . flycheck-previous-error)
   :custom
+  (add-to-list 'flycheck-checkers 'javascript-eslint)
+  (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
   (setq flycheck-checker-error-threshold 20))
 
-;; (use-package flycheck-inline
-;;   :ensure nil
-;;   :after flycheck
-;;   :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
+(use-package flycheck-inline
+  :ensure nil
+  :after flycheck
+  :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
 
 (use-package flycheck-eglot
   :defer t
@@ -852,13 +858,14 @@
       (side . right)
       (slot . 0))
      ("\\*iOS Simulator\\|*swift package\\|*ios-device"
-      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      ;; (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      (display-buffer-in-side-window)
       (window-height . 0.3)
       (window-parameters . ((mode-line-format . none)))
       (side . bottom)
       (slot . 2))
      ("\\*Periphery\\*"
-      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      (display-buffer-in-side-window)
       (body-function . select-window)
       (window-height . 0.3)
       (side . bottom)
@@ -1309,7 +1316,6 @@
   (eglot-report-progress nil)
   :config
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-  (add-hook 'eglot-managed-mode-hook #'flycheck-eglot-mode t)
   (setq eglot-stay-out-of '(corfu company flycheck)
         eglot-send-changes-idle-time 0.3
         eglot-autoshutdown t
@@ -1415,7 +1421,7 @@
 
 (use-package svg-tag-mode
   :defer 10
-  :hook ((prog-mode . svg-tag-mode)
+  :hook ((swift-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
@@ -1527,17 +1533,17 @@
 
 (put 'narrow-to-region 'disabled nil)
 
-(use-package copilot
-  :vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
-  :hook ((prog-mode . copilot-mode)
-         (localizeable-mode . copilot-mode))
-  :defer t
-  :bind
-  (:map copilot-completion-map
-        ("<tab>" . copilot-accept-completion)
-        ("TAB" . copilot-accept-completion)
-        ("C-c C-n" . copilot-next-completion)
-        ("C-c C-p" . copilot-previous-completion)))
+;; (use-package copilot
+;;   :vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
+;;   :hook ((prog-mode . copilot-mode)
+;;          (localizeable-mode . copilot-mode))
+;;   :defer t
+;;   :bind
+;;   (:map copilot-completion-map
+;;         ("<tab>" . copilot-accept-completion)
+;;         ("TAB" . copilot-accept-completion)
+;;         ("C-c C-n" . copilot-next-completion)
+;;         ("C-c C-p" . copilot-previous-completion)))
 
 (use-package window-stool
   :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
@@ -1556,6 +1562,75 @@
   :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
   :after request)
 
+(use-package treesit
+  :ensure nil
+  :mode (("\\.tsx\\'" . tsx-ts-mode)
+         ("\\.js\\'"  . typescript-ts-mode)
+         ("\\.mjs\\'" . typescript-ts-mode)
+         ("\\.mts\\'" . typescript-ts-mode)
+         ("\\.cjs\\'" . typescript-ts-mode)
+         ("\\.ts\\'"  . typescript-ts-mode)
+         ("\\.jsx\\'" . tsx-ts-mode)
+         ("\\.json\\'" .  json-ts-mode)
+         ("\\.Dockerfile\\'" . dockerfile-ts-mode)
+         ("\\.prisma\\'" . prisma-ts-mode)
+         ;; More modes defined here...
+         )
+  :preface
+  (defun os/setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (bash "https://github.com/tree-sitter/tree-sitter-bash")
+               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2" "src"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               (go "https://github.com/tree-sitter/tree-sitter-go" "v0.20.0")
+               (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+                   (make "https://github.com/alemuller/tree-sitter-make")
+
+               (cmake "https://github.com/uyha/tree-sitter-cmake")
+               (c "https://github.com/tree-sitter/tree-sitter-c")
+               (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+               (toml "https://github.com/tree-sitter/tree-sitter-toml")
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+               (prisma "https://github.com/victorhqc/tree-sitter-prisma")))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional, but recommended. Tree-sitter enabled major modes are
+  ;; distinct from their ordinary counterparts.
+  ;;
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (jtsx-tsx-mode . txs-ts-mode)
+             (js-mode . typescript-ts-mode)
+             (js2-mode . typescript-ts-mode)
+             (c-mode . c-ts-mode)
+             (c++-mode . c++-ts-mode)
+             (c-or-c++-mode . c-or-c++-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)
+             (sh-mode . bash-ts-mode)
+             (sh-base-mode . bash-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
+  :config
+  (os/setup-install-grammars))
 
 (provide 'init)
 

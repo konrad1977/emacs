@@ -20,8 +20,8 @@
 (defvar current-build-command nil)
 (defvar build-progress-spinner nil)
 (defvar compilation-time nil)
-(defvar swift-additions:debug nil
-  "Debug")
+(defvar swift-additions:debug t
+  "Debug.")
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -55,26 +55,26 @@
   (number-to-string (string-to-number (shell-command-to-string "sysctl -n hw.ncpu"))))
 
 (defun swift-additions:compilation-time ()
-"Get the time of the compilation."
-(if-let ((end-time (current-time)))
-    (format "%.1f" (float-time (time-subtract end-time compilation-time)))
-  nil))
+    "Get the time of the compilation."
+    (if-let ((end-time (current-time)))
+        (format "%.1f" (float-time (time-subtract end-time compilation-time)))
+      nil))
 
 (defun swift-additions:run()
-"Rerun already compiled and installed app."
-(interactive)
-(periphery-kill-buffer)
-(ios-simulator:kill-buffer)
+    "Rerun already compiled and installed app."
+    (interactive)
+    (periphery-kill-buffer)
+    (ios-simulator:kill-buffer)
 
-(if (xcode-additions:run-in-simulator)
-    (ios-simulator:install-and-run-app
-      :rootfolder (xcode-additions:project-root)
-      :build-folder (xcode-additions:build-folder :device-type :simulator)
-      :simulatorId (ios-simulator:simulator-identifier)
-      :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
-  (ios-device:install-app
-    :buildfolder (xcode-additions:build-folder :device-type :device)
-    :appIdentifier (xcode-additions:fetch-or-load-app-identifier))))
+    (if (xcode-additions:run-in-simulator)
+        (ios-simulator:install-and-run-app
+         :rootfolder (xcode-additions:project-root)
+         :build-folder (xcode-additions:build-folder :device-type :simulator)
+         :simulatorId (ios-simulator:simulator-identifier)
+         :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
+      (ios-device:install-app
+       :buildfolder (xcode-additions:build-folder :device-type :device)
+       :appIdentifier (xcode-additions:fetch-or-load-app-identifier))))
 
 (defun swift-additions:run-app-on-device-after-build ()
   "Run app on device after build."
@@ -104,10 +104,12 @@
   (not (string-match-p "\\(BUILD FAILED\\|BUILD INTERRUPTED\\|xcodebuild: error\\)" input-text)))
 
 (defun swift-additions:check-for-errors (output callback)
-"Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
-(when (swift-additions:check-if-build-was-successful output)
-  (funcall callback))
-(periphery-run-parser output))
+  "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
+  (when swift-additions:debug
+    (message "checking for error: %s" output))
+  (when (swift-additions:check-if-build-was-successful output)
+     (funcall callback))
+   (periphery-run-parser output))
 
 (cl-defun swift-additions:get-current-sdk (&key sim-id)
 "Return the current SDK with SIM-ID."
@@ -172,12 +174,15 @@
 
     (async-start-command-to-string
      :command build-command
-     :callback '(lambda (text)
-                  (when swift-additions:debug (message text))
-                  (spinner-stop build-progress-spinner)
-                  (if run-once-compiled
-                      (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
-                    (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
+     :callback (lambda (text)
+                 (when swift-additions:debug (message text))
+                 (spinner-stop build-progress-spinner)
+                 (if run-once-compiled
+                     (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
+                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))
+     :update-callback (lambda (text)
+                        (message text))
+     :debug swift-additions:debug)))
 
 (defun swift-additions:compile-for-device (&key run)
   "Compile and RUN on device ."
@@ -204,11 +209,12 @@
 
     (async-start-command-to-string
      :command build-command
-     :callback '(lambda (text)
-                  (spinner-stop build-progress-spinner)
-                  (if run-once-compiled
-                      (swift-additions:check-for-errors text #'swift-additions:run-app-on-device-after-build)
-                    (swift-additions:check-for-errors text #'swift-additions:successful-build))))))
+     :callback (lambda (text)
+                 (spinner-stop build-progress-spinner)
+                 (if run-once-compiled
+                     (swift-additions:check-for-errors text #'swift-additions:run-app-on-device-after-build)
+                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))
+     :debug ios-device:debug)))
 
 ;;;###autoload
 (defun swift-additions:test-module-silent ()
@@ -267,14 +273,16 @@
     (setq build-progress-spinner spinner-current)
     (async-start-command-to-string
      :command "swift test"
-     :callback '(lambda (text)
+     :callback (lambda (text)
                   (spinner-stop build-progress-spinner)
                   (let ((filtered (periphery-helper:filter-keep-beginning-paths text)))
                     (periphery-run-test-parser filtered (lambda ()
                                                           (message-with-color
                                                            :tag "[All tests passed]"
                                                            :text ""
-                                                           :attributes 'success))))))
+                                                           :attributes 'success)))))
+     :debug swift-additions:debug)
+
     (message-with-color
      :tag (format "[Testing '%s'-package]" package-name)
      :text "Please wait. Patience is a virtue!"

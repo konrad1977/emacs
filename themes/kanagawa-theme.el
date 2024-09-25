@@ -105,13 +105,13 @@
   (hi-yellow                                     (:background carpYellow :foreground sumiInk-1b))
 
   ;; Font lock
-  (font-lock-keyword-face                        (:foreground oniViolet :weight 'medium))
+  (font-lock-keyword-face                        (:foreground oniViolet :weight 'normal :italic t))
   (font-lock-type-face                           (:foreground waveAqua2 :weight 'normal))
   (font-lock-warning-face                        (:foreground roninYellow))
   (font-lock-string-face                         (:foreground springGreen :italic t))
   (font-lock-builtin-face                        (:foreground springBlue))
   (font-lock-reference-face                      (:foreground peachRed))
-  (font-lock-constant-face                       (:foreground carpYellow))
+  (font-lock-constant-face                       (:foreground surimiOrange))
   (font-lock-function-name-face                  (:foreground crystalBlue))
   (font-lock-variable-name-face                  (:foreground springViolet2))
   (font-lock-negation-char-face                  (:foreground peachRed))
@@ -491,14 +491,14 @@
   (tree-sitter-hl-face:annotation.type           (:foreground peachRed :background winterRed))
 
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
-  (tree-sitter-hl-face:function.call             (:foreground springBlue))
+  (tree-sitter-hl-face:function.call             (:foreground crystalBlue :weight 'normal))
   (tree-sitter-hl-face:function.builtin          (:foreground springGreen))
   (tree-sitter-hl-face:function.special          (:foreground springGreen :italic t))
   (tree-sitter-hl-face:function.macro            (:foreground waveAqua2))
   (tree-sitter-hl-face:function.label            (:foreground autumnYellow))
 
   (tree-sitter-hl-face:method                    (:inherit 'tree-sitter-hl-face:function))
-  (tree-sitter-hl-face:method.call               (:inherit 'tree-sitter-hl-face:method))
+  (tree-sitter-hl-face:method.call               (:foreground crystalBlue :weight 'normal))
 
   (tree-sitter-hl-face:type                      (:inherit 'font-lock-type-face))
   (tree-sitter-hl-face:type.parameter            (:foreground peachRed :italic t))
@@ -507,21 +507,21 @@
   (tree-sitter-hl-face:type.super                (:foreground sakuraPink))
   (tree-sitter-hl-face:constructor               (:foreground waveAqua1 :weight 'normal))
 
-  (tree-sitter-hl-face:variable                  (:inherit 'font-lock-variable-name-face))
+  (tree-sitter-hl-face:variable                  (:foreground old-white))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
   (tree-sitter-hl-face:variable.builtin          (:foreground springBlue :italic t))
   (tree-sitter-hl-face:variable.special          (:foreground oniViolet :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground waveRed))
 
-  (tree-sitter-hl-face:property                  (:foreground springBlue :weight 'extra-light))
-  (tree-sitter-hl-face:property.definition       (:foreground springViolet2 :italic t))
+  (tree-sitter-hl-face:property                  (:foreground springBlue :weight 'thin))
+  (tree-sitter-hl-face:property.definition       (:foreground carpYellow))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:string                    (:inherit 'font-lock-string-face))
   (tree-sitter-hl-face:string.special            (:inherit 'font-lock-string-face))
   (tree-sitter-hl-face:escape                    (:inherit 'font-lock-regexp-grouping-backslash))
-  (tree-sitter-hl-face:embedded                  (:foreground springBlue))
+  (tree-sitter-hl-face:embedded                  (:foreground carpYellow))
 
   (tree-sitter-hl-face:keyword                   (:inherit 'font-lock-keyword-face))
   (tree-sitter-hl-face:keyword.compiler          (:foreground waveRed :background winterRed :weight 'bold))
