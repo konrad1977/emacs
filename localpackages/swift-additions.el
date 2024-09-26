@@ -20,7 +20,7 @@
 (defvar current-build-command nil)
 (defvar build-progress-spinner nil)
 (defvar compilation-time nil)
-(defvar swift-additions:debug t
+(defvar swift-additions:debug nil
   "Debug.")
 
 (defun swift-additions:xcodebuild-command ()
@@ -166,7 +166,7 @@
       (message build-command))
 
     (mode-line-hud:update :message
-                          (format "Compiling %s|%s"
+                          (format "Building %s|%s"
                                   (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
                                   (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
 
@@ -181,8 +181,8 @@
                      (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
                    (swift-additions:check-for-errors text #'swift-additions:successful-build)))
      :update-callback (lambda (text)
-                        (message text))
-     :debug swift-additions:debug)))
+                        (xcode-additions:parse-compile-lines-output :input text))
+    :debug nil))) ;; swift-additions:debug)))
 
 (defun swift-additions:compile-for-device (&key run)
   "Compile and RUN on device ."

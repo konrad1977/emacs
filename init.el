@@ -7,7 +7,7 @@
 
 (set-face-attribute 'default nil
                     :font "Jetbrains Mono"
-                    :height 160
+                    :height 170
                     :weight 'thin
                     ;; :width 'expanded
                     )
@@ -104,7 +104,7 @@
         scroll-preserve-screen-position     t
         hscroll-step                        1
         hscroll-margin                      2
-        debug-on-error                      t
+        debug-on-error                      nil
         visible-bell nil
         auto-window-vscroll nil
         auth-sources '((:source "~/.authinfo.gpg"))
@@ -127,9 +127,9 @@
         use-dialog-box                    nil
         word-wrap                         nil
         auto-mode-case-fold               nil
-        undo-limit                        6710886400 ;; 64mb
-        undo-strong-limit                 100663296 ;; x 1.5 (96mb)
-        undo-outer-limit                  1006632960 ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
+        undo-limit                        (* 16 1024 1024) ;; 64mb
+        undo-strong-limit                 (* 24 1024 1024) ;; x 1.5 (96mb)
+        undo-outer-limit                  (* 24 1024 1024) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
         jit-lock-defer-time 0))
 
 (setq-default indicate-buffer-boundaries nil)
@@ -367,7 +367,8 @@
 (defun mk/add-mood-line-segment (segment)
   "Add SEGMENT to mood line."
   (when segment
-    (concat segment (mk/mood-separator))))
+     (concat segment (mk/mood-separator))))
+
 
 (use-package mood-line
   :config
@@ -376,8 +377,7 @@
        :left
        (((file-name-sans-extension (mood-line-segment-buffer-name))   . "|")
         ((concat (mood-line-segment-major-mode) (mk/mood-separator)) . "")
-        ((mk/add-mood-line-segment (mood-line-segment-vc)) . "")
-        )
+        ((mood-line-segment-vc) . ""))
        :right
         (
         ((mk/add-mood-line-segment (mood-line-segment-hud)) . "")

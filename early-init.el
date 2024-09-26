@@ -4,7 +4,7 @@
 
 ;;; Code:
 
-(setq read-process-output-max (* 1024 1024)
+(setq read-process-output-max (* 64 1024)
       process-adaptive-read-buffering nil
       gc-cons-threshold most-positive-fixnum)
 

@@ -8,6 +8,7 @@
 
 (defvar current-project-root nil)
 (defvar current-xcode-scheme nil)
+(defvar current-build-settings-json nil)
 (defvar current-build-configuration nil)
 (defvar current-app-identifier nil)
 (defvar current-build-folder nil)
@@ -22,7 +23,7 @@
   :tag "xcode-additions:xcodebuild"
   :group 'xcode-additions)
 
-(defvar xcode-additions:debug t
+(defvar xcode-additions:debug nil
   "Debug flag.")
 
 (defconst xcodeproject-extension ".*\\.xcodeproj$"
@@ -99,13 +100,27 @@
             xcscheme-files
           ))))))
 
+(cl-defun xcode-additions:get-build-settings-json (&key (config "Debug"))
+  "Get build settings from xcodebuild."
+  (if (not current-build-settings-json)
+      (progn
+        (unless current-project-root
+          (setq current-project-root (xcode-additions:project-root)))
+        (setq-local default-directory current-project-root)
+        (let ((json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
+          (setq current-build-settings-json json))
+        current-build-settings-json)
+    current-build-settings-json))
+
+(defun xcode-additions:product-name ()
+  "Get product name."
+  (let ((json (xcode-additions:get-build-settings-json)))
+    (let-alist (seq-elt json 0)
+      .buildSettings.PRODUCT_NAME)))
+
 (defun xcode-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
-  (unless current-project-root
-    (setq current-project-root (xcode-additions:project-root)))
-
-  (setq-local default-directory current-project-root)
-  (let ((json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
+  (let ((json (xcode-additions:get-build-settings-json :config config)))
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
 
@@ -399,6 +414,38 @@
   (if-let ((default-directory (xcode-additions:project-root))
            (command "xed ."))
       (inhibit-sentinel-messages #'call-process-shell-command command)))
+
+(cl-defun xcode-additions:parse-compile-lines-output (&key input)
+  "Parse compile output and return a list of relevant compile messages with filenames or module names."
+  (when xcode-additions:debug
+    (message "parse line: %s" input))
+  (let ((lines (split-string input "\n"))
+        (result '()))
+    (dolist (line lines)
+      (cond
+       ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
+        (push (format "Compiling %s" (match-string 2 line)) result))
+       ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
+        (push (format "Compiling module %s" (match-string 1 line)) result))))
+    (nreverse result)))
+
+(cl-defun xcode-additions:parse-compile-lines-output (&key input)
+  "Parse compile output and print unique matched lines using separate message calls."
+  (let ((seen-messages (make-hash-table :test 'equal)))
+    (dolist (line (split-string input "\n"))
+      (cond
+       ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
+        (let ((msg (match-string 2 line)))
+          (unless (gethash msg seen-messages)
+            (mode-line-hud:update :message
+                                  (format "Compiling %s" (propertize msg 'face 'warning)))
+            (puthash msg t seen-messages))))
+       ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
+        (let ((msg (match-string 1 line)))
+          (unless (gethash msg seen-messages)
+            (mode-line-hud:update :message
+                                  (format "Compiling module %s" (propertize msg 'face 'warning)))
+            (puthash msg t seen-messages))))))))
 
 (defun xcode-additions:derived-data-path ()
   "Extract the DerivedData path from xcodebuild output."

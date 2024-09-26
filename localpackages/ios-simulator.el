@@ -3,6 +3,7 @@
 ;;; Code:
 (require 'periphery-helper)
 (require 'mode-line-hud)
+(require 'xcode-additions)
 (require 'json)
 
 (defvar-local ios-simulator--installation-process nil
@@ -90,7 +91,7 @@
   (let* ((default-directory rootfolder)
          (simulator-id (or simulatorId (ios-simulator:simulator-identifier)))
          (buffer (get-buffer-create ios-simulator-buffer-name))
-         (applicationName (ios-simulator:app-name-from :folder build-folder))
+         (applicationName (xcode-additions:product-name))
          (simulatorName (ios-simulator:simulator-name-from :id simulator-id)))
 
   (when ios-simulator:debug
@@ -154,16 +155,6 @@
                          (message "Installation process crashed: %s" event)
                          (with-current-buffer (process-buffer process)
                            (message "Installation output: %s" (buffer-string))))))))))
-
-
-(cl-defun ios-simulator:app-name-from (&key folder)
-  "Get compiled app name from (FOLDER)."
-  (when ios-simulator:debug
-    (message "Fetching app name from %s" folder))
-  (if (file-exists-p folder)
-      (let ((binary-name (directory-files folder nil "\\.app$")))
-        (file-name-sans-extension (car binary-name)))
-    nil))
 
 (defun ios-simulator:kill-buffer ()
   "Kill the ios-simulator buffer."

@@ -110,7 +110,7 @@
   "Face for the first sentence of the message (up to the first colon)."
   :group 'periphery)
 
-(defvar periphery-debug t
+(defvar periphery-debug nil
   "Debug mode.")
 
 (defvar periphery-mode-map nil
@@ -446,7 +446,7 @@
          (let* ((file (match-string 1 text))
                 (line (match-string 2 text))
                 (column (match-string 3 text))
-                (message (match-string 4 text))
+                (message (string-trim-left (match-string 4 text)))
                 (fileWithLine (format "%s:%s:%s" file line column)))
 
            (if-let ((todo (periphery--clean-up-comments message)))
@@ -532,7 +532,7 @@
                :regex regex
                :property '(face periphery-identifier-face)))))
 
-(cl-defun periphery-parse-search-result (&key title &key text &key query)
+(cl-defun periphery-parse-search-result (&key text query)
   "Parse search result (as TITLE TEXT QUERY)."
   (setq default-length 8)
   (setq periphery-errorList '())

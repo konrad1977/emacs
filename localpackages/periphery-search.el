@@ -26,7 +26,7 @@
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
   (when (and (stringp text) (> (length text) 4))
-    (periphery-parse-search-result :title "" :text text :query current-query)))
+    (periphery-parse-search-result :text text :query current-query)))
 
 (defun periphery--search-thing-at-point ()
   "Search thing at point."
