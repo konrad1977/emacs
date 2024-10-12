@@ -7,17 +7,36 @@
 (defconst periphery-quick-regex-parser "\\([^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\):\s?\\(.+\\)"
   "Parse vimgrep like strings (compilation).")
 
+(defun periphery-quick:debug-log (msg &rest args)
+  "Log debug MSG with ARGS."
+  (apply #'message (concat "DEBUG: " msg) args))
+
 (defun periphery-quick:parse (input)
   "Parse as (INPUT)."
+  (periphery-quick:debug-log "Starting parse with input: %s" (substring input 0 (min 100 (length input))))
   (setq list '())
   (dolist (line (split-string input "\n"))
     (let ((entry (periphery-quick:parse-line line)))
       (if entry
-          (push entry list))))
-  (open-current-line-with
-   (periphery-quick:showmenu-with-title
-    :title "Result "
-    :list list)))
+          (push entry list)
+        (periphery-quick:debug-log "Failed to parse line: %s" line))))
+  (periphery-quick:debug-log "Parsed %d entries" (length list))
+  (if (null list)
+      (message "No results found.")
+    (condition-case err
+        (let* ((choices (seq-map (lambda (item) (car item)) list))
+               (choice (completing-read "Select result: " choices))
+               (selected (assoc choice list)))
+          (periphery-quick:debug-log "Selected: %s" selected)
+          (when selected
+            (let* ((file-info (split-string (cadr selected) ":"))
+                   (file (car file-info))
+                   (line (string-to-number (cadr file-info))))
+              (periphery-quick:debug-log "Opening file: %s at line %d" file line)
+              (periphery-quick:goto-file-line file line))))
+      (error (periphery-quick:debug-log "Error in parse: %s" err)
+             (message "An error occurred: %s" err)))))
+
 
 (defun add-right-padding-up-to (word max-length)
   "Add padding to (as WORD) if smaller then (as MAX-LENGTH)."
@@ -31,31 +50,56 @@
 
 (defun periphery-quick:parse-line (line)
   "Parse (as LINE)."
+  (periphery-quick:debug-log "Parsing line: %s" line)
   (save-match-data
-    (and (string-match periphery-quick-regex-parser line)
-         (let* (
-                (file (match-string 1 line))
-                (linenumber (match-string 2 line))
-                (column (match-string 3 line))
-                (text (string-trim-left (match-string 4 line)))
-                (fileWithLine (format "%s:%s:%s" file linenumber column)))
-           (list (format "%s %s"
-                         (propertize
-                          (add-right-padding-up-to
-                           (file-name-sans-extension
-                            (file-name-nondirectory file))
-                            24
-                           )
-                          'face 'periphery-filename-face)
-                         text) fileWithLine)))))
+    (if (string-match periphery-quick-regex-parser line)
+        (let* ((file (match-string 1 line))
+               (linenumber (or (match-string 2 line) "1"))
+               (column (or (match-string 3 line) "1"))
+               (text (string-trim-left (or (match-string 4 line) "")))
+               (fileWithLine (format "%s:%s:%s" file linenumber column))
+               (display (format "%s %s"
+                                (propertize
+                                 (add-right-padding-up-to
+                                  (file-name-sans-extension
+                                   (file-name-nondirectory file))
+                                  24)
+                                 'face 'periphery-filename-face)
+                                text)))
+          (periphery-quick:debug-log "Parsed line: %s" display)
+          (list display fileWithLine))
+      (periphery-quick:debug-log "Failed to match line")
+      nil)))
+
+(defun periphery-quick:goto-file-line (file line)
+  "Go to LINE in FILE, handling the case where FILE is the current buffer."
+  (let* ((current-file (buffer-file-name))
+         (project-root (periphery-helper:project-root-dir))
+         (full-file-path (expand-file-name file project-root)))
+    (periphery-quick:debug-log "Full file path: %s" full-file-path)
+    (if (and current-file (file-equal-p full-file-path current-file))
+        (progn
+          (periphery-quick:debug-log "Navigating within current file to line %d" line)
+          (goto-char (point-min))
+          (forward-line (1- line)))
+      (if (file-exists-p full-file-path)
+          (progn
+            (find-file full-file-path)
+            (goto-char (point-min))
+            (forward-line (1- line)))
+        (message "File not found: %s" full-file-path)))))
 
 ;;;###autoload
-(cl-defun periphery-quick:run-query (query)
+(defun periphery-quick:run-query (query)
   "Run query (as QUERY)."
+  (periphery-quick:debug-log "Running query: %s" query)
   (let ((default-directory (periphery-helper:project-root-dir)))
+    (periphery-quick:debug-log "Default directory: %s" default-directory)
     (async-start-command-to-string
-     :command (format "rg -wse \'%s\' --color=never --no-heading --with-filename --line-number --column --sort path" query)
-     :callback (lambda (output) (periphery-quick:parse output)))))
+     :command (format "rg -wse '%s' --color=never --no-heading --with-filename --line-number --column --sort path" query)
+     :callback (lambda (output)
+                 (periphery-quick:debug-log "Query output received, length: %d" (length output))
+                 (periphery-quick:parse output)))))
 
 (defun periphery-quick:run-query-file (query file)
   "Run query (as QUERY) on file."

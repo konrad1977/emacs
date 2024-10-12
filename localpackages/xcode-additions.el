@@ -15,6 +15,7 @@
 (defvar current-is-xcode-project nil)
 (defvar current-local-device-id nil)
 (defvar current-run-on-device nil)
+(defvar current-errors-or-warnings nil)
 
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
 
@@ -368,13 +369,14 @@
   (xcode-additions:clean-build-folder-with
    :root (xcode-additions:project-root)
    :build-folder "build"
- :project-name (xcode-additions:scheme)))
+   :project-name (xcode-additions:product-name)
+   :ignore-list '("ModuleCache.noindex" "SourcePackages")))
 
-(cl-defun xcode-additions:clean-build-folder-with (&key root build-folder project-name)
-  "Clean build folder with (as ROOT) (as BUILD-FOLDER) (as PROJECT-NAME) asynchronously."
+(cl-defun xcode-additions:clean-build-folder-with (&key root build-folder project-name ignore-list)
+  "Clean build folder with (as ROOT) (as BUILD-FOLDER) (as PROJECT-NAME) asynchronously.
+   IGNORE-LIST is a list of folder names to ignore during cleaning."
   (when xcode-additions:debug
     (message "Cleaning build %s folder for %s" build-folder project-name))
-
   (let ((default-directory (concat root build-folder)))
     (if (file-directory-p default-directory)
         (progn
@@ -384,29 +386,32 @@
           (async-start
            `(lambda ()
               ,(async-inject-variables "default-directory")
-              (defun delete-directory-recursive (dir)
-                "Delete DIR and all files and directories under it."
-                (cond
-                 ((file-symlink-p dir) (delete-file dir))
-                 ((file-directory-p dir)
-                  (mapc #'delete-directory-recursive
-                        (directory-files dir t "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"))
-                  (delete-directory dir))
-                 (t (delete-file dir))))
+              (defun delete-directory-contents (directory ignore-list)
+                "Delete contents of DIRECTORY, ignoring folders in IGNORE-LIST."
+                (dolist (file (directory-files directory t))
+                  (let ((file-name (file-name-nondirectory file)))
+                    (unless (or (member file-name '("." ".."))
+                                (member file-name ignore-list))
+                      (if (file-directory-p file)
+                          (progn
+                            (delete-directory-contents file ignore-list)
+                            (delete-directory file))
+                        (delete-file file))))))
               (condition-case err
                   (progn
-                    (delete-directory-recursive ,default-directory)
-                    "Cleaning completed successfully")
+                    (delete-directory-contents ,default-directory ',ignore-list) "successfully")
                 (error (format "Error during cleaning: %s" (error-message-string err)))))
            `(lambda (result)
               (mode-line-hud:notification
-               :message (format "Cleaning result for %s: %s"
+               :message (format "Cleaning %s %s"
                                 (propertize ,project-name 'face 'warning)
                                 result)
-               :seconds 5))))
+               :seconds 3
+               :reset t))))
       (mode-line-hud:notification
        :message (propertize "Build folder is empty or does not exist." 'face 'warning)
-       :seconds 2))))
+       :seconds 3
+       :reset t))))
 
 (defun xcode-additions:open-in-xcode ()
   "Open project in xcode."
@@ -415,23 +420,31 @@
            (command "xed ."))
       (inhibit-sentinel-messages #'call-process-shell-command command)))
 
-(cl-defun xcode-additions:parse-compile-lines-output (&key input)
-  "Parse compile output and return a list of relevant compile messages with filenames or module names."
-  (when xcode-additions:debug
-    (message "parse line: %s" input))
-  (let ((lines (split-string input "\n"))
-        (result '()))
-    (dolist (line lines)
-      (cond
-       ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
-        (push (format "Compiling %s" (match-string 2 line)) result))
-       ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
-        (push (format "Compiling module %s" (match-string 1 line)) result))))
-    (nreverse result)))
+;; (cl-defun xcode-additions:parse-compile-lines-output (&key input)
+;;   "Parse compile output and print unique matched lines using separate message calls."
+;;   (let ((seen-messages (make-hash-table :test 'equal)))
+;;     (dolist (line (split-string input "\n"))
+;;       (cond
+;;        ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
+;;         (let ((msg (match-string 2 line)))
+;;           (unless (gethash msg seen-messages)
+;;             (mode-line-hud:update :message
+;;                                   (format "Compiling %s" (propertize msg 'face 'warning)))
+;;             (puthash msg t seen-messages))))
+;;        ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
+;;         (let ((msg (match-string 1 line)))
+;;           (unless (gethash msg seen-messages)
+;;             (mode-line-hud:update :message
+;;                                   (format "Compiling module %s" (propertize msg 'face 'warning)))
+;;             (puthash msg t seen-messages))))))))
 
 (cl-defun xcode-additions:parse-compile-lines-output (&key input)
-  "Parse compile output and print unique matched lines using separate message calls."
-  (let ((seen-messages (make-hash-table :test 'equal)))
+  "Parse compile output and print unique matched lines using separate message calls.
+   Also prints compiler messages for C++ errors, warnings, and notes."
+  (when xcode-additions:debug
+    (message "Parsing compile output: %s" input))
+  (let ((seen-messages (make-hash-table :test 'equal))
+        (error-regex "^\\(.+\\):\\([0-9]+\\):\\([0-9]+\\): \\(error\\|warning\\|note\\): .+$"))
     (dolist (line (split-string input "\n"))
       (cond
        ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
@@ -445,7 +458,10 @@
           (unless (gethash msg seen-messages)
             (mode-line-hud:update :message
                                   (format "Compiling module %s" (propertize msg 'face 'warning)))
-            (puthash msg t seen-messages))))))))
+            (puthash msg t seen-messages))))
+       ((string-match error-regex line)
+        (setq current-errors-or-warnings (concat line "\n" current-errors-or-warnings))
+        (periphery-run-parser current-errors-or-warnings))))))
 
 (defun xcode-additions:derived-data-path ()
   "Extract the DerivedData path from xcodebuild output."

@@ -182,12 +182,13 @@
   "Simulator app is running.  Boot simulator (as ID)."
   (when ios-simulator:debug
     (message "Booting simulator with id %s" id))
+  (mode-line-hud:update :message "Booting simulator")
   (make-process
    :name "boot-simulator"
    :command (list "sh" "-c" (ios-simulator:boot-command :id id :rosetta use-rosetta))
    :sentinel (lambda (proc event)
                (when (string= event "finished\n")
-                 (message "Simulator booted successfully")))))
+                 (mode-line-hud:update :message "Simulator booted successfully")))))
 
 (defun ios-simulator:start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
@@ -198,7 +199,7 @@
    :command (list "sh" "-c" (format "open --background -a simulator --args -CurrentDeviceUDID %s" id))
    :sentinel (lambda (proc event)
                (when (string= event "finished\n")
-                 (mode-line-hud:update :message "Simulator app started")))))
+                 (mode-line-hud:update :message "Simulator started")))))
 
 (cl-defun ios-simulator:boot-command (&key id &key rosetta)
   "Boot simulator with or without support for x86 (as ID and ROSETTA)."
@@ -425,6 +426,7 @@
 
 (defun ios-simulator:fetch-available-simulators ()
   "List available simulators."
+  (mode-line-hud:update :message "Fetching simulators")
   (let* ((json (call-process-to-json list-simulators-command))
          (devices (cdr (assoc 'devices json)))
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))

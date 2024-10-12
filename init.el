@@ -1,28 +1,25 @@
-;; init.el --- my init file  -*- lexical-binding: t -*-
+;;; init.el --- my init file -*- no-byte-compile: t; lexical-binding: t; -*-
+;;; commentary:
 
 ;;; code:
 
 (eval-when-compile (defvar display-time-24hr-format t))
 (eval-when-compile (defvar display-time-default-load-average nil))
 
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+
+ (unless (package-installed-p 'use-package)
+   (package-refresh-contents)
+   (package-install 'use-package))
+
 (set-face-attribute 'default nil
-                    :font "Jetbrains Mono"
+                    :font "Iosevka"
                     :height 170
-                    :weight 'thin
-                    ;; :width 'expanded
-                    )
+                    :weight 'light
+                    :width 'expanded)
 
-;; (set-face-attribute 'default nil
-;;                     :font "Iosevka Term SS14"
-;;                     :height 170
-;;                     :weight 'extra-light
-;;                     :width 'expanded)
-
-;; (set-face-attribute 'fixed-pitch nil
-;;                     :font "Iosevka Term SS14"
-;;                     :height 170
-;;                     :weight 'extra-light
-;;                     :width 'expanded)
 
 (set-face-attribute 'variable-pitch nil :font "Work Sans" :weight 'light)
 
@@ -56,7 +53,6 @@
     (if (fboundp 'normal-top-level-add-subdirs-to-load-path)
         (normal-top-level-add-subdirs-to-load-path))))
 
-;; (add-to-list 'load-path (concat user-emacs-directory "localpackages"))
 (add-to-list 'custom-theme-load-path (concat user-emacs-directory "themes/"))
 
 ; On macos use our custom settings ---------------------
@@ -86,12 +82,17 @@
         use-package-compute-statistics nil
         use-package-minimum-reported-time 0.2))
 
- (use-package exec-path-from-shell
-   :init
-   (exec-path-from-shell-initialize))
+(use-package exec-path-from-shell
+  :defer t
+  :init
+  (exec-path-from-shell-initialize))
 
 (use-package emacs
+  :defer t
   :config
+  (ignore-errors
+  (delete-window))
+  :init
   (setq completion-cycle-threshold 3
         completion-ignore-case t
         read-buffer-completion-ignore-case t
@@ -99,37 +100,33 @@
         max-lisp-eval-depth 10000
         scroll-conservatively 101
         scroll-margin 0
-        fast-but-imprecise-scrolling        t
-        scroll-conservatively               10
-        scroll-preserve-screen-position     t
-        hscroll-step                        1
-        hscroll-margin                      2
-        debug-on-error                      nil
+        fast-but-imprecise-scrolling t
+        scroll-conservatively 10
+        scroll-preserve-screen-position t
+        hscroll-step 1
+        hscroll-margin 2
+        debug-on-error nil
         visible-bell nil
         auto-window-vscroll nil
         auth-sources '((:source "~/.authinfo.gpg"))
         warning-minimum-level :emergency
         tab-always-indent 'complete
-        ad-redefinition-action            'accept
-        auto-revert-check-vc-info         t
-        backup-by-copying                 t
-        backup-directory-alist            '(("." . "~/.emacs.d/backups"))
-        cursor-in-non-selected-windows    nil
-        byte-compile-warnings             '(ck-functions)
-        confirm-kill-processes            nil
-        create-lockfiles                  nil
-        echo-keystrokes                   0.2
-        confirm-kill-emacs                'y-or-n-p
-        find-file-visit-truename          t
-        font-lock-maximum-decoration      t
-        highlight-nonselected-windows     t
-        kill-buffer-query-functions       nil    ;; Dont ask for closing spawned processes
-        use-dialog-box                    nil
-        word-wrap                         nil
-        auto-mode-case-fold               nil
-        undo-limit                        (* 16 1024 1024) ;; 64mb
-        undo-strong-limit                 (* 24 1024 1024) ;; x 1.5 (96mb)
-        undo-outer-limit                  (* 24 1024 1024) ;; x 10 (960mb), (Emacs uses x100), but this seems too high.
+        ad-redefinition-action 'accept
+        auto-revert-check-vc-info t
+        backup-by-copying t
+        backup-directory-alist '(("." . "~/.emacs.d/backups"))
+        cursor-in-non-selected-windows nil
+        byte-compile-warnings '(ck-functions)
+        confirm-kill-processes nil
+        create-lockfiles nil
+        echo-keystrokes 0.2
+        confirm-kill-emacs 'y-or-n-p
+        find-file-visit-truename t
+        highlight-nonselected-windows t
+        kill-buffer-query-functions nil
+        use-dialog-box nil
+        word-wrap nil
+        auto-mode-case-fold nil
         jit-lock-defer-time 0))
 
 (setq-default indicate-buffer-boundaries nil)
@@ -212,7 +209,8 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
+  (load-theme 'mito-laser t)
   )
 
 (use-package saveplace
@@ -236,8 +234,7 @@
         vertico-count 12
         vertico-multiline nil
         vertico-scroll-margin 4
-        vertico-cycle t
-        ))
+        vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
@@ -304,7 +301,6 @@
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("M-S" . #'consult-line-multi)
-  ;; ("M-f" . #'consult-ripgrep)
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
@@ -369,31 +365,21 @@
   (when segment
      (concat segment (mk/mood-separator))))
 
-
-(use-package mood-line
-  :config
-  (setq mood-line-format
-      (mood-line-defformat
-       :left
-       (((file-name-sans-extension (mood-line-segment-buffer-name))   . "|")
-        ((concat (mood-line-segment-major-mode) (mk/mood-separator)) . "")
-        ((mood-line-segment-vc) . ""))
-       :right
-        (
-        ((mk/add-mood-line-segment (mood-line-segment-hud)) . "")
-        ((mk/add-mood-line-segment (mood-line-segment-client)) . "")
-        ((mk/add-mood-line-segment (mood-line-segment-process)) . "")
-        ((mk/add-mood-line-segment (mood-line-segment-project)) . "")
-        ((mk/add-mood-line-segment (mood-line-segment-anzu)) . "")
-        ((mk/add-mood-line-segment (mood-line-segment-checker)) . "")
-        ((mk/add-mood-line-segment (mk/hud-copilot)) . "")
-        (display-time-string . " "))))
-  (mood-line-mode)
+(use-package cocaine-line
+  :ensure nil
+  :after evil
   :custom
-  (mood-line-glyph-alist mood-line-glyphs-fira-code))
+  (cocaine-right-padding 2)
+  (cocaine-show-column-info nil)
+  :config
+  ;; (setq cocaine-line-separator "〈 ")
+  (setq cocaine-line-separator " 〉 ")
+  (cocaine-line-mode 1))
 
 (use-package evil
   :hook (after-init . evil-mode)
+  :custom
+  (evil-want-Y-yank-to-eol t)
   :init
   (setq-default evil-symbol-word-search t)
   (setq evil-want-integration t
@@ -407,12 +393,11 @@
         evil-split-window-below t
         evil-want-C-i-jump t)
   :config
-  (define-key evil-motion-state-map [remap evil-goto-definition] #'dumb-jump-go)
+  (evil-select-search-module 'evil-search-module 'evil-search)
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
-  ;; (define-key evil-visual-state-map (kbd "u") 'undo)
   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
@@ -420,43 +405,7 @@
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
   (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
-  (evil-select-search-module 'evil-search-module 'evil-search)
   (evil-mode 1))
-
-  ;; ;; window resizing
-  ;; (define-key evil-normal-state-map (kbd "C-l") #'evil-ex-nohighlight)
-  ;; (define-key evil-normal-state-map (kbd "<escape>") #'evil-ex-nohighlight)
-
-  ;; (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-
-  ;; (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
-
-  ;; (setq evil-normal-state-tag   (propertize "NORMAL" 'face '((:background "green" :foreground "black")))
-  ;;       evil-emacs-state-tag    (propertize "EMACS" 'face '((:background "orange" :foreground "black")))
-  ;;       evil-insert-state-tag   (propertize "INSERT" 'face '((:background "red") :foreground "white"))
-  ;;       evil-motion-state-tag   (propertize "MOTION" 'face '((:background "blue") :foreground "white"))
-  ;;       evil-visual-state-tag   (propertize "VISUAL" 'face '((:background "grey80" :foreground "black")))
-  ;;       evil-operator-state-tag (propertize "OPERATOR" 'face '((:background "purple"))))
-
-  ;; (setq evil-normal-state-cursor '(box "#41a7fc")
-  ;;       evil-insert-state-cursor '(bar "#FF5D62")
-  ;;       evil-visual-state-cursor '(hollow "#FF5D62"))
-
-(use-package evil-args
-  :after evil
-  :config
-  ;; bind evil-args text objects
-  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-  (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)
-
-  ;; bind evil-forward/backward-args
-  ;; (define-key evil-normal-state-map "L" 'evil-forward-arg)
-  ;; (define-key evil-normal-state-map "H" 'evil-backward-arg)
-  ;; (define-key evil-motion-state-map "L" 'evil-forward-arg)
-  ;; (define-key evil-motion-state-map "H" 'evil-backward-arg)
-
-  ;; bind evil-jump-out-args
-  (define-key evil-normal-state-map "K" 'evil-jump-out-args))
 
 (use-package evil-collection
   :after evil
@@ -482,17 +431,23 @@
     "A" #'evil-mc-make-cursor-in-visual-selection-end
     "I" #'evil-mc-make-cursor-in-visual-selection-beg))
 
-;; (use-package evil-iedit-state
-;;   :after evil
-;;   :config
-;;   (setq iedit-only-at-symbol-boundaries t)
-;;   :bind
-;;   ("C-M-e" . evil-iedit-state/iedit-mode))
-
 (use-package evil-surround
   :after evil
-  :config
-  (global-evil-surround-mode 1))
+  :defer t
+  :commands global-evil-surround-mode
+  :custom
+  (evil-surround-pairs-alist
+   '((?\( . ("(" . ")"))
+     (?\[ . ("[" . "]"))
+     (?\{ . ("{" . "}"))
+
+     (?\) . ("(" . ")"))
+     (?\] . ("[" . "]"))
+     (?\} . ("{" . "}"))
+
+     (?< . ("<" . ">"))
+     (?> . ("<" . ">"))))
+  :hook (after-init . global-evil-surround-mode))
 
 (use-package evil-commentary
   :after evil
@@ -513,7 +468,10 @@
   (evil-goggles-use-diff-faces))
 
 (use-package undo-fu
-  :after evil
+ :after evil
+  :custom
+  (undo-limit (* 3 160000))
+  (undo-strong-limit (* 3 240000))
   :config
   (setq undo-fu-allow-undo-in-region t))
 
@@ -525,11 +483,16 @@
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
 
+(use-package evil-visualstar
+  :after evil
+  :defer t
+  :commands global-evil-visualstar-mode
+  :hook (after-init . global-evil-visualstar-mode))
+
 (use-package minimap
   :commands (minimap-mode)
   :config
-  (setq
-        minimap-width-fraction 0.0
+  (setq minimap-width-fraction 0.0
         minimap-minimum-width 10
         minimap-always-recenter nil
         minimap-hide-fringes t
@@ -555,7 +518,6 @@
   :commands (google-this)
   :bind ("C-x C-g" . google-this))
 
-
 (use-package eldoc-box
   :defer t
   :config
@@ -565,8 +527,8 @@
 (use-package eldoc
   :ensure nil
   :config
-  (setq eldoc-idle-delay 0.1
-        flycheck-display-errors-delay 0.2))
+  (setq eldoc-idle-delay 1
+        flycheck-display-errors-delay 0.5))
 
 (use-package kind-icon
   :after corfu
@@ -682,11 +644,15 @@
   ;; :custom
   ;; (setq cape-dabbrev-check-other-buffers t
   ;;       cape-dabbrev-min-length 2)
-  :init
+  :config
+  (add-to-list 'completion-at-point-functions #'cape-capf-buster)
+
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
   ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
-  ;; (add-to-list 'completion-at-point-functions #'cape-keyword)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
@@ -759,13 +725,6 @@
 (use-package restclient
   :commands (restclient))
 
-;; (use-package flyspell
-;;   :ensure nil
-;;   :config
-;;   (setq flyspell-issue-message-flag nil
-;;       ispell-local-dictionary "sv-SE"
-;;       ispell-program-name "aspell"))
-
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :diminish t
@@ -822,8 +781,8 @@
   :hook (after-init . pulsar-global-mode)
   :config
   (setq pulsar-pulse t
-        pulsar-delay 0.1
-        pulsar-iterations 6
+        pulsar-delay 0.15
+        pulsar-iterations 8
         pulsar-face 'pulsar-cyan
         pulsar-highlight-face 'pulsar-face
         pulsar-pulse-functions '(evil-window-up
@@ -833,8 +792,7 @@
                                  evil-window-left
                                  evil-window-right
                                  evil-window-vsplit
-                                 evil-window-split))
-  )
+                                 evil-window-split)))
 
 (use-package window
   :ensure nil
@@ -911,7 +869,7 @@
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 (use-package blamer
-  :commands (blamer-mode)
+  :commands blamer-mode
   :config
   (setq blamer-tooltip-function 'blamer-tooltip-author-info)
   (setq blamer-view 'overlay
@@ -944,18 +902,19 @@
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
-
 (use-package vterm
   :defer t
   :commands vterm
   :config
   (add-hook 'vterm-mode-hook (lambda () (setq-local global-hl-line-mode nil)))
+
   (setq vterm-timer-delay 0.01))
 
 (defun project-root-override (dir)
   "Find DIR's project root by searching for a '.project.el' file."
   (let ((root (or (locate-dominating-file dir ".xcodeproj")
-                  (locate-dominating-file dir ".envrc")))
+                  (locate-dominating-file dir ".envrc")
+                  (locate-dominating-file dir ".projectile")))
         (backend (ignore-errors (vc-responsible-backend dir))))
     (when root (if (version<= emacs-version "28")
                     (cons 'vc root)
@@ -1014,8 +973,10 @@
 
   (mk/leader-keys
     "fs" '(save-buffer :which-key "Save file")
+    "fb" '(consult-buffer :which-key "Find buffer")
     "ff" '(find-file :which-key "Find file")
     "fp" '(consult-git-grep :which-key "Find symbol in project")
+    "fl" '(consult-line-multi :which-key "Find line in project")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
     "fR" '(dired-rename-file :which-key "Rename file")
@@ -1216,12 +1177,7 @@
   :defer t
   :hook (prog-mode . highlight-symbol-mode)
   :config
-  (setq highlight-symbol-idle-delay 0.5))
-
-;; (use-package highlight-indentation
-;;   :hook ((prog-mode . highlight-indentation-current-column-mode))
-;;   :config
-;;   (setq highlight-indentation-blank-lines t))
+  (setq highlight-symbol-idle-delay 0.8))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1238,7 +1194,6 @@
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
   (setq dumb-jump-window 'current
-        dumb-jump-force-searcher 'rg
         dumb-jump-quiet t
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
@@ -1278,9 +1233,10 @@
   :after swift-mode
   :defer t
   :bind
-  ("M-s" . #'ios-simulator:terminate-current-app)
-  ("C-x a c" . #'ios-simulator:appcontainer)
-  ("C-x c l" . #'ios-simulator:change-language))
+  (:map swift-mode-map
+        ("M-s" . #'ios-simulator:terminate-current-app)
+        ("C-x a c" . #'ios-simulator:appcontainer)
+        ("C-x c l" . #'ios-simulator:change-language)))
 
 ;; (use-package xcode-build
 ;;   :ensure nil
@@ -1299,12 +1255,13 @@
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c t m" .  #'swift-additions:test-module-silent)
-  ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
-  ("C-c C-c" . #'swift-additions:compile-and-run)
-  ("C-c C-b" . #'swift-additions:compile-app)
-  ("M-r" . #'swift-additions:run)
-  ("M-B" . #'swift-additions:run-without-compiling))
+  (:map swift-mode-map
+        ("C-c t m" .  #'swift-additions:test-module-silent)
+        ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
+        ("C-c C-c" . #'swift-additions:compile-and-run)
+        ("C-c C-b" . #'swift-additions:compile-app)
+        ("M-r" . #'swift-additions:run)
+        ("M-B" . #'swift-additions:run-without-compiling)))
 
 (use-package swift-lsp
   :ensure nil)
@@ -1312,39 +1269,48 @@
 (use-package eglot
   :hook ((swift-mode . eglot-ensure))
   :ensure nil
+  :bind
+  ("C-c e f" . #'eglot-code-action-quickfix)
+  ("C-c e r" . #'eglot-rename)
   :custom
   (eglot-report-progress nil)
   :config
+  (add-to-list 'eglot-server-programs
+               '((typescript-mode typescript-tsx-mode) . ("typescript-language-server" "--stdio")))
+
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
   (setq eglot-stay-out-of '(corfu company flycheck)
         eglot-send-changes-idle-time 0.3
         eglot-autoshutdown t
-        ;; eglot-events-buffer-config '(size: 20000 format: short)
+        eglot-events-buffer-config '(size: 20000 format: short)
         ;; eglot-ignored-server-capabilities '(:hoverProvider)
         eglot-extend-to-xref t)
   (advice-add 'jsonrpc--log-event :override #'ignore)
+  (add-hook 'typescript-mode-hook 'eglot-ensure)
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact)))
 
 (use-package xcode-additions
   :ensure nil
   :after swift-mode
   :bind
-  ("M-K" .  #'xcode-additions:clean-build-folder)
-  ("C-c C-x" . #'xcode-additions:reset))
+  (:map swift-mode-map
+        ("M-K" .  #'xcode-additions:clean-build-folder)
+        ("C-c C-x" . #'xcode-additions:reset)))
 
 (use-package swift-refactor
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c r a" . #'swift-refactor:insert-around)
-  ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
-  ("C-c r i" . #'swift-refactor:tidy-up-constructor)
-  ("C-c r s" . #'swift-refactor:split-function-list)
-  ("C-c r r" . #'swift-refactor:extract-function)
-  ("M-P" .  #'swift-refactor:print-thing-at-point)
-  ("M-t" . #'swift-refactor:insert-todo)
-  ("M-m" . #'swift-refactor:insert-mark)
-  ("C-c r t" . #'swift-refactor:add-try-catch))
+  (:map swift-mode-map
+        ("C-c r a" . #'swift-refactor:wrap-selection)
+        ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
+        ("C-c r i" . #'swift-refactor:tidy-up-constructor)
+        ("C-c r s" . #'swift-refactor:split-function-list)
+        ("C-c r r" . #'swift-refactor:extract-function)
+        ("M-P" .  #'swift-refactor:print-thing-at-point)
+        ("M-t" . #'swift-refactor:insert-todo)
+        ("M-m" . #'swift-refactor:insert-mark)
+        ("C-c r t" . #'swift-refactor:add-try-catch)))
 
 (use-package apple-docs-query
   :ensure nil
@@ -1382,9 +1348,10 @@
   :ensure nil
   :after swift-mode
   :bind
-  ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
-  ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
-  ("C-c C-p" . #'periphery-run-swiftformat-for-project))
+  (:map swift-mode-map
+        ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
+        ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
+        ("C-c C-p" . #'periphery-run-swiftformat-for-project)))
 
 (use-package periphery-loco
   :ensure nil
@@ -1409,6 +1376,7 @@
 (use-package tree-sitter
   :defer t
   :hook ((swift-mode . tree-sitter-mode)
+         (typescript-mode . tree-sitter-mode)
          (tree-sitter-after-on . tree-sitter-hl-mode)))
 
 (use-package tree-sitter-langs
@@ -1429,15 +1397,26 @@
 (use-package indent-bars
   :hook ((emacs-lisp-mode tree-sitter-hl-mode) . indent-bars-mode)
   :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.05))
-  (indent-bars-width-frac 0.3)
+  (indent-bars-color '(highlight :face-bg t :blend 0.15))
+  (indent-bars-width-frac 0.4)
   (indent-bars-pad-frac 0.1)
   (indent-bars-zigzag nil)
   (indent-bars-pattern ".")
   (indent-bars-prefer-character t)
   (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
-  (indent-bars-highlight-current-depth '(:blend 0.3)) ; pump up the BG blend on current
+  (indent-bars-highlight-current-depth '(:blend 0.2)) ; pump up the BG blend on current
   (indent-bars-display-on-blank-lines t))
+
+(use-package copilot
+  ;;:vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
+  :ensure nil
+  :hook ((prog-mode localizeable-mode) . copilot-mode)
+  :bind
+  (:map copilot-completion-map
+        ("<tab>" . copilot-accept-completion)
+        ("TAB" . copilot-accept-completion)
+        ("C-c C-n" . copilot-next-completion)
+        ("C-c C-p" . copilot-previous-completion)))
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
@@ -1449,21 +1428,10 @@
     (other-window 1)
     (xwidget-webkit-browse-url url)))
 
-;; (use-package electric
-;;   :hook (prog-mode . electric-pair-mode)
-;;   :ensure nil
-;;   :config
-;;   (setq electric-pair-preserve-balance t))
-
 ;; Setup Functions
 (defun mk/setupProgrammingSettings ()
   "Programming mode."
   (local-set-key (kbd "C-c C-f") nil)
-  (local-set-key (kbd "C-x c d") #'copilot-chat-doc)
-  (local-set-key (kbd "C-x c e") #'copilot-chat-explain)
-  (local-set-key (kbd "C-x c f") #'copilot-chat-fix)
-  (local-set-key (kbd "C-x c r") #'copilot-chat-review)
-  (local-set-key (kbd "C-x c o") #'copilot-chat-optimize)
   (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
   (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
@@ -1494,7 +1462,7 @@
 (setq mk-transparency-disabled-p t)
 
 (defun mk/toggle-transparency ()
-  "Toggle transparency"
+  "Toggle transparency."
   (interactive)
   (let* ((not-transparent-p (and (boundp 'mk-transparency-disabled-p) mk-transparency-disabled-p))
          (alpha (if not-transparent-p 95 100)))
@@ -1504,7 +1472,6 @@
       (add-to-list 'default-frame-alist `(alpha . (,alpha . ,alpha))))))
 
 (add-hook 'prog-mode-hook #'mk/setupProgrammingSettings)
-
 
 (defun xref-eglot+dumb-backend ()
   "Return the xref backend for eglot+dumb."
@@ -1533,104 +1500,59 @@
 
 (put 'narrow-to-region 'disabled nil)
 
-;; (use-package copilot
-;;   :vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
-;;   :hook ((prog-mode . copilot-mode)
-;;          (localizeable-mode . copilot-mode))
+;; (use-package window-stool
+;;   ;; :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
+;;   :hook (prog-mode . window-stool-mode)
 ;;   :defer t
-;;   :bind
-;;   (:map copilot-completion-map
-;;         ("<tab>" . copilot-accept-completion)
-;;         ("TAB" . copilot-accept-completion)
-;;         ("C-c C-n" . copilot-next-completion)
-;;         ("C-c C-p" . copilot-previous-completion)))
-
-(use-package window-stool
-  :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
-  :hook (prog-mode . window-stool-mode)
-  :defer t
-  :config
-  (setq window-stool-n-from-top 2
-        window-stool-n-from-bottom 0))
+;;   :config
+;;   (setq window-stool-n-from-top 2
+;;         window-stool-n-from-bottom 0))
 
 (use-package eglot-booster
-  :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
+  ;; :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
   :after eglot
   :config (eglot-booster-mode))
 
+;; (package-vc-install "https://github.com/chep/copilot-chat.el")
+
 (use-package copilot-chat
-  :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
-  :after request)
+  ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
+  :after request  ;; Ensure 'request' package is loaded first
+  :bind
+  ;; Key bindings for copilot-chat commands
+  ("C-x c d" . #'copilot-chat-doc)       ;; Open documentation
+  ("C-x c e" . #'copilot-chat-explain)   ;; Explain code
+  ("C-x c f" . #'copilot-chat-fix)       ;; Fix code issues
+  ("C-x c r" . #'copilot-chat-review)    ;; Review code
+  ("C-x c o" . #'copilot-chat-optimize)) ;; Optimize code
 
-(use-package treesit
-  :ensure nil
-  :mode (("\\.tsx\\'" . tsx-ts-mode)
-         ("\\.js\\'"  . typescript-ts-mode)
-         ("\\.mjs\\'" . typescript-ts-mode)
-         ("\\.mts\\'" . typescript-ts-mode)
-         ("\\.cjs\\'" . typescript-ts-mode)
-         ("\\.ts\\'"  . typescript-ts-mode)
-         ("\\.jsx\\'" . tsx-ts-mode)
-         ("\\.json\\'" .  json-ts-mode)
-         ("\\.Dockerfile\\'" . dockerfile-ts-mode)
-         ("\\.prisma\\'" . prisma-ts-mode)
-         ;; More modes defined here...
-         )
-  :preface
-  (defun os/setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-               (bash "https://github.com/tree-sitter/tree-sitter-bash")
-               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2" "src"))
-               (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-               (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-               (go "https://github.com/tree-sitter/tree-sitter-go" "v0.20.0")
-               (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-                   (make "https://github.com/alemuller/tree-sitter-make")
-
-               (cmake "https://github.com/uyha/tree-sitter-cmake")
-               (c "https://github.com/tree-sitter/tree-sitter-c")
-               (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-               (toml "https://github.com/tree-sitter/tree-sitter-toml")
-               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-               (prisma "https://github.com/victorhqc/tree-sitter-prisma")))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-        (treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional, but recommended. Tree-sitter enabled major modes are
-  ;; distinct from their ordinary counterparts.
-  ;;
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
-  (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (jtsx-tsx-mode . txs-ts-mode)
-             (js-mode . typescript-ts-mode)
-             (js2-mode . typescript-ts-mode)
-             (c-mode . c-ts-mode)
-             (c++-mode . c++-ts-mode)
-             (c-or-c++-mode . c-or-c++-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)
-             (sh-mode . bash-ts-mode)
-             (sh-base-mode . bash-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
+(use-package typescript-mode
+  :ensure t
+  :mode ("\\.ts\\'" "\\.tsx\\'")
+  :hook (typescript-mode . eglot-ensure)
   :config
-  (os/setup-install-grammars))
+  (setq typescript-indent-level 4))
+
+(use-package web-mode
+  :mode ("\\.tsx\\'" "\\.jsx\\'")
+  :config
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+
+(cl-defmethod project-root ((project (head eglot-project)))
+  (cdr project))
+
+(defun my-project-try-tsconfig-json (dir)
+  (when-let* ((found (locate-dominating-file dir "tsconfig.json")))
+    (cons 'eglot-project found)))
+
+(add-hook 'project-find-functions
+          'my-project-try-tsconfig-json nil nil)
+
+(add-to-list 'eglot-server-programs
+             '((typescript-mode) "typescript-language-server" "--stdio"))
 
 (provide 'init)
 

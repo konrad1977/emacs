@@ -6,6 +6,7 @@
 /elpa/
 /history
 /localpackages/welcome-dashboard
+/localpackages/cocaine
 /places
 /projectile-bookmarks.eld
 /quelpa/
@@ -16,3 +17,4 @@
 /auto-save-list/
 /ellama-sessions/
 /debug-adapters/
+*.el

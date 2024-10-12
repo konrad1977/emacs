@@ -6,15 +6,6 @@
   :group 'tools
   :prefix "swift-refactor-")
 
-(defun clean-up-region-whitespace (start end)
-  "Delete extra whitespace in the region between START and END."
-  (interactive "r")
-  (save-restriction
-    (narrow-to-region start end)
-    (goto-char (point-min))
-    (while (re-search-forward "[ \t]+" nil t)
-      (replace-match " " nil nil))))
-
 (defun delete-to-next-closing-brace ()
   "Delete all text between the current line and the next closing brace }, but not including the brace itself."
   (interactive)
@@ -65,32 +56,43 @@
       (insert "}\n")
       (indent-region (1- start) (line-end-position)))))
 
+(defun swift-refactor:run-on-region (fn &optional args)
+  "Run FN on the active region or the current line."
+  (if (use-region-p)
+      (funcall fn (region-beginning) (region-end))
+    (funcall fn (line-beginning-position) (line-end-position) args)))
+
 (defun swift-refactor:insert-around (name)
   "Insert element around selection (as NAME)."
   (interactive "sEnter element name: ")
   (let ((name (if (string-blank-p (string-trim-right name)) "Element" name)))
-    (swift-refactor:run-active-region #'swift-refactor:insert-at name)))
+    (swift-refactor:run-on-region #'swift-refactor:insert-at name)))
 
-(defun swift-refactor:run-active-region (function &rest args)
-  "Run active region with (as FUNCTION) and pass any additional ARGS to FUNCALL."
-  (when (use-region-p)
-    (let ((start (region-beginning))
-          (end (region-end)))
-      (beginning-of-line)
-      (when (fboundp 'function)
-        (apply #'funcall function start end args)))))
+(defun swift-refactor:wrap-in-block (name start end)
+  "Wrap region from START to END in a block named NAME."
+  (goto-char end)
+  (insert "}\n")
+  (goto-char start)
+  (insert (format "%s {\n" name))
+  (indent-region start (point)))
 
+(defun swift-refactor:wrap-selection (name)
+  "Wrap the selected region in a block named NAME."
+  (interactive "sEnter block name: ")
+  (swift-refactor:run-on-region
+   (lambda (start end)
+     (swift-refactor:wrap-in-block name start end))))
 
 (defun swift-refactor:extract-function (method-name)
   "Extract active region to its own function (as METHOD-NAME)."
   (interactive "sEnter method name (optional): ")
   (let ((method-name (if (string-blank-p (string-trim-right method-name)) "extractedMethod" method-name)))
-    (swift-refactor:run-active-region #'swift-refactor:extract-function-with method-name)))
+    (swift-refactor:run-on-region #'swift-refactor:extract-function-with method-name)))
 
 (defun swift-refactor:tidy-up-constructor ()
   "Clean up constructor from Type.init() to Type()."
   (interactive)
-  (swift-refactor:run-active-region #'swift-refactor:tidy-up-constructor-with))
+  (swift-refactor:run-on-region #'swift-refactor:tidy-up-constructor-with))
 
 (defun swift-refactor:extract-function-with (start end method-name)
   "Extracts the Swift code region between START and END into a new function with the given METHOD-NAME."
@@ -117,7 +119,7 @@
 (defun swift-refactor:add-try-catch ()
   "Add try catch."
   (interactive)
-  (swift-refactor:run-active-region #'swift-refactor:add-try-catch-with))
+  (swift-refactor:run-on-region #'swift-refactor:add-try-catch-with))
 
 (defun swift-refactor:add-try-catch-with (start end)
   "Extract region between START & END."
@@ -184,43 +186,44 @@
                            (setq comma t)))))))))
       (error (user-error "Cannot parse function decl or call here")))))
 
-
-(defun swift-refactor:insert-text-and-go-to-eol (text)
-"Function that that insert (as TEXT) and go to end of line."
-(save-excursion
-  (indent-for-tab-command)
-  (insert text)
-  (move-end-of-line nil))
-(goto-char (point-at-eol))
-(evil-insert-state t))
-
 ;;;###autoload
 (defun swift-refactor:functions-and-pragmas ()
-"Show swift file compressed functions and pragmas."
-(interactive)
-(let ((list-matching-lines-face nil))
-  (occur "\\(#pragma mark\\)\\|\\(MARK:\\)")))
+    "Show swift file compressed functions and pragmas."
+    (interactive)
+    (let ((list-matching-lines-face nil))
+      (occur "\\(#pragma mark\\)\\|\\(MARK:\\)")))
 
 ;;;###autoload
 (defun swift-refactor:print-thing-at-point ()
-"Print thing at point."
-(interactive)
-(let ((word (thing-at-point 'word)))
-  (end-of-line)
-  (newline-and-indent)
-  (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
+    "Print thing at point."
+    (interactive)
+    (let ((word (thing-at-point 'word)))
+      (end-of-line)
+      (newline-and-indent)
+      (insert (format "debugPrint(\"%s: \ \\(%s\)\")" word word))))
+
+(defun swift-refactor:insert-and-indent (text)
+  "Insert TEXT and indent the inserted region."
+  (let ((start (point)))
+    (insert text)
+    (indent-region start (point))))
+
+(defun swift-refactor:insert-and-goto-eol (text)
+  "Insert TEXT at point, indent, and move to end of line."
+  (swift-refactor:insert-and-indent text)
+  (end-of-line))
 
 ;;;###autoload
 (defun swift-refactor:insert-mark ()
-"Insert a mark at line."
-(interactive)
-(swift-refactor:insert-text-and-go-to-eol "// MARK: - "))
+    "Insert a mark at line."
+    (interactive)
+    (swift-refactor:insert-and-goto-eol "// MARK: - "))
 
 ;;;###autoload
 (defun swift-refactor:insert-todo ()
-"Insert a Todo."
-(interactive)
-(swift-refactor:insert-text-and-go-to-eol "// TODO: "))
+    "Insert a Todo."
+    (interactive)
+    (swift-refactor:insert-and-goto-eol "// TODO: "))
 
 (provide 'swift-refactor)
 ;;; swift-refactor.el ends here
