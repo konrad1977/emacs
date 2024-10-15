@@ -55,7 +55,7 @@
   (header-line                  (:background darker))
   (line-number                  (:foreground grey2))
   (line-number-current-line     (:background darker :foreground white :weight 'semi-bold))
-  (region                       (:background grey))
+  (region                       (:background one))
   (mode-line                    (:background line))
   (mode-line-inactive           (:background one2 :foreground purple))
   (mode-line-active             (:background line :foreground purple))
@@ -149,11 +149,11 @@
 
   (tree-sitter-hl-face:variable                  (:foreground white))
   (tree-sitter-hl-face:variable.parameter        (:inherit 'tree-sitter-hl-face:type.parameter))
-  (tree-sitter-hl-face:variable.builtin          (:foreground vibrant :italic t))
+  (tree-sitter-hl-face:variable.builtin          (:foreground orange))
   (tree-sitter-hl-face:variable.special          (:foreground grey2 :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground vibrant))
 
-  (tree-sitter-hl-face:property                  (:foreground cyan))
+  (tree-sitter-hl-face:property                  (:foreground teal :italic t))
   (tree-sitter-hl-face:property.definition       (:foreground teal))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
@@ -227,6 +227,12 @@
   (ansi-color-blue              (:background blue :foreground blue))
   (ansi-color-bright-magenta    (:background red :foreground red))
 
+  (evil-mc-region-face          (:background teal :foreground darkest))
+  (evil-mc-cursor-default-face  (:background blue :foreground darkest))
+  (evil-mc-cursor-bar-face      (:background darkest :foreground teal))
+  (evil-mc-cursor-hbar-face     (:background teal :foreground teal))
+
+  (highlight-symbol-face        (:background green :foreground darkest :distant-foreground green))
 
   ))
 

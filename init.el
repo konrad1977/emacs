@@ -10,6 +10,8 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
+(display-battery-mode)
+
  (unless (package-installed-p 'use-package)
    (package-refresh-contents)
    (package-install 'use-package))
@@ -209,8 +211,8 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
-  (load-theme 'mito-laser t)
+  (load-theme 'kanagawa t)
+  ;; (load-theme 'mito-laser t)
   )
 
 (use-package saveplace
@@ -373,7 +375,8 @@
   (cocaine-show-column-info nil)
   :config
   ;; (setq cocaine-line-separator "〈 ")
-  (setq cocaine-line-separator " 〉 ")
+  (setq cocaine-line-separator " 〉 "
+        cocaine-line-music-info '(:service apple))
   (cocaine-line-mode 1))
 
 (use-package evil
@@ -404,7 +407,7 @@
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (evil-ex-define-cmd "q[uit]" 'kill-buffer-and-window)
+  (evil-ex-define-cmd "q[uit]" 'safe-kill-buffer-and-window)
   (evil-mode 1))
 
 (use-package evil-collection
@@ -418,10 +421,9 @@
   :hook (evil-mode . global-evil-mc-mode)
   :bind
   ("C-g" . evil-mc-undo-all-cursors)
-  ("<escape>" . evil-mc-undo-all-cursors)
   ("C-M-<down>" . (lambda () (interactive) (evil-mc-make-cursor-move-next-line 1)))
   ("C-M-<up>" . (lambda () (interactive) (evil-mc-make-cursor-move-prev-line 1)))
-  ("C-c a" . (lambda () (interactive) (evil-mc-make-cursor-here)))
+  ("C-M-a" . (lambda () (interactive) (evil-mc-make-cursor-here)))
   ("C-M-e" . (lambda() (interactive) (evil-mc-make-all-cursors)))
   :custom
   (setq evil-mc-mode-line-text-inverse-colors t
@@ -517,6 +519,10 @@
 (use-package google-this
   :commands (google-this)
   :bind ("C-x C-g" . google-this))
+
+(use-package expand-region
+  :defer t
+  :bind ("C-x e" . er/expand-region))
 
 (use-package eldoc-box
   :defer t
@@ -799,7 +805,7 @@
   :bind
   ("C-x C-f" . toggle-frame-fullscreen)
   ("C-x C-s" . window-toggle-side-windows)
-  ("C-x C-x" . kill-buffer-and-window)
+  ("C-x C-x" . safe-kill-buffer-and-window)
   :custom
   (display-buffer-alist
    '(("\\*Async Shell Command\\*"
@@ -1553,6 +1559,18 @@
 
 (add-to-list 'eglot-server-programs
              '((typescript-mode) "typescript-language-server" "--stdio"))
+
+(defun safe-kill-buffer-and-window ()
+  "Kill the current buffer and delete its window if it's not the last one."
+  (interactive)
+  (let ((window-to-delete (selected-window))
+        (buffer-to-kill (current-buffer))
+        (frame (selected-frame)))
+    (if (= 1 (length (window-list frame)))
+        (kill-buffer buffer-to-kill)
+      (if (kill-buffer buffer-to-kill)
+          (when (member window-to-delete (window-list frame))
+            (delete-window window-to-delete))))))
 
 (provide 'init)
 
