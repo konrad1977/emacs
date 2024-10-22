@@ -195,26 +195,26 @@
   (rainbow-delimiters-depth-8-face               (:foreground orange))
   (rainbow-delimiters-depth-9-face               (:foreground blue))
 
-  (cocaine-line-evil-normal-face  (:foreground white
+  (punch-line-evil-normal-face  (:foreground white
                                    :background nord :weight 'bold
                                    :box (:line-width 8 :color nord)))
 
-  (cocaine-line-evil-visual-face  (:foreground white
+  (punch-line-evil-visual-face  (:foreground white
                                    :background light :weight 'bold
                                    :box (:line-width 8 :color light)))
 
-  (cocaine-line-evil-replace-face  (:foreground white
+  (punch-line-evil-replace-face  (:foreground white
                                    :background red :weight 'bold
                                    :box (:line-width 8 :color red)))
 
-  (cocaine-line-evil-insert-face  (:foreground darker
+  (punch-line-evil-insert-face  (:foreground darker
                                    :background teal :weight 'bold
                                    :box (:line-width 8 :color teal)))
 
-  (cocaine-line-project-face        (:foreground purple :weight 'bold))
-  (cocaine-line-buffer-name-face    (:foreground white :weight 'bold))
-  (cocaine-line-time-face           (:foreground purple))
-  (cocaine-line-major-mode-face     (:foreground light))
+  (punch-line-project-face        (:foreground purple :weight 'bold))
+  (punch-line-buffer-name-face    (:foreground white :weight 'bold))
+  (punch-line-time-face           (:foreground purple))
+  (punch-line-major-mode-face     (:foreground light))
 
   (term                     (:background darkest :foreground purple))
   (term-color-black         (:background darkest :foreground darkest))
@@ -233,6 +233,16 @@
   (evil-mc-cursor-hbar-face     (:background teal :foreground teal))
 
   (highlight-symbol-face        (:background green :foreground darkest :distant-foreground green))
+
+
+  (smerge-base		        (:background purple))
+  (smerge-markers		(:background darker :foreground purple))
+
+  (smerge-upper			(:background black2))
+  (smerge-lower			(:background black2))
+  (smerge-refined-change        (:background nord))
+  (smerge-refined-removed	(:background orange :strike-through t))
+  (smerge-refined-added 	(:background green :foreground darkest))
 
   ))
 

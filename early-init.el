@@ -1,71 +1,70 @@
-;;; early.-init.el --- my early-init file -*- no-byte-compile: t; lexical-binding: t; -*-
-
-;;; Commentary: Optimized early init file
+;;; early-init.el --- Early Init File -*- no-byte-compile: t; lexical-binding: t -*-
+;;; Commentary:
 ;;; Code:
 
-;; Garbage collection
+;; Defer garbage collection further back in the startup process
 (setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6)
+      gc-cons-percentage 0.4)
 
-(setq custom-file null-device)
-;; File name handler
+;; Prevent unwanted runtime builds in gccemacs (native-comp); native-comp is available from Emacs 28+
+(setq native-comp-deferred-compilation nil)
+
+;; Prevent package.el loading packages prior to their init-file loading
+(setq package-enable-at-startup nil)
+
+;; Inhibit resizing frame
+(setq frame-inhibit-implied-resize t)
+
+;; Faster to disable these here (before they've been initialized)
+(push '(menu-bar-lines . 0) default-frame-alist)
+(push '(tool-bar-lines . 0) default-frame-alist)
+(push '(vertical-scroll-bars) default-frame-alist)
+
+;; Disable GUI elements
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(setq inhibit-splash-screen t
+      inhibit-startup-message t
+      inhibit-startup-echo-area-message user-login-name
+      inhibit-startup-buffer-menu t)
+
+;; Optimize file-name-handler-alist
 (defvar file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
-;; Fundamental optimizations
-(setq read-process-output-max (* 4 1024 1024)) ; Increase from 64KB to 1MB
-(setq process-adaptive-read-buffering nil)
-(setq-default inhibit-redisplay t
-              inhibit-message t)
-(setq inhibit-compacting-font-caches t)
-
-;; Encoding
-(set-language-environment "UTF-8")
-(setq default-input-method nil)
-
-;; Bidirectional text
-(setq-default bidi-display-reordering 'left-to-right
-              bidi-paragraph-direction 'left-to-right)
-(setq bidi-inhibit-bpa t)
-
-;; Frame parameters
+;; Set frame parameters
 (setq default-frame-alist
       '((ns-use-native-fullscreen . t)
         (ns-transparent-titlebar . t)
         (ns-appearance . dark)
-        (menu-bar-lines . 0)
-        (tool-bar-lines . 0)
         (fullscreen . maximized)
-        (vertical-scroll-bars . nil)
         (background-color . "#13131a")
         (foreground-color . "#a0a0ae")))
 
-;; Frame behavior
-(setq frame-inhibit-implied-resize t
-      frame-resize-pixelwise t)
-
-;; Startup optimizations
-(setq frame-title-format nil
-      inhibit-splash-screen t
-      inhibit-startup-buffer-menu t
-      inhibit-startup-message t
-      inhibit-startup-screen t
+;; Optimize startup
+(setq load-prefer-newer t
+      custom-file null-device
+      read-process-output-max (* 1 1024 1024)
+      process-adaptive-read-buffering t
+      inhibit-compacting-font-caches t
+      default-input-method nil
+      bidi-inhibit-bpa t
+      frame-title-format nil
       initial-major-mode 'fundamental-mode
       initial-scratch-message nil)
 
-;; Package management
-(setq package-enable-at-startup nil)
-(setq package-quickstart nil)
-(package-initialize)
+;; Encoding and bidirectional text optimization
+(set-language-environment "UTF-8")
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
 
-;; Restore file name handler after init
+;; Restore file name handler and GC settings after init
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 32 1024 1024) ; 16mb
+            (setq gc-cons-threshold (* 8 1024 1024)
                   gc-cons-percentage 0.1
-                  file-name-handler-alist file-name-handler-alist-original
-                  inhibit-redisplay nil
-                  inhibit-message nil)))
+                  file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)
 ;;; early-init.el ends here

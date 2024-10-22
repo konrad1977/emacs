@@ -88,11 +88,12 @@
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
   (match                                         (:background carpYellow :foreground sumiInk-0))
   (menu                                          (:foreground fujiWhite))
-  (mode-line                                     (:background sumiInk-0 :foreground fujiWhite :bold t))
-  (mode-line-inactive                            (:background sumiInk-3 :foreground sumiInk-5))
+  ;; (mode-line                                     (:background sumiInk-0 :foreground fujiWhite (:box (:line-width 1 :color sumiInk-5))))
+  (mode-line-inactive                            (:background sumiInk-3 :foreground sumiInk-6))
   (mode-line-active                              (:background winterBlue :foreground crystalBlue))
   (mode-line-highlight                           (:foreground boatYellow2))
   (mode-line-buffer-id                           (:foreground crystalBlue))
+  (mode-line-emphasis                            (:foreground crystalBlue))
   (numbers                                       (:background sakuraPink))
   (region                                        (:background waveBlue-1))
   (separator-line                                (:background sumiInk-0))
@@ -470,6 +471,14 @@
   (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
   (diff-hl-margin-insert                         (:foreground comet :background winterBlue))
 
+  (smerge-base		                         (:background sumiInk-3))
+  (smerge-markers				 (:background sumiInk-2))
+  (smerge-upper					 (:background sumiInk-2))
+  (smerge-lower					 (:background sumiInk-3))
+  (smerge-refined-change                         (:background winterYellow))
+  (smerge-refined-removed			 (:background samuraiRed :strike-through t))
+  (smerge-refined-added 			 (:background winterGreen :foreground waveAqua2))
+
   (bm-fringe-face                                (:background peachRed :foreground sumiInk-3))
   (bm-fringe-persistent-face                     (:background peachRed :foreground sumiInk-3))
 
@@ -574,6 +583,13 @@
 
   (eldoc-box-body (:background winterBlue :foreground crystalBlue))
   (eldoc-box-border (:background sumiInk-4))
+
+  (punch-line-project-face        (:foreground dragonBlue :weight 'bold))
+  (punch-line-buffer-name-face    (:foreground sumiInk-6 :weight 'bold))
+  (punch-line-time-face           (:foreground sumiInk-5))
+  (punch-line-major-mode-face     (:foreground sumiInk-5))
+
+
 
   ;; (eglot-inlay-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
   ;; (eglot-parameter-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
