@@ -47,7 +47,6 @@
   (autumnRed		"#C34043" "#585858")
   (autumnYellow		"#DCA561" "#585858")
 
-
   (roninYellow		"#FF9E3B" "#585858")
 
   (dragonBlue		"#658594" "#658594")
@@ -80,13 +79,13 @@
   (glyphless-char                                (:background sakuraPink :foreground peachRed))
   (header-line                                   (:background winterBlue))
   (highlight                                     (:background comet :foreground springViolet1))
-  (hl-line                                       (:background sumiInk-3))
+  (hl-line                                       (:background sumiInk-2))
   (homoglyph                                     (:foreground waveAqua2))
   (fringe                                        (:background sumiInk-1))
   (line-number                                   (:foreground sumiInk-4))
-  (line-number-current-line                      (:background sumiInk-3 :foreground surimiOrange :weight 'semi-bold))
+  (line-number-current-line                      (:background sumiInk-2 :foreground surimiOrange :weight 'semi-bold))
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
-  (match                                         (:background carpYellow :foreground sumiInk-0))
+  (match                                         (:background boatYellow1))
   (menu                                          (:foreground fujiWhite))
   ;; (mode-line                                     (:background sumiInk-0 :foreground fujiWhite (:box (:line-width 1 :color sumiInk-5))))
   (mode-line-inactive                            (:background sumiInk-3 :foreground sumiInk-6))
@@ -301,8 +300,8 @@
   (highlight-operators-face                      (:foreground boatYellow2))
   (highlight-quoted-symbol                       (:foreground springGreen))
   (highlight-numbers-face                        (:foreground sakuraPink))
-  (highlight-symbol-face                         (:background winterBlue :foreground springBlue :weight 'normal))
-  
+  (highlight-symbol-face                         (:background winterGreen))
+
   ;; ivy
   (ivy-current-match                             (:background crystalBlue :foreground sumiInk-0 :bold t))
   (ivy-action                                    (:foreground fujiWhite))
@@ -319,29 +318,28 @@
   (ivy-posframe-border                           (:background sumiInk-3))
 
   ;;treemacs
-  (treemacs-directory-collapsed-face             (:foreground sumiInk-5 :weight 'normal))
+  (treemacs-directory-collapsed-face             (:foreground sumiInk-6))
   (treemacs-window-background-face               (:background sumiInk-1b))
-  (treemacs-directory-face                       (:foreground sumiInk-5 :weight 'normal))
-  (treemacs-file-face                            (:foreground sumiInk-5 :weight 'thin))
+  (treemacs-directory-face                       (:foreground sumiInk-6))
+  (treemacs-file-face                            (:foreground sumiInk-6))
   (treemacs-nerd-icons-file-face                 (:inherit 'treemacs-file-face))
   (treemacs-nerd-icons-root-face                 (:inherit 'treemacs-directory-face))
 
-  (treemacs-git-added-face                       (:foreground peachRed :background winterRed :weight 'normal))
-  (treemacs-git-renamed-face                     (:foreground springGreen :baground winterGreen :weight 'normal))
+  (treemacs-git-renamed-face                     (:foreground dragonBlue :baground winterGreen :weight 'normal))
   (treemacs-git-ignored-face                     (:foreground sumiInk-4 :italic t :weight 'thin))
-  (treemacs-git-unmodified-face                  (:foreground sumiInk-5 :weight 'thin))
+  (treemacs-git-unmodified-face                  (:foreground sumiInk-6 :weight 'thin))
   (treemacs-git-untracked-face                   (:foreground fujiGray :weight 'normal))
   (treemacs-git-modified-face                    (:foreground springBlue :background winterBlue :weight 'normal))
 
   ;; lsp and lsp-ui
-  (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
   (lsp-headerline-breadcrumb-path-face           (:background sumiInk-0))
-  (lsp-headerline-breadcrumb-path-hint-face      (:background sumiInk-0))
-  (lsp-headerline-breadcrumb-path-info-face      (:background sumiInk-0))
-  (lsp-headerline-breadcrumb-separator-face      (:background sumiInk-0))
-  (lsp-headerline-breadcrumb-symbols-face        (:background sumiInk-0))
-  (lsp-headerline-breadcrumb-project-prefix-face (:background sumiInk-0))
-  (lsp-headerline-breadcrumb-symbols-error-face  (:foreground peachRed))
+  ;; (lsp-headerline-breadcrumb-path-hint-face      (:background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-path-info-face      (:background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-separator-face      (:background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-symbols-face        (:background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-project-prefix-face (:background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-symbols-error-face  (:foreground peachRed))
 
   (lsp-ui-doc-background                         (:background sumiInk-0 :foreground peachRed))
   (lsp-ui-doc-header                             (:background sumiInk-0 :foreground peachRed))
@@ -431,7 +429,7 @@
   (completions-annotations                       (:foreground dragonBlue :italic t))
 
   (corfu-current                                 (:inherit 'vertico-current))
-  (corfu-annotations                             (:background winterGreen :foreground springGreen))
+  (corfu-annotations                             (:foreground springGreen))
   (corfu-default                                 (:background waveBlue-1 :foreground springViolet2))
   (corfu-border                                  (:background dragonBlue))
   (corfu-popupinfo                               (:background sumiInk :foreground springBlue :box (:line-width 2 :color sumiInk)))
@@ -471,13 +469,13 @@
   (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
   (diff-hl-margin-insert                         (:foreground comet :background winterBlue))
 
-  (smerge-base		                         (:background sumiInk-3))
-  (smerge-markers				 (:background sumiInk-2))
-  (smerge-upper					 (:background sumiInk-2))
-  (smerge-lower					 (:background sumiInk-3))
+  (smerge-base		                         (:background sumiInk-1))
+  (smerge-markers				 (:background sumiInk-3))
+  (smerge-upper					 (:background winterRed))
+  (smerge-lower					 (:background winterGreen))
   (smerge-refined-change                         (:background winterYellow))
-  (smerge-refined-removed			 (:background samuraiRed :strike-through t))
-  (smerge-refined-added 			 (:background winterGreen :foreground waveAqua2))
+  (smerge-refined-removed			 (:background waveRed :foreground sumiInk :strike-through t))
+  (smerge-refined-added 			 (:background waveAqua1 :foreground winterGreen))
 
   (bm-fringe-face                                (:background peachRed :foreground sumiInk-3))
   (bm-fringe-persistent-face                     (:background peachRed :foreground sumiInk-3))
@@ -589,11 +587,11 @@
   (punch-line-time-face           (:foreground sumiInk-5))
   (punch-line-major-mode-face     (:foreground sumiInk-5))
 
+  (eglot-inlay-hint-face (:foreground dragonBlue :height 0.8))
+  (eglot-parameter-hint-face (:foreground springViolet2 :height 0.8))
+  (eglot-type-hint-face (:foreground sumiInk-5 :height 0.8))
 
-
-  ;; (eglot-inlay-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
-  ;; (eglot-parameter-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
-  ;; (eglot-type-hint-face (:background winterGreen :foreground autumnGreen :height 0.8))
+  (wgrep-done-face (:foreground sumiInk-6))
   ))
 
 (provide-theme 'kanagawa)

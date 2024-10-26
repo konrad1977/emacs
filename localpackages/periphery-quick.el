@@ -114,7 +114,7 @@
   "Quick find in file."
   (interactive)
   (let ((file (buffer-file-name)))
-    (if-let ((query (thing-at-point 'symbol)))
+    (if-let* ((query (thing-at-point 'symbol)))
         (periphery-quick:run-query-file query file)
       (periphery-quick:run-query-file (read-string "Query: ") file))))
 
@@ -132,7 +132,7 @@
 (defun periphery-quick:find ()
   "Quick find something in project."
   (interactive)
-  (if-let ((query (thing-at-point 'symbol)))
+  (if-let* ((query (thing-at-point 'symbol)))
       (periphery-quick:run-query query)
     (periphery-quick:run-query (read-string "Query: "))))
 

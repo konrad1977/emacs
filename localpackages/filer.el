@@ -38,7 +38,7 @@
   :group 'filer
   :type 'boolean)
 
-(defcustom filer-max-results 1000
+(defcustom filer-max-results 500
   "Maximum number of results to process."
   :group 'filer
   :type 'integer)

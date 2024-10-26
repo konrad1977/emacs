@@ -57,13 +57,13 @@
 
 (cl-defun browse-apple-url (url)
   "Browse URL."
-  (if-let ((url url))
+  (if-let* ((url url))
       (browse-url (concat apple-developer-url url))))
 
 (defun apple-docs/query (query)
   "Query Hacking with swift (as QUERY)."
   (interactive "sQuery:")
-  (when-let ((url (url-encode-url (format "%s/search/search_data.php?q=%s&type=Documentation" apple-developer-url query))))
+  (when-let* ((url (url-encode-url (format "%s/search/search_data.php?q=%s&type=Documentation" apple-developer-url query))))
     (request-data-from-apple-docs :url url)))
 
 (defun apple-docs/query-thing-at-point ()

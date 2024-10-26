@@ -419,7 +419,7 @@
 (defun ios-simulator:appcontainer ()
   "Get the app container of the current app (as SIMULATORID, APPIDENTIFIER)."
   (interactive)
-  (if-let ((identifier current-app-identifier)
+  (if-let* ((identifier current-app-identifier)
            (id current-simulator-id)
            (command (shell-command-to-string (format "xcrun simctl get_app_container %s %s data" id identifier))))
       (async-shell-command (concat "open " command))))

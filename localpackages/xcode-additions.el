@@ -256,7 +256,7 @@
 (defun xcode-additions:is-xcodeproject ()
   "Check if it's an Xcode project."
   (unless current-is-xcode-project
-    (when-let ((root (xcode-additions:project-root)))
+    (when-let* ((root (xcode-additions:project-root)))
       (setq current-is-xcode-project
             (directory-files root nil "\\(?:\\.xcworkspace\\|\\.xcodeproj\\)$" t 1))))
   current-is-xcode-project)
@@ -308,7 +308,6 @@
   (interactive)
   (ios-simulator:reset)
   (periphery-kill-buffer)
-  (spinner-stop build-progress-spinner)
   (setq current-run-on-device nil)
   (setq current-local-device-id nil)
   (setq current-is-xcode-project nil)
@@ -343,19 +342,19 @@
                    ,(lambda (config)
                       (with-temp-buffer
                         (let* ((command
-                                (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S"
+                                (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S --console-pty"
                                         (plist-get config 'simulator-id)
                                         (plist-get config 'app-bundle-id)))
                                (code (call-process-shell-command command nil (current-buffer))))
-                          (dape--repl-message (format "* Running: %S *" command))
-                          (dape--repl-message (buffer-string))
+                          (dape--message (format "* Running: %S *" command))
+                          (dape--message (buffer-string))
                           (save-match-data
                             (if (and (zerop code)
                                      (progn (goto-char (point-min))
                                             (search-forward-regexp "[[:digit:]]+" nil t)))
                                 (plist-put config :pid (string-to-number (match-string 0)))
-                              (dape--repl-message (format "* Running: %S *" command))
-                              (dape--repl-message (format "Failed to start simulator:\n%s" (buffer-string)))
+                              (dape--message (format "* Running: %S *" command))
+                              (dape--message (format "Failed to start simulator:\n%s" (buffer-string)))
                               (user-error "Failed to start simulator")))))
                       config))
                :type "lldb"
@@ -416,27 +415,9 @@
 (defun xcode-additions:open-in-xcode ()
   "Open project in xcode."
   (interactive)
-  (if-let ((default-directory (xcode-additions:project-root))
+  (if-let* ((default-directory (xcode-additions:project-root))
            (command "xed ."))
       (inhibit-sentinel-messages #'call-process-shell-command command)))
-
-;; (cl-defun xcode-additions:parse-compile-lines-output (&key input)
-;;   "Parse compile output and print unique matched lines using separate message calls."
-;;   (let ((seen-messages (make-hash-table :test 'equal)))
-;;     (dolist (line (split-string input "\n"))
-;;       (cond
-;;        ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
-;;         (let ((msg (match-string 2 line)))
-;;           (unless (gethash msg seen-messages)
-;;             (mode-line-hud:update :message
-;;                                   (format "Compiling %s" (propertize msg 'face 'warning)))
-;;             (puthash msg t seen-messages))))
-;;        ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
-;;         (let ((msg (match-string 1 line)))
-;;           (unless (gethash msg seen-messages)
-;;             (mode-line-hud:update :message
-;;                                   (format "Compiling module %s" (propertize msg 'face 'warning)))
-;;             (puthash msg t seen-messages))))))))
 
 (cl-defun xcode-additions:parse-compile-lines-output (&key input)
   "Parse compile output and print unique matched lines using separate message calls.
@@ -466,18 +447,6 @@
 (defun xcode-additions:derived-data-path ()
   "Extract the DerivedData path from xcodebuild output."
   (xcode-additions:project-root))
-
-  ;; (let* ((default-directory (xcode-additions:project-root))
-  ;;        (xcodebuild-output
-  ;;         (shell-command-to-string "xcodebuild -showBuildSettings | grep BUILT_PRODUCTS_DIR"))
-  ;;        (built-products-dir
-  ;;         (when (string-match "BUILT_PRODUCTS_DIR = \\(.*\\)" xcodebuild-output)
-  ;;           (match-string 1 xcodebuild-output))))
-  ;;   (when built-products-dir
-  ;;     (replace-regexp-in-string
-  ;;      "/Build/Products/.*$"
-  ;;      ""
-  ;;      built-products-dir))))
 
 (defun xcode-additions:open-build-folder ()
   "Open build folder."

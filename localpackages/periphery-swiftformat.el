@@ -33,7 +33,7 @@
 (defun periphery-swiftformat-lint-buffer()
   "Lint current buffer using swiftsyntax."
   (interactive)
-  (if-let ((file (buffer-file-name)))
+  (if-let* ((file (buffer-file-name)))
       (periphery-run-swiftformat-buffer
        :command (concat swiftformat-command " " file " --lint " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
        :file file)))
@@ -43,7 +43,7 @@
   "Autocorrect current buffer using swiftsyntax."
   (interactive)
   (save-some-buffers t)
-  (if-let ((file (buffer-file-name)))
+  (if-let* ((file (buffer-file-name)))
       (periphery-run-swiftformat-buffer
        :command (concat swiftformat-command " " file " " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
        :file file)))

@@ -122,14 +122,14 @@
   (when data
   (save-match-data
     (and (string-match periphery-parse-line-regex data)
-         (when-let ((file (match-string 1 data))
+         (when-let* ((file (match-string 1 data))
                     (linenumber (string-to-number (match-string 2 data)))
                     (column (match-string 3 data)))
          (with-current-buffer (find-file file)
              (when (> linenumber 0)
                (goto-char (point-min))
                (forward-line (1- linenumber))
-               (if-let ((columnnumber (string-to-number column)))
+               (if-let* ((columnnumber (string-to-number column)))
                    (when (> columnnumber 0)
                      (forward-char (1- columnnumber)))))))))))
 

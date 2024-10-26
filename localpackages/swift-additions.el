@@ -56,7 +56,7 @@
 
 (defun swift-additions:compilation-time ()
     "Get the time of the compilation."
-    (if-let ((end-time (current-time)))
+    (if-let* ((end-time (current-time)))
         (format "%.1f" (float-time (time-subtract end-time compilation-time)))
       nil))
 

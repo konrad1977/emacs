@@ -449,7 +449,7 @@
                 (message (string-trim-left (match-string 4 text)))
                 (fileWithLine (format "%s:%s:%s" file line column)))
 
-           (if-let ((todo (periphery--clean-up-comments message)))
+           (if-let* ((todo (periphery--clean-up-comments message)))
                  (periphery--build-todo-list
                   :path fileWithLine
                   :file file
@@ -537,7 +537,7 @@
   (setq default-length 8)
   (setq periphery-errorList '())
   (dolist (line (split-string text "\n"))
-    (when-let ((entry (parse--search-query (string-trim-left line) query)))
+    (when-let* ((entry (parse--search-query (string-trim-left line) query)))
       (push entry periphery-errorList)))
 
   (when periphery-errorList

@@ -7,20 +7,30 @@
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
 
-
-;; Optimize font settings
-
-
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
+  (setq package-enable-at-startup nil)
   (package-refresh-contents)
   (package-install 'use-package))
 
 (eval-when-compile
   (require 'use-package))
+;;   ;; Load local packages
+   (let ((dir (expand-file-name "localpackages" user-emacs-directory)))
+     (when (file-directory-p dir)
+       (add-to-list 'load-path dir)
+       (let ((default-directory dir))
+         (normal-top-level-add-subdirs-to-load-path))))
+
+;;   ;; Add themes directory to custom theme load path
+   (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
+
+   (set-face-attribute 'default nil :family "Iosevka" :height 160 :weight 'light :width 'wide)
+   (set-face-attribute 'variable-pitch nil :family "Iosevka" :weight 'light)
+
 
 (use-package use-package
   :config
@@ -31,115 +41,134 @@
 	use-package-minimum-reported-time 0.2))
 
 (use-package emacs
-  :custom
-  (enable-recursive-minibuffers t)
-  :config
-  (set-face-attribute 'default nil
-		      :font "Iosevka"
-		      :height 170
-		      :weight 'light
-		      :width 'wide)
-
-  (set-face-attribute 'variable-pitch nil
-				       :font "Iosevka"
-				       :weight 'light)
   :init
-  (setq-default
-   display-line-numbers-width 5
-   truncate-lines t
-   c-basic-offset 4
-   ediff-forward-word-function 'forward-char
-   ediff-split-window-function 'split-window-horizontally
-   fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist)
-   indent-line-function 'insert-tab)
-  (setq display-time-24hr-format t
-        display-time-default-load-average nil
-        auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory)
-        auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
-        custom-file (expand-file-name "var/custom.el" user-emacs-directory)
-        completion-cycle-threshold 3
-        completion-ignore-case t
-        read-buffer-completion-ignore-case t
-        read-file-name-completion-ignore-case t
-        max-lisp-eval-depth 1600
-	;; pixel-scroll-mode t
-	;; pixel-scroll-precision-mode t
-        ;; scroll-conservatively 101
-        scroll-margin 0
-        fast-but-imprecise-scrolling t
-        scroll-preserve-screen-position t
-        ;; hscroll-step 1
-        ;; hscroll-margin 2
-        debug-on-error t
-        visible-bell nil
-        auto-window-vscroll nil
-        auth-sources '((:source "~/.authinfo.gpg"))
-        warning-minimum-level :emergency
-        tab-always-indent 'complete
-        ad-redefinition-action 'accept
-        auto-revert-check-vc-info t
-        backup-by-copying t
-        backup-directory-alist '(("." . "~/.emacs.d/backups"))
-        cursor-in-non-selected-windows nil
-        byte-compile-warnings '(ck-functions)
-        confirm-kill-processes nil
-        create-lockfiles nil
-        echo-keystrokes 0.2
-        confirm-kill-emacs 'y-or-n-p
-        find-file-visit-truename t
-        highlight-nonselected-windows t
-        kill-buffer-query-functions nil
-        use-dialog-box nil
-        word-wrap nil
-        auto-mode-case-fold nil
-        jit-lock-defer-time 0)
-
   (fset 'yes-or-no-p 'y-or-n-p)
-  (global-auto-revert-mode 1)
-  (global-hl-line-mode nil)
-  (display-time-mode 1)
-  (display-battery-mode 1)
-  :hook
-  (prog-mode . (lambda ()
-                 (hs-minor-mode)
-                 (local-set-key (kbd "C-c C-f") #'periphery-search-dwiw-rg)
-                 (local-set-key (kbd "C-c C-g") #'isearch-forward-thing-at-point)
-                 (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
-                 (local-set-key (kbd "M-?") #'periphery-toggle-buffer)
-                 (setq indicate-unused-lines nil
-                       left-fringe-width 32
-                       right-fringe-width 0
-                       show-trailing-whitespace nil
-                       column-number-mode nil
-                       display-line-numbers 'relative))))
+  (global-hl-line-mode 1)
+  ;; (pixel-scroll-mode 1)
+  (pixel-scroll-precision-mode 1)
+  (set-display-table-slot standard-display-table 0 ?\ )
+  :config
+  (setq-default
+   confirm-kill-emacs 'y-or-n-p
+   display-battery-mode 1
+   create-lockfiles nil
+   completion-ignore-case t
+   display-line-numbers-width 4
+   cursor-in-non-selected-windows nil
+   visible-bell nil
+   find-file-visit-truename t
+   backup-by-copying t
+   backup-directory-alist `(("." . "~/.saves"))
+   auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory)
+   auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
+   debug-on-error nil
 
-;; (use-package exec-path-from-shell
-;;   :if (memq window-system '(mac ns x))
-;;   :config
-;;   (exec-path-from-shell-initialize)
-;;   (exec-path-from-shell-copy-env "OPENAI_API_KEY"))
+   max-list-eval-depth 15000
 
-(when (eq system-type 'darwin)
-  (set-fontset-font t nil "SF Pro Display" nil 'append)
-  (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend)
-  (setq mac-option-key-is-meta nil
-        mac-command-key-is-meta t
-        mac-command-modifier 'meta
-        mac-option-modifier 'none
-        dired-use-ls-dired nil
-        browse-url-browser-function #'mk/browser-split-window))
+   ;; Fundamental scrolling behavior
+   scroll-margin 0
+   scroll-conservatively 101
+   scroll-preserve-screen-position t
+   scroll-step 1
+   auto-window-vscroll nil
 
-(set-display-table-slot standard-display-table 0 ?\ )
+   ;; Performance improvements
+   fast-but-imprecise-scrolling nil
+   redisplay-skip-fontification-on-input nil
 
-(let ((dir (expand-file-name "localpackages" user-emacs-directory)))
-  (when (file-directory-p dir)
-    (add-to-list 'load-path dir)
-    (let ((default-directory dir))
-      (normal-top-level-add-subdirs-to-load-path))))
+   jit-lock-chunk-size 10000       ; Process larger chunks at once
+   jit-lock-defer-time 0.05        ; Tiny delay for better responsiveness
+   jit-lock-stealth-load 1000       ; More lines in background
+   jit-lock-stealth-nice 0.2       ; Higher priority for background tasks
+   jit-lock-stealth-time 1        ; More frequent background processing 1
+   ;; Buffer local performance settings
+   line-move-visual nil  ; Slightly faster than visual line mode
+   bidi-paragraph-direction 'left-to-right  ; Disable bidirectional text scanning
+   bidi-inhibit-bpa t  ; Disable bidirectional parenthesis algorithm
+   )
 
-(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
-;; Make certain buffers different in color
-;; e.g. popups, sidebars, terminals, etc.
+  ;; Mac-specific optimizations
+  (when (eq system-type 'darwin)
+    (setq mac-option-key-is-meta nil
+          mac-command-key-is-meta t
+          mac-command-modifier 'meta
+          mac-option-modifier 'none
+          dired-use-ls-dired nil
+          browse-url-browser-function #'mk/browser-split-window)
+    (setq mac-redisplay-dont-reset-vscroll t
+          mac-mouse-wheel-smooth-scroll nil)))
+
+(defun setup-programming-mode ()
+  "Setup programming mode."
+  (hs-minor-mode)
+  ;; CONSIDER: Moving keybindings to a separate key-binding file
+  (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
+  (setq indicate-unused-lines nil
+        left-fringe-width 50
+        right-fringe-width 0
+        word-wrap nil
+        show-trailing-whitespace nil
+        column-number-mode nil
+        truncate-lines t
+        display-line-numbers 'relative))
+
+(add-hook 'prog-mode-hook #'setup-programming-mode)
+
+(use-package window
+  :ensure nil
+  :bind
+  (("C-x C-f" . toggle-frame-fullscreen)
+   ("C-x C-s" . window-toggle-side-windows)
+   ("C-x C-x" . safe-kill-buffer-and-window))
+  :custom
+  (display-buffer-alist
+   '(("\\*Async Shell Command\\*"
+      (display-buffer-no-window))
+     ("\\*xwidget\\*\\|\\*xref\\*"
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      (body-function . select-window)
+      (window-width . 0.4)
+      (side . left))
+     ("\\*occur\\|evil-marks\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-width . 0.10)
+      (side . right)
+      (slot . 0))
+     ("\\*iOS Simulator\\|*swift package\\|*ios-device"
+      (display-buffer-reuse-window display-buffer-at-bottom)
+      (window-height . 0.15)
+      (window-parameters . ((mode-line-format . none)))
+      (slot . 4))
+     ("\\*Embark*"
+      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+      (body-function . select-window)
+      (window-height . 0.4)
+      (slot . 1))
+     ("\\*Periphery\\*\\|\\*compilation\\*"
+      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+      (body-function . select-window)
+      (window-height . 0.2)
+      (slot . 1))
+     ("\\*Faces\\|[Hh]elp\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-width . 0.4)
+      (side . right)
+      (slot . 1))
+     ("\\*e?shell\\|*ellama\\|\\*vterm\\*"
+      (display-buffer-at-bottom display-buffer-reuse-window)
+      (body-function . select-window)
+      (window-height . 0.13)
+      (window-parameters . ((mode-line-format . none)))
+      (side . bottom)
+      (slot . 10))
+     ("\\*Flycheck\\|[Cc]olors\\*\\|Warnings"
+      (display-buffer-reuse-window display-buffer-in-side-window)
+      (display-buffer-at-bottom)
+      (window-height . 0.15)
+      (side . bottom)
+      (slot . 3)))))
 
 (use-package hideshow
   :diminish hs-minor-mode
@@ -253,12 +282,25 @@
   :custom
   (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
-  ;; (vertico-multiform-mode)
+  (advice-add #'vertico--format-candidate :around
+    (lambda (orig cand prefix suffix index _start)
+      (setq cand (funcall orig cand prefix suffix index _start))
+      (concat
+        (if (= vertico--index index)
+          (propertize "» " 'face '(:inherit font-lock-function-name-face weight bold))
+          "  ")
+        cand)))
   (setq vertico-resize t
         vertico-count 8
         vertico-multiline nil
         vertico-scroll-margin 4
         vertico-cycle t))
+
+(use-package affe
+  :defer t
+  :config
+  ;; Manual preview key for `affe-grep'
+  (consult-customize affe-grep :preview-key "M-."))
 
 (use-package vertico-posframe
   :after vertico
@@ -340,6 +382,15 @@
 
 (use-package embark-consult
   :after (embark consult))
+
+(use-package embark
+  :defer t
+  :bind
+  ("C-." . embark-act)
+  ("C-;" . embark-dwim))
+
+(use-package wgrep
+  :defer t)
 
 (use-package consult-project-extra
   :after consult
@@ -427,7 +478,8 @@
    ("C-M-<down>" . evil-mc-make-cursor-move-next-line-1)
    ("C-M-<up>" . evil-mc-make-cursor-move-prev-line-1)
    ("C-M-a" . evil-mc-make-cursor-here)
-   ("C-M-e" . evil-mc-make-all-cursors))
+   ("C-M-e" . evil-mc-make-all-cursors)
+   ("C-M-n" . evil-mc-make-and-goto-next-match))
   :custom
   (evil-mc-mode-line-text-inverse-colors t)
   (evil-mc-undo-cursors-on-keyboard-quit t)
@@ -459,10 +511,6 @@
   :after evil
   :init
   (evil-commentary-mode 1))
-
-;; (use-package evil-quickscope
-;;   :after evil
-;;   :hook (prog-mode . evil-quickscope-mode))
 
 (use-package evil-goggles
   :init
@@ -516,9 +564,6 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-;; ------------------ SEARCHING -------------------
-
-;; ------------------ EDITING -------------------
 (use-package google-this
   :commands (google-this)
   :bind ("C-x C-g" . google-this))
@@ -738,10 +783,11 @@
   :bind
   ("C-c e n" . flycheck-next-error)
   ("C-c e p" . flycheck-previous-error)
-  :custom
+  :config
   (add-to-list 'flycheck-checkers 'javascript-eslint)
   (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
-  (setq flycheck-checker-error-threshold 20))
+  :custom
+  (flycheck-checker-error-threshold 20))
 
 (use-package flycheck-inline
   :ensure nil
@@ -786,14 +832,27 @@
           ".build")))
 
 (use-package pulsar
+  :defer t
   :hook (after-init . pulsar-global-mode)
   :config
   (setq pulsar-pulse t
-        pulsar-delay 0.15
+        pulsar-delay 0.05
         pulsar-iterations 8
         pulsar-face 'pulsar-cyan
-        pulsar-highlight-face 'pulsar-face
-        pulsar-pulse-functions '(evil-window-up
+        pulsar-highlight-face 'evil-ex-lazy-highlight
+        pulsar-pulse-functions '(
+				 evil-yank
+				 evil-yank-line
+				 evil-delete
+				 evil-delete-line
+				 evil-jump-item
+				 evil-scroll-down
+				 evil-scroll-up
+				 evil-scroll-page-down
+				 evil-scroll-page-up
+				 evil-scroll-line-down
+				 evil-scroll-line-up
+				 evil-window-up
                                  evil-window-rotate-upwards
                                  evil-window-rotate-downwards
                                  evil-window-down
@@ -801,60 +860,6 @@
                                  evil-window-right
                                  evil-window-vsplit
                                  evil-window-split)))
-
-(use-package window
-  :ensure nil
-  :bind
-  ("C-x C-f" . toggle-frame-fullscreen)
-  ("C-x C-s" . window-toggle-side-windows)
-  ("C-x C-x" . safe-kill-buffer-and-window)
-  :custom
-  (display-buffer-alist
-   '(("\\*Async Shell Command\\*"
-      (display-buffer-no-window))
-     ("\\*xwidget\\*\\|\\*xref\\*"
-      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
-      (body-function . select-window)
-      (window-width . 0.4)
-      (side . left))
-     ("\\*occur\\|evil-marks\\*"
-      (display-buffer-in-side-window)
-      (body-function . select-window)
-      (window-width . 0.10)
-      (side . right)
-      (slot . 0))
-     ("\\*iOS Simulator\\|*swift package\\|*ios-device"
-      ;; (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
-      (display-buffer-in-side-window)
-      (window-height . 0.3)
-      (window-parameters . ((mode-line-format . none)))
-      (side . bottom)
-      (slot . 2))
-     ("\\*Periphery\\*"
-      (display-buffer-in-side-window)
-      (body-function . select-window)
-      (window-height . 0.3)
-      (side . bottom)
-      (slot . 1))
-     ("\\*Faces\\|[Hh]elp\\*"
-      (display-buffer-in-side-window)
-      (body-function . select-window)
-      (window-width . 0.4)
-      (side . right)
-      (slot . 1))
-     ("\\*e?shell\\|*ellama\\|\\*vterm\\*"
-      (display-buffer-in-side-window)
-      (body-function . select-window)
-      (window-height . 0.13)
-      (window-parameters . ((mode-line-format . none)))
-      (side . bottom)
-      (slot . 10))
-     ("\\*Flycheck\\|[Cc]olors\\*\\|Warnings"
-      (display-buffer-in-side-window display-buffer-reuse-window)
-      (display-buffer-at-bottom)
-      (window-height . 0.15)
-      (side . bottom)
-      (slot . 3)))))
 
 (use-package imenu-list
   :bind
@@ -894,21 +899,16 @@
                    :height 130
                    :bold t
                    :italic t))))
-
 (use-package git-gutter
   :defer 2
   :hook (prog-mode . git-gutter-mode)
   :diminish git-gutter-mode
   :config
+  (setq git-gutter:modified-sign "┃"
+        git-gutter:added-sign "┃"
+        git-gutter:deleted-sign "┃")
+  (setq git-gutter:window-width 1)  ;; Set to minimum width
   (setq git-gutter:update-interval 2))
-
-(use-package git-gutter-fringe
-  :after git-gutter
-  :config
-  (setq git-gutter-fr:side 'left-fringe)
-  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [224] nil nil '(center repeated)))
 
 (use-package vterm
   :defer t
@@ -928,6 +928,10 @@
     (when root (if (version<= emacs-version "28")
                     (cons 'vc root)
                  (list 'vc backend root)))))
+(use-package dall-e-shell
+  :defer t
+  :config
+  (setq dall-e-shell-openai-key (getenv "OPENAI_API_KEY")))
 
 (use-package chatgpt-shell
   :defer t
@@ -988,13 +992,14 @@
     "ee" '(eval-expression :which-key "Eval expression")
     "eb" '(eval-buffer :which-key "Eval buffer")
     "el" '(eval-last-sexp :which-key "Eval before point")
+    "ea" '(embark-act :which-key "Embark act")
     "er" '(eval-region :which-key "Eval region"))
 
   (mk/leader-keys
     "fs" '(save-buffer :which-key "Save file")
     "fb" '(consult-buffer :which-key "Find buffer")
     "ff" '(find-file :which-key "Find file")
-    "fp" '(consult-ripgrep :which-key "Find symbol in project")
+    "fp" '(affe-grep :which-key "Find symbol in project")
     "fl" '(consult-line-multi :which-key "Find line in project")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
@@ -1253,7 +1258,7 @@
   :bind
   (:map swift-mode-map
         ("M-s" . #'ios-simulator:terminate-current-app)
-        ("C-x a c" . #'ios-simulator:appcontainer)
+        ;; ("C-x a c" . #'ios-simulator:appcontainer)
         ("C-x c l" . #'ios-simulator:change-language)))
 
 (use-package overlay-usage
@@ -1281,12 +1286,19 @@
   :ensure nil
   :bind
   ("C-c e f" . #'eglot-code-action-quickfix)
+  ("C-c e e" . #'eglot-code-action-extract)
+  ("C-c e R" . #'eglot-code-action-rewrite)
   ("C-c e r" . #'eglot-rename)
+  ("C-c e d" . #'eglot-find-declaration)
+  ("C-c e D" . #'eglot-find-typeDefinition)
+  ("C-c e i" . #'eglot-find-implementation)
+  ("C-c e b" . #'eglot-format-buffer)
   :custom
   (eglot-report-progress nil)
   :config
   (add-to-list 'eglot-server-programs
                '((typescript-mode typescript-tsx-mode) . ("typescript-language-server" "--stdio")))
+
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact))
 
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
@@ -1347,11 +1359,12 @@
 (use-package periphery-search
   :ensure nil
   :after prog-mode
-  :bind
-  ("C-c C-s" . #'periphery-search-rg)
-  ("C-c C-f" . #'periphery-search-dwiw-rg)
-  ("C-x C-t" . #'periphery-query-todos-and-fixmes)
-  ("C-x C-m" . #'periphery-query-marks))
+  :bind (:map prog-mode-map
+              ("C-c C-s" . #'periphery-search-rg)
+              ("C-c C-f" . #'periphery-search-dwiw-rg)
+              ("C-x C-t" . #'periphery-query-todos-and-fixmes)
+              ("C-x C-m" . #'periphery-query-marks)
+              ("M-?" . #'periphery-toggle-buffer)))
 
 (use-package periphery-swiftformat
   :ensure nil
@@ -1573,55 +1586,36 @@
           (delete-window window-to-delete))))))
 
 (use-package dotenv-mode
-  :defer t)
+  :defer 2)
 
 (use-package add-node-modules-path
+  :hook ((typescript-ts-mode tsx-ts-mode typescriptreact-mode js-mode) . add-node-modules-path))
+
+(use-package yasnippet
+  :defer 2
+  :hook (lsp-mode . yas-minor-mode))
+
+(use-package flycheck-kotlin
+  :hook (kotlin-mode . flycheck-kotlin-setup))
+
+(require 'kotlin-development)
+(use-package kotlin-development
+  :ensure nil  ; Since it's a local package
   :defer t
-  :custom
-  ;; Makes sure you are using the local bin for your
-  ;; node project. Local eslint, typescript server...
-  (eval-after-load 'typescript-ts-mode
-	'(add-hook 'typescript-ts-mode-hook #'add-node-modules-path))
-  (eval-after-load 'tsx-ts-mode
-	'(add-hook 'tsx-ts-mode-hook #'add-node-modules-path))
-  (eval-after-load 'typescriptreact-mode
-	'(add-hook 'typescriptreact-mode-hook #'add-node-modules-path))
-  (eval-after-load 'js-mode
-	'(add-hook 'js-mode-hook #'add-node-modules-path)))
-
-(use-package flymake-eslint
-  :ensure t
+  :bind (:map kotlin-mode-map
+       ("C-c C-c" . kotlin-development-build-and-run)
+       ("C-c C-e l" . kotlin-development-list-emulators)
+       ("C-c C-e k" . kotlin-development-kill-emulator)
+       :map kotlin-ts-mode-map
+       ("C-c C-c" . kotlin-development-build-and-run)
+       ("C-c C-e l" . kotlin-development-list-emulators)
+       ("C-c C-e k" . kotlin-development-kill-emulator))
+  :commands (kotlin-development-setup)
   :config
-  ;; If Emacs is compiled with JSON support
-  (setq flymake-eslint-prefer-json-diagnostics t)
-
-  (defun lemacs/use-local-eslint ()
-    "Set project's `node_modules' binary eslint as first priority.
-If nothing is found, keep the default value flymake-eslint set or
-your override of `flymake-eslint-executable-name.'"
-    (interactive)
-    (let* ((root (locate-dominating-file (buffer-file-name) "node_modules"))
-           (eslint (and root
-                        (expand-file-name "node_modules/.bin/eslint"
-                                          root))))
-      (when (and eslint (file-executable-p eslint))
-        (setq-local flymake-eslint-executable-name eslint)
-        ;; (message (format "Found local ESLINT! Setting: %s" eslint))
-        (flymake-eslint-enable))))
-
-
-  (defun lemacs/configure-eslint-with-flymake ()
-	(when (or (eq major-mode 'tsx-ts-mode)
-			  (eq major-mode 'typescript-ts-mode)
-			  (eq major-mode 'typescriptreact-mode))
-      (lemacs/use-local-eslint)))
-
-  (add-hook 'eglot-managed-mode-hook #'lemacs/use-local-eslint)
-
-  ;; With older projects without LSP or if eglot fails
-  ;; you can call interactivelly M-x lemacs/use-local-eslint RET
-  ;; or add a hook like:
-  (add-hook 'js-ts-mode-hook #'lemacs/use-local-eslint))
+  (setq kotlin-development-emulator-name "Medium_Phone_API_35")  ; or "test_device" if you prefer
+  :init
+  (kotlin-development-kotlin-mode-setup)
+  (kotlin-development-ts-mode-setup))
 
 (provide 'init)
 ;;; init.el ends here
