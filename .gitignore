@@ -18,3 +18,8 @@
 /ellama-sessions/
 /debug-adapters/
 *.el
+/.lsp-session
+/chatgpt/
+/dall-e/
+/tree-sitter/
+/workspace/
