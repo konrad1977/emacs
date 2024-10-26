@@ -17,7 +17,6 @@
 /auto-save-list/
 /ellama-sessions/
 /debug-adapters/
-*.el
 /.lsp-session
 /chatgpt/
 /dall-e/
