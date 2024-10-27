@@ -66,6 +66,9 @@
 (defvar kotlin-development--build-timer nil
   "Timer for checking build status.")
 
+(defvar kotlin-development-current-root nil
+  "Cached project root directory.")
+
 (defun kotlin-development-select-emulator ()
   "Select an Android emulator interactively."
   (interactive)
@@ -87,10 +90,14 @@
 ;; Add these functions
 ;;;###autoload
 (defun kotlin-development-find-project-root ()
-  "Find the root directory of the Android/Kotlin project."
-  (let ((gradle-root (locate-dominating-file default-directory "settings.gradle.kts")))
-    (or gradle-root
-        (locate-dominating-file default-directory "settings.gradle"))))
+  "Find the root directory of the Android/Kotlin project and cache it in 'kotlin-development-current-root'."
+  (unless (bound-and-true-p kotlin-development-current-root)
+    (setq kotlin-development-current-root
+	  (let ((git-root (locate-dominating-file default-directory ".git")))
+	    (if git-root
+		(or (locate-dominating-file git-root "settings.gradle.kts")
+		    git-root)))))
+  kotlin-development-current-root)
 
 (defun kotlin-development-get-adb-devices ()
   "Get list of connected Android devices."
@@ -149,7 +156,6 @@
         (erase-buffer))
 
       (mode-line-hud:update :message (format "Starting emulator %s..." kotlin-development-emulator-name))
-      (message "Starting emulator %s..." kotlin-development-emulator-name)
 
       ;; Kill any existing process and timer
       (when kotlin-development--emulator-process
@@ -190,27 +196,31 @@
 (defun kotlin-development-build-and-run ()
   "Build and run the Android app in the emulator."
   (interactive)
-  (let* ((project-root (kotlin-development-find-project-root))
-         (default-directory (or project-root default-directory))
-         (compilation-buffer "*Kotlin Compilation*"))
+  ;; Find and set the project root directory globally
+  (let ((root-dir (kotlin-development-find-project-root)))
+    (unless root-dir
+      (user-error "Could not find project root directory"))
 
-    (unless project-root
-      (user-error "Not in a Gradle project"))
+    ;; Set the default-directory globally
+    (setq default-directory root-dir)
+    (message "Building and running Kotlin project in: %s" default-directory)
 
     (if (kotlin-development-emulator-running-p)
         (progn
-	  (mode-line-hud:update :message "Building...")
-          (compile (format "%s installDebug" kotlin-development-gradle-executable))
-          (add-hook 'compilation-finish-functions
-                    (lambda (buf status)
-                      (when (string-match-p "finished" status)
-			(mode-line-hud:update :message "Build completed successfully! Launching app...")
-                        ;; Increased delay to ensure installation is complete
-                        (run-with-timer 2 nil #'kotlin-development-launch-app)))))
+          (mode-line-hud:update :message "Building...")
+          ;; Use compile-in-project-root to ensure correct directory
+          (let ((default-directory root-dir)) ; Ensure directory is set for compilation
+            (compile (format "%s installDebug" kotlin-development-gradle-executable))
+            (add-hook 'compilation-finish-functions
+                     (lambda (buf status)
+                       (when (string-match-p "finished" status)
+                         (mode-line-hud:update :message "Build completed successfully! Launching app...")
+                         ;; Increased delay to ensure installation is complete
+                         (run-with-timer 2 nil #'kotlin-development-launch-app))))))
 
       ;; Emulator not running case
       (when kotlin-development-debug
-	(message "Emulator not running, starting emulator first..."))
+        (message "Emulator not running, starting emulator first..."))
       (kotlin-development-start-emulator)
 
       ;; Cancel existing timer if any
@@ -223,14 +233,15 @@
              0 2
              (lambda ()
                (when (kotlin-development-check-emulator-status)
-		 (when kotlin-development-debug
-		   (mode-line-hud:update :message "Emulator is ready, starting build..."))
-                 (compile (format "%s installDebug" kotlin-development-gradle-executable))
-                 (add-hook 'compilation-finish-functions
-                          (lambda (buf status)
-                            (when (string-match-p "finished" status)
-			      (mode-line-hud:update :message "Build completed successfully! Launching app...")
-                              (run-with-timer 2 nil #'kotlin-development-launch-app))))
+                 (when kotlin-development-debug
+                   (mode-line-hud:update :message "Emulator is ready, starting build..."))
+                 (let ((default-directory root-dir)) ; Ensure directory is set for compilation
+                   (compile (format "%s installDebug" kotlin-development-gradle-executable))
+                   (add-hook 'compilation-finish-functions
+                            (lambda (buf status)
+                              (when (string-match-p "finished" status)
+                                (mode-line-hud:update :message "Build completed successfully! Launching app...")
+                                (run-with-timer 2 nil #'kotlin-development-launch-app)))))
                  (cancel-timer kotlin-development--build-timer)
                  (setq kotlin-development--build-timer nil))))))))
 
@@ -248,7 +259,15 @@
       (kill-process kotlin-development--emulator-process))
     (setq kotlin-development--emulator-process nil)))
 
-(defun kotlin-development-wipe-emulator ()
+(defun kotlin-development-emulator-terminate-app ()
+  "Terminate the Android app using adb."
+  (interactive)
+  (let* ((default-directory (kotlin-development-find-project-root))
+         (package-name (or (kotlin-development--get-package-name)
+                           (error "Could not determine package name"))))
+    (shell-command (format "adb shell am force-stop %s" package-name))))
+
+(defun kotlin-development-emulator-wipe ()
   "Wipe the Android emulator data using adb."
   (interactive)
   (let* ((default-directory (kotlin-development-find-project-root))
@@ -331,6 +350,7 @@
 
 (defun kotlin-development-launch-app ()
   "Launch the installed Android app with better error handling and debugging."
+  (interactive)
   (let* ((package-name (kotlin-development--get-package-name))
          (activity (kotlin-development--get-launch-activity))
          (adb-path (expand-file-name "platform-tools/adb" kotlin-development-android-sdk-path)))
@@ -373,7 +393,6 @@
       (if (string-match-p "Error\\|Exception" result)
           (user-error "Failed to launch app.  Check *Android Launch Debug* buffer")
         (message "App launched successfully: %s/%s" package-name full-activity)))))
-
 
 ;;;###autoload
 (defun kotlin-development-verify-lsp-server ()
@@ -514,6 +533,8 @@ ADB: %s" sdk-path emulator-path adb-path)))
   (let ((map-list '(kotlin-mode-map kotlin-ts-mode-map)))
     (dolist (map map-list)
       (when (boundp map)
+	(define-key (symbol-value map) (kbd "M-s") #'kotlin-development-emulator-terminate-app)
+	(define-key (symbol-value map) (kbd "M-r") #'kotlin-development-launch-app)
 	(define-key (symbol-value map) (kbd "C-c C-e e") #'kotlin-development-select-emulator)
 	(define-key (symbol-value map) (kbd "C-c C-e e") #'kotlin-development-select-emulator)
 	(define-key (symbol-value map) (kbd "C-c C-c") #'kotlin-development-build-and-run)

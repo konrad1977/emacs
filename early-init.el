@@ -3,12 +3,9 @@
 ;;; Code:
 
 ;; Defer garbage collection further back in the startup process
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.4)
 
 ;; ;; Prevent unwanted runtime builds in gccemacs (native-comp); native-comp is available from Emacs 28+
 (setq native-comp-deferred-compilation nil)
-
 ;; ;; Prevent package.el loading packages prior to their init-file loading
 
 ;; ;; Faster to disable these here (before they've been initialized)
@@ -31,29 +28,31 @@
 
 ;; ;; Optimize startup
 (setq custom-file null-device
-      read-process-output-max (* 8 1024 1024)
-      inhibit-splash-screen t
-      inhibit-startup-message t
-      inhibit-startup-echo-area-message user-login-name
-      inhibit-startup-buffer-menu t
-      idle-update-delay 1.0
-      inhibit-compacting-font-caches t
+      read-process-output-max (* 32 1024 1024)
+      bidi-display-reordering 'left-to-right
+      bidi-inhibit-bpa t
+      bidi-paragraph-direction 'left-to-right
       default-input-method nil
       frame-inhibit-implied-resize t
-      bidi-inhibit-bpa t
       frame-title-format nil
+      gc-cons-percentage 0.6
+      gc-cons-threshold (* 100 1024 1024)  ; Optional: 100MB for GC
+      gc-cons-threshold most-positive-fixnum  ; Keep this one
+      idle-update-delay 1.0
+      inhibit-compacting-font-caches t
+      inhibit-splash-screen t
+      inhibit-startup-buffer-menu t
+      inhibit-startup-echo-area-message user-login-name
+      inhibit-startup-message t
       initial-major-mode 'fundamental-mode
+      large-file-warning-threshold (* 100 1024 1024)  ; 100MB warning threshold
+      max-lisp-eval-depth 1000000  ; Increased from 100000
+      max-specpdl-size 1000000  ; Increased from 100000
       mode-line-format nil
-      max-lisp-eval-depth 13000
-      large-file-warning-threshold 100000000
       initial-scratch-message nil)
 
 ;; ;; Encoding and bidirectional text optimization
-;; (set-language-environment "UTF-8")
-;; (setq-default bidi-display-reordering 'left-to-right
-;;               bidi-paragraph-direction 'left-to-right)
-
-;; ;; Don't want a mode line while loading init.
+(set-language-environment "UTF-8")
 
 ;; No scrollbar by default.
 (when (fboundp 'scroll-bar-mode)
@@ -77,8 +76,8 @@
 ;; Restore file name handler and GC settings after init
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 100 1024 1024)
-                  gc-cons-percentage 0.2
+            (setq gc-cons-threshold (* 64 1024 1024)
+                  gc-cons-percentage 0.5
                   file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)

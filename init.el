@@ -63,8 +63,6 @@
    auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
    debug-on-error nil
 
-   max-list-eval-depth 15000
-
    ;; Fundamental scrolling behavior
    scroll-margin 0
    scroll-conservatively 101
@@ -83,8 +81,6 @@
    jit-lock-stealth-time 1        ; More frequent background processing 1
    ;; Buffer local performance settings
    line-move-visual nil  ; Slightly faster than visual line mode
-   bidi-paragraph-direction 'left-to-right  ; Disable bidirectional text scanning
-   bidi-inhibit-bpa t  ; Disable bidirectional parenthesis algorithm
    )
 
   ;; Mac-specific optimizations
@@ -260,8 +256,8 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
-  ;; (load-theme 'mito-laser t)
+  ;; (load-theme 'kanagawa t)
+  (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
@@ -287,7 +283,7 @@
       (setq cand (funcall orig cand prefix suffix index _start))
       (concat
         (if (= vertico--index index)
-          (propertize "» " 'face '(:inherit font-lock-function-name-face weight bold))
+          (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
           "  ")
         cand)))
   (setq vertico-resize t
@@ -440,15 +436,18 @@
   :init
   (setq-default evil-symbol-word-search t)
   (setq evil-want-integration t
-        evil-want-keybinding nil
-        evil-want-minibuffer t
-        evil-undo-system 'undo-fu
-        evil-want-fine-undo t
-        evil-want-C-u-scroll t
-        evil-search-module 'evil-search
-        evil-vsplit-window-right t
-        evil-split-window-below t
-        evil-want-C-i-jump t)
+	evil-want-keybinding nil
+	evil-want-minibuffer t
+	evil-undo-system 'undo-fu
+	evil-want-fine-undo t
+	evil-want-C-u-scroll t
+	evil-search-module 'evil-search
+	evil-vsplit-window-right t
+	evil-ex-search-persistent-highlight t  ;; Don't keep highlights after search
+	evil-ex-search-case 'smart  ;; Smart case sensitivity
+	evil-ex-search-vim-style-regexp t
+	evil-split-window-below t
+	evil-want-C-i-jump t)
   :config
   (evil-select-search-module 'evil-search-module 'evil-search)
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
@@ -461,8 +460,16 @@
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (evil-ex-define-cmd "q[uit]" 'safe-kill-buffer-and-window)
+
+  ;; (define-key evil-ex-search-keymap (kbd "C-g") 'evil-ex-search-abort)
+
+  ;; (evil-ex-define-cmd "q[uit]" 'safe-kill-buffer-and-window)
+  (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
   (evil-mode 1))
+
+(with-eval-after-load 'evil
+  (define-key evil-insert-state-map (kbd "C-k") nil)
+  (define-key evil-normal-state-map (kbd "C-k") nil))
 
 (use-package evil-collection
   :after evil
@@ -474,8 +481,7 @@
 (use-package evil-mc
   :hook (evil-mode . global-evil-mc-mode)
   :bind
-  (("C-g" . evil-mc-undo-all-cursors)
-   ("C-M-<down>" . evil-mc-make-cursor-move-next-line-1)
+  (("C-M-<down>" . evil-mc-make-cursor-move-next-line-1)
    ("C-M-<up>" . evil-mc-make-cursor-move-prev-line-1)
    ("C-M-a" . evil-mc-make-cursor-here)
    ("C-M-e" . evil-mc-make-all-cursors)
@@ -487,7 +493,10 @@
   :config
   (evil-define-key 'visual evil-mc-key-map
     "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
+  ;; Add C-g undo-all-cursors only when in evil-mc-key-map
+  (evil-define-key 'normal evil-mc-key-map
+    (kbd "C-g") 'evil-mc-undo-all-cursors))
 
 (use-package evil-surround
   :after evil
@@ -1207,8 +1216,9 @@
   :defer t
   :hook (prog-mode . drag-stuff-mode)
   :bind
-  ("C-j" . drag-stuff-down)
-  ("C-k" . drag-stuff-up))
+  (:map evil-visual-state-map
+        ("C-j" . drag-stuff-down)
+        ("C-k" . drag-stuff-up)))
 
 ;; Quickly jump to definition or usage
 (use-package dumb-jump

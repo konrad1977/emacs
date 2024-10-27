@@ -232,6 +232,8 @@
   (evil-mc-cursor-bar-face      (:background darkest :foreground teal))
   (evil-mc-cursor-hbar-face     (:background teal :foreground teal))
 
+  (evil-ex-lazy-highlight        (:background baby :foreground darkest :italic t))
+
   (highlight-symbol-face        (:background green :foreground darkest :distant-foreground green))
 
 
