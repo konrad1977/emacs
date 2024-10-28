@@ -57,6 +57,33 @@
   :type 'string
   :group 'kotlin-development)
 
+(defcustom kotlin-development-test-runner 'junit
+  "Test runner to use for Kotlin tests.
+Options are 'junit or 'kotest."
+  :type '(choice (const :tag "JUnit" junit)
+                (const :tag "Kotest" kotest))
+  :group 'kotlin-development)
+
+(defcustom kotlin-development-code-style 'official
+  "Code style to use for Kotlin formatting.
+Options are 'official (Kotlin official style) or 'android (Android Kotlin style)."
+  :type '(choice (const :tag "Kotlin Official Style" official)
+                (const :tag "Android Style" android))
+  :group 'kotlin-development)
+
+(defcustom kotlin-development-compile-options
+  '("-Xlint:deprecation" "-Xlint:unchecked")
+  "List of additional compile options for Kotlin compilation."
+  :type '(repeat string)
+  :group 'kotlin-development)
+
+;; New variables for performance monitoring
+(defvar kotlin-development--build-start-time nil
+  "Start time of the current build process.")
+
+(defvar kotlin-development--build-history '()
+  "History of build times and results.")
+
 (defvar kotlin-development--emulator-process nil
   "Process object for the running emulator.")
 
@@ -67,7 +94,265 @@
   "Timer for checking build status.")
 
 (defvar kotlin-development-current-root nil
-  "Cached project root directory.")
+  "Current project root directory.")
+
+;; New functions for test running
+(defun kotlin-development-run-tests ()
+  "Run Kotlin tests based on selected test runner."
+  (interactive)
+  (let* ((project-root (kotlin-development-find-project-root))
+         (default-directory project-root)
+         (test-command (pcase kotlin-development-test-runner
+                        ('junit "./gradlew test")
+                        ('kotest "./gradlew testDebug"))))
+    (compile test-command)))
+
+(defun kotlin-development-run-single-test ()
+  "Run single test at point."
+  (interactive)
+  (let* ((project-root (kotlin-development-find-project-root))
+         (default-directory project-root)
+         (test-class (kotlin-development--get-current-test-class))
+         (test-method (kotlin-development--get-current-test-method))
+         (test-command (format "./gradlew test --tests %s.%s"
+                              test-class test-method)))
+    (compile test-command)))
+
+;; New functions for code analysis
+(defun kotlin-development-analyze-code ()
+  "Run static code analysis using ktlint."
+  (interactive)
+  (let* ((project-root (kotlin-development-find-project-root))
+         (default-directory project-root))
+    (compile "./gradlew ktlintCheck")))
+
+(defun kotlin-development-fix-code-style ()
+  "Fix code style issues using ktlint."
+  (interactive)
+  (let* ((project-root (kotlin-development-find-project-root))
+         (default-directory project-root))
+    (compile "./gradlew ktlintFormat")))
+
+;; Performance monitoring
+(defun kotlin-development--start-build-timer ()
+  "Start timing the build process."
+  (setq kotlin-development--build-start-time (current-time)))
+
+(defun kotlin-development--record-build-time (status)
+  "Record build time and status."
+  (when kotlin-development--build-start-time
+    (let* ((end-time (current-time))
+           (duration (float-time (time-subtract end-time kotlin-development--build-start-time))))
+      (push `(:duration ,duration :status ,status :timestamp ,end-time)
+            kotlin-development--build-history)
+      (setq kotlin-development--build-start-time nil))))
+
+(defun kotlin-development-clean-build ()
+  "Clean and build the Kotlin project."
+  (interactive)
+  (let ((default-directory (kotlin-development-find-project-root)))
+    (compile (if (file-exists-p "gradlew")
+                 "./gradlew clean build"
+               "gradle clean build"))))
+
+(defun kotlin-development-rebuild ()
+  "Rebuild the Kotlin project without cleaning."
+  (interactive)
+  (let ((default-directory (kotlin-development-find-project-root)))
+    (compile (if (file-exists-p "gradlew")
+                 "./gradlew build"
+               "gradle build"))))
+
+(defun kotlin-development-check-dependencies ()
+  "Check and validate project dependencies."
+  (interactive)
+  (let* ((default-directory (kotlin-development-find-project-root)))
+    (compile "./gradlew dependencies")))
+
+;; Enhanced build function with performance monitoring
+(defun kotlin-development-build-and-run ()
+  "Build and run the Android app with performance monitoring."
+  (interactive)
+  (kotlin-development--start-build-timer)
+  ;; Rest of the build-and-run function remains the same
+  ;; Add hook for recording build time
+  (add-hook 'compilation-finish-functions
+            (lambda (buf status)
+              (kotlin-development--record-build-time status))))
+
+;; New diagnostic functions
+(defun kotlin-development-show-build-history ()
+  "Display build history statistics."
+  (interactive)
+  (with-current-buffer (get-buffer-create "*Kotlin Build History*")
+    (erase-buffer)
+    (insert "Kotlin Build History:\n\n")
+    (dolist (build (reverse kotlin-development--build-history))
+      (insert (format "Time: %s\nDuration: %.2fs\nStatus: %s\n\n"
+                     (format-time-string "%Y-%m-%d %H:%M:%S"
+                                       (plist-get build :timestamp))
+                     (plist-get build :duration)
+                     (plist-get build :status))))
+    (display-buffer (current-buffer))))
+
+;; APK management
+(defun kotlin-development-install-apk (apk-path)
+  "Install APK file at APK-PATH."
+  (interactive "fSelect APK file: ")
+  (let ((adb-path (expand-file-name "platform-tools/adb"
+                                   kotlin-development-android-sdk-path)))
+    (shell-command (format "%s install -r %s" adb-path apk-path))))
+
+(defun kotlin-development-uninstall-app ()
+  "Uninstall the current app from the emulator."
+  (interactive)
+  (let* ((package-name (kotlin-development--get-package-name))
+         (adb-path (expand-file-name "platform-tools/adb"
+                                   kotlin-development-android-sdk-path)))
+    (shell-command (format "%s uninstall %s" adb-path package-name))))
+
+(defun kotlin-development-find-java-home ()
+  "Find Java home directory with specific handling for Oracle JDK."
+  (or (getenv "JAVA_HOME")
+      (when-let* ((java-path (executable-find "java"))
+                  ;; Follow symlinks to get the actual Java path
+                  (real-java-path (file-truename java-path)))
+        (if (string-match "/bin/java$" real-java-path)
+            ;; Strip off /bin/java to get JAVA_HOME
+            (substring real-java-path 0 (- (length real-java-path) 9))
+          ;; Fallback if path structure is different
+          (file-name-directory real-java-path)))
+      ;; Common Oracle JDK locations
+      (cl-loop for path in '("/usr/lib/jvm/java-23-oracle"
+                            "/usr/java/jdk-23"
+                            "/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home")
+               when (file-directory-p path)
+               return path)))
+
+(defun kotlin-development-ensure-java-home ()
+  "Ensure JAVA_HOME is set, prompting user if necessary."
+  (unless (getenv "JAVA_HOME")
+    (let ((detected-java-home (kotlin-development-find-java-home)))
+      (if detected-java-home
+          (progn
+            (setenv "JAVA_HOME" detected-java-home)
+            (message "Set JAVA_HOME to %s" detected-java-home))
+        (setenv "JAVA_HOME"
+                (expand-file-name
+                 (read-directory-name "Set JAVA_HOME: " "/usr/lib/jvm/")))))))
+
+(defun kotlin-development-get-build-dir (project-root)
+  "Get the build directory for compiled Kotlin classes."
+  (expand-file-name "build/classes/kotlin/main" project-root))
+
+(defun kotlin-development-get-source-roots (project-root)
+  "Get list of source roots for the project."
+  (let ((source-roots '()))
+    (dolist (path '("src/main/kotlin" "src/main/java"))
+      (let ((full-path (expand-file-name path project-root)))
+        (when (file-directory-p full-path)
+          (push full-path source-roots))))
+    source-roots))
+
+(defun kotlin-development-get-adb-devices ()
+  "Get list of connected Android devices/emulators."
+  (with-temp-buffer
+    (when (zerop (call-process "adb" nil t nil "devices"))
+      (goto-char (point-min))
+      (forward-line)  ; Skip "List of devices attached" line
+      (let (devices)
+        (while (not (eobp))
+          (when (looking-at "^\\([^\t\n]+\\)\t")
+            (push (match-string 1) devices))
+          (forward-line))
+        (nreverse devices)))))
+
+(defun kotlin-development-ensure-debug-emulator ()
+  "Ensure an emulator is running with debugging enabled."
+  (interactive)
+  (let ((devices (kotlin-development-get-adb-devices)))
+    (unless devices
+      (error "No Android devices/emulators found. Please start an emulator with:
+adb devices
+emulator -avd [your-avd-name] -debug-app [your.package.name]"))
+    (unless (zerop (call-process "adb" nil nil nil "shell" "getprop" "ro.debuggable"))
+      (error "Emulator is not running in debuggable mode"))))
+
+(defun kotlin-development-setup-dape ()
+  "Setup dape for Android debugging."
+  (interactive)
+  (require 'dape)
+
+  ;; Increase the timeout for initialization
+  (setq dape-request-timeout 30)
+
+  ;; Ensure JAVA_HOME is set first
+  (kotlin-development-ensure-java-home)
+
+  ;; Check emulator status
+  (kotlin-development-ensure-debug-emulator)
+
+  (let* ((project-root (or (kotlin-development-find-project-root)
+                          (error "Could not find project root")))
+         (source-roots (kotlin-development-get-source-roots project-root))
+         (debug-adapter-path (expand-file-name
+                            "~/.emacs.d/var/dape-adapters/kotlin-debug-adapter/bin/kotlin-debug-adapter")))
+
+    (add-to-list 'dape-configs
+                 `(android-debug
+                   modes (kotlin-mode kotlin-ts-mode)
+                   command ,debug-adapter-path
+                   :type "kotlin"
+                   :request "attach"  ; Changed from "launch" to "attach" for Android
+                   :projectRoot ,project-root
+                   :hostName "localhost"
+                   :port 5005  ; Default Android debug port
+		   :classPaths [,(expand-file-name "app/build/intermediates/javac/debug/classes"
+						   project-root)]
+                   :modulePaths [,(expand-file-name "." project-root)]
+                   :args []
+		   :env (:JAVA_HOME ,(getenv "JAVA_HOME")
+				    :ANDROID_HOME ,(getenv "ANDROID_HOME"))
+                   :sourceRoots ,source-roots))))
+
+(defun kotlin-development-start-android-debug ()
+  "Start Android debugging process."
+  (interactive)
+  (let* ((package-name (kotlin-development--get-package-name))
+         (main-activity (read-string "Main activity: " ".MainActivity")))
+
+    ;; Kill any existing debug app
+    (call-process "adb" nil nil nil "shell" "am" "force-stop" package-name)
+
+    ;; Start app in debug mode
+    (call-process "adb" nil nil nil "shell" "am" "start"
+                 "-D" ; Debug flag
+                 "-n" (concat package-name "/" package-name main-activity))
+
+    ;; Forward debug port
+    (call-process "adb" nil nil nil "forward" "tcp:5005" "jdwp:*))")))
+
+;; ;; Helper function to install debug adapter if needed
+;; (defun kotlin-development-ensure-debug-adapter ()
+;;   "Ensure the Java debug adapter is installed."
+;;   (interactive)
+;;   (let ((adapter-dir (file-name-concat dape-adapter-dir "vscode-java-debug")))
+;;     (unless (file-exists-p adapter-dir)
+;;       (make-directory adapter-dir t)
+;;       (let ((default-directory adapter-dir))
+;;         (call-process "git" nil t t "clone" "Https://github.com/microsoft/vscode-java-debug.git" ".")
+;;         (call-process "npm" nil t t "install")
+;;         (call-process "npm" nil t t "run" "build")))))
+
+(defun kotlin-development-start-debugger ()
+  "Start debugging Android application."
+  (interactive)
+  ;; Ensure debug adapter is installed
+  ;; Check if emulator is running
+  (unless (string-match-p "[A-Za-z0-9]+" (shell-command-to-string "adb devices"))
+    (user-error "No Android device/emulator found. Please connect a device or start an emulator"))
+  (let ((default-directory (kotlin-development-find-project-root)))
+    (dape 'android)))
 
 (defun kotlin-development-select-emulator ()
   "Select an Android emulator interactively."
@@ -196,54 +481,105 @@
 (defun kotlin-development-build-and-run ()
   "Build and run the Android app in the emulator."
   (interactive)
-  ;; Find and set the project root directory globally
   (let ((root-dir (kotlin-development-find-project-root)))
     (unless root-dir
       (user-error "Could not find project root directory"))
 
-    ;; Set the default-directory globally
     (setq default-directory root-dir)
-    (message "Building and running Kotlin project in: %s" default-directory)
-
     (if (kotlin-development-emulator-running-p)
-        (progn
-          (mode-line-hud:update :message "Building...")
-          ;; Use compile-in-project-root to ensure correct directory
-          (let ((default-directory root-dir)) ; Ensure directory is set for compilation
-            (compile (format "%s installDebug" kotlin-development-gradle-executable))
-            (add-hook 'compilation-finish-functions
-                     (lambda (buf status)
-                       (when (string-match-p "finished" status)
-                         (mode-line-hud:update :message "Build completed successfully! Launching app...")
-                         ;; Increased delay to ensure installation is complete
-                         (run-with-timer 2 nil #'kotlin-development-launch-app))))))
+        (kotlin-development-build-and-launch)
+      (kotlin-development-start-emulator-and-build))))
 
-      ;; Emulator not running case
-      (when kotlin-development-debug
-        (message "Emulator not running, starting emulator first..."))
-      (kotlin-development-start-emulator)
+(defun kotlin-development-build-and-launch ()
+  "Build and launch the app when emulator is already running."
+  (mode-line-hud:update :message "Building...")
+  (kotlin-development-execute-build))
 
-      ;; Cancel existing timer if any
-      (when kotlin-development--build-timer
-        (cancel-timer kotlin-development--build-timer))
+(defun kotlin-development-start-emulator-and-build ()
+  "Start the emulator and build when ready."
+  (when kotlin-development-debug
+    (message "Emulator not running, starting emulator first..."))
+  (kotlin-development-start-emulator)
+  (kotlin-development-setup-build-timer))
 
-      ;; Set up new timer
-      (setq kotlin-development--build-timer
-            (run-with-timer
-             0 2
-             (lambda ()
-               (when (kotlin-development-check-emulator-status)
-                 (when kotlin-development-debug
-                   (mode-line-hud:update :message "Emulator is ready, starting build..."))
-                 (let ((default-directory root-dir)) ; Ensure directory is set for compilation
-                   (compile (format "%s installDebug" kotlin-development-gradle-executable))
-                   (add-hook 'compilation-finish-functions
-                            (lambda (buf status)
-                              (when (string-match-p "finished" status)
-                                (mode-line-hud:update :message "Build completed successfully! Launching app...")
-                                (run-with-timer 2 nil #'kotlin-development-launch-app)))))
-                 (cancel-timer kotlin-development--build-timer)
-                 (setq kotlin-development--build-timer nil))))))))
+(defun kotlin-development-setup-build-timer ()
+  "Set up timer to check emulator status and initiate build."
+  (when kotlin-development--build-timer
+    (cancel-timer kotlin-development--build-timer))
+  (setq kotlin-development--build-timer
+        (run-with-timer
+         0 2
+         (lambda ()
+           (when (kotlin-development-check-emulator-status)
+             (kotlin-development-handle-emulator-ready))))))
+
+(defun kotlin-development-handle-emulator-ready ()
+  "Handle when emulator is ready to build."
+  (when kotlin-development-debug
+    (mode-line-hud:update :message "Emulator is ready, starting build..."))
+  (kotlin-development-execute-build)
+  (cancel-timer kotlin-development--build-timer)
+  (setq kotlin-development--build-timer nil))
+
+(defun kotlin-development-execute-build ()
+  "Execute the gradle build and set up completion hook."
+  (let ((gradle-command (format "%s installDebug" kotlin-development-gradle-executable)))
+    (compile gradle-command)
+    (add-hook 'compilation-finish-functions
+              (lambda (buf status)
+                (when (string-match-p "finished" status)
+                  (kotlin-development-handle-build-success))))))
+
+(defun kotlin-development-handle-build-success ()
+  "Handle successful build completion."
+  (mode-line-hud:update :message "Build completed successfully! Launching app...")
+  (run-with-timer 2 nil #'kotlin-development-launch-app))
+
+
+(cl-defun kotlin-development-parse-build-output (&key input)
+  "Parse Gradle build output and display relevant status updates.
+   Shows compilation progress and handles errors/warnings."
+  (when kotlin-development-debug
+    (message "Parsing Gradle output: %s" input))
+  (let ((seen-messages (make-hash-table :test 'equal))
+        (error-regex "^\\(.+\\):\\([0-9]+\\): \\(error\\|warning\\|note\\): \\(.+\\)$")
+        (task-regex "^Task \\(:?[a-zA-Z0-9:]+\\)")
+        (build-status-regex "BUILD \\(SUCCESSFUL\\|FAILED\\)"))
+
+    (dolist (line (split-string input "\n"))
+      (cond
+       ;; Match Gradle tasks
+       ((string-match task-regex line)
+        (let ((task-name (match-string 1 line)))
+          (unless (gethash task-name seen-messages)
+            (mode-line-hud:update
+             :message (format "Running %s" (propertize task-name 'face 'warning)))
+            (puthash task-name t seen-messages))))
+
+       ;; Match build status
+       ((string-match build-status-regex line)
+        (let ((status (match-string 1 line)))
+          (mode-line-hud:update
+           :message (format "Build %s"
+                          (propertize status 'face
+                                    (if (string= status "SUCCESSFUL")
+                                        'success 'error))))))
+
+       ;; Match compilation errors/warnings
+       ((string-match error-regex line)
+        (let ((file (match-string 1 line))
+              (line-num (match-string 2 line))
+              (type (match-string 3 line))
+              (message (match-string 4 line)))
+          (message "%s:%s: %s: %s"
+                  (propertize file 'face 'warning)
+                  line-num
+                  (propertize type 'face
+                            (cond ((string= type "error") 'error)
+                                  ((string= type "warning") 'warning)
+                                  (t 'success)))
+                  message)))))))
+
 
 (defun kotlin-development-cleanup ()
   "Clean up timers and processes."
@@ -374,7 +710,7 @@
     (unless activity
       (user-error "Could not determine launch activity.  Check *Android Launch Debug* buffer"))
 
-    (message "Launching app: %s/%s" package-name activity)
+    (mode-line-hud:update :message (format "Launching app: %s/%s" package-name activity))
     (let* ((full-activity (if (string-prefix-p "." activity)
                              (concat package-name activity)
                            activity))
@@ -392,7 +728,7 @@
 
       (if (string-match-p "Error\\|Exception" result)
           (user-error "Failed to launch app.  Check *Android Launch Debug* buffer")
-        (message "App launched successfully: %s/%s" package-name full-activity)))))
+	(mode-line-hud:update :message (format "Running: %s" (propertize package-name 'face 'font-lock-constant-face)))))))
 
 ;;;###autoload
 (defun kotlin-development-verify-lsp-server ()
@@ -422,9 +758,9 @@
               comment-end "")
   (when (fboundp 'mode-line-hud:notification)
     (mode-line-hud:notification
-     :message (format "Initializing Kotlin LSP server: %s"
+     :message (format "Initializing: %s"
                      (propertize "kotlin-ls" 'face 'font-lock-keyword-face))
-     :seconds 6)))
+     :seconds 2)))
 
 ;;;###autoload
 (defun kotlin-development-setup ()
@@ -533,19 +869,27 @@ ADB: %s" sdk-path emulator-path adb-path)))
   (let ((map-list '(kotlin-mode-map kotlin-ts-mode-map)))
     (dolist (map map-list)
       (when (boundp map)
-	(define-key (symbol-value map) (kbd "M-s") #'kotlin-development-emulator-terminate-app)
-	(define-key (symbol-value map) (kbd "M-r") #'kotlin-development-launch-app)
-	(define-key (symbol-value map) (kbd "C-c C-e e") #'kotlin-development-select-emulator)
-	(define-key (symbol-value map) (kbd "C-c C-e e") #'kotlin-development-select-emulator)
 	(define-key (symbol-value map) (kbd "C-c C-c") #'kotlin-development-build-and-run)
-	(define-key (symbol-value map) (kbd "C-c C-e s") #'kotlin-development-start-emulator)
+	(define-key (symbol-value map) (kbd "C-c C-r") #'kotlin-development-rebuild)
+	(define-key (symbol-value map) (kbd "C-c C-d") (lambda () (interactive)
+							 (kotlin-development-setup-dape)
+							 (kotlin-development-start-debugger)))
+	(define-key (symbol-value map) (kbd "C-c C-e e") #'kotlin-development-select-emulator)
 	(define-key (symbol-value map) (kbd "C-c C-e k") #'kotlin-development-kill-emulator)
-	(define-key (symbol-value map) (kbd "C-c C-e l") #'kotlin-development-list-emulators)))))
+	(define-key (symbol-value map) (kbd "C-c C-e l") #'kotlin-development-list-emulators)
+	(define-key (symbol-value map) (kbd "C-c C-e s") #'kotlin-development-start-emulator)
+	(define-key (symbol-value map) (kbd "C-c t t") #'kotlin-development-run-tests)
+	(define-key (symbol-value map) (kbd "M-r") #'kotlin-development-launch-app)
+	(define-key (symbol-value map) (kbd "M-s") #'kotlin-development-emulator-terminate-app)
+	(define-key (symbol-value map) (kbd "M-O") #'kotlin-development-clean-build)
+        (define-key (symbol-value map) (kbd "C-c a") #'kotlin-development-analyze-code)
+        (define-key (symbol-value map) (kbd "C-c d") #'kotlin-development-check-dependencies)
+        (define-key (symbol-value map) (kbd "C-c f") #'kotlin-development-fix-code-style)
+        (define-key (symbol-value map) (kbd "C-c h") #'kotlin-development-show-build-history)
+        (define-key (symbol-value map) (kbd "C-c t s") #'kotlin-development-run-single-test)
+	))))
 
 (kotlin-development-setup-keys)
-;; Add this to your kotlin-development-common-hook
-;; (define-key kotlin-mode-map (kbd "C-c C-c") #'kotlin-development-build-and-run)
-;; (define-key kotlin-ts-mode-map (kbd "C-c C-c") #'kotlin-development-build-and-run)
 
 (defun kotlin-development--debug-manifest ()
   "Debug function to show manifest contents."
