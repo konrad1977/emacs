@@ -12,7 +12,6 @@
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
-  (setq package-enable-at-startup nil)
   (package-refresh-contents)
   (package-install 'use-package))
 
@@ -31,7 +30,6 @@
    (set-face-attribute 'default nil :family "Iosevka" :height 160 :weight 'light :width 'wide)
    (set-face-attribute 'variable-pitch nil :family "Iosevka" :weight 'light)
 
-
 (use-package use-package
   :config
   (setq use-package-verbose nil
@@ -39,6 +37,26 @@
 	use-package-always-ensure t
 	use-package-compute-statistics nil
 	use-package-minimum-reported-time 0.2))
+
+(use-package gcmh
+  :defer 2
+  :ensure t
+  :config
+  (defun gcmh-register-idle-gc ()
+    "Register a timer to run `gcmh-idle-garbage-collect'.
+Cancel the previous one if present."
+    (unless (eq this-command 'self-insert-command)
+      (let ((idle-t (if (eq gcmh-idle-delay 'auto)
+			(* gcmh-auto-idle-delay-factor gcmh-last-gc-time)
+		      gcmh-idle-delay)))
+	(if (timerp gcmh-idle-timer)
+	    (timer-set-time gcmh-idle-timer idle-t)
+	  (setf gcmh-idle-timer
+		(run-with-timer idle-t nil #'gcmh-idle-garbage-collect))))))
+  (setq gcmh-idle-delay 'auto  ; default is 15s
+	gcmh-high-cons-threshold (* 32 1024 1024)
+	gcmh-verbose nil)
+  (gcmh-mode 1))
 
 (use-package emacs
   :init
@@ -49,7 +67,9 @@
   (set-display-table-slot standard-display-table 0 ?\ )
   :config
   (setq-default
-   confirm-kill-emacs 'y-or-n-p
+   line-spacing 0.05
+   confirm-kill-emacs (lambda (prompt)
+			(y-or-n-p-with-timeout prompt 2 nil))
    display-battery-mode 1
    create-lockfiles nil
    completion-ignore-case t
@@ -146,6 +166,11 @@
       (body-function . select-window)
       (window-height . 0.2)
       (slot . 1))
+     ("\\*Android Emulator\\*\\|\\*Android Logcat\\*\\|\\*Android Emulator Error\\*"
+      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+      (body-function . select-window)
+      (window-height . 0.2)
+      (slot . 2))
      ("\\*Faces\\|[Hh]elp\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
@@ -256,8 +281,8 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
-  (load-theme 'mito-laser t)
+  (load-theme 'kanagawa t)
+  ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
@@ -275,8 +300,6 @@
   ("C-k" . vertico-previous)
   ("C-d" . vertico-scroll-down)
   ("C-u" . vertico-scroll-up))
-  :custom
-  (vertico-buffer-display-action '(display-buffer-reuse-window))
   :config
   (advice-add #'vertico--format-candidate :around
     (lambda (orig cand prefix suffix index _start)
@@ -285,11 +308,11 @@
         (if (= vertico--index index)
           (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
           "  ")
-        cand)))
-  (setq vertico-resize t
-        vertico-count 8
+  cand)))
+  (setq vertico-resize nil
+        vertico-count 15
         vertico-multiline nil
-        vertico-scroll-margin 4
+        vertico-scroll-margin 0
         vertico-cycle t))
 
 (use-package affe
@@ -308,9 +331,9 @@
         '((left-fringe . 0)
           (right-fringe . 0))
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-        vertico-posframe-truncate-lines t
-        vertico-posframe-min-width 70
-        vertico-posframe-width 120
+        vertico-posframe-truncate-lines nil
+        ;; vertico-posframe-min-width 70
+        ;; vertico-posframe-width 120
         vertico-posframe-min-height 2
         vertico-posframe-border-width 18))
 
@@ -401,8 +424,10 @@
   :after projectile)
 
 (use-package recentf
-  :defer 1
-  :hook (after-init . recentf-mode))
+  :config
+  (setq recentf-max-saved-items 200
+        recentf-auto-cleanup 300)
+  (recentf-mode 1))
 
 (use-package mode-line-hud
   :ensure nil
@@ -485,6 +510,11 @@
    ("C-M-<up>" . evil-mc-make-cursor-move-prev-line-1)
    ("C-M-a" . evil-mc-make-cursor-here)
    ("C-M-e" . evil-mc-make-all-cursors)
+   ("C-x C-q" . evil-mc-undo-all-cursors)
+   ("C-M-r" . evil-mc-make-and-goto-first-cursor)
+   ("C-M-l" . evil-mc-make-and-goto-next-cursor)
+   ("C-M-h" . evil-mc-make-and-goto-prev-cursor)
+   ("C-M-N" . evil-mc-make-and-goto-prev-match)
    ("C-M-n" . evil-mc-make-and-goto-next-match))
   :custom
   (evil-mc-mode-line-text-inverse-colors t)
@@ -493,10 +523,7 @@
   :config
   (evil-define-key 'visual evil-mc-key-map
     "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
-  ;; Add C-g undo-all-cursors only when in evil-mc-key-map
-  (evil-define-key 'normal evil-mc-key-map
-    (kbd "C-g") 'evil-mc-undo-all-cursors))
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
 
 (use-package evil-surround
   :after evil
@@ -681,9 +708,13 @@
         corfu-popupinfo-max-width corfu-max-width))
 
 (use-package savehist
-  :ensure nil
+  :defer 2
+  :hook (after-init . savehist-mode)
   :config
-  (savehist-mode t))
+  (setq history-length 1000)
+  (setq history-delete-duplicates t)
+  (setq savehist-save-minibuffer-history t))
+
 ;; Add extensions
 (use-package cape
   :after evil
@@ -724,9 +755,7 @@
   (setq avy-single-candidate-jump t))
 
 (use-package dape
-  :bind ("C-c C-d" . (lambda () (interactive)
-                       (xcode-additions:setup-dape)
-                       (call-interactively #'dape)))
+  :bind
   :config
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10)
@@ -790,13 +819,13 @@
   :hook (prog-mode . flycheck-mode)
   :diminish t
   :bind
-  ("C-c e n" . flycheck-next-error)
-  ("C-c e p" . flycheck-previous-error)
+  ("C-c f n" . flycheck-next-error)
+  ("C-c f p" . flycheck-previous-error)
   :config
   (add-to-list 'flycheck-checkers 'javascript-eslint)
   (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
   :custom
-  (flycheck-checker-error-threshold 20))
+  (flycheck-checker-error-threshold 200))
 
 (use-package flycheck-inline
   :ensure nil
@@ -806,8 +835,7 @@
 (use-package flycheck-eglot
   :defer t
   :hook (eglot-managed-mode . flycheck-eglot-mode)
-  :config
-  (setq flycheck-eglot-exclusive t))
+  :custom (flycheck-eglot-exclusive nil))
 
 (use-package markdown-mode
   :commands (markdown-mode))
@@ -845,8 +873,8 @@
   :hook (after-init . pulsar-global-mode)
   :config
   (setq pulsar-pulse t
-        pulsar-delay 0.05
-        pulsar-iterations 8
+        pulsar-delay 0.1
+        pulsar-iterations 10
         pulsar-face 'pulsar-cyan
         pulsar-highlight-face 'evil-ex-lazy-highlight
         pulsar-pulse-functions '(
@@ -958,6 +986,13 @@
   :config
   (add-hook 'project-find-functions #'project-root-override))
 
+(use-package paren
+  :defer 2
+  :config
+  (show-paren-mode 1)
+  (setq show-paren-delay 0.1
+        show-paren-highlight-openparen t
+        show-paren-when-point-inside-paren t))
 ;; general
 (use-package general
   :defer 2
@@ -1281,12 +1316,15 @@
   :after swift-mode
   :bind
   (:map swift-mode-map
-       ("C-c t m" .  #'swift-additions:test-module-silent)
-        ("C-c t p" .  #'swift-additions:test-swift-package-from-file)
-        ("C-c C-c" . #'swift-additions:compile-and-run)
-        ("C-c C-b" . #'swift-additions:compile-app)
-        ("M-r" . #'swift-additions:run)
-        ("M-B" . #'swift-additions:run-without-compiling)))
+	("M-r" . #'swift-additions:run)
+	("M-B" . #'swift-additions:run-without-compiling)
+	("C-c t m" .  #'swift-additions:test-module-silent)
+	("C-c t p" .  #'swift-additions:test-swift-package-from-file)
+	("C-c C-c" . #'swift-additions:compile-and-run)
+	("C-c C-b" . #'swift-additions:compile-app)
+	("C-c C-d" . (lambda () (interactive)
+		       (xcode-additions:setup-dape)
+		       (call-interactively #'dape)))))
 
 (use-package swift-lsp
   :ensure nil)
@@ -1296,6 +1334,7 @@
   :ensure nil
   :bind
   ("C-c e f" . #'eglot-code-action-quickfix)
+  ("C-c e a" . #'eglot-code-actions)
   ("C-c e e" . #'eglot-code-action-extract)
   ("C-c e R" . #'eglot-code-action-rewrite)
   ("C-c e r" . #'eglot-rename)
@@ -1313,10 +1352,12 @@
 
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
   (setq eglot-stay-out-of '(corfu company flycheck)
+	eglot-events-buffer-size 0
         eglot-send-changes-idle-time 0.3
         eglot-autoshutdown t
         eglot-events-buffer-config '(size: 20000 format: short)
-        eglot-extend-to-xref t)
+        eglot-extend-to-xref t
+	eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (advice-add 'jsonrpc--log-event :override #'ignore)
   (add-hook 'typescript-mode-hook 'eglot-ensure))
 
@@ -1330,13 +1371,13 @@
 
 (use-package swift-refactor
   :ensure nil
-  :after swift-mode
+  :after (swift-mode kotlin-mode kotlin-ts-mode)
   :bind
+  ("C-c r s" . #'swift-refactor:split-function-list)
   (:map swift-mode-map
         ("C-c r a" . #'swift-refactor:wrap-selection)
         ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
         ("C-c r i" . #'swift-refactor:tidy-up-constructor)
-        ("C-c r s" . #'swift-refactor:split-function-list)
         ("C-c r r" . #'swift-refactor:extract-function)
         ("M-P" .  #'swift-refactor:print-thing-at-point)
         ("M-t" . #'swift-refactor:insert-todo)
@@ -1384,6 +1425,14 @@
         ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
         ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
         ("C-c C-p" . #'periphery-run-swiftformat-for-project)))
+
+(use-package periphery-ktlint
+  :ensure nil
+  :after kotlin-ts-mode
+  :bind
+  (:map kotlin-ts-mode-map
+        ("C-c C-o" . #'periphery-ktlint-lint-buffer)
+        ("M-o" . #'periphery-ktlint-autocorrect-buffer)))
 
 (use-package periphery-loco
   :ensure nil
@@ -1604,9 +1653,6 @@
 (use-package yasnippet
   :defer 2
   :hook (lsp-mode . yas-minor-mode))
-
-(use-package flycheck-kotlin
-  :hook (kotlin-mode . flycheck-kotlin-setup))
 
 (require 'kotlin-development)
 (use-package kotlin-development

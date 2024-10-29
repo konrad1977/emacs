@@ -41,7 +41,7 @@
   :group 'periphery)
 
 (defface periphery-message-face
-  '((t (:foreground "#fbfafb" :font-weight thin)))
+  '((t (:foreground "#fbfafb" :weight thin)))
   "Message face."
   :group 'periphery)
 
@@ -201,7 +201,7 @@
            :tag ""
            :text "Errors or warnings"
            :count (format "%d" (length tabulated-list-entries))
-           :attributes 'error))))))
+           :attributes 'periphery-todo-face))))))
 
 (defun periphery--parse-xctest-putput (line)
   "Run regex for xctest case."
@@ -241,7 +241,7 @@
             :regex periphery-regex-mark-quotes)
            ))))
 
-(defun periphery--propertize-severity (severity text)
+(defun periphery--propertize-severity (severity)
   "Colorize TEXT using SEVERITY."
   (if-let* ((type (upcase (string-trim-left severity))))
     (propertize (format " %s " (periphery--center-text type)) 'face (periphery--full-color-from-keyword severity))))
@@ -297,6 +297,7 @@
           (add-text-properties match-start match-end property)
           (goto-char match-end))))  ; Move point past the match
     (buffer-string)))
+
 (defun parse-compiler-errors (text)
   "Parse compiler error messages and build failures from LOG (as TEXT)."
   (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
@@ -351,6 +352,15 @@
     ;; Sort errors before warnings, and ensure build failures are treated as errors
     (periphery-sort-error errors)))
 
+(cl-defun periphery-run-parser (input)
+  "Run parser on INPUT more efficiently."
+  (when periphery-debug
+    (message input))
+  (let ((errors (parse-compiler-errors input)))
+    (setq periphery-errorList (delete-dups errors))
+    (when (or (periphery--is-buffer-visible) periphery-errorList)
+      (periphery--listing-command periphery-errorList))))
+
 (defun periphery-sort-error (errors)
   "Sort ERRORS."
  (sort (nreverse errors)
@@ -374,15 +384,6 @@
                 nil)
                ;; Otherwise, sort by path
                (t (string< (car a) (car b))))))))
-
-(cl-defun periphery-run-parser (input)
-  "Run parser on INPUT more efficiently."
-  (when periphery-debug
-    (message input))
-  (let ((errors (parse-compiler-errors input)))
-    (setq periphery-errorList (delete-dups errors))
-    (when (or (periphery--is-buffer-visible) periphery-errorList)
-      (periphery--listing-command periphery-errorList))))
 
 (defun periphery--is-buffer-visible ()
   "Check if a buffer is visible."
@@ -434,7 +435,7 @@
 (cl-defun periphery-message-with-count (&key tag &key text &key count &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count."
   (if (not (string= text ""))
-      (mode-line-hud:update :message (format "%s %s '%s'" tag count (propertize text 'face attributes)))
+      (mode-line-hud:update :message (format "%s %s '%s'" tag  (propertize count  'face 'periphery-error-face)  (propertize text 'face attributes)))
     (mode-line-hud:update :message (format "%s %s" tag count ))))
 
 (defun parse--search-query (text query)
@@ -469,7 +470,7 @@
 (cl-defun periphery--build-list (&key path file line keyword result regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
-              (periphery--propertize-severity keyword (string-trim-left keyword))
+              (periphery--propertize-severity keyword)
               (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
               (periphery--mark-all-symbols
@@ -514,7 +515,7 @@
 (cl-defun periphery--build-todo-list (&key path &key file &key line &key keyword &key result &key regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
   (list path (vector
-              (periphery--propertize-severity keyword (string-trim-left keyword))
+              (periphery--propertize-severity keyword)
               (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
               (propertize line 'face 'periphery-linenumber-face)
               (periphery--mark-all-symbols
@@ -550,6 +551,41 @@
            :count (format "%d" (length periphery-errorList))
            :attributes 'success))
       (switch-to-buffer-other-window periphery-buffer-name))))
+
+(defun periphery--parse-ktlint (text)
+  "Parse Ktlint error messages from TEXT."
+  (let ((regex "\\(^[^:]+\\):\\([0-9]+\\):\\([0-9]+\\): \\([^(]+\\) (\\(standard:[^)]+\\))")
+        (errors '()))
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+      (while (re-search-forward regex nil t)
+        (let* ((path (or (match-string 1) ""))
+               (line (or (match-string 2) ""))
+               (column (or (match-string 3) ""))
+               (message (string-trim (or (match-string 4) "")))
+               (rule (or (match-string 5) "")))
+          (when (and (not (string-empty-p path))
+                     (not (string-empty-p line)))
+            (push (periphery--build-list
+                   :path (format "%s:%s:%s" path line column)
+                   :file path
+                   :line line
+                   :keyword "warning"
+                   :result (format "%s (%s)" message rule)
+                   :regex periphery-regex-mark-quotes)
+                  errors))))
+      errors)))
+
+;;;###autoload
+(defun periphery-parse-ktlint-result (input)
+  "Parse Klint result."
+  (when periphery-debug
+    (message input))
+  (let ((errors (periphery--parse-ktlint input)))
+    (setq periphery-errorList (delete-dups errors))
+    (when (or (periphery--is-buffer-visible) periphery-errorList)
+      (periphery--listing-command periphery-errorList))))
 
 ;;;###autoload
 (defun svg-color-from-tag (tag)
@@ -599,5 +635,4 @@
                                                                   :crop-left t)))))))
 
 (provide 'periphery)
-
 ;;; periphery.el ends here

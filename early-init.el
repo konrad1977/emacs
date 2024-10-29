@@ -5,7 +5,6 @@
 ;; Defer garbage collection further back in the startup process
 
 ;; ;; Prevent unwanted runtime builds in gccemacs (native-comp); native-comp is available from Emacs 28+
-(setq native-comp-deferred-compilation nil)
 ;; ;; Prevent package.el loading packages prior to their init-file loading
 
 ;; ;; Faster to disable these here (before they've been initialized)
@@ -70,8 +69,12 @@
 (when (fboundp 'tooltip-mode)
   (tooltip-mode -1))
 
-;; No Alarms by default.
-(setq ring-bell-function 'ignore)
+(setq native-comp-async-report-warnings-errors 'silent
+      native-comp-deferred-compilation t
+      package-enable-at-startup nil
+      package-quickstart nil
+      load-prefer-newer t
+      ring-bell-function 'ignore)
 
 ;; Restore file name handler and GC settings after init
 (add-hook 'emacs-startup-hook
