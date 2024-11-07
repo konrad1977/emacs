@@ -21,7 +21,7 @@
   (fujiWhite		"#DCD7BA" "#ffffff")
   (old-white		"#C8C093" "#ffffff")
 
-  (sumiInk          "#13131a" "#13131a")
+  (sumiInk		"#13131a" "#13131a")
   (sumiInk-0		"#16161D" "#000000")
   (sumiInk-1b		"#1c1c24" "#000000")
   (sumiInk-1		"#1F1F28" "#080808")
@@ -36,7 +36,7 @@
   (waveAqua1		"#6A9589" "#6a9589")
   (waveAqua2		"#7AA89F" "#717C7C")
   
-  (samuraiRed       "#E82424" "#585858")
+  (samuraiRed		"#E82424" "#585858")
 
   (winterGreen		"#2B3328" "#585858")
   (winterYellow		"#49443C" "#585858")
@@ -50,7 +50,7 @@
   (roninYellow		"#FF9E3B" "#585858")
 
   (dragonBlue		"#658594" "#658594")
-  (fujiGray         "#727169" "#717C7C")
+  (fujiGray		"#727169" "#717C7C")
   (springViolet1	"#938AA9" "#717C7C")
   (oniViolet		"#957FB8" "#717C7C")
   (crystalBlue		"#7E9CD8" "#717C7C")
@@ -61,11 +61,11 @@
   (boatYellow2		"#C0A36E" "#717C7C")
   (carpYellow		"#E6C384" "#717C7C")
   (sakuraPink		"#D27E99" "#717C7C")
-  (waveRed          "#E46876" "#717C7C")
-  (peachRed         "#FF5D62" "#717C7C")
+  (waveRed		"#E46876" "#717C7C")
+  (peachRed		"#FF5D62" "#717C7C")
   (surimiOrange		"#FFA066" "#717C7C")
   (katanaGray		"#717C7C" "#717C7C")
-  (comet            "#54536D" "#4e4e4e"))
+  (comet		"#54536D" "#4e4e4e"))
 
  ;; Customize faces
  (
@@ -185,7 +185,7 @@
   (org-special-keyword                           (:background winterRed :foreground peachRed :height 0.8))
   (org-code                                      (:background sumiInk-0))
   (org-meta-line                                 (:background winterGreen :foreground springGreen))
-  (org-block                                     (:background sumiInk-0 :foreground sumiInk-4))
+  (org-block                                     (:background sumiInk-0))
   (org-block-begin-line                          (:background winterBlue :foreground dragonBlue))
   (org-block-end-line	                         (:background winterBlue :foreground dragonBlue))
   (org-headline-done                             (:foreground dragonBlue :strike-through t))
@@ -328,11 +328,11 @@
   (treemacs-git-renamed-face                     (:foreground dragonBlue :baground winterGreen :weight 'normal))
   (treemacs-git-ignored-face                     (:foreground sumiInk-4 :italic t :weight 'thin))
   (treemacs-git-unmodified-face                  (:foreground sumiInk-6 :weight 'thin))
-  (treemacs-git-untracked-face                   (:foreground fujiGray :weight 'normal))
-  (treemacs-git-modified-face                    (:foreground springBlue :background winterBlue :weight 'normal))
+  (treemacs-git-untracked-face                   (:foreground springGreen :weight 'normal :italic t))
+  (treemacs-git-modified-face                    (:foreground springBlue  :weight 'normal))
 
   ;; lsp and lsp-ui
-  ;; (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
+  ;; (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
   (lsp-headerline-breadcrumb-path-face           (:background sumiInk-0))
   ;; (lsp-headerline-breadcrumb-path-hint-face      (:background sumiInk-0))
   ;; (lsp-headerline-breadcrumb-path-info-face      (:background sumiInk-0))
@@ -356,12 +356,6 @@
   (dashboard-items-face                          (:foreground fujiWhite))
   (dashboard-banner-logo-title                   (:bold t :height 200))
   (dashboard-no-items-face                       (:foreground sumiInk-4))
-
-  ;; all-the-icons
-  (all-the-icons-dgreen                          (:foreground waveAqua2))
-  (all-the-icons-green                           (:foreground waveAqua2))
-  (all-the-icons-dpurple                         (:foreground springViolet2))
-  (all-the-icons-purple                          (:foreground springViolet2))
 
   ;; evil
   (evil-ex-lazy-highlight                        (:foreground winterRed :background sakuraPink :bold t))
@@ -571,13 +565,15 @@
   (periphery-warning-face-full (:foreground winterYellow :background boatYellow2 :bold t))
 
   (markdown-header-delimiter-face (:foreground sumiInk-4))
-  (markdown-header-face-1 (:height 1.2 :foreground peachRed :weight 'extra-bold))
-  (markdown-header-face-2 (:height 1.25 :foreground waveAqua1 :weight 'bold))
-  (markdown-header-face-3 (:height 1.3 :foreground dragonBlue :weight 'bold))
-  (markdown-header-face-4 (:height 1.35 :foreground waveBlue-2 :weight 'bold))
+  (markdown-list-face (:foreground carpYellow :bold t))
+  (markdown-header-face-1 (:height 1.2 :foreground waveRed :background winterRed :weight 'extra-bold))
+  (markdown-header-face-2 (:height 1.15 :foreground springBlue :weight 'bold))
+  (markdown-header-face-3 (:height 1.1 :foreground springGreen :weight 'bold))
+  (markdown-header-face-4 (:height 1.05 :foreground waveBlue-2 :weight 'bold))
   (markdown-markup-face (:foreground sumiInk-4))
-  (markdown-inline-code-face (:foreground peachRed :weight 'thin))
-  (markdown-pre-face (:foreground springViolet2 :weight 'thin))
+  (markdown-inline-code-face (:foreground springViolet2 :background winterBlue :weight 'normal :italic t))
+  (markdown-code-face (:foreground springBlue :weight 'normal))
+  (markdown-pre-face (:foreground old-white :weight 'thin))
 
   (eldoc-box-body (:background winterBlue :foreground crystalBlue))
   (eldoc-box-border (:background sumiInk-4))

@@ -9,7 +9,7 @@
 (require 'mode-line-hud)
 
 (defvar swiftformat-command "swiftformat")
-(defvar swift-version "5.9")
+(defvar swift-version "6.0")
 (defvar disabled-rules-list '(
                               "blankLinesAroundMark"
                               "blankLinesAtStartOfScope"

@@ -32,6 +32,11 @@
   :type 'boolean
   :group 'android-emulator)
 
+(defcustom android-emulator-language "Sv-SE"
+  "Language to use for the emulator."
+  :type 'string
+  :group 'android-emulator)
+
 (defvar android-emulator--process nil
   "Process object for the running emulator.")
 
@@ -397,6 +402,7 @@ Each element should be a string representing a tag or filter pattern."
                  buffer
                  emulator-path
                  "-avd" android-emulator-name
+		 ;; "-change-locale" android-emulator-language
                  "-verbose")))
 
         ;; Set process as the buffer's process
@@ -429,6 +435,28 @@ Each element should be a string representing a tag or filter pattern."
   "Ensure emulator is running, start it if not."
   (unless (android-emulator-running-p)
     (android-emulator-start)))
+
+(defun android-emulator-open-room-db ()
+  "Find the Room database file for the currently running emulator and open it in `sqlite-mode' in Emacs."
+  (interactive)
+  (let* ((adb-path (expand-file-name "platform-tools/adb" (android-emulator--expand-sdk-path)))
+         (device (car (android-emulator-get-adb-devices)))
+         (emulator-avd-home (android-emulator-get-avd-home))
+         (db-path (concat emulator-avd-home "/" device "/databases"))
+         (db-file (read-file-name "Select Room database file: " db-path nil t)))
+    (when (and device db-file)
+      (let ((local-db-file (concat "/tmp/" (file-name-nondirectory db-file))))
+        (start-process "adb-pull" "*adb-pull*"
+                       adb-path "pull" db-file local-db-file)
+        (message "Pulling database from emulator...")
+        (set-process-sentinel
+         (get-process "adb-pull")
+         (lambda (proc _event)
+           (if (= (process-exit-status proc) 0)
+               (progn
+                 (find-file local-db-file)
+                 (sqlite-mode))
+             (message "Failed to pull the database."))))))))
 
 ;; Define a function to handle cleanup during package unloading
 (defun android-emulator-unload-function ()

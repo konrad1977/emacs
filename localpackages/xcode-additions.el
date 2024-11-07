@@ -92,26 +92,21 @@
 
 (defun xcode-additions:list-scheme-files ()
   "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of the current Xcode project or workspace directory."
-  (let* ((project-name (concat (xcode-additions:project-name) ".xcodeproj/"))
-         (project-directory (concat (xcode-additions:find-xcode-project-directory) project-name)))
-    (cond
-     (project-directory
-      (let ((xcscheme-files (xcode-additions:list-xcscheme-files project-directory)))
-        (if xcscheme-files
-            xcscheme-files
-          ))))))
+  (let* ((project-directory (xcode-additions:find-xcode-project-directory))
+         (project-name (xcode-additions:project-name))
+         (full-project-path (when project-directory
+                              (concat project-directory project-name ".xcodeproj/"))))
+    (when full-project-path
+      (xcode-additions:list-xcscheme-files full-project-path))))
 
 (cl-defun xcode-additions:get-build-settings-json (&key (config "Debug"))
   "Get build settings from xcodebuild."
-  (if (not current-build-settings-json)
-      (progn
-        (unless current-project-root
-          (setq current-project-root (xcode-additions:project-root)))
-        (setq-local default-directory current-project-root)
-        (let ((json (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json")))
-          (setq current-build-settings-json json))
-        current-build-settings-json)
-    current-build-settings-json))
+  (unless current-build-settings-json
+    (setq current-project-root (or current-project-root (xcode-additions:project-root)))
+    (let ((default-directory current-project-root))
+      (setq current-build-settings-json
+            (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json"))))
+  current-build-settings-json)
 
 (defun xcode-additions:product-name ()
   "Get product name."
@@ -308,20 +303,28 @@
   (interactive)
   (ios-simulator:reset)
   (periphery-kill-buffer)
-  (setq current-run-on-device nil)
-  (setq current-local-device-id nil)
-  (setq current-is-xcode-project nil)
-  (setq current-build-folder nil)
-  (setq current-app-identifier nil)
-  (setq current-build-configuration nil)
-  (setq current-project-root nil)
-  (setq current-xcode-scheme nil)
+  (setq current-run-on-device nil
+        current-local-device-id nil
+        current-is-xcode-project nil
+        current-build-folder nil
+        current-app-identifier nil
+        current-build-configuration nil
+        current-project-root nil
+        current-xcode-scheme nil)
   (mode-line-hud:update :message "Resetting configuration"))
 
 ;;;###autoload
+(defun xcode-additions:start-debugging ()
+  "Start debugging immediately without confirmation."
+  (interactive)
+  (xcode-additions:setup-dape)
+  (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
+    (dape config)))
+
 (defun xcode-additions:setup-dape()
   "Setup dape."
   (interactive)
+  (setq dape-confirm-debug-command nil)
   (require 'dape)
   (add-to-list 'dape-configs
              `(ios

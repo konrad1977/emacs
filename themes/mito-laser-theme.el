@@ -104,15 +104,18 @@
   (treemacs-git-untracked-face                   (:foreground vibrant))
   (treemacs-git-modified-face                    (:foreground nord))
 
+  (font-lock-property-name-face                  (:foreground purple))
+  (font-lock-property-use-face                    (:foreground purple))
   (font-lock-keyword-face                        (:foreground light :weight 'normal))
   (font-lock-variable-name-face                  (:foreground teal))
+  (font-lock-variable-use-face                   (:foreground cyan))
   (font-lock-type-face                           (:foreground pink :weight 'bold))
   (font-lock-warning-face                        (:foreground sun))
   (font-lock-string-face                         (:foreground green :italic t :weight 'normal))
   (font-lock-builtin-face                        (:foreground blue))
   (font-lock-reference-face                      (:foreground yellow))
-  (font-lock-constant-face                       (:foreground teal));;
-  (font-lock-comment-face                        (:foreground grey2 :italic t :weight 'normal))
+  (font-lock-constant-face                       (:foreground cyan));;
+  (font-lock-comment-face                        (:foreground purple :italic t :weight 'thin))
   (font-lock-comment-delimiter-face              (:inherit 'font-lock-comment-face))
   (font-lock-function-name-face                  (:foreground blue))
   (font-lock-number-face                         (:foreground purple :bold t))
@@ -122,7 +125,7 @@
   (font-lock-preprocessor-face	                 (:foreground orange))
   (elisp-shorthand-font-lock-face                (:foreground pink))
   (font-lock-regexp-grouping-backslash           (:foreground pink))
-  (font-lock-operator-face                       (:foreground pink))
+  (font-lock-operator-face                       (:foreground teal))
   (font-lock-misc-punctuation-face               (:foreground sun))
   (font-lock-punctuation-face                    (:foreground orange :weight 'normal))
 
@@ -185,12 +188,12 @@
   (rainbow-delimiters-base-error-face            (:foreground red))
   (rainbow-delimiters-base-face                  (:foreground vibrant))
 
-  (rainbow-delimiters-depth-1-face               (:foreground red))
-  (rainbow-delimiters-depth-2-face               (:foreground vibrant))
-  (rainbow-delimiters-depth-3-face               (:foreground nord))
+  (rainbow-delimiters-depth-1-face               (:foreground purple))
+  (rainbow-delimiters-depth-2-face               (:foreground red))
+  (rainbow-delimiters-depth-3-face               (:foreground blue))
   (rainbow-delimiters-depth-4-face               (:foreground teal))
-  (rainbow-delimiters-depth-5-face               (:foreground purple))
-  (rainbow-delimiters-depth-6-face               (:foreground red))
+  (rainbow-delimiters-depth-5-face               (:foreground light))
+  (rainbow-delimiters-depth-6-face               (:foreground nord))
   (rainbow-delimiters-depth-7-face               (:foreground baby))
   (rainbow-delimiters-depth-8-face               (:foreground orange))
   (rainbow-delimiters-depth-9-face               (:foreground blue))
@@ -245,6 +248,19 @@
   (smerge-refined-change        (:background nord))
   (smerge-refined-removed	(:background orange :strike-through t))
   (smerge-refined-added 	(:background green :foreground darkest))
+
+  (markdown-header-delimiter-face (:foreground purple))
+  (markdown-header-face-1 (:height 1.15 :foreground red :weight 'bold))
+  (markdown-header-face-2 (:height 1.12 :foreground pink :weight 'semi-bold))
+  (markdown-header-face-3 (:height 1.1 :foreground teal :weight 'semi-bold))
+  (markdown-header-face-4 (:height 1.08 :foreground orange :weight 'normal))
+  (markdown-list-face (:foreground sun :bold t))
+  (markdown-markup-face (:foreground baby))
+  (markdown-inline-code-face (:foreground purple :background black2 :weight 'normal :italic t))
+  (markdown-code-face (:foreground cyan :weight 'normal))
+  (markdown-pre-face (:foreground blue))
+
+
 
   ))
 

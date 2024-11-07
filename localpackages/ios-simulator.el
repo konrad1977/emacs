@@ -1,10 +1,18 @@
 ;;; Simulator --- A small package for viewing iOS simulator logs -*- lexical-binding: t -*-
 ;;; Commentary: This package provides some support for iOS Simulator
 ;;; Code:
-(require 'periphery-helper)
-(require 'mode-line-hud)
-(require 'xcode-additions)
-(require 'json)
+
+(with-eval-after-load 'periphery-helper
+ (require 'periphery-helper))
+
+(with-eval-after-load 'mode-line-hud
+  (require 'mode-line-hud))
+
+(with-eval-after-load 'xcode-additions
+  (require 'xcode-additions))
+
+(with-eval-after-load 'json
+  (require 'json))
 
 (defvar-local ios-simulator--installation-process nil
   "Process object for the current app installation.")
@@ -155,6 +163,7 @@
                          (message "Installation process crashed: %s" event)
                          (with-current-buffer (process-buffer process)
                            (message "Installation output: %s" (buffer-string))))))))))
+
 
 (defun ios-simulator:kill-buffer ()
   "Kill the ios-simulator buffer."
@@ -394,7 +403,7 @@
   (inhibit-sentinel-messages #'call-process-shell-command command))
 
 (defun ios-simulator:run-command-and-get-json (command)
-  "Run a shell command and return the JSON output as a string."
+  "Run a shell COMMAND and return the JSON output as a string."
   (let* ((json-output (shell-command-to-string command))
          (json-data (json-read-from-string json-output)))
     json-data))

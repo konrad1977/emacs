@@ -56,7 +56,7 @@
   "Test runner to use for Kotlin tests.
 Options are 'junit or 'kotest."
   :type '(choice (const :tag "JUnit" junit)
-                (const :tag "Kotest" kotest))
+                 (const :tag "Kotest" kotest))
   :group 'kotlin-development)
 
 (defcustom kotlin-development-emulator-name "Pixel_3a_API_34_extension_level_7_arm64-v8a"
@@ -84,8 +84,8 @@ Options are 'junit or 'kotest."
   (let* ((project-root (kotlin-development-find-project-root))
          (default-directory project-root)
          (test-command (pcase kotlin-development-test-runner
-                        ('junit "./gradlew test")
-                        ('kotest "./gradlew testDebug"))))
+                         ('junit "./gradlew test")
+                         ('kotest "./gradlew testDebug"))))
     (compile test-command)))
 
 ;; New functions for code analysis
@@ -188,10 +188,10 @@ Options are 'junit or 'kotest."
     (insert "Kotlin Build History:\n\n")
     (dolist (build (reverse kotlin-development--build-history))
       (insert (format "Time: %s\nDuration: %.2fs\nStatus: %s\n\n"
-                     (format-time-string "%Y-%m-%d %H:%M:%S"
-                                       (plist-get build :timestamp))
-                     (plist-get build :duration)
-                     (plist-get build :status))))
+                      (format-time-string "%Y-%m-%d %H:%M:%S"
+					  (plist-get build :timestamp))
+                      (plist-get build :duration)
+                      (plist-get build :status))))
     (display-buffer (current-buffer))))
 
 ;; APK management
@@ -199,7 +199,7 @@ Options are 'junit or 'kotest."
   "Install APK file at APK-PATH."
   (interactive "fSelect APK file: ")
   (let ((adb-path (expand-file-name "platform-tools/adb"
-                                   kotlin-development-android-sdk-path)))
+                                    kotlin-development-android-sdk-path)))
     (shell-command (format "%s install -r %s" adb-path apk-path))))
 
 (defun kotlin-development-uninstall-app ()
@@ -207,7 +207,7 @@ Options are 'junit or 'kotest."
   (interactive)
   (let* ((package-name (kotlin-development--get-package-name))
          (adb-path (expand-file-name "platform-tools/adb"
-                                   kotlin-development-android-sdk-path)))
+                                     kotlin-development-android-sdk-path)))
     (shell-command (format "%s uninstall %s" adb-path package-name))))
 
 (defun kotlin-development-find-java-home ()
@@ -223,8 +223,8 @@ Options are 'junit or 'kotest."
           (file-name-directory real-java-path)))
       ;; Common Oracle JDK locations
       (cl-loop for path in '("/usr/lib/jvm/java-23-oracle"
-                            "/usr/java/jdk-23"
-                            "/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home")
+                             "/usr/java/jdk-23"
+                             "/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home")
                when (file-directory-p path)
                return path)))
 
@@ -265,10 +265,10 @@ Options are 'junit or 'kotest."
   (kotlin-development-ensure-java-home)
 
   (let* ((project-root (or (kotlin-development-find-project-root)
-                          (error "Could not find project root")))
+                           (error "Could not find project root")))
          (source-roots (kotlin-development-get-source-roots project-root))
          (debug-adapter-path (expand-file-name
-                            "~/.emacs.d/var/dape-adapters/kotlin-debug-adapter/bin/kotlin-debug-adapter")))
+                              "~/.emacs.d/var/dape-adapters/kotlin-debug-adapter/bin/kotlin-debug-adapter")))
 
     (add-to-list 'dape-configs
                  `(android-debug
@@ -298,8 +298,8 @@ Options are 'junit or 'kotest."
 
     ;; Start app in debug mode
     (call-process "adb" nil nil nil "shell" "am" "start"
-                 "-D" ; Debug flag
-                 "-n" (concat package-name "/" package-name main-activity))
+                  "-D" ; Debug flag
+                  "-n" (concat package-name "/" package-name main-activity))
 
     ;; Forward debug port
     (call-process "adb" nil nil nil "forward" "tcp:5005" "jdwp:*))")))
@@ -341,7 +341,7 @@ Options are 'junit or 'kotest."
   "Check if emulator is fully booted."
   (let* ((adb-path (expand-file-name "platform-tools/adb" kotlin-development-android-sdk-path))
          (output (shell-command-to-string
-                 (format "%s shell getprop sys.boot_completed" adb-path))))
+                  (format "%s shell getprop sys.boot_completed" adb-path))))
     (string-match-p "1" output)))
 
 ;; Add these functions
@@ -446,9 +446,9 @@ Options are 'junit or 'kotest."
         (let ((status (match-string 1 line)))
           (mode-line-hud:update
            :message (format "Build %s"
-                          (propertize status 'face
-                                    (if (string= status "SUCCESSFUL")
-                                        'success 'error))))))
+                            (propertize status 'face
+					(if (string= status "SUCCESSFUL")
+                                            'success 'error))))))
 
        ;; Match compilation errors/warnings
        ((string-match error-regex line)
@@ -457,13 +457,13 @@ Options are 'junit or 'kotest."
               (type (match-string 3 line))
               (message (match-string 4 line)))
           (message "%s:%s: %s: %s"
-                  (propertize file 'face 'warning)
-                  line-num
-                  (propertize type 'face
-                            (cond ((string= type "error") 'error)
-                                  ((string= type "warning") 'warning)
-                                  (t 'success)))
-                  message)))))))
+                   (propertize file 'face 'warning)
+                   line-num
+                   (propertize type 'face
+                               (cond ((string= type "error") 'error)
+                                     ((string= type "warning") 'warning)
+                                     (t 'success)))
+                   message)))))))
 
 
 (defun kotlin-development-cleanup ()
@@ -521,10 +521,10 @@ Options are 'junit or 'kotest."
           ;; Try multiple regex patterns
           (catch 'found
             (dolist (pattern '("applicationId *= *\"\\([^\"]+\\)\""
-                             "applicationId[[:space:]]*=[[:space:]]*\"\\([^\"]+\\)\""
-                             "applicationId\\s*=\\s*\"\\([^\"]+\\)\""))
+                               "applicationId[[:space:]]*=[[:space:]]*\"\\([^\"]+\\)\""
+                               "applicationId\\s*=\\s*\"\\([^\"]+\\)\""))
 	      (when kotlin-development-debug
-	  		(message "Trying pattern: %s" pattern))
+	  	(message "Trying pattern: %s" pattern))
               (goto-char (point-min))
               (when (re-search-forward pattern nil t)
                 (let ((match (match-string 1)))
@@ -588,13 +588,13 @@ Options are 'junit or 'kotest."
       (user-error "Could not determine launch activity"))
 
     (mode-line-hud:update :message
-                         (format "Launching app: %s/%s" package-name activity))
+                          (format "Launching app: %s/%s" package-name activity))
 
     (let* ((full-activity (if (string-prefix-p "." activity)
-                             (concat package-name activity)
-                           activity))
+                              (concat package-name activity)
+                            activity))
            (launch-command (format "%s shell am start -n %s/%s"
-                                 adb-path package-name full-activity))
+                                   adb-path package-name full-activity))
            (result (shell-command-to-string launch-command)))
 
       (if (string-match-p "Error\\|Exception" result)
@@ -604,7 +604,7 @@ Options are 'junit or 'kotest."
               (message "Launch command was: %s" launch-command)))
         (mode-line-hud:update
          :message (format "Running: %s"
-                         (propertize package-name 'face 'font-lock-constant-face)))))))
+                          (propertize package-name 'face 'font-lock-constant-face)))))))
 
 ;;;###autoload
 (defun kotlin-development-verify-lsp-server ()
@@ -635,13 +635,17 @@ Options are 'junit or 'kotest."
   (when (fboundp 'mode-line-hud:notification)
     (mode-line-hud:notification
      :message (format "Initializing: %s"
-                     (propertize "kotlin-ls" 'face 'font-lock-keyword-face))
+                      (propertize "kotlin-ls" 'face 'font-lock-keyword-face))
      :seconds 2)))
 
 ;;;###autoload
 (defun kotlin-development-setup ()
   "Main setup function for Kotlin development environment."
   (interactive)
+
+  (add-to-list 'major-mode-remap-alist '(kotlin-mode . kotlin-ts-mode))
+
+  ;; (kotlin-development-kotlin-mode-setup)
   ;; Verify LSP server first
   (kotlin-development-verify-lsp-server)
 
@@ -659,35 +663,7 @@ Options are 'junit or 'kotest."
   ;; Setup both modes
   (kotlin-development-common-hook))
 
-;; Mode setup functions
-;;;###autoload
-(defun kotlin-development-kotlin-mode-setup ()
-  "Setup for kotlin-mode."
-  (use-package kotlin-mode
-    :defer t
-    :mode "\\.kt\\'"
-    :hook (kotlin-mode . kotlin-development-setup)
-    :config
-    (setq-default compilation-scroll-output t
-		  compilation-always-kill t
-		  compilation-ask-about-save nil
-		  compilation-scroll-output 'first-error)
-    (setq-default kotlin-tab-width kotlin-development-indent-offset)))
-
-;;;###autoload
-(defun kotlin-development-ts-mode-setup ()
-  "Setup for kotlin-ts-mode."
-  (use-package kotlin-ts-mode
-    :ensure t
-    :mode "\\.kt\\'"
-    :hook (kotlin-ts-mode . kotlin-development-setup)
-    :config
-    (setq-default eldoc-mode nil)
-    (setq-default compilation-scroll-output t)
-    (setq kotlin-ts-mode-indent-offset kotlin-development-indent-offset)
-    (add-to-list 'major-mode-remap-alist '(kotlin-mode . kotlin-ts-mode))))
-
-;;;###autoload
+;;;;###autoload
 (defun kotlin-development-flycheck-setup ()
   "Setup Flycheck for Kotlin development."
   (use-package flycheck-kotlin
@@ -752,31 +728,30 @@ ADB: %s" sdk-path emulator-path adb-path)))
 
       (display-buffer (current-buffer)))))
 
-(defun kotlin-development-setup-keys ()
-  "Setup key bindings for Kotlin development."
-  (let ((map-list '(kotlin-mode-map kotlin-ts-mode-map)))
-    (dolist (map map-list)
-      (when (boundp map)
-	(define-key (symbol-value map) (kbd "C-c C-c") #'kotlin-development-build-and-run)
-	(define-key (symbol-value map) (kbd "C-c C-r") #'kotlin-development-rebuild)
-	(define-key (symbol-value map) (kbd "C-c C-d") (lambda () (interactive)
-							 (kotlin-development-setup-dape)
-							 (kotlin-development-start-debugger)))
-	(define-key (symbol-value map) (kbd "C-c C-e e") #'kotlin-development-select-emulator)
-	(define-key (symbol-value map) (kbd "C-c C-e k") #'kotlin-development-kill-emulator)
-	(define-key (symbol-value map) (kbd "C-c C-e l") #'kotlin-development-list-emulators)
-	(define-key (symbol-value map) (kbd "C-c C-e s") #'kotlin-development-start-emulator)
-	(define-key (symbol-value map) (kbd "C-c t t") #'kotlin-development-run-tests)
-	(define-key (symbol-value map) (kbd "M-r") #'kotlin-development-launch-app)
-	(define-key (symbol-value map) (kbd "M-s") #'kotlin-development-emulator-terminate-app)
-	(define-key (symbol-value map) (kbd "M-K") #'kotlin-development-clean-build-or-sync)
-        (define-key (symbol-value map) (kbd "C-c a") #'kotlin-development-analyze-code)
-        (define-key (symbol-value map) (kbd "C-c d") #'kotlin-development-check-dependencies)
-        (define-key (symbol-value map) (kbd "C-c f") #'kotlin-development-fix-code-style)
-        (define-key (symbol-value map) (kbd "C-c h") #'kotlin-development-show-build-history)
-	))))
+;;;###autoload
+(define-minor-mode kotlin-development-minor-mode
+  "Minor mode for Kotlin development environment."
+  :lighter " KotDev"
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map (kbd "C-c C-c") #'kotlin-development-build-and-run)
+            (define-key map (kbd "C-c C-r") #'kotlin-development-rebuild)
+            (define-key map (kbd "C-c C-d") (lambda () (interactive)
+                                              (kotlin-development-setup-dape)
+                                              (kotlin-development-start-debugger)))
+            (define-key map (kbd "C-c C-e e") #'kotlin-development-select-emulator)
+            (define-key map (kbd "C-c C-e k") #'kotlin-development-kill-emulator)
+            (define-key map (kbd "C-c C-e l") #'kotlin-development-list-emulators)
+            (define-key map (kbd "C-c C-e s") #'kotlin-development-start-emulator)
+            (define-key map (kbd "C-c t t") #'kotlin-development-run-tests)
+            (define-key map (kbd "M-r") #'kotlin-development-launch-app)
+            (define-key map (kbd "M-s") #'kotlin-development-emulator-terminate-app)
+            (define-key map (kbd "M-K") #'kotlin-development-clean-build)
+            (define-key map (kbd "C-c a") #'kotlin-development-analyze-code)
+            (define-key map (kbd "C-c d") #'kotlin-development-check-dependencies)
+            (define-key map (kbd "C-c f") #'kotlin-development-fix-code-style)
+            (define-key map (kbd "C-c h") #'kotlin-development-show-build-history)
+            map))
 
-(kotlin-development-setup-keys)
 
 (defun kotlin-development--debug-manifest ()
   "Debug function to show manifest contents."
@@ -788,6 +763,42 @@ ADB: %s" sdk-path emulator-path adb-path)))
         (insert-file-contents manifest-path)
         (xml-mode)
         (display-buffer (current-buffer))))))
+
+;;;###autoload
+(defun kotlin-development-mode-setup ()
+  "Setup for both kotlin-mode and kotlin-ts-mode."
+  (kotlin-development-minor-mode 1)
+  (kotlin-development-setup)
+  (kotlin-development-common-hook)
+
+  (defun my/hide-path-in-compilation-errors ()
+    "Hide the path in compilation error messages but keep them clickable."
+    (save-excursion
+      (goto-char compilation-filter-start)
+      (while (re-search-forward "\\(e:\\|w:\\|alert:\\|info:\\|ERROR:\\) \\(file://\\)?\\(.*/\\)\\([^/]+\\):\\([0-9]+\\):\\([0-9]+\\)" nil t)
+	(add-text-properties (match-beginning 3) (match-end 3) '(invisible t)))))
+
+  (add-hook 'compilation-filter-hook #'my/hide-path-in-compilation-errors)
+
+  (setq-default eldoc-mode nil)
+  (setq-default compilation-always-kill t
+		compilation-ask-about-save nil
+		compilation-skip-threshold 2  ; Skip less important messages
+		eldoc-mode nil
+		compilation-scroll-output 'first-error)
+  (setq compilation-transform-file-match-patterns nil))
+
+;; ;;;###autoload
+;; (add-hook 'kotlin-mode-hook #'kotlin-development-mode-setup)
+;; ;;;###autoload
+;; (add-hook 'kotlin-ts-mode-hook #'kotlin-development-mode-setup)
+
+;; ;;;###autoload
+;; (add-to-list 'auto-mode-alist '("\\.kt\\'" . kotlin-ts-mode))
+;; ;;;###autoload
+;; (add-to-list 'auto-mode-alist '("\\.kts\\'" . kotlin-ts-mode))
+
+
 
 (provide 'kotlin-development)
 

@@ -69,7 +69,7 @@
   ;; (header-line                          (:background base :foreground rose :weight 'semi-bold :italic t) :box (:line-width padding))
   (header-line                          (:background base :foreground subtle :box (:line-width padding :color base)))
   (highlight                            (:background base :foreground foam :distant-foreground base))
-  (hl-line                              (:background dark-green))
+  (hl-line                              (:background base))
   (homoglyph                            (:foreground foam))
   (line-number                          (:foreground highlight-high))
   (line-number-current-line             (:background dark-green :foreground subtle :bold t))
@@ -321,7 +321,7 @@
   (vertico-multiline                            (:background base :foreground text :distant-foreground text))
   (vertico-group-title                          (:foreground subtle :weight 'semi-bold :height 180))
   (vertico-group-separator                      (:foreground muted :strike-through t))
-  (vertico-current                              (:background dark-green :distant-foreground text :foreground text))
+  (vertico-current                              (:background medium-love :distant-foreground text :foreground text))
 
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground unmuted))
@@ -329,8 +329,8 @@
   (corfu-current                                (:inherit 'vertico-current))
   (corfu-annotations                            (:background medium-gold :foreground subtle))
   (corfu-bar                                    (:background gold))
-  (corfu-default                                (:background dark-green))
-  (corfu-popupinfo                              (:background medium-green :weight 'light))
+  (corfu-default                                (:background dark-love))
+  (corfu-popupinfo                              (:background crust :weight 'light))
 
   ;; posframe's
   (ivy-posframe                                 (:background muted))
@@ -351,17 +351,23 @@
   (consult-preview-insertion                    (:foreground love :background base))
   (yas-field-highlight-face                     (:background pine :foreground text))
   
-  (treemacs-directory-collapsed-face			(:foreground muted))
-  (treemacs-directory-face						(:foreground subtle))
-  (treemacs-file-face							(:foreground subtle))
+  (treemacs-window-background-face              (:background base))
+  (treemacs-directory-collapsed-face		(:foreground muted))
+  (treemacs-directory-face			(:foreground muted))
+  (treemacs-file-face				(:foreground muted))
   (treemacs-fringe-indicator-face               (:foreground love))
 
-  (treemacs-git-added-face						(:foreground gold))
-  (treemacs-git-renamed-face				   	(:foreground rose))
-  (treemacs-git-ignored-face				   	(:foreground muted))
-  (treemacs-git-unmodified-face		   			(:foreground text))
-  (treemacs-git-renamed-face		   			(:foreground text))
-  (treemacs-git-modified-face		   			(:foreground rose))
+  (treemacs-git-added-face			(:foreground gold))
+  (treemacs-git-renamed-face			(:foreground rose))
+  (treemacs-git-ignored-face			(:foreground muted))
+  (treemacs-git-unmodified-face		   	(:foreground text))
+  (treemacs-git-renamed-face		   	(:foreground text))
+  (treemacs-git-modified-face		   	(:foreground rose))
+
+  (treemacs-nerd-icons-file-face                 (:inherit 'treemacs-file-face))
+  (treemacs-nerd-icons-root-face                 (:inherit 'treemacs-directory-face))
+
+
 
   ;; lets support solaire mode
   (solaire-default-face (:background base))

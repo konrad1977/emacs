@@ -2,85 +2,81 @@
 ;;; Commentary:
 ;;; Code:
 
-;; Defer garbage collection further back in the startup process
+;;; Commentary: My early init file
 
-;; ;; Prevent unwanted runtime builds in gccemacs (native-comp); native-comp is available from Emacs 28+
-;; ;; Prevent package.el loading packages prior to their init-file loading
+;;; Code:
 
-;; ;; Faster to disable these here (before they've been initialized)
+(defvar file-name-handler-alist-original file-name-handler-alist)
+
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6
+      read-process-output-max (* 4 1024 1024)
+      file-name-handler-alist nil
+      kill-ring-max 100000
+      mode-line-format nil
+      process-adaptive-read-buffering nil)
+
+(customize-set-variable 'native-comp-async-report-warnings-errors nil)
+(customize-set-variable 'comp-async-report-warnings-errors nil)
+(customize-set-variable 'native-comp-async-query-on-exit t)
+(customize-set-variable 'comp-async-query-on-exit t)
+(customize-set-variable 'native-comp-speed 3)
+(customize-set-variable 'comp-speed 3)
+
+(custom-set-variables '(savehist-additional-variables '(kill-ring)))
+
+(setq ffap-alist nil)                ; faster, dumber prompting
+(setq ffap-url-regexp nil)           ; disable URL features in ffap
+(setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
+(setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
+(setq ffip-use-rust-fd t)
+
+(prefer-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+
+(push '(ns-use-native-fullscreen . t) default-frame-alist)
+(push '(ns-transparent-titlebar . t) default-frame-alist)
+(push '(ns-appearance . dark) default-frame-alist)
 (push '(menu-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
+(push '(fullscreen . maximized) default-frame-alist)
+(push '(vertical-scroll-bars . nil) default-frame-alist)
+(push '(background-color . "#13131a") default-frame-alist)
+(push '(foreground-color . "#a0a0ae") default-frame-alist)
 
-;; ;; Optimize file-name-handler-alist
-(defvar file-name-handler-alist-original file-name-handler-alist)
-(setq file-name-handler-alist nil)
-
-;; ;; Set frame parameters
-(setq default-frame-alist
-      '((ns-use-native-fullscreen . t)
-        (ns-transparent-titlebar . t)
-        (ns-appearance . dark)
-        (fullscreen . maximized)
-        (background-color . "#13131a")
-        (foreground-color . "#a0a0ae")))
-
-;; ;; Optimize startup
-(setq custom-file null-device
-      read-process-output-max (* 32 1024 1024)
-      bidi-display-reordering 'left-to-right
-      bidi-inhibit-bpa t
-      bidi-paragraph-direction 'left-to-right
-      default-input-method nil
-      frame-inhibit-implied-resize t
+(setq frame-inhibit-implied-resize t
+      frame-resize-pixelwise t
       frame-title-format nil
-      gc-cons-percentage 0.6
-      gc-cons-threshold (* 100 1024 1024)  ; Optional: 100MB for GC
-      gc-cons-threshold most-positive-fixnum  ; Keep this one
-      idle-update-delay 1.0
-      inhibit-compacting-font-caches t
+      truncate-lines nil
+      truncate-partial-width-windows t
+      truncate-string-ellipsis          ".."
+      package-enable-at-startup nil
+      indicate-buffer-boundaries '((bottom . right))
       inhibit-splash-screen t
       inhibit-startup-buffer-menu t
-      inhibit-startup-echo-area-message user-login-name
       inhibit-startup-message t
+      inhibit-startup-screen t
       initial-major-mode 'fundamental-mode
-      large-file-warning-threshold (* 100 1024 1024)  ; 100MB warning threshold
-      max-lisp-eval-depth 1000000  ; Increased from 100000
-      max-specpdl-size 1000000  ; Increased from 100000
-      mode-line-format nil
-      initial-scratch-message nil)
+      initial-scratch-message nil
+      load-prefer-newer noninteractive
+      ring-bell-function 'ignore
+      ;; Remove the conflicting settings and use just one:
+      byte-compile-warnings '(not obsolete free-vars unresolved noruntime lexical make-local)
+      warning-minimum-level :emergency  ; More strict than :error
+      warning-suppress-log-types '((comp) (bytecomp) (obsolete))
+      warning-suppress-types '((comp) (bytecomp) (obsolete))
+      site-run-file nil)
 
-;; ;; Encoding and bidirectional text optimization
-(set-language-environment "UTF-8")
+;; Add this to ensure warnings are suppressed even for already-loaded packages
+(with-eval-after-load 'warnings
+  (setq warning-suppress-types '((comp) (bytecomp) (obsolete))))
 
-;; No scrollbar by default.
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode -1))
-
-;; No nenubar by default.
-(when (fboundp 'menu-bar-mode)
-  (menu-bar-mode -1))
-
-;; No toolbar by default.
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-
-;; No tooltip by default.
-(when (fboundp 'tooltip-mode)
-  (tooltip-mode -1))
-
-(setq native-comp-async-report-warnings-errors 'silent
-      native-comp-deferred-compilation t
-      package-enable-at-startup nil
-      package-quickstart nil
-      load-prefer-newer t
-      ring-bell-function 'ignore)
-
-;; Restore file name handler and GC settings after init
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 64 1024 1024)
-                  gc-cons-percentage 0.5
+            (setq gc-cons-threshold (* 128 1024 1024)
+                  gc-cons-percentage 0.4
                   file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)
