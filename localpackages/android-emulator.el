@@ -32,6 +32,26 @@
   :type 'string
   :group 'android-emulator)
 
+(defface android-emulator-log-error-face
+  '((t :foreground "red" :weight bold))
+  "Face for error logs (E).")
+
+(defface android-emulator-log-warning-face
+  '((t :foreground "yellow"))
+  "Face for warning logs (W).")
+
+(defface android-emulator-log-info-face
+  '((t :foreground "green"))
+  "Face for info logs (I).")
+
+(defface android-emulator-log-debug-face
+  '((t :foreground "gray"))
+  "Face for debug logs (D).")
+
+(defface android-emulator-log-verbose-face
+  '((t :foreground "white"))
+  "Face for verbose logs (V).")
+
 (defvar android-emulator-name nil
   "Name of the Android Virtual Device (AVD) to use.")
 
@@ -58,6 +78,13 @@
   (ansi-color-for-comint-mode-on)
   (setq comint-prompt-read-only t
         comint-buffer-maximum-size 10000))
+
+(define-derived-mode android-emulator-crash-mode compilation-mode "Android Crash"
+  "Major mode for viewing Android crash logs."
+  (setq-local font-lock-defaults (list android-emulator-crash-keywords))
+  (setq-local compilation-error-regexp-alist
+              '(("at \\([^(]+\\)(\\([^:]+\\):\\([0-9]+\\))" 1 2 3)))
+  (read-only-mode 1))
 
 (defcustom android-emulator-monitor-logcat t
   "Whether to automatically start monitoring logcat when emulator starts."
@@ -86,44 +113,6 @@ Example: com.example.myapp"
                 (string :tag "App Identifier"))
   :group 'android-emulator)
 
-(defun android-emulator-set-app-identifier (identifier)
-  "Set the app identifier for logcat filtering."
-  (interactive "sEnter app identifier (package name): ")
-  (setq android-emulator-app-identifier identifier)
-  (when (and identifier android-emulator-logcat-process)
-    (android-emulator-restart-logcat)))
-
-(defun android-emulator-restart-logcat ()
-  "Restart the logcat monitoring with current filters."
-  (interactive)
-  (android-emulator-stop-logcat)
-  (android-emulator-start-logcat))
-
-(defun android-emulator-build-logcat-command ()
-  "Build the logcat command with appropriate filters."
-  (let* ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path))
-         (base-command (list adb-path "logcat" "-v" "threadtime"))
-         (filters nil))
-
-    ;; Add app identifier filter if set
-    (when android-emulator-app-identifier
-      (push (format "package:%s" android-emulator-app-identifier) filters))
-
-    ;; Add crash-related filters to ensure we don't miss important errors
-    (setq filters (append filters
-                         '("AndroidRuntime:E"
-                           "System.err:*"
-                           "*:F"))) ; Fatal errors from any source
-
-    ;; Add any extra custom filters
-    (when android-emulator-logcat-extra-filters
-      (setq filters (append filters android-emulator-logcat-extra-filters)))
-
-    ;; Combine all filters
-    (if filters
-        (append base-command (list "*:S" (string-join filters " ")))
-      base-command)))
-
 (defcustom android-emulator-logcat-extra-filters nil
   "Additional tags or filters for logcat.
 Each element should be a string representing a tag or filter pattern."
@@ -133,12 +122,12 @@ Each element should be a string representing a tag or filter pattern."
 (defvar android-emulator-crash-buffer-name "*Android Crash Log*"
   "Name of the buffer where filtered crash logs will be shown.")
 
-(define-derived-mode android-emulator-crash-mode compilation-mode "Android Crash"
-  "Major mode for viewing Android crash logs."
-  (setq-local font-lock-defaults (list android-emulator-crash-keywords))
-  (setq-local compilation-error-regexp-alist
-              '(("at \\([^(]+\\)(\\([^:]+\\):\\([0-9]+\\))" 1 2 3)))
-  (read-only-mode 1))
+(defun android-emulator-set-app-identifier (identifier)
+  "Set the app identifier for logcat filtering."
+  (interactive "sEnter app identifier (package name): ")
+  (setq android-emulator-app-identifier identifier)
+  (when (and identifier android-emulator-logcat-process)
+    (android-emulator-restart-logcat)))
 
 (defun android-emulator-filter-crash-line (line)
   "Return non-nil if LINE contains crash-related information."
@@ -185,7 +174,6 @@ Each element should be a string representing a tag or filter pattern."
         (goto-char (point-min)))
       (display-buffer (current-buffer)))))
 
-;; Modify the existing process filter to include crash highlighting
 (defun android-emulator-process-filter (proc string)
   "Process filter that handles ANSI colors and crash highlighting."
   (when (buffer-live-p (process-buffer proc))
@@ -460,7 +448,6 @@ Each element should be a string representing a tag or filter pattern."
                  (sqlite-mode))
              (message "Failed to pull the database."))))))))
 
-;; Define a function to handle cleanup during package unloading
 (defun android-emulator-unload-function ()
   "Clean up resources when unloading the package."
   (android-emulator-kill))
@@ -471,16 +458,40 @@ Each element should be a string representing a tag or filter pattern."
   (setq android-emulator-debug t)
   (message "Android emulator debugging enabled"))
 
+(defun android-emulator-restart-logcat ()
+  "Restart the logcat monitoring with current filters."
+  (interactive)
+  (android-emulator-stop-logcat)
+  (android-emulator-start-logcat))
+
+(defun android-emulator-build-logcat-command ()
+  "Build the logcat command with appropriate filters."
+  (let ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path)))
+    (if android-emulator-app-identifier
+        ;; Använd logcat's inbyggda pid-filter och kombinera med grep för säkerhet
+        (format "%s shell pidof %s | xargs %s logcat --pid"
+                adb-path
+                (shell-quote-argument android-emulator-app-identifier)
+                adb-path)
+      ;; Annars, använd basic logcat
+      (format "%s logcat -v threadtime" adb-path))))
+
 (defun android-emulator-logcat-filter (proc string)
-  "Process filter for logcat output that handles crashes and ANSI colors."
+  "Process filter for logcat output that handles crashes and colors."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((moving (= (point) (process-mark proc)))
-            (inhibit-read-only t))
+            (inhibit-read-only t)
+            (buffer-read-only nil))  ; Make sure buffer is writable
         (save-excursion
           (goto-char (process-mark proc))
           (let ((start (point)))
-            (insert (ansi-color-apply string))
+            ;; Insert och färglägg rad för rad
+            (dolist (line (split-string string "\n" t))
+              (let ((colored-line (android-emulator-colorize-log-line line)))
+                (put-text-property 0 (length colored-line) 'font-lock-face
+                                 (get-text-property 0 'face colored-line) colored-line)
+                (insert colored-line "\n")))
             (when android-emulator-highlight-crashes
               (save-excursion
                 (goto-char start)
@@ -518,12 +529,14 @@ Each element should be a string representing a tag or filter pattern."
       (visual-line-mode 1))
 
     (let* ((command (android-emulator-build-logcat-command))
-           (proc (apply #'start-process "android-logcat" buffer command)))
+           (proc (start-process-shell-command
+                 "android-logcat"
+                 buffer
+                 command)))
 
       (setq android-emulator-logcat-process proc)
       (set-process-filter proc #'android-emulator-logcat-filter)
 
-      ;; Set up process sentinel
       (set-process-sentinel
        proc
        (lambda (proc event)
@@ -533,18 +546,18 @@ Each element should be a string representing a tag or filter pattern."
 
       (display-buffer buffer)
 
-      ;; Log the command if debugging is enabled
       (when android-emulator-debug
-        (message "Started logcat with command: %s" (mapconcat #'identity command " "))))))
+        (message "Started logcat with command: %s" command)))))
 
 (defun android-emulator-stop-logcat ()
-  "Stop the logcat monitoring process."
+  "Stop the logcat monitoring process and kill its buffer."
   (interactive)
   (when android-emulator-logcat-process
     (delete-process android-emulator-logcat-process)
-    (setq android-emulator-logcat-process nil)))
+    (setq android-emulator-logcat-process nil))
+  (when (get-buffer android-emulator-logcat-buffer-name)
+    (kill-buffer android-emulator-logcat-buffer-name)))
 
-;; Modify the android-emulator-kill function to include logcat cleanup
 (defun android-emulator-kill ()
   "Kill the running emulator and clean up processes."
   (interactive)
@@ -563,7 +576,6 @@ Each element should be a string representing a tag or filter pattern."
     (when android-emulator-debug
       (message "Emulator shutdown initiated."))))
 
-;; Add logcat startup to the emulator process sentinel
 (defun android-emulator--setup-process-sentinel (proc)
   "Set up the process sentinel for the emulator process PROC."
   (set-process-sentinel
@@ -586,6 +598,27 @@ Each element should be a string representing a tag or filter pattern."
 	   (setq-default truncate-lines t)
 	   (visual-line-mode 1)
            (display-buffer (current-buffer)))))))))
+
+(defun android-emulator-colorize-log-line (line)
+  "Add colors to a log line based on its log level."
+  (cond
+   ;; Error
+   ((string-match "\\([[:space:]]\\|^\\)E/\\|[[:space:]]E[[:space:]]" line)
+    (propertize line 'face 'android-emulator-log-error-face))
+   ;; Warning
+   ((string-match "\\([[:space:]]\\|^\\)W/\\|[[:space:]]W[[:space:]]" line)
+    (propertize line 'face 'android-emulator-log-warning-face))
+   ;; Info
+   ((string-match "\\([[:space:]]\\|^\\)I/\\|[[:space:]]I[[:space:]]" line)
+    (propertize line 'face 'android-emulator-log-info-face))
+   ;; Debug
+   ((string-match "\\([[:space:]]\\|^\\)D/\\|[[:space:]]D[[:space:]]" line)
+    (propertize line 'face 'android-emulator-log-debug-face))
+   ;; Verbose
+   ((string-match "\\([[:space:]]\\|^\\)V/\\|[[:space:]]V[[:space:]]" line)
+    (propertize line 'face 'android-emulator-log-verbose-face))
+   ;; Default case
+   (t line)))
 
 (defvar android-emulator-mode-map
   (let ((map (make-sparse-keymap)))

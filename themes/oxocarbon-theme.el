@@ -603,6 +603,12 @@
   (diff-refine-changed (:background medium-gold))
   (diff-refine-removed (:background medium-love))
 
+  (android-emulator-log-error-face (:foreground love :background dark-love))
+  (android-emulator-log-warning-face (:foreground gold :background dark-gold))
+  (android-emulator-log-info-face (:foreground foam :background dark-foam))
+  (android-emulator-log-debug-face (:foreground pine :background base))
+  (android-emulator-log-verbose-face (:foreground muted :background base))
+  
  ))
 
 ;;;###autoload

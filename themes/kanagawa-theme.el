@@ -598,6 +598,13 @@
   (eglot-type-hint-face (:foreground sumiInk-5 :height 0.8))
 
   (wgrep-done-face (:foreground sumiInk-6))
+
+  (android-emulator-log-error-face (:foreground samuraiRed :background winterRed))
+  (android-emulator-log-warning-face (:foreground roninYellow :background winterYellow))
+  (android-emulator-log-info-face (:foreground springGreen :background winterGreen))
+  (android-emulator-log-debug-face (:foreground springBlue :background winterBlue))
+  (android-emulator-log-verbose-face (:foreground comet))
+  
   ))
 
 (provide-theme 'kanagawa)

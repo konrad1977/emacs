@@ -312,11 +312,11 @@ Cancel the previous one if present."
   ;; (load-theme 'catppuccin-frappe t)
   ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  (load-theme 'oxocarbon t)
+  ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
@@ -325,12 +325,14 @@ Cancel the previous one if present."
 
 (use-package prog-mode
   :ensure nil
-  :hook ((prog-mode . display-line-numbers-mode)
+  :hook ((prog-mode . display-line-numbers-mode)            ;; Insert och färglägg rad för rad
+
 	 (prog-mode . highlight-symbol-mode)
 	 (prog-mode . electric-pair-mode)
 	 (prog-mode . electric-indent-mode)
 	 (prog-mode . drag-stuff-mode)
 	 (prog-mode . dumb-jump-mode)
+	 (prog-mode . hs-minor-mode)
 	 (prog-mode . setup-programming-mode))
   :config
   (setq display-line-numbers-type 'relative))
@@ -372,7 +374,7 @@ Cancel the previous one if present."
    vertico-posframe-parameters
         '((left-fringe . 0)
           (right-fringe . 0)
-	  (alpha . 85))
+	  (alpha . 88))
         vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         vertico-posframe-truncate-lines t
         vertico-posframe-min-width 80
