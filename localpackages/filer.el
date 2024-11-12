@@ -38,6 +38,11 @@
   :group 'filer
   :type 'boolean)
 
+(defcustom filer-include-project-name nil
+  "When non-nil, include project name in results."
+  :group 'filer
+  :type 'boolean)
+
 (defcustom filer-max-results 500
   "Maximum number of results to process."
   :group 'filer
@@ -59,7 +64,10 @@
        (format "%s %s %s%s"
                icon
                (propertize file-name 'face 'filer-filename-face)
-               (propertize project-name 'face 'filer-project-name-face)
+	       (if filer-include-project-name
+		   (propertize project-name 'face 'filer-project-name-face)
+		 ""
+		 )
                (if file-dir
                    (concat (propertize "/" 'face 'filer-path-delimiter-face)
                            (propertize (directory-file-name file-dir) 'face 'filer-path-face))

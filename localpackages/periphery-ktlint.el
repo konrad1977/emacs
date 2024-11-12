@@ -25,6 +25,7 @@
 (defun periphery-ktlint-autocorrect-buffer()
   "Autocorrect current buffer using ktlint."
   (interactive)
+  (mode-line-hud:notification :message (propertize "running ktlint" 'face 'font-lock-keyword-face) :seconds 1)
   (save-some-buffers t)
   (if-let* ((file (buffer-file-name)))
       (periphery-run-ktlint-buffer

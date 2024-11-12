@@ -353,7 +353,8 @@ Options are 'junit or 'kotest."
 	  (let ((git-root (locate-dominating-file default-directory ".git")))
 	    (if git-root
 		(or (locate-dominating-file git-root "settings.gradle.kts")
-		    git-root)))))
+		    git-root)
+	      (locate-dominating-file default-directory "settings.gradle.kts")))))
   kotlin-development-current-root)
 
 (defun kotlin-development-build-and-run ()
@@ -627,32 +628,37 @@ Options are 'junit or 'kotest."
 ;;;###autoload
 (defun kotlin-development-common-hook ()
   "Common setup for both Kotlin modes."
-  (eglot-ensure)
-  (show-paren-mode 1)
-  (electric-pair-mode 1)
   (setq-local comment-start "// "
               comment-end "")
-  (when (fboundp 'mode-line-hud:notification)
-    (mode-line-hud:notification
-     :message (format "Initializing: %s"
-                      (propertize "kotlin-ls" 'face 'font-lock-keyword-face))
-     :seconds 2)))
+  (run-with-timer 0.1 nil
+                  (lambda ()
+                    (mode-line-hud:update
+                     :message (format "Initializing: %s"
+                                    (propertize "kotlin-ls" 'face 'font-lock-keyword-face)))))
+  ;; Setup the eglot hook
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (when (eglot-managed-p)
+                (mode-line-hud:notification
+                 :message (format "Ready: %s"
+                                (propertize "kotlin-ls" 'face 'font-lock-constant-face))
+                 :seconds 2
+                 :reset t)))))
+
 
 ;;;###autoload
 (defun kotlin-development-setup ()
   "Main setup function for Kotlin development environment."
   (interactive)
 
-  (add-to-list 'major-mode-remap-alist '(kotlin-mode . kotlin-ts-mode))
-
   ;; (kotlin-development-kotlin-mode-setup)
   ;; Verify LSP server first
-  (kotlin-development-verify-lsp-server)
+  ;; (kotlin-development-verify-lsp-server)
 
-  ;; Register LSP server with eglot
-  (add-to-list 'eglot-server-programs
-               `((kotlin-mode kotlin-ts-mode) . (,kotlin-development-lsp-server-path)))
-
+  ;; ;; Register LSP server with eglot
+  ;; (add-to-list 'eglot-server-programs
+  ;;              `((kotlin-mode kotlin-ts-mode) . (,kotlin-development-lsp-server-path)))
+	    
   ;; Configure tree-sitter
   (add-to-list 'treesit-language-source-alist
                '(kotlin "https://github.com/fwcd/tree-sitter-kotlin"))
@@ -661,15 +667,12 @@ Options are 'junit or 'kotest."
   (kotlin-development-install-tree-sitter-grammar)
 
   ;; Setup both modes
-  (kotlin-development-common-hook))
+  (kotlin-development-common-hook)
 
-;;;;###autoload
-(defun kotlin-development-flycheck-setup ()
-  "Setup Flycheck for Kotlin development."
-  (use-package flycheck-kotlin
-    :ensure t
-    :config
-    (flycheck-kotlin-setup)))
+  (eldoc-mode -1)
+
+  ;; (setq compilation-transform-file-match-patterns nil)
+  )
 
 ;;;###autoload
 (defun kotlin-development-validate-android-setup ()
@@ -752,7 +755,6 @@ ADB: %s" sdk-path emulator-path adb-path)))
             (define-key map (kbd "C-c h") #'kotlin-development-show-build-history)
             map))
 
-
 (defun kotlin-development--debug-manifest ()
   "Debug function to show manifest contents."
   (let* ((project-root (kotlin-development-find-project-root))
@@ -768,37 +770,17 @@ ADB: %s" sdk-path emulator-path adb-path)))
 (defun kotlin-development-mode-setup ()
   "Setup for both kotlin-mode and kotlin-ts-mode."
   (kotlin-development-minor-mode 1)
-  (kotlin-development-setup)
-  (kotlin-development-common-hook)
+  (kotlin-development-setup))
 
-  (defun my/hide-path-in-compilation-errors ()
-    "Hide the path in compilation error messages but keep them clickable."
-    (save-excursion
-      (goto-char compilation-filter-start)
-      (while (re-search-forward "\\(e:\\|w:\\|alert:\\|info:\\|ERROR:\\) \\(file://\\)?\\(.*/\\)\\([^/]+\\):\\([0-9]+\\):\\([0-9]+\\)" nil t)
-	(add-text-properties (match-beginning 3) (match-end 3) '(invisible t)))))
+;; (defun my/hide-path-in-compilation-errors ()
+;;   "Hide the path in compilation error messages but keep them clickable."
+;;   (save-excursion
+;;     (goto-char compilation-filter-start)
+;;     (while (re-search-forward "\\(e:\\|w:\\|alert:\\|info:\\|ERROR:\\) \\(file://\\)?\\(.*/\\)?\\([^/]+\\):\\([0-9]+\\):\\([0-9]+\\)" nil t)
+;;       (when (match-beginning 3)
+;;         (add-text-properties (match-beginning 3) (match-end 3) '(invisible t)))))
 
-  (add-hook 'compilation-filter-hook #'my/hide-path-in-compilation-errors)
-
-  (setq-default eldoc-mode nil)
-  (setq-default compilation-always-kill t
-		compilation-ask-about-save nil
-		compilation-skip-threshold 2  ; Skip less important messages
-		eldoc-mode nil
-		compilation-scroll-output 'first-error)
-  (setq compilation-transform-file-match-patterns nil))
-
-;; ;;;###autoload
-;; (add-hook 'kotlin-mode-hook #'kotlin-development-mode-setup)
-;; ;;;###autoload
-;; (add-hook 'kotlin-ts-mode-hook #'kotlin-development-mode-setup)
-
-;; ;;;###autoload
-;; (add-to-list 'auto-mode-alist '("\\.kt\\'" . kotlin-ts-mode))
-;; ;;;###autoload
-;; (add-to-list 'auto-mode-alist '("\\.kts\\'" . kotlin-ts-mode))
-
-
+;;   (add-hook 'compilation-filter-hook #'my/hide-path-in-compilation-errors))
 
 (provide 'kotlin-development)
 

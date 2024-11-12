@@ -70,16 +70,21 @@ Cancel the previous one if present."
   :init
   (fset 'yes-or-no-p 'y-or-n-p)
   (global-hl-line-mode 1)
-  ;; (pixel-scroll-mode 1)
+  (global-auto-revert-mode 1)
+  (global-so-long-mode 1)
   (pixel-scroll-precision-mode 1)
   (set-display-table-slot standard-display-table 0 ?\ )
   :config
   (setq-default
-   line-spacing 0.05
    confirm-kill-emacs (lambda (prompt)
 			(y-or-n-p-with-timeout prompt 2 nil))
+   fringes-outside-margins nil
+   indicate-buffer-boundaries nil
+   indicate-empty-lines nil
    display-battery-mode 1
    create-lockfiles nil
+   auto-revert-verbose nil
+   auto-revert-interval 1
    make-backup-files nil
    auto-save-default nil
    auto-save-interval 2000
@@ -88,12 +93,14 @@ Cancel the previous one if present."
    kept-new-versions 6
    kept-old-versions 2
    version-control t
-   auto-revert-check-vc-info t
+   global-auto-revert-non-file-buffers t
    completion-ignore-case t
    display-line-numbers-width 4
    cursor-in-non-selected-windows nil
    find-file-visit-truename nil
-   vc-follow-symlinks t
+
+   ad-redefinition-action 'accept
+   ;; vc-follow-symlinks t
    large-file-warning-threshold (* 25 1024 1024)
    backup-by-copying t
    backup-directory-alist `(("." . "~/.saves"))
@@ -108,6 +115,8 @@ Cancel the previous one if present."
    scroll-step 1
    auto-window-vscroll nil
 
+   backward-delete-char-untabify-method 'hungry
+   
    ;; Performance improvements
    fast-but-imprecise-scrolling nil
    redisplay-skip-fontification-on-input nil
@@ -135,6 +144,17 @@ Cancel the previous one if present."
 (defun setup-programming-mode ()
   "Setup programming mode."
   ;; CONSIDER: Moving keybindings to a separate key-binding file
+
+  (defun infer-indentation-style ()
+  "Default to no tabs, but use tabs if already in project"
+  (let ((space-count (how-many "^  " (point-min) (point-max)))
+        (tab-count   (how-many "^\t" (point-min) (point-max))))
+    (if (> space-count tab-count) (setq-default indent-tabs-mode nil))
+    (if (> tab-count space-count) (setq-default indent-tabs-mode t))))
+
+  (setq-default indent-tabs-mode nil)
+  (infer-indentation-style)
+  
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
         left-fringe-width 50
@@ -244,9 +264,6 @@ Cancel the previous one if present."
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
   (welcome-dashboard-create-welcome-hook))
 
-(setq-default indicate-buffer-boundaries nil)
-(setq-default indicate-empty-lines nil)
-
 (when (fboundp 'set-message-beep)
   (set-message-beep 'silent))
 
@@ -296,11 +313,11 @@ Cancel the previous one if present."
   ;; (load-theme 'catppuccin-frappe t)
   ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  ;; (load-theme 'oxocarbon t)
+  (load-theme 'oxocarbon t)
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
@@ -340,7 +357,7 @@ Cancel the previous one if present."
           (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
           "  ")
   cand)))
-  (setq vertico-resize nil
+  (setq vertico-resize t
         vertico-count 10
         vertico-multiline t
         vertico-scroll-margin 0
@@ -356,11 +373,11 @@ Cancel the previous one if present."
    vertico-posframe-parameters
         '((left-fringe . 0)
           (right-fringe . 0)
-	  (alpha . 90))
-        vertico-posframe-poshandler #'posframe-poshandler-frame-center
+	  (alpha . 85))
+        vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
         vertico-posframe-truncate-lines t
         vertico-posframe-min-width 80
-        vertico-posframe-width 120
+        vertico-posframe-width 160
         vertico-posframe-min-height 10
         vertico-posframe-border-width 20))
 
@@ -472,7 +489,7 @@ Cancel the previous one if present."
   (setq
    ;; punch-line-separator " 〉 "
    punch-line-separator "  "
-   punch-show-project-info t
+   punch-show-project-info nil
    punch-show-git-info t
    punch-show-lsp-info t
    punch-show-copilot-info t
@@ -659,7 +676,7 @@ Cancel the previous one if present."
   :custom
   (kind-icon-extra-space t)
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.20)
+  (kind-icon-blend-frac 0.10)
   :config
   (setq kind-icon-default-face 'corfu-default ; to compute blended backgrounds correctly
         kind-icon-default-style '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 1))
@@ -725,6 +742,9 @@ Cancel the previous one if present."
   :init
   (setq corfu-auto-delay 0.2          ; Reduced from 0.3
 	corfu-auto-prefix 2
+        corfu-popupinfo-delay 0.2
+        corfu-preselect 'valid
+        cofru-preview-current t
 	corfu-count 10
 	corfu-quit-at-boundary 'separator
 	corfu-quit-no-match t))
@@ -794,7 +814,7 @@ Cancel the previous one if present."
   :defer t
   :commands (treemacs treemacs-select-window)
   :hook (treemacs-mode . treemacs-project-follow-mode)
-  :bind (("M-J" . treemacs-find-file)
+  :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
   :custom-face
   (treemacs-directory-face ((t (:family "SF Pro Display" :height 0.9))))
@@ -931,7 +951,6 @@ Cancel the previous one if present."
   (setq darkroom-text-scale-increase 1.5
         darkroom-margins '(12 . 0)))
 
-;; Use git
 (use-package magit
   :defer t
   :commands (magit-status magit-ediff-show-working-tree)
@@ -985,6 +1004,7 @@ Cancel the previous one if present."
     (when root (if (version<= emacs-version "28")
                     (cons 'vc root)
                  (list 'vc backend root)))))
+
 (use-package dall-e-shell
   :defer t
   :config
@@ -992,8 +1012,7 @@ Cancel the previous one if present."
 
 (use-package chatgpt-shell
   :ensure nil
-  :bind (
-	 ("C-c C-v" . chatgpt-shell-quick-insert)
+  :bind (("C-c C-v" . chatgpt-shell-quick-insert)
 	 ("C-c C-p" . chatgpt-shell-prompt-compose)
 	 ("C-x c g s" . chatgpt-shell-send-and-review-region)
 	 ("C-x c g r" . chatgpt-shell-refactor-code))
@@ -1303,7 +1322,6 @@ Cancel the previous one if present."
         swift-mode:highlight-anchor t)
   (setq font-lock-maximum-decoration '((swift-mode . 3) (emacs-lisp-mode . 3) (t . t))))
 
-
 (use-package localizeable-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
@@ -1339,7 +1357,9 @@ Cancel the previous one if present."
   :ensure nil)
 
 (use-package eglot
-  :hook ((swift-mode . eglot-ensure))
+  :hook (
+	 (swift-mode . eglot-ensure)
+	 ((kotlin-mode kotlin-ts-mode) . eglot-ensure))
   :ensure nil
   :bind
   ("C-c e f" . #'eglot-code-action-quickfix)
@@ -1352,22 +1372,30 @@ Cancel the previous one if present."
   ("C-c e i" . #'eglot-find-implementation)
   ("C-c e b" . #'eglot-format-buffer)
   :custom
-  (eglot-report-progress nil)
-  (eglot-autoshutdown t)
+  (eglot-report-progress t)
+  (eglot-autoshutdown nil)
+  (eglot-connect-timeout 120)
+  (eglot-sync-connect 3)
+  (eglot-events-buffer-size 0)
   (eglot-events-buffer-config '(size: 0))
   :config
+
+  ;; (add-to-list 'eglot-server-programs '((kotlin-mode  kotlin-ts-mode) . ("kotlin-language-server" :initializationOptions (:storagePath "/tmp"))))
+  (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact))
   (add-to-list 'eglot-server-programs
                '((typescript-mode typescript-tsx-mode) . ("typescript-language-server" "--stdio")))
 
-  (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact))
-
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  (add-hook 'typescript-mode-hook 'eglot-ensure)
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (unless (derived-mode-p 'kotlin-ts-mode)
+                (eldoc-box-hover-mode t))))
+  
   (setq eglot-stay-out-of '(corfu company flycheck)
-	eglot-extend-to-xref nil
+	eglot-extend-to-xref t
 	eglot-send-changes-idle-time 0.5
 	eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
-  (advice-add 'jsonrpc--log-event :override #'ignore)
-  (add-hook 'typescript-mode-hook 'eglot-ensure))
+  (advice-add 'jsonrpc--log-event :override #'ignore))
 
 (use-package xcode-additions
  :ensure nil
@@ -1380,7 +1408,7 @@ Cancel the previous one if present."
 
 (use-package swift-refactor
   :ensure nil
-  :after (swift-mode kotlin-mode kotlin-ts-mode)
+  :after (swift-mode kotlin-mode)
   :bind
   ("C-c r s" . #'swift-refactor:split-function-list)
   ("M-t" . #'swift-refactor:insert-todo)
@@ -1463,19 +1491,24 @@ Cancel the previous one if present."
 (use-package tree-sitter
   :hook ((swift-mode . tree-sitter-mode)
          (typescript-mode . tree-sitter-mode)
+	 (xml-mode . tree-sitter-mode)
+	 (nxml-mode . tree-sitter-mode)
          (tree-sitter-after-on . tree-sitter-hl-mode)))
 
 (use-package tree-sitter-langs
   :after tree-sitter)
 
-(use-package rainbow-mode
-  :hook (emacs-lisp-mode . rainbow-mode))
+;; (use-package rainbow-mode
+;;   :hook (emacs-lisp-mode . rainbow-mode))
+
+(use-package colorful-mode
+  :hook (prog-mode . colorful-mode))
 
 (use-package svg-tag-mode
   :defer 10
   :hook ((swift-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode)
-         (kotlin-ts-mode . svg-tag-mode))
+         (kotlin-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
 
@@ -1566,7 +1599,7 @@ Cancel the previous one if present."
   :config (eglot-booster-mode))
 
 (use-package indent-bars
-  :hook ((emacs-lisp-mode tree-sitter-hl-mode kotlin-ts-mode) . indent-bars-mode)
+  :hook ((emacs-lisp-mode tree-sitter-hl-mode kotlin-mode) . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.1))
   (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
@@ -1649,7 +1682,8 @@ Cancel the previous one if present."
 (use-package nxml-mode
   :ensure nil
   :mode "\\.xml\\'"
-  :hook (nxml-mode . setup-programming-mode))
+  :hook ((nxml-mode . setup-programming-mode)
+	 (nxml-mode . colorful-mode)))
 
 (defun safe-kill-buffer-and-window ()
   "Kill the current buffer and delete its window if it's not the last one."
@@ -1673,17 +1707,51 @@ Cancel the previous one if present."
 ;; (use-package yasnippet
 ;;   :defer 2
 ;;   :hook (lsp-mode . yas-minor-mode))
+
+(use-package compile
+  :ensure nil
+  :hook (compilation-finish-functions .
+         (lambda (buf str)
+           (when (string-match "finished" str)
+             (run-at-time "1 sec" nil 'delete-windows-on buf)
+             (bury-buffer buf))))
+  :custom
+  ((compilation-always-kill t)
+   (compilation-auto-jump-to-first-error t)
+   (compilation-ask-about-save nil)
+   (compilation-skip-threshold 1)
+   (compilation-scroll-output 'all)
+   (compilation-highlight-overlay t)
+   (compilation-environment '("TERM=dumb" "TERM=xterm-256color"))
+   (compilation-window-height 15)
+   (compilation-reuse-window t)
+   (compilation-max-output-line-length nil))
+  :config
+  (setq compilation-scroll-output t)
+  (require 'ansi-color)
+  (defun my/colorize-compilation-buffer ()
+    (let ((inhibit-read-only t))
+      (ansi-color-apply-on-region (point-min) (point-max))))
+  (add-hook 'compilation-filter-hook #'my/colorize-compilation-buffer))
+
+(use-package flycheck-kotlin
+  :defer t
+  :config
+  (flycheck-kotlin-setup))
+
  (use-package kotlin-mode
     :config
-    (setq-default kotlin-tab-width 4))
+    (eldoc-mode -1)
+    (setq-default kotlin-tab-width 2))
 
 (use-package kotlin-ts-mode
     :hook (kotlin-mode . kotlin-ts-mode)
     :config
-    (setq kotlin-ts-mode-indent-offset 4))
+    (eldoc-mode -1)
+    (setq kotlin-ts-mode-indent-offset 2))
 
 (use-package kotlin-development
-  :hook ((kotlin-ts-mode kotlin-mode) . kotlin-development-mode-setup)
+  :hook ((kotlin-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
   :bind ((:map kotlin-mode-map
                ("C-c C-c" . kotlin-development-build-and-run)
@@ -1694,6 +1762,7 @@ Cancel the previous one if present."
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator)))
   :config
+  (eldoc-mode nil)
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))  ; or "test_device" if you prefer
 
 (provide 'init)
