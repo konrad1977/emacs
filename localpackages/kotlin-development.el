@@ -630,11 +630,11 @@ Options are 'junit or 'kotest."
   "Common setup for both Kotlin modes."
   (setq-local comment-start "// "
               comment-end "")
-  (run-with-timer 0.1 nil
-                  (lambda ()
-                    (mode-line-hud:update
-                     :message (format "Initializing: %s"
-                                    (propertize "kotlin-ls" 'face 'font-lock-keyword-face)))))
+  ;; (run-with-timer 0.1 nil
+  ;;                 (lambda ()
+  ;;                   (mode-line-hud:update
+  ;;                    :message (format "Initializing: %s"
+  ;;                                   (propertize "kotlin-ls" 'face 'font-lock-keyword-face)))))
   ;; Setup the eglot hook
   (add-hook 'eglot-managed-mode-hook
             (lambda ()
@@ -644,7 +644,6 @@ Options are 'junit or 'kotest."
                                 (propertize "kotlin-ls" 'face 'font-lock-constant-face))
                  :seconds 2
                  :reset t)))))
-
 
 ;;;###autoload
 (defun kotlin-development-setup ()
@@ -669,8 +668,8 @@ Options are 'junit or 'kotest."
   ;; Setup both modes
   (kotlin-development-common-hook)
 
+  (add-hook 'kotlin-ts-mode (lambda () (setq-local indent-tabs-mode nil)))
   (eldoc-mode -1)
-
   ;; (setq compilation-transform-file-match-patterns nil)
   )
 

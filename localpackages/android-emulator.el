@@ -22,11 +22,6 @@
   :type 'string
   :group 'android-emulator)
 
-(defcustom android-emulator-name "Pixel_3a_API_34_extension_level_7_arm64-v8a"
-  "Name of the Android emulator to use."
-  :type 'string
-  :group 'android-emulator)
-
 (defcustom android-emulator-debug nil
   "Enable debug output for Android emulator."
   :type 'boolean
@@ -36,6 +31,9 @@
   "Language to use for the emulator."
   :type 'string
   :group 'android-emulator)
+
+(defvar android-emulator-name nil
+  "Name of the Android Virtual Device (AVD) to use.")
 
 (defvar android-emulator--process nil
   "Process object for the running emulator.")
@@ -342,22 +340,26 @@ Each element should be a string representing a tag or filter pattern."
 (defun android-emulator-select ()
   "Select an Android emulator interactively with debug info."
   (interactive)
-  (let* ((avds (android-emulator-get-available-avds)))
-    (when android-emulator-debug
-      (message "Available AVDs: %s" avds))
-    (if (null avds)
-        (error "No AVDs found. Create one using Android Studio first")
-      (let ((selected (completing-read "Select emulator: " avds nil t)))
-        (setq android-emulator-name selected)
-        (when android-emulator-debug
-          (message "Selected emulator: %s" selected))))))
+  (if android-emulator-name
+      android-emulator-name
+    (let* ((avds (android-emulator-get-available-avds)))
+      (when android-emulator-debug
+        (message "Available AVDs: %s" avds))
+      (if (null avds)
+          (error "No AVDs found. Create one using Android Studio first")
+        (let ((selected (completing-read "Select emulator: " avds nil t)))
+          (setq android-emulator-name selected)
+          (when android-emulator-debug
+            (message "Selected emulator: %s" selected)))
+        android-emulator-name))))
 
 (defun android-emulator-start ()
   "Start the Android emulator asynchronously with status updates."
   (interactive)
   (let* ((sdk-path (android-emulator--expand-sdk-path))
          (emulator-path (expand-file-name "emulator/emulator" sdk-path))
-         (default-directory (file-name-directory emulator-path)))
+         (default-directory (file-name-directory emulator-path))
+         (android-emulator-name (android-emulator-select)))
 
     (when android-emulator-debug
       (message "Starting emulator with:")

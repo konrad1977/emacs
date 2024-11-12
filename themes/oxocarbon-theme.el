@@ -96,8 +96,8 @@
   (whitespace-trailing                  (:foreground base :background love))
 
   ;; ;; Font lock
-  (font-lock-bracket-face               (:foreground iris :weight 'semi-bold))
-  (font-lock-builtin-face               (:foreground iris))
+  (font-lock-bracket-face               (:foreground pine :weight 'semi-bold))
+  (font-lock-builtin-face               (:foreground pine))
   (font-lock-comment-delimiter-face     (:foreground muted :italic t))
   (font-lock-comment-face               (:foreground muted :italic t))
   (font-lock-constant-face              (:foreground gold :bold t))
@@ -105,7 +105,7 @@
   (font-lock-doc-face                   (:foreground muted))
   (font-lock-doc-markup-face            (:foreground muted))
   (font-lock-doc-markup-face            (:foreground muted))
-  (font-lock-escape-face                (:foreground muted))
+  (font-lock-escape-face                (:foreground love))
   (font-lock-function-call-face         (:foreground foam :weight 'normal))
   (font-lock-function-name-face         (:foreground foam))
   (font-lock-keyword-face               (:foreground pink :weight 'semi-bold))
@@ -123,7 +123,6 @@
   (font-lock-variable-name-face         (:foreground rose))
   (font-lock-variable-use-face          (:foreground rose))
   (font-lock-warning-face               (:foreground gold))
-  
   
   (elisp-shorthand-font-lock-face       (:foreground gold))
 
@@ -418,27 +417,22 @@
   (completions-highlight                        (:foreground foam :italic t))
   (completions-common-part                      (:foreground gold :distant-foreground base :distant-background pine :bold t :italic t))
   (completions-first-difference                 (:foreground love))
-  (consult-file                                 (:foreground subtle :distant-foreground base))
+  (consult-file                                 (:foreground rose :distant-foreground base))
   (consult-preview-insertion                    (:foreground love :background base))
   (yas-field-highlight-face                     (:background pine :foreground text))
   
   (treemacs-window-background-face              (:background base))
-  (treemacs-directory-collapsed-face		(:foreground muted))
-  (treemacs-directory-face			(:foreground muted))
-  (treemacs-file-face				(:foreground muted))
+  (treemacs-directory-collapsed-face		(:foreground unmuted))
+  (treemacs-directory-face			(:foreground unmuted))
+  (treemacs-file-face				(:foreground unmuted))
   (treemacs-fringe-indicator-face               (:foreground love))
 
   (treemacs-git-added-face			(:foreground gold))
   (treemacs-git-renamed-face			(:foreground rose))
-  (treemacs-git-ignored-face			(:foreground muted))
-  (treemacs-git-unmodified-face		   	(:foreground text))
+  (treemacs-git-ignored-face			(:foreground medium-gold))
+  (treemacs-git-unmodified-face		   	(:foreground subtle))
   (treemacs-git-renamed-face		   	(:foreground text))
   (treemacs-git-modified-face		   	(:foreground rose))
-
-  (treemacs-nerd-icons-file-face                 (:inherit 'treemacs-file-face))
-  (treemacs-nerd-icons-root-face                 (:inherit 'treemacs-directory-face))
-
-
 
   ;; lets support solaire mode
   (solaire-default-face (:background base))

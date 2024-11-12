@@ -269,9 +269,8 @@ Cancel the previous one if present."
 
 (use-package nerd-icons
   :config
-  ;; (nerd-icons-scale-factor 1.0)
-  ;; (setq nerd-icons-color-icons t)
-  (setq nerd-icons-icon-size 22))
+  (setq nerd-icons-scale-factor 0.9)
+  (setq nerd-icons-color-icons t))
 
 (use-package ligature
   :hook (prog-mode . ligature-mode)
@@ -643,7 +642,10 @@ Cancel the previous one if present."
   (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
 
 (use-package treemacs-nerd-icons
-  :after treemacs
+  :functions treemacs-load-theme
+  :custom-face
+  (treemacs-nerd-icons-root-face ((t (:inherit nerd-icons- :height 1.3))))
+  (treemacs-nerd-icons-file-face ((t (:inherit treemacs-file-face :height 1.0))))
   :config
   (treemacs-load-theme "nerd-icons"))
 
@@ -817,18 +819,19 @@ Cancel the previous one if present."
   :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
   :custom-face
-  (treemacs-directory-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-directory-collapsed-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-git-ignored-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-git-unmodified-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-git-untracked-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-git-added-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-git-renamed-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-git-modified-face ((t (:family "SF Pro Display" :height 0.9))))
-  (treemacs-tags-face ((t (:family "SF Pro Display" :height 0.9))))
+  (treemacs-directory-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-directory-collapsed-face ((t (:family "Verdana" :height 0.8))))
+  ;; (treemacs-file-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-ignored-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-unmodified-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-untracked-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-added-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-renamed-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-modified-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-tags-face ((t (:family "Verdana" :height 0.8))))
   :config
   (setq treemacs-follow-after-init t
-        treemacs-collapse-dirs 1
+        treemacs-collapse-dirs 0
         treemacs-directory-name-transformer #'identity
         treemacs-file-name-transformer #'identity
         treemacs-show-cursor nil
@@ -837,13 +840,13 @@ Cancel the previous one if present."
         treemacs-follow-mode nil
         treemacs-hide-dot-git-directory t
         treemacs-git-integration t
-        treemacs-space-between-root-nodes t
+        treemacs-space-between-root-nodes nil
         treemacs-hide-gitignored-files-mode t
         treemacs-git-mode 'extended
-        treemacs-indentation 1
         treemacs-silent-refresh	t
+        treemacs-indentation 1
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 35))
+        treemacs-width 40))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -1598,6 +1601,11 @@ Cancel the previous one if present."
   :after eglot
   :config (eglot-booster-mode))
 
+(use-package treesit
+  :ensure nil
+  :config
+  (setq treesit-font-lock-level 4))
+
 (use-package indent-bars
   :hook ((emacs-lisp-mode tree-sitter-hl-mode kotlin-mode) . indent-bars-mode)
   :custom
@@ -1748,7 +1756,7 @@ Cancel the previous one if present."
     :hook (kotlin-mode . kotlin-ts-mode)
     :config
     (eldoc-mode -1)
-    (setq kotlin-ts-mode-indent-offset 2))
+    (setq treesit-font-lock-level 4))
 
 (use-package kotlin-development
   :hook ((kotlin-mode) . kotlin-development-mode-setup)
