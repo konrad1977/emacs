@@ -33,14 +33,19 @@
   (grey3    "#5442bb" "#5442bb")
   (light    "#6d5dc6" "#6d5dc6")
   (purple   "#7E74CC" "#7E74CC")
+  (purple2  "#9790d6" "#7E74CC")
+  (purple3  "#b1ace0" "#7E74CC")
   (red      "#ff047d" "#ff047d")
+  (red-soft "#cc7d74" "#ff047d")
   (baby     "#ff1d8a" "#ff1d8a")
   (pink     "#e61d7e" "#e61d7e")
-  (green    "#859900" "#859900")
+  (green    "#74cc7d" "#859900")
+  (green2   "#859900" "#859900")
   (vibrant  "#b2c62d" "#b2c62d")
   (nord     "#197ec5" "#197ec5")
   (blue     "#268bd2" "#268bd2")
   (yellow   "#b58900" "#b58900")
+  (lemon    "#c2cb74" "#b58900")
   (sun      "#c4980f" "#c4980f")
   (orange   "#c85106" "#c85106")
   (teal     "#74c5aa" "#74c5aa")
@@ -69,7 +74,7 @@
   (success                      (:foreground teal))
 
   (vertico-posframe-border      (:background darkest))
-  (vertico-posframe             (:background darkest))
+  (vertico-posframe             (:background darkest :foreground purple3))
   (vertico-current              (:inherit 'region))
 
   (corfu-current                (:inherit 'vertico-current))
@@ -77,6 +82,9 @@
   (corfu-default                (:background darkest :foreground white))
   (corfu-border                 (:background darkest))
   (corfu-popupinfo              (:background darkest :foreground blue :box (:line-width 2 :color black)))
+  
+  (eldoc-box-body               (:inherit 'vertico-posframe))
+  (eldoc-box-border             (:background grey2))
 
   (orderless-match-face-0                        (:foreground pink :weight 'bold))
   (orderless-match-face-1                        (:foreground nord :weight 'bold))
@@ -87,9 +95,6 @@
   (minibuffer-prompt                             (:foreground baby :background darkest :bold t))
 
   (window-stool-face (:background one2))
-
-  (eldoc-box-body (:background darker :foreground purple))
-  (eldoc-box-border (:background one2))
 
   ;;treemacs
   (treemacs-window-background-face               (:background darker))
@@ -109,8 +114,8 @@
   (font-lock-bracket-face                        (:foreground blue))
   (font-lock-builtin-face                        (:foreground blue))
   (font-lock-comment-delimiter-face              (:inherit 'font-lock-comment-face))
-  (font-lock-comment-face                        (:foreground purple :italic t :weight 'thin))
-  (font-lock-constant-face                       (:foreground cyan));;
+  (font-lock-comment-face                        (:foreground purple2 :italic t :weight 'thin))
+  (font-lock-constant-face                       (:foreground yellow :weight 'bold));;
   (font-lock-delimiter-face                      (:foreground cyan));;
   (font-lock-doc-face                            (:inherit 'font-lock-comment-face))
   (font-lock-doc-markup-face                     (:inherit 'font-lock-doc-face))
@@ -122,8 +127,8 @@
   (font-lock-number-face                         (:foreground purple :bold t))
   (font-lock-operator-face                       (:foreground teal))
   (font-lock-preprocessor-face	                 (:foreground orange))
-  (font-lock-property-name-face                  (:foreground purple))
-  (font-lock-property-use-face                   (:foreground purple))
+  (font-lock-property-name-face                  (:foreground purple3))
+  (font-lock-property-use-face                   (:foreground lemon))
   (font-lock-punctuation-face                    (:foreground orange :weight 'normal))
   (font-lock-reference-face                      (:foreground yellow))
   (font-lock-regexp-regex-face                   (:foreground pink))
@@ -141,7 +146,7 @@
 
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:foreground nord :weight 'normal))
-  (tree-sitter-hl-face:function.builtin          (:foreground blue))
+  (tree-sitter-hl-face:function.builtin          (:foreground orange :italic t))
   (tree-sitter-hl-face:function.special          (:foreground green :italic t))
   (tree-sitter-hl-face:function.macro            (:foreground blue))
   (tree-sitter-hl-face:function.label            (:foreground sun))
@@ -162,8 +167,8 @@
   (tree-sitter-hl-face:variable.special          (:foreground grey2 :italic t))
   (tree-sitter-hl-face:variable.synthesized      (:foreground vibrant))
 
-  (tree-sitter-hl-face:property                  (:foreground teal :italic t))
-  (tree-sitter-hl-face:property.definition       (:foreground teal))
+  (tree-sitter-hl-face:property                  (:inherit 'font-lock-property-use-face))
+  (tree-sitter-hl-face:property.definition       (:inherit 'font-lock-property-name-face))
 
   (tree-sitter-hl-face:comment                   (:inherit 'font-lock-comment-face))
   (tree-sitter-hl-face:doc                       (:inherit 'font-lock-comment-face))
@@ -178,7 +183,7 @@
   (tree-sitter-hl-face:operator                  (:inherit 'font-lock-operator-face))
   (tree-sitter-hl-face:label                     (:foreground grey2))
   (tree-sitter-hl-face:constant                  (:inherit 'font-lock-constant-face))
-  (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face :weight 'normal))
+  (tree-sitter-hl-face:constant.builtin          (:inherit 'font-lock-constant-face))
   (tree-sitter-hl-face:number                    (:inherit 'font-lock-number-face))
 
   (tree-sitter-hl-face:punctuation               (:inherit 'font-lock-punctuation-face))

@@ -299,12 +299,12 @@ Full project path: %s"
 
 (defun xcode-additions:setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
-  (message "Setting up new project: %s" project)
   (unless current-project-root
     (setq current-project-root project))
   (when (not (string= current-project-root project))
     (progn
-      (message "Setting up new project: %s" project)
+      (when xcode-additions:debug
+        (message "Setting up new project: %s" project))
       (xcode-additions:reset)
       (setq default-directory project)
       (setq current-project-root project))))

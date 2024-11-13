@@ -396,6 +396,9 @@
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground unmuted))
 
+  (eldoc-box-body                               (:inherit 'vertico-posframe))
+  (eldoc-box-border                             (:inherit 'vertico-posframe-border))
+
   (corfu-current                                (:inherit 'vertico-current))
   (corfu-annotations                            (:background medium-gold :foreground subtle))
   (corfu-bar                                    (:background gold))

@@ -2,6 +2,8 @@
 ;;; Commentary: This package provides some support for iOS Simulator
 ;;; Code:
 
+(require 'nerd-icons)
+
 (with-eval-after-load 'periphery-helper
  (require 'periphery-helper))
 
@@ -123,7 +125,6 @@
        :callback (lambda ()
                    (when ios-simulator:debug
                      (message "App installation completed, launching app"))
-                   (mode-line-hud:update :message "App installation completed. Launching app")
                    (ios-simulator:launch-app
                     :appIdentifier appIdentifier
                     :applicationName applicationName
@@ -154,7 +155,6 @@
                         ((string= event "finished\n")
                          (if (= 0 (process-exit-status process))
                              (progn
-                               (mode-line-hud:update :message "App installation completed.")
                                (when callback (funcall callback)))
                            (message "App installation failed with exit code: %d" (process-exit-status process))
                            (with-current-buffer (process-buffer process)
@@ -191,13 +191,10 @@
   "Simulator app is running.  Boot simulator (as ID)."
   (when ios-simulator:debug
     (message "Booting simulator with id %s" id))
-  (mode-line-hud:update :message "Booting simulator")
   (make-process
    :name "boot-simulator"
    :command (list "sh" "-c" (ios-simulator:boot-command :id id :rosetta use-rosetta))
-   :sentinel (lambda (proc event)
-               (when (string= event "finished\n")
-                 (mode-line-hud:update :message "Simulator booted successfully")))))
+   :sentinel nil))
 
 (defun ios-simulator:start-simulator-with-id (id)
   "Launch a specific simulator with (as ID)."
@@ -206,9 +203,7 @@
   (make-process
    :name "start-simulator"
    :command (list "sh" "-c" (format "open --background -a simulator --args -CurrentDeviceUDID %s" id))
-   :sentinel (lambda (proc event)
-               (when (string= event "finished\n")
-                 (mode-line-hud:update :message "Simulator started")))))
+   :sentinel nil))
 
 (cl-defun ios-simulator:boot-command (&key id &key rosetta)
   "Boot simulator with or without support for x86 (as ID and ROSETTA)."
@@ -285,7 +280,6 @@
         (ios-simulator:setup-simulator-dwim current-simulator-id)
         current-simulator-id)
     (progn
-      (mode-line-hud:update :message "Fetching simulators")
       (let ((device-id (ios-simulator:get-or-choose-simulator)))
         (when ios-simulator:debug
           (message "Selected simulator ID: %s" device-id))
@@ -343,9 +337,10 @@
   "Launch app (as APPIDENTIFIER APPLICATIONNAME SIMULATORNAME SIMULATORID) and display output in BUFFER."
   (ios-simulator:setup-language)
   (mode-line-hud:updateWith
-   :message (format "%s|%s"
-                    (propertize applicationName 'face 'font-lock-builtin-face)
-                    (propertize simulatorName 'face 'success))
+   :message (format "%s %s|%s"
+                    (nerd-icons-mdicon "nf-md-progress_check" :v-adjust 0.0 :face 'success)
+                    (propertize applicationName 'face 'font-lock-constant-face)
+                    (propertize simulatorName 'face 'font-lock-function-name-face))
    :delay 2.0)
 
   (let ((command (format "xcrun simctl launch --console-pty %s %s --terminate-running-process -AppleLanguages \"(%s)\""
@@ -358,37 +353,40 @@
       (setq-local left-fringe-width 0
                   right-fringe-width 0
                   buffer-face-mode-face 'ios-simulator-background-face
-                  window-point-insertion-type t)  ; Enable point to stay at the end of inserted text
+                  window-point-insertion-type t
+                  kill-buffer-query-functions nil) ; Lägg till denna rad
       (buffer-face-mode 1)
-      (read-only-mode -1)  ; Temporarily make the buffer writable
+      (read-only-mode -1)
       (visual-line-mode 1))
 
     (display-buffer buffer '(display-buffer-pop-up-window))
 
-    (make-process
-     :name "ios-simulator-launch"
-     :command (list "sh" "-c" command)
-     :buffer buffer
-     :filter (lambda (proc string)
-               (when (buffer-live-p (process-buffer proc))
-                 (with-current-buffer (process-buffer proc)
-                   (let ((inhibit-read-only t)
-                         (at-end (= (point) (point-max))))
-                     (save-excursion
-                       (goto-char (point-max))
-                       (insert (ios-simulator:remove-control-m string)))
-                     (when at-end
-                       (goto-char (point-max))
-                       (dolist (window (get-buffer-window-list (current-buffer) nil t))
-                         (set-window-point window (point-max))))))))
-     :sentinel (lambda (process event)
-                 (when (and (string= event "finished\n")
-                            (buffer-live-p (process-buffer process)))
-                   (with-current-buffer (process-buffer process)
-                     (let ((inhibit-read-only t))
-                       (goto-char (point-max))
-                       (insert "\n\nProcess finished\n"))
-                     (read-only-mode 1)))))))
+    (let ((process (make-process
+                   :name "ios-simulator-launch"
+                   :command (list "sh" "-c" command)
+                   :buffer buffer
+                   :filter (lambda (proc string)
+                            (when (buffer-live-p (process-buffer proc))
+                              (with-current-buffer (process-buffer proc)
+                                (let ((inhibit-read-only t)
+                                      (at-end (= (point) (point-max))))
+                                  (save-excursion
+                                    (goto-char (point-max))
+                                    (insert (ios-simulator:remove-control-m string)))
+                                  (when at-end
+                                    (goto-char (point-max))
+                                    (dolist (window (get-buffer-window-list (current-buffer) nil t))
+                                      (set-window-point window (point-max))))))))
+                   :sentinel (lambda (process event)
+                             (when (and (string= event "finished\n")
+                                      (buffer-live-p (process-buffer process)))
+                               (with-current-buffer (process-buffer process)
+                                 (let ((inhibit-read-only t))
+                                   (goto-char (point-max))
+                                   (insert "\n\nProcess finished\n"))
+                                 (read-only-mode 1)))))))
+      ;; Lägg till process-property för att hantera stängning
+      (set-process-query-on-exit-flag process nil))))
 
 (cl-defun ios-simulator:launch-wait-for-debugger (&key identifier)
   "Launch the current configured simulator (as IDENTIFIER) and wait for debugger."
@@ -435,7 +433,6 @@
 
 (defun ios-simulator:fetch-available-simulators ()
   "List available simulators."
-  (mode-line-hud:update :message "Fetching simulators")
   (let* ((json (call-process-to-json list-simulators-command))
          (devices (cdr (assoc 'devices json)))
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))

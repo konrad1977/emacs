@@ -420,6 +420,9 @@
   (vertico-posframe-border                       (:background sumiInk))
   (vertico-posframe                              (:background sumiInk))
 
+  (eldoc-box-body                                (:background winterBlue :foreground crystalBlue))
+  (eldoc-box-border                              (:background sumiInk-4))
+
   (orderless-match-face-0                        (:foreground peachRed :weight 'bold))
   (orderless-match-face-1                        (:foreground springBlue :weight 'bold))
   (orderless-match-face-2                        (:foreground springGreen :weight 'bold))
@@ -502,7 +505,7 @@
 
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:inherit 'font-lock-function-call-face))
-  (tree-sitter-hl-face:function.builtin          (:foreground springGreen))
+  (tree-sitter-hl-face:function.builtin          (:foreground peachRed :italic t))
   (tree-sitter-hl-face:function.special          (:foreground springGreen :italic t))
   (tree-sitter-hl-face:function.macro            (:foreground waveAqua2))
   (tree-sitter-hl-face:function.label            (:foreground autumnYellow))
@@ -584,9 +587,6 @@
   (markdown-inline-code-face (:foreground springViolet2 :background winterBlue :weight 'normal :italic t))
   (markdown-code-face (:foreground springBlue :weight 'normal))
   (markdown-pre-face (:foreground old-white :weight 'thin))
-
-  (eldoc-box-body (:background winterBlue :foreground crystalBlue))
-  (eldoc-box-border (:background sumiInk-4))
 
   (punch-line-project-face        (:foreground dragonBlue :weight 'bold))
   (punch-line-buffer-name-face    (:foreground sumiInk-6 :weight 'bold))
