@@ -44,27 +44,7 @@
 	use-package-expand-minimally t
 	use-package-always-ensure t
 	use-package-compute-statistics nil
-	use-package-minimum-reported-time 0.2))
-
-(use-package gcmh
-  :defer 2
-  :ensure t
-  :config
-  (defun gcmh-register-idle-gc ()
-    "Register a timer to run `gcmh-idle-garbage-collect'.
-Cancel the previous one if present."
-    (unless (eq this-command 'self-insert-command)
-      (let ((idle-t (if (eq gcmh-idle-delay 'auto)
-			(* gcmh-auto-idle-delay-factor gcmh-last-gc-time)
-		      gcmh-idle-delay)))
-	(if (timerp gcmh-idle-timer)
-	    (timer-set-time gcmh-idle-timer idle-t)
-	  (setf gcmh-idle-timer
-		(run-with-timer idle-t nil #'gcmh-idle-garbage-collect))))))
-  (setq gcmh-idle-delay 'auto  ; default is 15s
-	gcmh-high-cons-threshold (* 32 1024 1024)
-	gcmh-verbose nil)
-  (gcmh-mode 1))
+	use-package-minimum-reported-time 0.1))
 
 (use-package emacs
   :init
@@ -78,6 +58,7 @@ Cancel the previous one if present."
   (setq-default
    confirm-kill-emacs (lambda (prompt)
 			(y-or-n-p-with-timeout prompt 2 nil))
+   confirm-kill-processes nil
    fringes-outside-margins nil
    indicate-buffer-boundaries nil
    indicate-empty-lines nil
@@ -312,11 +293,11 @@ Cancel the previous one if present."
   ;; (load-theme 'catppuccin-frappe t)
   ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
-  ;; (load-theme 'oxocarbon t)
+  (load-theme 'oxocarbon t)
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
@@ -644,6 +625,7 @@ Cancel the previous one if present."
   (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
 
 (use-package treemacs-nerd-icons
+  :after treemacs
   :functions treemacs-load-theme
   :custom-face
   (treemacs-nerd-icons-root-face ((t (:inherit nerd-icons- :height 1.3))))
@@ -800,6 +782,8 @@ Cancel the previous one if present."
   (setq avy-single-candidate-jump t))
 
 (use-package dape
+  :defer t
+  :commands (dape-info dape-repl dape)
   :bind
   :config
   (setq dape-buffer-window-arrangement 'right
@@ -848,7 +832,7 @@ Cancel the previous one if present."
         treemacs-silent-refresh	t
         treemacs-indentation 1
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 40))
+        treemacs-width 30))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -1017,8 +1001,8 @@ Cancel the previous one if present."
 
 (use-package chatgpt-shell
   :ensure nil
-  :bind (("C-c C-v" . chatgpt-shell-quick-insert)
-	 ("C-c C-p" . chatgpt-shell-prompt-compose)
+  :bind (("C-x C-v" . chatgpt-shell-quick-insert)
+	 ("C-x C-p" . chatgpt-shell-prompt-compose)
 	 ("C-x c g s" . chatgpt-shell-send-and-review-region)
 	 ("C-x c g r" . chatgpt-shell-refactor-code))
   :init
@@ -1248,9 +1232,12 @@ Cancel the previous one if present."
   :defer t)
 
 (use-package ob-swift
-  :defer t)
+  :after org-mode
+  :defer 10)
 
 (use-package ob-swiftui
+  :defer t
+  :after org-mode
   :config
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
@@ -1542,7 +1529,6 @@ Cancel the previous one if present."
           (delete-window)
         (switch-to-buffer-other-window "*vterm*"))
     (progn
-      (vterm)
       (vterm-other-window))))
 
 (defun mk/recompile (&optional force)
@@ -1643,7 +1629,14 @@ Cancel the previous one if present."
   ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
   ;; (package-vc-install "https://github.com/chep/copilot-chat.el")
   :ensure nil
-  :after (prog-mode)
+  :defer t
+  :commands (copilot-chat-doc
+              copilot-chat-explain
+              copilot-chat-fix
+              copilot-chat-test
+              copilot-chat-review
+              copilot-chat-optimize
+              copilot-chat-add-current-buffer)
   :bind
   ("C-x c p d" . #'copilot-chat-doc)       ;; Open documentation
   ("C-x c p e" . #'copilot-chat-explain)   ;; Explain code
@@ -1749,18 +1742,22 @@ Cancel the previous one if present."
   :config
   (flycheck-kotlin-setup))
 
- (use-package kotlin-mode
-    :config
-    (eldoc-mode -1)
-    (setq-default kotlin-tab-width 2))
+(use-package kotlin-mode
+  :defer t
+  :config
+  (eldoc-mode -1)
+  (setq-default kotlin-tab-width 2))
 
 (use-package kotlin-ts-mode
-    :hook (kotlin-mode . kotlin-ts-mode)
-    :config
-    (eldoc-mode -1)
-    (setq treesit-font-lock-level 4))
+  :defer t
+  :hook (kotlin-mode . kotlin-ts-mode)
+  :config
+  (eldoc-mode -1)
+  (setq treemacs-width 40)
+  (setq treesit-font-lock-level 4))
 
 (use-package kotlin-development
+  :defer t
   :hook ((kotlin-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
   :bind ((:map kotlin-mode-map

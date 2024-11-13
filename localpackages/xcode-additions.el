@@ -153,8 +153,7 @@ Full project path: %s"
 (cl-defun xcode-additions:get-build-settings-json (&key (config "Debug"))
   "Get build settings from xcodebuild."
   (unless current-build-settings-json
-    (setq current-project-root (xcode-additions:find-xcode-project-directory))
-    (let ((default-directory current-project-root))
+    (let ((default-directory (xcode-additions:find-xcode-project-directory)))
       (setq current-build-settings-json
             (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json"))))
   current-build-settings-json)
@@ -219,9 +218,6 @@ Full project path: %s"
 
 (defun xcode-additions:get-scheme-list ()
   "Get list of project schemes."
-  (unless current-project-root
-    (mode-line-hud:update :message "Fetching build schemes")
-    (setq current-project-root (xcode-additions:project-root)))
   (xcode-additions:list-scheme-files))
 
 (cl-defun xcode-additions:build-folder (&key (device-type :device))
@@ -272,11 +268,7 @@ Full project path: %s"
 
 (defun xcode-additions:get-configuration-list ()
   "Get list of project configurations."
-  (unless current-project-root
-    (mode-line-hud:update :message "Fetching build configurations")
-    (setq current-project-root (xcode-additions:project-root)))
-
-  (let* ((default-directory current-project-root)
+  (let* ((default-directory (xcode-additions:project-root))
          (json (swift-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
          (result (cdr (assoc 'configurations project))))
@@ -291,11 +283,7 @@ Full project path: %s"
 
 (defun xcode-additions:get-target-list ()
   "Get list of project targets."
-  (unless current-project-root
-    (mode-line-hud:update :message "Fetching app targets")
-    (setq current-project-root (xcode-additions:project-root)))
-
-  (let* ((default-directory current-project-root)
+  (let* ((default-directory (xcode-additions:project-root))
          (json (xcode-additions:get-buildconfiguration-json))
          (project (assoc 'project json))
          (targets (cdr (assoc 'targets project))))
@@ -311,25 +299,19 @@ Full project path: %s"
 
 (defun xcode-additions:setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
-  (xcode-additions:check-root)
-
+  (message "Setting up new project: %s" project)
   (unless current-project-root
     (setq current-project-root project))
   (when (not (string= current-project-root project))
     (progn
+      (message "Setting up new project: %s" project)
       (xcode-additions:reset)
+      (setq default-directory project)
       (setq current-project-root project))))
 
 (defun xcode-additions:setup-project ()
   "Setup the current project."
-  (xcode-additions:setup-current-project (xcode-additions:project-root))
-  (setq default-directory current-project-root))
-
-(defun xcode-additions:check-root ()
-"Check root of the project.  If its different reset the settings."
-(when (not (string-equal current-project-root (cdr (project-current))))
-  (xcode-additions:reset)
-  (setq current-project-root (cdr (project-current)))))
+  (xcode-additions:setup-current-project (xcode-additions:project-root)))
 
 (cl-defun xcode-additions:device-or-simulator-menu (&key title)
 "Build device or simulator menu (as TITLE)."

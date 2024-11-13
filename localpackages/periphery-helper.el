@@ -19,15 +19,6 @@
     (when project
       (project-root project))))
 
-
-(defun periphery-helper:filter-xcworkspace (lst)
-  "Filter out '.xcworkspace' paths that are inside '.xcodeproj' (as LST)."
-  (cl-remove-if (lambda (path)
-                  (and (string-match-p "\.xcworkspace$" path)
-                       (string-match-p "\.xcodeproj/" path)))
-                lst))
-
-
 (cl-defun async-start-shell-command-to-json (&key command &key callback)
   "Async shell command to JSON run async (as COMMAND CALLBACK)."
   (async-start-command-to-string

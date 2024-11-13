@@ -157,7 +157,8 @@
 
   (let ((build-command (build-app-command
                         :sim-id (ios-simulator:simulator-identifier)
-                        :derived-path (xcode-additions:derived-data-path))))
+                        :derived-path (xcode-additions:derived-data-path)))
+        (default-directory (xcode-additions:project-root)))
     (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
     (setq compilation-time (current-time))
@@ -190,7 +191,8 @@
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
-  (let ((build-command (build-app-command :derived-path (xcode-additions:derived-data-path))))
+  (let ((build-command (build-app-command :derived-path (xcode-additions:derived-data-path)))
+        (default-directory (xcode-additions:project-root)))
     (spinner-start 'progress-bar-filled)
     (setq current-build-command build-command)
     (setq compilation-time (current-time))

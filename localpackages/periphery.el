@@ -298,6 +298,27 @@
           (goto-char match-end))))  ; Move point past the match
     (buffer-string)))
 
+(defun parse-missing-package-product (buffer)
+  "Parse missing package product errors from the current BUFFER."
+  (let ((regex-missing-product ": error: Missing package product '\\([^']+\\)' (in target '\\([^']+\\)' from project '\\([^']+\\)')")
+        (errors '()))
+    (goto-char (point-min))
+    (while (re-search-forward regex-missing-product nil t)
+      (let* ((product (match-string 1))
+             (target (match-string 2))
+             (project (match-string 3))
+             (failure-msg (format "Missing package product '%s' in target '%s' from project '%s'"
+                                product target project)))
+        (push (periphery--build-list
+               :path (format "%s/%s" project target)
+               :file "Package.swift"
+               :line "1"
+               :keyword "error"
+               :result failure-msg
+               :regex periphery-regex-mark-quotes)
+              errors)))
+    errors))
+
 (defun parse-package-dependency-errors (buffer)
   "Parse package dependency errors from the current BUFFER."
   (let ((regex-package-error "^xcodebuild: error: Could not resolve package dependencies:")
@@ -378,6 +399,9 @@
                    :result msg
                    :regex periphery-regex-mark-quotes)
                   errors))))
+
+      ;; Append missing package product errors
+      (setq errors (append errors (parse-missing-package-product (current-buffer))))
 
       ;; Append package dependency errors
       (setq errors (append errors (parse-package-dependency-errors (current-buffer))))
