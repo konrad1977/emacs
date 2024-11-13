@@ -36,7 +36,7 @@
   (concat
     (swift-additions:xcodebuild-command)
     (format "%s \\" (xcode-additions:get-workspace-or-project))
-    (format "-scheme %s \\" (shell-quote-argument (xcode-additions:scheme)))
+    (format "-scheme %s \\" (xcode-additions:scheme))
     (format "-jobs %s \\" (swift-additions:get-number-of-cores))
     (if sim-id
         (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
@@ -87,16 +87,16 @@
    :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:run-app-after-build()
-"Either in simulator or on physical."
-(mode-line-hud:update :message (format "Built %s in %s seconds"
-                                        (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                        (propertize (swift-additions:compilation-time) 'face 'warning)))
+  "Either in simulator or on physical."
+  (mode-line-hud:update :message (format "Built %s in %s seconds"
+                                         (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                                         (propertize (swift-additions:compilation-time) 'face 'warning)))
 
-(ios-simulator:install-and-run-app
-  :rootfolder (xcode-additions:project-root)
-  :build-folder (xcode-additions:build-folder :device-type :simulator)
-  :simulatorId (ios-simulator:simulator-identifier)
-  :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
+  (ios-simulator:install-and-run-app
+   :rootfolder (xcode-additions:project-root)
+   :build-folder (xcode-additions:build-folder :device-type :simulator)
+   :simulatorId (ios-simulator:simulator-identifier)
+   :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:check-if-build-was-successful (input-text)
   "Check if INPUT-TEXT does not contain build failure indicators."
@@ -124,14 +124,14 @@
 
 ;;;###autoload
 (defun swift-additions:compile-and-run ()
-"Compile and run app."
-(interactive)
-(swift-additions:compile :run t))
+  "Compile and run app."
+  (interactive)
+  (swift-additions:compile :run t))
 
 (defun swift-additions:compile-app ()
-"Compile app."
-(interactive)
-(swift-additions:compile :run nil))
+  "Compile app."
+  (interactive)
+  (swift-additions:compile :run nil))
 
 (cl-defun swift-additions:compile (&key run)
   "Build project using xcodebuild (as RUN)."
@@ -182,7 +182,7 @@
                    (swift-additions:check-for-errors text #'swift-additions:successful-build)))
      :update-callback (lambda (text)
                         (xcode-additions:parse-compile-lines-output :input text))
-    :debug nil))) ;; swift-additions:debug)))
+     :debug swift-additions:debug)))
 
 (defun swift-additions:compile-for-device (&key run)
   "Compile and RUN on device ."

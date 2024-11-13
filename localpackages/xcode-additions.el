@@ -27,67 +27,108 @@
 (defvar xcode-additions:debug nil
   "Debug flag.")
 
-(defconst xcodeproject-extension ".*\\.xcodeproj$"
+(defconst xcode-additions-extensions
+  '(:project   ".*\\.xcodeproj$"
+    :workspace ".*\\.xcworkspace$")
+  "File extensions for Xcode project files.")
+
+(defun xcode-additions-get-extension (type)
+  "Get file extension for TYPE (:project or :workspace)."
+  (plist-get xcode-additions-extensions type))
+
+(defconst xcodeproject-extension (xcode-additions-get-extension :project)
   "Xcode project extensions.")
 
-(defconst workspace-extension ".*\\.xcworkspace$"
+(defconst workspace-extension (xcode-additions-get-extension :workspace)
   "Xcode workspace extensions.")
 
 (defun xcode-additions:filename-by-extension (extension directory)
-  "Get filename based on (as EXTENSION)."
-  (if-let* ((name (directory-files directory t extension)))
-      (file-name-sans-extension (file-name-nondirectory (car name)))))
+  "Get filename (without extension) for first file matching EXTENSION in DIRECTORY."
+  (when-let* ((files (directory-files directory t extension))
+              (first-match (car files)))
+    (file-name-sans-extension (file-name-nondirectory first-match))))
+
+(defun xcode-additions:directory-contains-p (extension directory)
+  "Check if DIRECTORY contains files matching EXTENSION."
+  (consp (directory-files directory nil extension)))
 
 (defun xcode-additions:project-directory-p (directory)
-  "Check if xcodeproj file exists in (DIRECTORY)."
-  (consp (directory-files directory nil xcodeproject-extension)))
+  "Check if xcodeproj file exists in DIRECTORY or immediate subdirectories."
+  (or (xcode-additions:directory-contains-p xcodeproject-extension directory)
+      (cl-some (lambda (dir)
+                 (let ((full-dir (expand-file-name dir directory)))
+                   (and (file-directory-p full-dir)
+                        (not (member dir '("." "..")))
+                        (xcode-additions:directory-contains-p xcodeproject-extension full-dir))))
+               (directory-files directory))))
 
 (defun xcode-additions:workspace-directory-p (directory)
-  "Check if xcodeproj file exists in (DIRECTORY)."
-  (consp (directory-files directory nil workspace-extension)))
-
-(defun xcode-additions:find-xcode-project-directory (&optional directory)
-  "Try to find xcode project in (DIRECTORY)."
-  (xcode-additions:find-ancestor-or-self-directory 'xcode-additions:project-directory-p directory))
-
-(defun xcode-additions:find-workspace-directory (&optional directory)
-  "Try to find xcode workspace in (DIRECTORY)."
-  (xcode-additions:find-ancestor-or-self-directory 'xcode-additions:workspace-directory-p directory))
+  "Check if xcworkspace file exists in DIRECTORY."
+  (xcode-additions:directory-contains-p workspace-extension directory))
 
 (defun xcode-additions:find-ancestor-or-self-directory (predicate &optional directory)
-  "Find"
-  (unless directory (setq directory default-directory))
-  (if (funcall predicate directory)
-      directory
-    (let ((parent (file-name-directory (directory-file-name directory))))
-      (if (or (null parent) (string-equal parent directory))
-          nil
-        (xcode-additions:find-ancestor-or-self-directory predicate parent)))))
+  "Find first ancestor directory (including DIRECTORY itself) where PREDICATE returns non-nil.
+If DIRECTORY is nil, use `default-directory'."
+  (let ((dir (expand-file-name (or directory default-directory))))
+    (cond ((funcall predicate dir) dir)
+          ((or (string-equal dir "/")
+               (string-equal dir (directory-file-name dir)))
+           nil)
+          (t (xcode-additions:find-ancestor-or-self-directory
+              predicate
+              (file-name-directory (directory-file-name dir)))))))
+
+(defun xcode-additions:find-xcode-project-directory (&optional directory)
+  "Try to find xcode project in DIRECTORY or its subdirectories."
+  (when-let* ((start-dir (or directory default-directory))
+              (found-dir (xcode-additions:find-ancestor-or-self-directory 'xcode-additions:project-directory-p start-dir)))
+    (if (xcode-additions:directory-contains-p xcodeproject-extension found-dir)
+        found-dir
+      (cl-some (lambda (dir)
+                 (let ((full-dir (expand-file-name dir found-dir)))
+                   (and (file-directory-p full-dir)
+                        (not (member dir '("." "..")))
+                        (xcode-additions:directory-contains-p xcodeproject-extension full-dir)
+                        full-dir)))
+               (directory-files found-dir)))))
+
+(defun xcode-additions:find-workspace-directory (&optional directory)
+  "Try to find xcode workspace in DIRECTORY or its ancestors."
+  (xcode-additions:find-ancestor-or-self-directory 'xcode-additions:workspace-directory-p directory))
 
 (defun xcode-additions:workspace-name ()
-  "Get the workspace name."
-  (if-let* ((default-directory (xcode-additions:find-workspace-directory)))
-      (xcode-additions:filename-by-extension workspace-extension default-directory)))
+  "Get the workspace name in current or ancestor directories."
+  (when-let* ((dir (xcode-additions:find-workspace-directory)))
+    (xcode-additions:filename-by-extension workspace-extension dir)))
 
 (defun xcode-additions:project-name ()
-  "Get the workspace name."
-  (if-let* ((default-directory (xcode-additions:find-xcode-project-directory)))
-      (xcode-additions:filename-by-extension xcodeproject-extension default-directory)))
+  "Get the project name in current or ancestor directories."
+  (when-let* ((dir (xcode-additions:find-xcode-project-directory)))
+    (xcode-additions:filename-by-extension xcodeproject-extension dir)))
 
 (defun xcode-additions:list-xcscheme-files (folder)
   "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of FOLDER."
-  (let ((project-name (xcode-additions:project-name))
-        (xcscheme-names '()))
-    (setq folder (expand-file-name folder))
+  (let ((xcscheme-names '()))
+    (setq folder (file-name-as-directory (expand-file-name folder)))
+    ;; Fixa stavningen av "schemes" (var "xcshemes")
     (setq xcshemes-folder (concat folder "xcshareddata/xcschemes/"))
+
+    (when xcode-additions:debug
+      (message "Searching for schemes in folder: %s" xcshemes-folder))
+
     (when (file-directory-p xcshemes-folder)
-      (dolist (item (directory-files xcshemes-folder t))
-        (when (and (file-regular-p item)
-                   (string-match-p ".*\\.xcscheme$" item))
-          (setq xcscheme-names (cons (file-name-sans-extension (file-name-nondirectory item)) xcscheme-names)))))
-    (if xcscheme-names
-        (setq xcscheme-names (nreverse xcscheme-names))
-      (setq xcscheme-names (list project-name)))
+      (dolist (item (directory-files xcshemes-folder t "\\.xcscheme$"))
+        (when (file-regular-p item)
+          (let ((scheme-name (file-name-sans-extension (file-name-nondirectory item))))
+            (when xcode-additions:debug
+              (message "Found scheme: %s" scheme-name))
+            (push scheme-name xcscheme-names)))))
+
+    (setq xcscheme-names (nreverse xcscheme-names))
+
+    (when xcode-additions:debug
+      (message "Final scheme list: %s" xcscheme-names))
+
     xcscheme-names))
 
 (defun xcode-additions:list-scheme-files ()
@@ -95,14 +136,24 @@
   (let* ((project-directory (xcode-additions:find-xcode-project-directory))
          (project-name (xcode-additions:project-name))
          (full-project-path (when project-directory
-                              (concat project-directory project-name ".xcodeproj/"))))
+                             (concat (file-name-as-directory project-directory)
+                                   project-name
+                                   ".xcodeproj/"))))
+
+    (when xcode-additions:debug
+      (message "xcode-additions:list-scheme-files:
+Project directory: %s
+Project name: %s
+Full project path: %s"
+               project-directory project-name full-project-path))
+
     (when full-project-path
       (xcode-additions:list-xcscheme-files full-project-path))))
 
 (cl-defun xcode-additions:get-build-settings-json (&key (config "Debug"))
   "Get build settings from xcodebuild."
   (unless current-build-settings-json
-    (setq current-project-root (or current-project-root (xcode-additions:project-root)))
+    (setq current-project-root (xcode-additions:find-xcode-project-directory))
     (let ((default-directory current-project-root))
       (setq current-build-settings-json
             (call-process-to-json "xcrun" "xcodebuild" "-showBuildSettings" "-configuration" config "-json"))))
@@ -151,7 +202,9 @@
   "Get the xcode scheme if set otherwuse prompt user."
   (unless current-xcode-scheme
     (setq current-xcode-scheme (xcode-additions:build-menu :title "Choose scheme: " :list (xcode-additions:get-scheme-list))))
-  current-xcode-scheme)
+  (if (not current-xcode-scheme)
+      (error "No scheme selected")
+    (shell-quote-argument current-xcode-scheme)))
 
 (defun xcode-additions:fetch-or-load-build-configuration ()
   "Get the build configuration or promp user."

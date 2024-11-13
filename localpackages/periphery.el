@@ -298,15 +298,67 @@
           (goto-char match-end))))  ; Move point past the match
     (buffer-string)))
 
+(defun parse-package-dependency-errors (buffer)
+  "Parse package dependency errors from the current BUFFER."
+  (let ((regex-package-error "^xcodebuild: error: Could not resolve package dependencies:")
+        (errors '()))
+    (goto-char (point-min))
+    (when (re-search-forward regex-package-error nil t)
+      (let ((failure-msg (buffer-substring-no-properties (point) (pos-eol))))
+        (forward-line)
+        ;; Collect all related package error messages
+        (while (and (not (eobp))
+                    (or (looking-at "^  ") (looking-at "^$")))
+          (unless (looking-at "^$") ; Skip empty lines
+            (setq failure-msg (concat failure-msg "\n"
+                                    (buffer-substring-no-properties (point) (pos-eol)))))
+          (forward-line))
+        (push (periphery--build-list
+               :path "Package Dependencies"
+               :file "Package.swift"
+               :line "1"
+               :keyword "error"
+               :result failure-msg
+               :regex periphery-regex-mark-quotes)
+              errors)))
+    errors))
+
+(defun parse-build-failures (buffer)
+  "Parse build failures from the current BUFFER."
+  (let ((regex-build-failure "^The following build commands failed:")
+        (errors '()))
+    (goto-char (point-min))
+    (when (re-search-forward regex-build-failure nil t)
+      (let ((failure-msg (buffer-substring-no-properties (point) (pos-eol))))
+        (forward-line)
+        (while (and (not (eobp)) (looking-at "\t"))
+          (setq failure-msg (concat failure-msg "\n"
+                                  (buffer-substring-no-properties (point) (pos-eol))))
+          (forward-line))
+        ;; Shorten the path in the failure message
+        (setq failure-msg
+              (replace-regexp-in-string
+               "\\(/Users/[^/]+/.*?/\\)\\([^/]+/[^/]+\\.build/.*\\)"
+               "\\2"
+               failure-msg))
+        (push (periphery--build-list
+               :path "Build Failure"
+               :file "Build Failure"
+               :line "1"
+               :keyword "error"
+               :result failure-msg
+               :regex periphery-regex-mark-quotes)
+              errors)))
+    errors))
+
 (defun parse-compiler-errors (text)
-  "Parse compiler error messages and build failures from LOG (as TEXT)."
+  "Parse compiler error messages, build failures, and package dependency errors from LOG (as TEXT)."
   (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
-        (regex-build-failure "^The following build commands failed:")
         (errors '()))
     (with-temp-buffer
       (insert text)
-      (goto-char (point-min))
       ;; Parse compiler errors/warnings
+      (goto-char (point-min))
       (while (re-search-forward regex nil t)
         (let* ((path (or (match-string 1) ""))
                (line (or (match-string 2) ""))
@@ -327,35 +379,19 @@
                    :regex periphery-regex-mark-quotes)
                   errors))))
 
-      ;; Parse build failures
-      (goto-char (point-min))
-      (when (re-search-forward regex-build-failure nil t)
-        (let ((failure-msg (buffer-substring-no-properties (point) (pos-eol))))
-          (forward-line)
-          (while (and (not (eobp)) (looking-at "\t"))
-            (setq failure-msg (concat failure-msg "\n" (buffer-substring-no-properties (point) (pos-eol))))
-            (forward-line))
-          ;; Shorten the path in the failure message
-          (setq failure-msg
-                (replace-regexp-in-string
-                 "\\(/Users/[^/]+/.*?/\\)\\([^/]+/[^/]+\\.build/.*\\)"
-                 "\\2"
-                 failure-msg))
-          (push (periphery--build-list
-                 :path "Build Failure"
-                 :file "Build Failure"
-                 :line "1"
-                 :keyword "error"
-                 :result failure-msg
-                 :regex periphery-regex-mark-quotes)
-                errors))))
+      ;; Append package dependency errors
+      (setq errors (append errors (parse-package-dependency-errors (current-buffer))))
+
+      ;; Append build failures
+      (setq errors (append errors (parse-build-failures (current-buffer)))))
+
     ;; Sort errors before warnings, and ensure build failures are treated as errors
     (periphery-sort-error errors)))
 
 (cl-defun periphery-run-parser (input)
   "Run parser on INPUT more efficiently."
   (when periphery-debug
-    (message input))
+    (message "periphery-run-parser %s" input))
   (let ((errors (parse-compiler-errors input)))
     (setq periphery-errorList (delete-dups errors))
     (when (or (periphery--is-buffer-visible) periphery-errorList)
