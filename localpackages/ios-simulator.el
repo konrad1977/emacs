@@ -16,19 +16,24 @@
 (with-eval-after-load 'json
   (require 'json))
 
-(defvar-local ios-simulator--installation-process nil
-  "Process object for the current app installation.")
 
-(defvar ios-simulator:debug nil
-  "Debug mode.")
+(defcustom ios-simulator:debug nil
+  "Enable debug mode for iOS simulator."
+  :type 'boolean
+  :group 'ios-simulator)
 
 (defgroup ios-simulator nil
   "IOS-SIMULATOR."
   :tag "ios-simulator"
   :group 'applications)
 
+(defcustom ios-simulator-default-language "sv-SE"
+  "Default language for the simulator."
+  :type 'string
+  :group 'ios-simulator)
+
 (defface ios-simulator-background-face
-  '((t (:inherit default :foreground "#9CABCA")))
+  '((t (:inherit default :family "Menlo" :height 140)))
   "Buffer background color."
   :group 'ios-simulator)
 
@@ -39,28 +44,65 @@
   "xcrun simctl list devices available -j"
   "List available simulators.")
 
-(defconst get-booted-simulator-command
+(defconst ios-simulator:get-booted-simulator-command
   "xcrun simctl list devices | grep -m 1 \"(Booted)\" | grep -E -o -i \"([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12})\""
   "Get booted simulator id if any.")
 
-(defvar current-simulator-name nil)
-(defvar current-simulator-id nil)
-(defvar current-app-identifier nil)
-(defvar current-app-name nil)
-(defvar use-rosetta nil)
+(defvar-local ios-simulator-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c i t") #'ios-simulator:terminate-current-app)
+    (define-key map (kbd "C-c i l") #'ios-simulator:change-language)
+    (define-key map (kbd "C-c i c") #'ios-simulator:appcontainer)
+    map)
+  "Keymap for `ios-simulator-mode'.")
+
+;;;###autoload
+(define-minor-mode ios-simulator-mode
+  "Minor mode for iOS simulator integration."
+  :init-value nil
+  :lighter " iOS-Sim"
+  :keymap ios-simulator-mode-map
+  :group 'ios-simulator
+  (if ios-simulator-mode
+      (ios-simulator:mode-setup)
+    (ios-simulator:mode-teardown)))
+
+
+(defvar-local ios-simulator--installation-process nil
+  "Process object for the current app installation.")
+
+(defvar-local ios-simulator--current-simulator-name nil)
+(defvar-local current-simulator-id nil)
+(defvar-local current-app-identifier nil)
+(defvar-local current-app-name nil)
+(defvar-local use-rosetta nil)
 
 (defvar ios-simulator-ready-hook nil
   "Hook run when the simulator is ready for app installation.")
 
 (defvar-local current-root-folder-simulator nil)
-(defvar current-language-selection "sv-SE"
+
+(defvar-local current-language-selection ios-simulator-default-language
   "Current language selection for the simulator.")
 
 (defvar secondary-simulator-id nil)
 
+(defun ios-simulator:mode-setup ()
+  "Setup the iOS simulator mode."
+  (add-hook 'kill-buffer-hook #'ios-simulator:cleanup nil t))
+
+(defun ios-simulator:mode-teardown ()
+  "Teardown the iOS simulator mode."
+  (remove-hook 'kill-buffer-hook #'ios-simulator:cleanup t))
+
+(defun ios-simulator:cleanup ()
+  "Clean up simulator resources."
+  (when ios-simulator--installation-process
+    (delete-process ios-simulator--installation-process)))
+
 (defun ios-simulator:reset ()
   "Reset current settings."
-  (setq current-simulator-name nil
+  (setq ios-simulator--current-simulator-name nil
         current-simulator-id nil
         current-app-identifier nil
         current-app-name nil)
@@ -180,12 +222,12 @@
 
 (defun ios-simulator:simulator-name ()
   "Fetches simulator name."
-  (unless current-simulator-name
+  (unless ios-simulator--current-simulator-name
     (let ((simulator-name (ios-simulator:simulator-name-from :id current-simulator-id)))
       (if simulator-name
-          (setq current-simulator-name simulator-name)
-        (setq current-simulator-name "Simulator (unknown)"))))
-  current-simulator-name)
+          (setq ios-simulator--current-simulator-name simulator-name)
+        (setq ios-simulator--current-simulator-name "Simulator (unknown)"))))
+  ios-simulator--current-simulator-name)
 
 (defun ios-simulator:boot-simuator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
@@ -312,7 +354,17 @@
 
 (defun ios-simulator:booted-simulator ()
   "Get booted simulator if any."
-  (let ((device-id (shell-command-to-string get-booted-simulator-command)))
+  (let ((device-id (shell-command-to-string ios-simulator:get-booted-simulator-command)))
+
+(defcustom ios-simulator-default-language "sv-SE"
+  "Default language for the simulator."
+  :type 'string
+  :group 'ios-simulator)
+
+(defcustom ios-simulator-default-language "sv-SE"
+  "Default language for the simulator."
+  :type 'string
+  :group 'ios-simulator)
     (if (not (string= "" device-id))
         (string-trim device-id)
       nil)))

@@ -14,7 +14,7 @@
   :group 'files)
 
 (defface filer-filename-face
-  '((t (:foreground "white")))
+  '((t (:inherit default)))
   "Face for filenames in filer results."
   :group 'filer)
 

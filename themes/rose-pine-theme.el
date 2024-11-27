@@ -83,23 +83,27 @@
   (whitespace-trailing                  (:foreground base :background love))
 
   ;; ;; Font lock
-  (font-lock-keyword-face               (:foreground iris :weight 'semi-bold))
-  (font-lock-type-face                  (:foreground love :weight 'semi-bold))
+  (font-lock-bracket-facei              (:foreground love))
   (font-lock-builtin-face               (:foreground iris))
-  (font-lock-function-name-face         (:foreground pine))
-  (font-lock-variable-name-face         (:foreground text))
-  (font-lock-comment-face               (:foreground muted :italic t))
-  (font-lock-doc-face                   (:foreground muted))
-  (font-lock-string-face                (:foreground gold :italic t))
-  (font-lock-warning-face               (:foreground gold))
-  (font-lock-constant-face              (:foreground rose))
-  (font-lock-regexp-grouping-backslash  (:foreground foam :weight 'semi-bold))
-  
-  (font-lock-reference-face				(:foreground foam))
-  (font-lock-negation-char-face         (:foreground love))
   (font-lock-comment-delimiter-face     (:foreground muted :italic t))
+  (font-lock-comment-face               (:foreground muted :italic t))
+  (font-lock-constant-face              (:foreground rose))
+  (font-lock-doc-face                   (:foreground muted))
   (font-lock-doc-markup-face            (:foreground muted))
-  (font-lock-preprocessor-face	   		(:foreground muted))
+  (font-lock-function-name-face         (:foreground pine))
+  (font-lock-function-call-face         (:foreground pine))
+  (font-lock-keyword-face               (:foreground iris :weight 'semi-bold))
+  (font-lock-misc-punctuation-face      (:foreground gold))
+  (font-lock-negation-char-face         (:foreground love))
+  (font-lock-preprocessor-face	   	(:foreground muted))
+  (font-lock-property-name-face	        (:foreground foam))
+  (font-lock-property-use-face	        (:foreground iris :weight 'thin))
+  (font-lock-reference-face		(:foreground foam))
+  (font-lock-regexp-grouping-backslash  (:foreground foam :weight 'semi-bold))
+  (font-lock-string-face                (:foreground gold :italic t))
+  (font-lock-type-face                  (:foreground love :weight 'semi-bold))
+  (font-lock-variable-name-face         (:foreground text))
+  (font-lock-warning-face               (:foreground gold))
   
   (elisp-shorthand-font-lock-face       (:foreground gold))
 
@@ -119,46 +123,6 @@
   (iedit-read-only-occurrence           (:background pine :foreground base))
   
   (trailing-rosewaterspace              (:background overlay))
-
-  ;; ;; Battery colors
-  (doom-modeline-battery-critical       (:inherit 'error))
-  (doom-modeline-battery-warning        (:inherit 'warning))
-  (doom-modeline-battery-charging       (:foreground muted))
-  (doom-modeline-battery-error          (:inherit 'eror))
-  (doom-modeline-battery-normal         (:foreground muted))
-  (doom-modeline-battery-full           (:foreground muted))
-
-  ;; Doom visual state
-  (doom-modeline-evil-motion-state      (:foreground foam))
-  (doom-modeline-evil-emacs-state       (:foreground foam))
-  (doom-modeline-evil-insert-state      (:foreground rose))
-  (doom-modeline-evil-normal-state      (:foreground muted))
-  (doom-modeline-evil-visual-state      (:foreground foam))
-  (doom-modeline-evil-replace-state     (:foreground love))
-  (doom-modeline-evil-operator-state    (:foreground foam))
-
-  (doom-modeline-project-dir            (:foreground muted))
-  (doom-modeline-buffer-path            (:foreground muted))
-  (doom-modeline-buffer-file            (:foreground text :bold t))
-  (doom-modeline-buffer-major-mode      (:foreground rose :bold t))
-  (doom-modeline-buffer-modified        (:foreground text :italic t :bold t))
-  (doom-modeline-error                  (:background love))
-  (doom-modeline-info                   (:foreground subtle :bold t))
-  (doom-modeline-time                   (:foreground muted :weight 'semi-bold))
-  (doom-modeline-project-dir            (:foreground foam))
-  (doom-modeline-bar                    (:background gold))
-  (doom-modeline-bar-inactive           (:background overlay))
-  (doom-modeline-panel                  (:background foam :foreground base :bold t))
-  (doom-modeline                        (:foreground muted))
-  (doom-themes-visual-bell              (:background love))
-
-
-  (telephone-line-accent-active         (:background overlay :foreground subtle))
-  (telephone-line-accent-inactive       (:background overlay :foreground muted))
-  (telephone-line-evil-normal           (:background muted :foreground base :bold t))
-  (telephone-line-evil-visual           (:background gold :foreground base :bold t))
-  (telephone-line-evil-motion           (:background foam :foreground base :bold t))
-  (telephone-line-evil-insert           (:background pine :foreground base :bold t))
 
   ;;elfeed
   (elfeed-search-feed-face              (:foreground iris))
@@ -308,7 +272,7 @@
   (vertico-group-separator                      (:foreground muted :strike-through t))
   (vertico-current                              (:background overlay :distant-foreground text :bold t :foreground surface))
 
-  (vertico-posframe-border                      (:background muted))
+  (vertico-posframe-border                      (:background base))
   (vertico-posframe                             (:background base :foreground muted))
 
   (corfu-annotations                            (:foreground muted))

@@ -5,59 +5,130 @@
 ;; Package for building and running iOS/macOS apps from Emacs
 
 ;;; Code:
+
 (require 'ios-device)
 (require 'ios-simulator)
 
+(defgroup swift-additions nil
+  "Swift development tools and utilities for Emacs."
+  :group 'programming
+  :prefix "swift-additions:")
+
 (defgroup swift-additions:xcodebuild nil
-  "REPL."
+  "XcodeBuild configuration settings."
   :tag "swift-additions:xcodebuild"
   :group 'swift-additions)
 
-(defvar current-build-configuration nil)
-(defvar current-build-folder nil)
-(defvar current-environment-x86 nil)
-(defvar current-local-device-id nil)
-(defvar current-build-command nil)
-(defvar build-progress-spinner nil)
-(defvar compilation-time nil)
+(defcustom swift-additions:default-configuration "Debug"
+  "Default build configuration to use."
+  :type 'string
+  :group 'swift-additions:xcodebuild)
+
+(defcustom swift-additions:build-system "YES"
+  "Whether to use the modern build system."
+  :type '(choice (const "YES")
+                 (const "NO"))
+  :group 'swift-additions:xcodebuild)
+
+(defcustom swift-additions:additional-build-flags '()
+  "Additional flags to pass to xcodebuild."
+  :type '(repeat string)
+  :group 'swift-additions:xcodebuild)
+
+(defvar swift-additions:optimization-level 'fast 
+  "Build optimization level.")
+
+;; Internal variables
+(defvar-local swift-additions:current-build-configuration nil)
+(defvar-local swift-additions:current-build-folder nil)
+(defvar-local swift-additions:current-environment-x86 nil)
+(defvar-local swift-additions:current-local-device-id nil)
+(defvar-local swift-additions:current-build-command nil)
+(defvar-local swift-additions:build-progress-spinner nil)
+(defvar-local swift-additions:compilation-time nil)
+
 (defvar swift-additions:debug nil
-  "Debug.")
+  "Enable debug output when non-nil.")
+
+(defun swift-additions:log-debug (format-string &rest args)
+  "Log debug message using FORMAT-STRING and ARGS when debug is enabled."
+  (when swift-additions:debug
+    (apply #'message (concat "[Swift Debug] " format-string) args)))
+
+(defun swift-additions:handle-build-error (error-message)
+  "Handle build ERROR-MESSAGE and display appropriate feedback."
+  (mode-line-hud:update
+   :message (format "Build failed: %s"
+                   (propertize (substring error-message 0
+                                        (min 50 (length error-message)))
+                               'face 'error)))
+  (periphery-run-parser error-message))
+
+(defun swift-additions:get-optimization-flags ()
+  "Get optimization flags."
+  (pcase swift-additions:optimization-level
+    ('fast '("SWIFT_COMPILATION_MODE=wholemodule"
+            "COMPILER_INDEX_STORE_ENABLE=NO"
+            "DEBUG_INFORMATION_FORMAT=dwarf"))
+    ('debug '("SWIFT_COMPILATION_MODE=incremental"
+             "COMPILER_INDEX_STORE_ENABLE=YES"))))
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
-(if current-environment-x86
+(if swift-additions:current-environment-x86
     "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
   "xcrun xcodebuild build \\"))
 
-(cl-defun build-app-command (&key sim-id (nil) derived-path)
-"Xcodebuild with (as SIM-ID DERIVED-PATH)."
-(if current-build-command
-    current-build-command
-  (concat
-    (swift-additions:xcodebuild-command)
-    (format "%s \\" (xcode-additions:get-workspace-or-project))
-    (format "-scheme %s \\" (xcode-additions:scheme))
-    (format "-jobs %s \\" (swift-additions:get-number-of-cores))
-    (if sim-id
-        (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
-      (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
-    "-configuration Debug \\"
-    "-parallelizeTargets \\"
-    "-UseModernBuildSystem=YES \\"
-    "-derivedDataPath build | xcode-build-server parse -avv"
-    ;; "-resultBundlePath .bundle \\"
-    ;; (format "-derivedDataPath %s | xcode-build-server parse -av" derived-path)
-    ;; (format "-derivedDataPath %s" derived-path)
-    )))
+(defvar swift-additions:optimization-level 'fast
+  "Build optimization level: 'fast or 'debug.")
 
-(defun swift-additions:get-number-of-cores ()
-  "Get the number of available CPU cores."
-  (number-to-string (string-to-number (shell-command-to-string "sysctl -n hw.ncpu"))))
+(defun swift-additions:get-optimal-jobs ()
+  "Get optimal number of parallel jobs based on CPU cores."
+  (number-to-string (max 1 (- (num-processors) 1))))
+
+(defun swift-additions:get-optimization-flags ()
+  "Get optimization flags based on current optimization level."
+  (pcase swift-additions:optimization-level
+    ('fast '("SWIFT_COMPILATION_MODE=wholemodule"
+            "COMPILER_INDEX_STORE_ENABLE=NO"
+            "DEBUG_INFORMATION_FORMAT=dwarf"))
+    ('debug '("SWIFT_COMPILATION_MODE=incremental"
+             "COMPILER_INDEX_STORE_ENABLE=YES"))))
+
+(cl-defun swift-additions:build-app-command (&key sim-id derived-path)
+  "Xcodebuild with (as SIM-ID DERIVED-PATH)."
+  (if swift-additions:current-build-command
+      swift-additions:current-build-command
+    (concat
+     (swift-additions:xcodebuild-command)
+     (format "%s \\" (xcode-additions:get-workspace-or-project))
+     (format "-scheme %s \\" (xcode-additions:scheme))
+     (format "-jobs %s \\" (swift-additions:get-optimal-jobs))
+     (if sim-id
+         (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
+       (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
+     (format "-configuration %s \\" swift-additions:default-configuration)
+     "-parallelizeTargets \\"
+     (format "-UseModernBuildSystem=%s \\" swift-additions:build-system)
+     "-enableAddressSanitizer NO \\"
+     "-enableThreadSanitizer NO \\"
+     "-enableUndefinedBehaviorSanitizer NO \\"
+     (mapconcat (lambda (flag) (concat flag " \\"))
+                (swift-additions:get-optimization-flags)
+                "")
+     (mapconcat (lambda (flag) (concat flag " \\"))
+                swift-additions:additional-build-flags
+                "")
+     "-derivedDataPath .build | xcode-build-server parse -avv")))
+
+(defun swift-additions:get-optimal-jobs ()
+  "Get optimal number of parallel jobs based on CPU cores."
+  (number-to-string (max 1 (- (num-processors) 1))))
 
 (defun swift-additions:compilation-time ()
     "Get the time of the compilation."
     (if-let* ((end-time (current-time)))
-        (format "%.1f" (float-time (time-subtract end-time compilation-time)))
+        (format "%.1f" (float-time (time-subtract end-time swift-additions:compilation-time)))
       nil))
 
 (defun swift-additions:run()
@@ -122,6 +193,24 @@
   (mode-line-hud:update :message (format "Successful build %s"
                                          (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face))))
 
+(cl-defun swift-additions:compile-with-progress (&key command callback update-callback)
+  "Run compilation COMMAND with progress indicator and CALLBACK/UPDATE-CALLBACK."
+  (spinner-start 'progress-bar-filled)
+  (setq swift-additions:build-progress-spinner spinner-current
+        swift-additions:compilation-time (current-time))
+
+  (swift-additions:log-debug "Running build command: %s" command)
+
+  (async-start-command-to-string
+   :command command
+   :callback (lambda (text)
+              (spinner-stop swift-additions:build-progress-spinner)
+              (if (swift-additions:check-if-build-was-successful text)
+                  (funcall callback text)
+                (swift-additions:handle-build-error text)))
+   :update-callback update-callback
+   :debug swift-additions:debug))
+
 ;;;###autoload
 (defun swift-additions:compile-and-run ()
   "Compile and run app."
@@ -150,73 +239,60 @@
       (message "Not xcodeproject nor swift package"))))
 
 (cl-defun swift-additions:compile-for-simulator (&key run)
-  "Compile app (RUN)."
-  (setq current-build-command nil)
+  "Compile app for simulator with optional RUN after completion."
+  (setq swift-additions:current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
-  (let ((build-command (build-app-command
-                        :sim-id (ios-simulator:simulator-identifier)
-                        :derived-path (xcode-additions:derived-data-path)))
+  (let ((build-command (swift-additions:build-app-command
+                       :sim-id (ios-simulator:simulator-identifier)))
         (default-directory (xcode-additions:project-root)))
-    (spinner-start 'progress-bar-filled)
-    (setq current-build-command build-command)
-    (setq compilation-time (current-time))
-    (setq build-progress-spinner spinner-current)
-    (when swift-additions:debug
-      (message build-command))
 
-    (mode-line-hud:update :message
-                          (format "Building %s|%s"
-                                  (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                  (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
+    (mode-line-hud:update
+     :message (format "Building %s|%s"
+                     (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                     (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
 
     (xcode-additions:setup-xcodebuildserver)
 
-    (async-start-command-to-string
+    (swift-additions:compile-with-progress
      :command build-command
      :callback (lambda (text)
-                 (when swift-additions:debug (message text))
-                 (spinner-stop build-progress-spinner)
-                 (if run-once-compiled
-                     (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
-                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))
+                (if run-once-compiled
+                    (swift-additions:check-for-errors
+                     text #'swift-additions:run-app-after-build)
+                  (swift-additions:check-for-errors
+                   text #'swift-additions:successful-build)))
      :update-callback (lambda (text)
-                        (xcode-additions:parse-compile-lines-output :input text))
-     :debug swift-additions:debug)))
+                       (xcode-additions:parse-compile-lines-output :input text)))))
 
 (defun swift-additions:compile-for-device (&key run)
-  "Compile and RUN on device ."
-  (setq current-build-command nil)
+  "Compile and optionally RUN on device."
+  (setq swift-additions:current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
-  (let ((build-command (build-app-command :derived-path (xcode-additions:derived-data-path)))
+  (let ((build-command (swift-additions:build-app-command))
         (default-directory (xcode-additions:project-root)))
-    (spinner-start 'progress-bar-filled)
-    (setq current-build-command build-command)
-    (setq compilation-time (current-time))
-    (setq build-progress-spinner spinner-current)
 
-
-    (when swift-additions:debug
-      (message current-build-command)
-      (message "Build-folder: %s" (xcode-additions:derived-data-path)))
+    (swift-additions:log-debug "Build-folder: %s" (xcode-additions:derived-data-path))
 
     (xcode-additions:setup-xcodebuildserver)
-    (mode-line-hud:update :message (format "Compiling %s|%s"
-                                           (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                                           (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
-    (spinner-start 'progress-bar-filled)
+    (mode-line-hud:update
+     :message (format "Compiling %s|%s"
+                     (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                     (propertize "Physical Device" 'face 'font-lock-negation-char-face)))
 
-    (async-start-command-to-string
+    (swift-additions:compile-with-progress
      :command build-command
      :callback (lambda (text)
-                 (spinner-stop build-progress-spinner)
-                 (if run-once-compiled
-                     (swift-additions:check-for-errors text #'swift-additions:run-app-on-device-after-build)
-                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))
-     :debug ios-device:debug)))
+                (if run-once-compiled
+                    (swift-additions:check-for-errors
+                     text #'swift-additions:run-app-on-device-after-build)
+                  (swift-additions:check-for-errors
+                   text #'swift-additions:successful-build)))
+     :update-callback (lambda (text)
+                       (xcode-additions:parse-compile-lines-output :input text)))))
 
 ;;;###autoload
 (defun swift-additions:test-module-silent ()
@@ -295,6 +371,128 @@
   (let ((buffer-dir (file-name-directory (or (buffer-file-name) default-directory))))
     (locate-dominating-file buffer-dir "Package.swift")))
 
+(defun swift-additions:diagnose ()
+  "Display diagnostic information about the current Swift development environment."
+  (interactive)
+  (with-help-window "*Swift Diagnostics*"
+    (let ((standard-output (get-buffer-create "*Swift Diagnostics*")))
+      (princ "Swift Development Environment Diagnostics\n")
+      (princ "=====================================\n\n")
+
+      ;; Project information
+      (princ "Project Information:\n")
+      (princ "-------------------\n")
+      (princ (format "Project Root: %s\n" (xcode-additions:project-root)))
+      (princ (format "Project Type: %s\n"
+                    (cond ((xcode-additions:is-xcodeproject) "Xcode Project")
+                          ((swift-additions:is-a-swift-package-base-project) "Swift Package")
+                          (t "Unknown"))))
+      (when (xcode-additions:is-xcodeproject)
+        (princ (format "Scheme: %s\n" (xcode-additions:scheme)))
+        (princ (format "Derived Data Path: %s\n" (xcode-additions:derived-data-path))))
+
+      ;; Build configuration
+      (princ "\nBuild Configuration:\n")
+      (princ "------------------\n")
+      (princ (format "Current Build Configuration: %s\n"
+                    (or swift-additions:current-build-configuration "Not set")))
+      (princ (format "Default Configuration: %s\n" swift-additions:default-configuration))
+      (princ (format "Build System: %s\n" swift-additions:build-system))
+      (princ (format "Additional Build Flags: %s\n"
+                    (if swift-additions:additional-build-flags
+                        (mapconcat #'identity swift-additions:additional-build-flags " ")
+                      "None")))
+
+      ;; Environment
+      (princ "\nEnvironment:\n")
+      (princ "------------\n")
+      (princ (format "x86 Environment: %s\n"
+                    (if swift-additions:current-environment-x86 "Yes" "No")))
+      (princ (format "Number of CPU Cores: %s\n" (swift-additions:get-optimal-jobs)))
+
+      ;; Device/Simulator
+      (princ "\nDevice Configuration:\n")
+      (princ "-------------------\n")
+      (if (xcode-additions:run-in-simulator)
+          (progn
+            (princ "Running in Simulator:\n")
+            (princ (format "Simulator ID: %s\n" (ios-simulator:simulator-identifier)))
+            (princ (format "Simulator Name: %s\n" (ios-simulator:simulator-name))))
+        (princ "Running on Physical Device\n"))
+
+      ;; Current build state
+      (princ "\nCurrent Build State:\n")
+      (princ "------------------\n")
+      (when swift-additions:current-build-command
+        (princ "Current Build Command:\n")
+        (princ "------------------\n")
+        (princ swift-additions:current-build-command)
+        (princ "\n"))
+      (when swift-additions:compilation-time
+        (princ (format "\nLast Compilation Time: %s seconds\n"
+                      (swift-additions:compilation-time))))
+
+      ;; Debug settings
+      (princ "\nDebug Settings:\n")
+      (princ "--------------\n")
+      (princ (format "Debug Mode: %s\n" (if swift-additions:debug "Enabled" "Disabled")))
+
+      ;; File system checks
+      (princ "\nFile System Checks:\n")
+      (princ "-----------------\n")
+      (let ((build-dir (xcode-additions:build-folder :device-type :simulator)))
+        (princ (format "Build Directory Exists: %s\n"
+                      (if (and build-dir (file-exists-p build-dir)) "Yes" "No")))
+        (when build-dir
+          (princ (format "Build Directory Path: %s\n" build-dir))))
+
+      ;; Swift toolchain
+      (princ "\nSwift Toolchain:\n")
+      (princ "---------------\n")
+      (let ((swift-version (shell-command-to-string "swift --version")))
+        (princ swift-version))
+
+      ;; System info
+      (princ "\nSystem Information:\n")
+      (princ "------------------\n")
+      (princ (format "Emacs Version: %s\n" emacs-version))
+      (princ (format "System Type: %s\n" system-type))
+
+      ;(princ "\nSystem Information:\n")
+      (princ "------------------\n")
+      (princ (format "Build command: %s\n" (swift-additions:build-app-command
+                       :sim-id (ios-simulator:simulator-identifier)
+                       :derived-path (xcode-additions:derived-data-path))))
+
+      (princ "\nRecommendations:\n")
+      (princ "---------------\n")
+      (unless (xcode-additions:is-xcodeproject)
+        (unless (swift-additions:is-a-swift-package-base-project)
+          (princ "WARNING: Neither Xcode project nor Swift package detected\n")))
+      (unless swift-additions:current-build-command
+        (princ "NOTE: No build command has been generated yet\n"))
+      (when swift-additions:debug
+        (princ "NOTE: Debug mode is enabled - this may affect performance\n")))))
+
+(defun swift-additions:copy-diagnostics ()
+  "Copy diagnostic information to clipboard."
+  (interactive)
+  (let ((orig-buffer (current-buffer)))
+    (swift-additions:diagnose)
+    (with-current-buffer "*Swift Diagnostics*"
+      (kill-ring-save (point-min) (point-max))
+      (message "Diagnostic information copied to clipboard"))
+    (switch-to-buffer orig-buffer)))
+
+(defun swift-additions:save-diagnostics (filename)
+  "Save diagnostic information to FILENAME."
+  (interactive "FSave diagnostics to file: ")
+  (let ((orig-buffer (current-buffer)))
+    (swift-additions:diagnose)
+    (with-current-buffer "*Swift Diagnostics*"
+      (write-region (point-min) (point-max) filename))
+    (message "Diagnostic information saved to %s" filename)
+    (switch-to-buffer orig-buffer)))
 
 (provide 'swift-additions)
 

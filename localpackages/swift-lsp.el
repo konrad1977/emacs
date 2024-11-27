@@ -95,5 +95,6 @@
 attributes."
   :group 'tree-sitter-hl-faces)
 
+
 (provide 'swift-lsp)
 ;;; swift-lsp.el ends here

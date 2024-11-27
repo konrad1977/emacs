@@ -122,7 +122,7 @@
   (font-lock-misc-punctuation-face               (:foreground roninYellow))
   (font-lock-negation-char-face                  (:foreground peachRed))
   (font-lock-number-face                         (:foreground peachRed))
-  (font-lock-operator-face                       (:foreground surimiOrange))
+  (font-lock-operator-face                       (:foreground carpYellow))
   (font-lock-preprocessor-face	                 (:foreground boatYellow2))
   (font-lock-property-name-face	                 (:foreground carpYellow))
   (font-lock-property-use-face	                 (:foreground springBlue :weight 'thin))
@@ -555,9 +555,6 @@
   (focus-unfocused (:foreground sumiInk-4))
   (window-stool-face (:background sumiInk-2)) ; :underline (:color sumiInk-3)))
 
-  (solaire-default-face (:background sumiInk-2 :foreground sumiInk-5))
-  (solaire-fringe-face (:background sumiInk-2 :foreground sumiInk-5))
-
   (minimap-active-region-background (:background sumiInk-3))
 
   ;; (magit-filename (:foreground crystalBlue))
@@ -593,9 +590,9 @@
   (punch-line-time-face           (:foreground sumiInk-5))
   (punch-line-major-mode-face     (:foreground sumiInk-5))
 
-  (eglot-inlay-hint-face (:foreground dragonBlue :height 0.8))
-  (eglot-parameter-hint-face (:foreground springViolet2 :height 0.8))
-  (eglot-type-hint-face (:foreground sumiInk-5 :height 0.8))
+  (eglot-inlay-hint-face (:inherit 'font-lock-property-name-face :height 0.8 :weight 'normal))
+  ;; (eglot-parameter-hint-face (:foreground springViolet2 :height 0.8))
+  ;; (eglot-type-hint-face (:foreground sumiInk-5 :height 0.8))
 
   (wgrep-done-face (:foreground sumiInk-6))
 
@@ -604,7 +601,9 @@
   (android-emulator-log-info-face (:foreground springGreen :background winterGreen))
   (android-emulator-log-debug-face (:foreground springBlue :background winterBlue))
   (android-emulator-log-verbose-face (:foreground comet))
-  
+
+  (solaire-default-face (:background sumiInk-0))
+
   ))
 
 (provide-theme 'kanagawa)

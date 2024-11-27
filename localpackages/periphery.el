@@ -363,9 +363,9 @@
                "\\2"
                failure-msg))
         (push (periphery--build-list
-               :path "Build Failure"
-               :file "Build Failure"
-               :line "1"
+               :path "_Build Failure"
+               :file "_Build Failure"
+               :line "999"
                :keyword "error"
                :result failure-msg
                :regex periphery-regex-mark-quotes)
@@ -670,29 +670,29 @@
   (string-trim-left
    (replace-regexp-in-string ":" ""
                              (replace-regexp-in-string "^[;|\/]+\\W+" "" tag))))
+
 ;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
-  '(("\\([;|\/]+\\W+\\w+\\b:.*\\)" . ((lambda (tag)
-                                        (svg-tag-make (periphery--remove-leading-keyword tag)
-                                                      :face (svg-color-from-tag tag)
-                                                      :inverse t))))
-    ("\\([;|\/]+\\W+\\w+\\b:\\)" . ((lambda (tag)
-                                      (svg-tag-make (periphery--remove-comments tag)
-                                                    :face (svg-color-from-tag tag)
-                                                    :crop-right t))))
-    ("// swiftlint:\\(enable\\|disable\\) .*" . ((lambda (tag)
-                                                  (let* ((parts (split-string tag " " t))
-                                                         (action (nth 1 parts))
-                                                         (text (string-join (cddr parts) " ")))
-                                                    (svg-tag-make (concat "SwiftLint: " action)
-                                                                  :face (if (string= action "enable")
-                                                                            'periphery-note-face-full
-                                                                          'periphery-fix-face-full)
-                                                                  :inverse t)
-                                                    (svg-tag-make text
-                                                                  :face 'periphery-mark-face-full
-                                                                  :crop-left t)))))))
-
+  '(("^[ \t]*\\([;|\/][;|\/]+\\W+\\w+\\b:.*\\)" . ((lambda (tag)
+                                                    (svg-tag-make (periphery--remove-leading-keyword tag)
+                                                                :face (svg-color-from-tag tag)
+                                                                :inverse t))))
+    ("^[ \t]*\\([;|\/][;|\/]+\\W+\\w+\\b:\\)" . ((lambda (tag)
+                                                  (svg-tag-make (periphery--remove-comments tag)
+                                                              :face (svg-color-from-tag tag)
+                                                              :crop-right t))))
+    ("^[ \t]*// swiftlint:\\(enable\\|disable\\) .*" . ((lambda (tag)
+                                                       (let* ((parts (split-string tag " " t))
+                                                              (action (nth 1 parts))
+                                                              (text (string-join (cddr parts) " ")))
+                                                         (svg-tag-make (concat "SwiftLint: " action)
+                                                                     :face (if (string= action "enable")
+                                                                             'periphery-note-face-full
+                                                                           'periphery-fix-face-full)
+                                                                     :inverse t)
+                                                         (svg-tag-make text
+                                                                     :face 'periphery-mark-face-full
+                                                                     :crop-left t)))))))
 (provide 'periphery)
 ;;; periphery.el ends here

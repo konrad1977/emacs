@@ -414,7 +414,7 @@
   (orderless-match-face-2                       (:foreground love :background "#211A1F" :weight 'semi-bold))
   (orderless-match-face-3                       (:foreground iris :background "#292233" :weight 'semi-bold))
 
-  (comint-highlight-prompt                      (:background gold :foreground base))
+  (comint-highlight-prompt                      (:foreground foam :background dark-foam))
 
   (completions-annotations                      (:foreground muted :italic t))
   (completions-highlight                        (:foreground foam :italic t))

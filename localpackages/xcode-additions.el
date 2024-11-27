@@ -6,16 +6,17 @@
 (require 'mode-line-hud)
 (require 'xcodebuildserver)
 
-(defvar current-project-root nil)
-(defvar current-xcode-scheme nil)
-(defvar current-build-settings-json nil)
-(defvar current-build-configuration nil)
-(defvar current-app-identifier nil)
-(defvar current-build-folder nil)
-(defvar current-is-xcode-project nil)
-(defvar current-local-device-id nil)
-(defvar current-run-on-device nil)
-(defvar current-errors-or-warnings nil)
+(defvar-local current-project-root nil)
+(defvar-local current-xcode-scheme nil)
+(defvar-local current-build-settings-json nil)
+(defvar-local current-build-configuration nil)
+(defvar-local current-app-identifier nil)
+(defvar-local current-build-folder nil)
+(defvar-local current-is-xcode-project nil)
+(defvar-local current-local-device-id nil)
+(defvar-local current-run-on-device nil)
+(defvar-local current-errors-or-warnings nil)
+(defvar-local xcode-additions:last-device-type nil)
 
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
 
@@ -222,11 +223,12 @@ Full project path: %s"
 
 (cl-defun xcode-additions:build-folder (&key (device-type :device))
   "Get build folder. Automatically choose based on device type (iphoneos or iphonesimulator), or let the user choose if there are multiple options."
-  (unless current-build-folder
-    (let* ((default-directory (concat (xcode-additions:derived-data-path) "build/Build/Products/"))
-          (all-folders (xcode-additions:parse-build-folder default-directory))
-          (target-suffix (if (eq device-type :simulator) "iphonesimulator" "iphoneos"))
-          (matching-folders (seq-filter (lambda (folder) (string-match-p target-suffix folder)) all-folders)))
+  (when (or (not current-build-folder)
+            (not (eq device-type xcode-additions:last-device-type)))
+    (let* ((default-directory (concat (xcode-additions:derived-data-path) ".build/Build/Products/"))
+           (all-folders (xcode-additions:parse-build-folder default-directory))
+           (target-suffix (if (eq device-type :simulator) "iphonesimulator" "iphoneos"))
+           (matching-folders (seq-filter (lambda (folder) (string-match-p target-suffix folder)) all-folders)))
 
       (when xcode-additions:debug
         (message "xcode-additions:build-folder:\nAll folders: %s" all-folders)
@@ -248,7 +250,8 @@ Full project path: %s"
                :title "Choose build folder"
                :list all-folders))))
       (when current-build-folder
-        (setq current-build-folder (shell-quote-argument (concat default-directory current-build-folder "/"))))))
+        (setq current-build-folder (shell-quote-argument (concat default-directory current-build-folder "/"))))
+      (setq xcode-additions:last-device-type device-type)))
   current-build-folder)
 
 (defun xcode-additions:setup-xcodebuildserver ()
@@ -352,9 +355,9 @@ Full project path: %s"
 (defun xcode-additions:start-debugging ()
   "Start debugging immediately without confirmation."
   (interactive)
-  (xcode-additions:setup-dape)
-  (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
-    (dape config)))
+  (xcode-additions:setup-dape))
+  ;; (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
+  ;;   (dape config)))
 
 (defun xcode-additions:setup-dape()
   "Setup dape."

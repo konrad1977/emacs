@@ -10,12 +10,13 @@
 (push '(ns-use-native-fullscreen . t) default-frame-alist)
 (push '(ns-transparent-titlebar . t) default-frame-alist)
 (push '(ns-appearance . dark) default-frame-alist)
+(push '(undecorated-round . t) default-frame-alist)
 (push '(menu-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(fullscreen . maximized) default-frame-alist)
-(push '(vertical-scroll-bars . nil) default-frame-alist)
 (push '(background-color . "#13131a") default-frame-alist)
 (push '(foreground-color . "#a0a0ae") default-frame-alist)
+;; (setq default-frame-alist '((undecorated-round . t)))
 
 (setq site-run-file nil
       read-process-output-max (* 8 1024 1024)
@@ -44,26 +45,12 @@
       frame-title-format nil)
 
 (set-face-attribute 'default nil :family "Iosevka" :height 170 :weight 'light :width 'wide)
-(set-face-attribute 'fixed-pitch nil :family "Iosevka")
-(set-face-attribute 'variable-pitch nil :family "SF Pro Display")
+(set-face-attribute 'variable-pitch nil :family "SF Pro Text")
 
 ;; ;; Native compilation settings
 (when (featurep 'native-compile)
-  (setq native-comp-deferred-compilation nil
-        native-comp-async-report-warnings-errors nil
-        native-comp-async-query-on-exit t
-        comp-async-query-on-exit t
-        native-comp-speed 3
-        comp-speed 3
-        native-comp-jit-compilation t))
-
-;; (custom-set-variables '(savehist-additional-variables '(kill-ring)))
-
-;; (setq ffap-alist nil)                ; faster, dumber prompting
-;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
-;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
-;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
-;; (setq ffip-use-rust-fd t)
+        (setq native-comp-jit-compilation t
+              native-comp-async-report-warnings-errors nil))
 
 (set-language-environment    "UTF-8")
 (prefer-coding-system 'utf-8)
@@ -79,8 +66,8 @@
 ;; Reset file-name-handler-alist after startup
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 10 1000 1000)
-                  gc-cons-percentage 0.3
+            (setq gc-cons-threshold (* 20 1000 1000)
+                  gc-cons-percentage 0.5
                   file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)

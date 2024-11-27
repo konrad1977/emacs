@@ -9,7 +9,7 @@
 (require 'mode-line-hud)
 
 (defvar current-query "")
-(defvar DEBUG nil)
+(defvar periphery-quick:debug t)
 
 (defun run-async-command (command callback)
   "Run COMMAND asynchronously and call CALLBACK with the result."
@@ -19,9 +19,30 @@
      (lambda (process event)
        (when (string= event "finished\n")
          (with-current-buffer output-buffer
-           (let ((result (buffer-string)))
+           (let ((result (string-trim (buffer-string))))
              (funcall callback result))
            (kill-buffer output-buffer)))))))
+
+(defun periphery-run-query (searcher text)
+  "Search using (SEARCHER) with (TEXT)."
+  (when (> (length text) 1)
+    (setq current-query nil)
+    (if (executable-find "rg")
+        (let ((default-directory (periphery-helper:project-root-dir)))
+          (setq current-query (regexp-quote text))
+          (let ((command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path"
+                                 searcher current-query)))
+            (when periphery-quick:debug
+              (message "Running command: %s" command))
+            (run-async-command command
+                               (lambda (result)
+                                 (when periphery-quick:debug
+                                   (message "Search result: %s" result))
+                                 (if (string-empty-p result)
+                                     (message "No results")
+                                   (send-search-result-to-periphery result))))))
+      (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning))))
+
 
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
@@ -45,24 +66,6 @@
     (setq str (replace-regexp-in-string "(" "\\\\(" str))
     (setq str (replace-regexp-in-string ")" "\\\\)" str))
     str))
-
-(defun periphery-run-query (searcher text)
-  "Search using (SEARCHER) with (TEXT)."
-  (when (> (length text) 1)
-    (setq current-query nil)
-    (if (executable-find "rg")
-        (let ((default-directory (periphery-helper:project-root-dir)))
-          (setq current-query (regexp-quote text))
-          (let ((command (format "%s \"%s\" --color=never --no-heading --with-filename --line-number --column --sort path"
-                                 searcher current-query)))
-            (when DEBUG
-              (message "Running command: %s" command))  ;; Log the command for debugging
-            (run-async-command command
-                               (lambda (result)
-                                 (when DEBUG
-                                   (message "Search result: %s" result))  ;; Log the result for debugging
-                                 (send-search-result-to-periphery result)))))
-      (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning))))
 
 (defun periphery--search-for (searcher)
   "Search using (as SEARCHER)."

@@ -8,7 +8,6 @@
   (defvar display-time-default-load-average nil))
 
 (require 'package)
-(require 'use-package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
@@ -20,10 +19,10 @@
   (when (file-directory-p dir)
     (add-to-list 'load-path dir)
     (let ((default-directory dir))
-      (normal-top-level-add-subdirs-to-load-path))))
+    (normal-top-level-add-subdirs-to-load-path))))
 
 ;;   ;; Add themes directory to custom theme load path
-   (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
+(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
 
 
 (global-unset-key (kbd "C-<wheel-up>"))
@@ -43,7 +42,7 @@
   (setq use-package-verbose nil
 	use-package-expand-minimally t
 	use-package-always-ensure t
-	use-package-compute-statistics nil
+	use-package-compute-statistics t
 	use-package-minimum-reported-time 0.1))
 
 (use-package emacs
@@ -176,7 +175,7 @@
       (window-width . 0.10)
       (side . right)
       (slot . 0))
-     ("\\*iOS Simulator\\|*swift package\\|*ios-device"
+     ("\\*iOS Simulator\\|\\*swift package\\|\\*ios-device"
       (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
       (window-height . 0.15)
       (window-parameters . ((mode-line-format . none)))
@@ -228,7 +227,7 @@
 (use-package welcome-dashboard
   :ensure nil
   :custom-face
-  (welcome-dashboard-path-face ((t (:height 0.7))))
+  (welcome-dashboard-path-face ((t (:height 0.8))))
   :config
   (setq welcome-dashboard-latitude 56.7365
         welcome-dashboard-longitude 16.2981
@@ -236,12 +235,12 @@
         welcome-dashboard-show-weather-info t
         welcome-dashboard-use-fahrenheit nil
         welcome-dashboard-max-left-padding 1
-        welcome-dashboard-max-number-of-todos 0
+        welcome-dashboard-max-number-of-todos 10
         welcome-dashboard-path-max-length 70
         welcome-dashboard-min-left-padding 10
-        welcome-dashboard-image-file "~/.emacs.d/themes/true.png"
-        welcome-dashboard-image-width 200
-        welcome-dashboard-image-height 169
+        welcome-dashboard-image-file "~/.emacs.d/themes/emacs.png"
+        welcome-dashboard-image-width 300
+        welcome-dashboard-image-height 300
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
   (welcome-dashboard-create-welcome-hook))
 
@@ -249,6 +248,10 @@
   (set-message-beep 'silent))
 
 (use-package nerd-icons
+  :custom
+  ;; (set-fontset-font t 'symbol "CaskaydiaCove Nerd Font Mono" nil 'prepend)
+  ;; (nerd-icons-font-family "CaskaydiaCove Nerd Font Mono")
+  (nerd-icons-scale-factor 0.9)
   :config
   (setq nerd-icons-scale-factor 0.9)
   (setq nerd-icons-color-icons t))
@@ -288,25 +291,32 @@
 
 (use-package autothemer
   :init
-  ;; (load-theme 'catppuccin-latte t)
+   ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-frappe t)
-  ;; (load-theme 'catppuccin-mocha t)
+  (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
   ;; (load-theme 'kanagawa t)
-  (load-theme 'oxocarbon t)
+  ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
 
+(use-package zoom
+  :hook (after-init . zoom-mode)
+  :config
+  (setq zoom-size '(0.7 . 0.7)
+        zoom-ignored-major-modes '(dired-mode vterm-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
+        zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
+        zoom-ignored-buffer-name-regexps '("^\\*" "^ \\*")))
+
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode . display-line-numbers-mode)            ;; Insert och färglägg rad för rad
-
 	 (prog-mode . highlight-symbol-mode)
 	 (prog-mode . electric-pair-mode)
 	 (prog-mode . electric-indent-mode)
@@ -339,7 +349,7 @@
           "  ")
   cand)))
   (setq vertico-resize t
-        vertico-count 10
+        vertico-count 12
         vertico-multiline t
         vertico-scroll-margin 0
         vertico-cycle t))
@@ -350,16 +360,15 @@
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
   :config
-  (setq
-   vertico-posframe-parameters
+  (setq vertico-posframe-parameters
         '((left-fringe . 0)
           (right-fringe . 0)
-	  (alpha . 88))
-        vertico-posframe-poshandler #'posframe-poshandler-frame-bottom-center
+          (alpha . 94))
+        vertico-posframe-poshandler #'posframe-poshandler-window-top-center
         vertico-posframe-truncate-lines t
         vertico-posframe-min-width 80
         vertico-posframe-width 160
-        vertico-posframe-min-height 10
+        ;; vertico-posframe-min-height 13
         vertico-posframe-border-width 20))
 
 ;; Configure directory extension.
@@ -371,8 +380,6 @@
               ("<tab>" . vertico-directory-enter)
               ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word)))
-
-
 
 (use-package orderless
   :after vertico
@@ -404,7 +411,7 @@
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
-  ("M-S" . #'consult-line-multi)
+  ("M-S" . #'consult-line)
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
@@ -463,7 +470,8 @@
 
 (use-package punch-line
   :ensure nil
-  :after evil
+  :defer t
+  :hook (after-init . punch-line-mode)
   :custom
   (punch-weather-update)
   :config
@@ -473,13 +481,13 @@
    punch-show-project-info nil
    punch-show-git-info t
    punch-show-lsp-info t
-   punch-show-copilot-info t
+   punch-show-copilot-info nil
    punch-show-battery-info t
    punch-show-weather-info t
    punch-weather-latitude "56.7365"
    punch-weather-longitude "16.2981"
-   punch-line-music-info '(:service apple))
-  (punch-line-mode 1))
+   punch-line-music-max-length 80
+   punch-line-music-info '(:service apple)))
 
 (use-package evil
   :hook (after-init . evil-mode)
@@ -515,7 +523,6 @@
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
   (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-
   (define-key evil-normal-state-map (kbd "C-g") 'evil-ex-nohighlight)  ;; Add shortcut to stop highlights
 
   ;; (evil-ex-define-cmd "q[uit]" 'safe-kill-buffer-and-window)
@@ -523,8 +530,9 @@
   (evil-mode 1))
 
 (with-eval-after-load 'evil
-  (define-key evil-insert-state-map (kbd "C-k") nil)
-  (define-key evil-normal-state-map (kbd "C-k") nil))
+  (dolist (state '(normal insert visual motion emacs))
+    (evil-define-key state 'global (kbd "s-M") nil)
+    (evil-define-key state 'global (kbd "C-k") nil)))
 
 (use-package evil-collection
   :after evil
@@ -652,7 +660,7 @@
 (use-package eldoc
   :ensure nil
   :config
-  (setq eldoc-idle-delay 0.5
+  (setq eldoc-idle-delay 2
 	eldoc-echo-area-use-multiline-p nil
         flycheck-display-errors-delay 0.5))
 
@@ -774,6 +782,13 @@
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
+(use-package darken-buffer
+  :ensure nil
+  :hook (after-init . darken-buffer-mode)
+  :config
+  (setq darken-buffer-percentage 0
+        lighten-inactive-buffer-percentage 4))
+
 (use-package avy
   :defer t
   :bind ("M-g" . avy-goto-word-1)
@@ -804,15 +819,15 @@
   :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
   :custom-face
-  (treemacs-directory-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-directory-collapsed-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-directory-face ((t (:family "Verdana" :height 0.8 :weight thin))))
+  (treemacs-directory-collapsed-face ((t (:family "Verdana" :height 0.8 :weight thin))))
   ;; (treemacs-file-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-ignored-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-unmodified-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-untracked-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-added-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-renamed-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-modified-face ((t (:family "Verdana" :height 0.8))))
+  (treemacs-git-ignored-face ((t (:family "Verdana" :height 0.8 :slant italic))))
+  (treemacs-git-unmodified-face ((t (:family "Verdana" :height 0.8 :weight normal))))
+  (treemacs-git-untracked-face ((t (:family "Verdana" :height 0.8 :weight normal))))
+  (treemacs-git-added-face ((t (:family "Verdana" :height 0.8 :weight normal))))
+  (treemacs-git-renamed-face ((t (:family "Verdana" :height 0.8 :weight normal))))
+  (treemacs-git-modified-face ((t (:family "Verdana" :height 0.8 :weight normal))))
   (treemacs-tags-face ((t (:family "Verdana" :height 0.8))))
   :config
   (setq treemacs-follow-after-init t
@@ -831,7 +846,7 @@
         treemacs-silent-refresh	t
         treemacs-indentation 1
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
-        treemacs-width 30))
+        treemacs-width 40))
 
 (use-package treemacs-magit
   :after treemacs magit)
@@ -999,13 +1014,37 @@
   (setq dall-e-shell-openai-key (getenv "OPENAI_API_KEY")))
 
 (use-package chatgpt-shell
-  :ensure nil
-  :bind (("C-x C-v" . chatgpt-shell-quick-insert)
-	 ("C-x C-p" . chatgpt-shell-prompt-compose)
-	 ("C-x c g s" . chatgpt-shell-send-and-review-region)
-	 ("C-x c g r" . chatgpt-shell-refactor-code))
   :init
-  (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY")))
+  (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
+  (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
+  (require 'chatgpt-shell-ollama)
+  (defun add-qwen-to-ollama-models (orig-fun)
+    "Add qwen2.5-coder to the list of Ollama models."
+    (append (funcall orig-fun)
+            (list (chatgpt-shell-ollama-make-model
+                   :version "qwen2.5-coder"
+                   :token-width 4
+                   :context-window 8192))))
+
+  (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
+  :config
+  ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20240620")
+  (setq chatgpt-shell-model-version "qwen2.5-coder")
+  :bind ("C-x C-v" . chatgpt-shell-quick-insert)
+         ("C-x C-p" . chatgpt-shell-prompt-compose)
+         ("C-x c g s" . chatgpt-shell-send-and-review-region)
+         ("C-x c g r" . chatgpt-shell-refactor-code)
+         ("C-x C-s" . (lambda ()
+                          (interactive)
+                          (split-window-right)
+                          (other-window 1)
+                          (chatgpt-shell))))
+
+(use-package ob-chatgpt-shell
+  :ensure nil
+  :commands (org-babel-execute:chatgpt-shell)
+  :config
+  (ob-chatgpt-shell-setup))
 
 (use-package project
   :defer t
@@ -1019,7 +1058,9 @@
   (show-paren-mode 1)
   (setq show-paren-delay 0.1
         show-paren-highlight-openparen t
-        show-paren-when-point-inside-paren t))
+        show-paren-when-point-inside-paren t
+        show-paren-when-point-in-periphery t))
+
 ;; general
 (use-package general
   :defer 2
@@ -1121,43 +1162,63 @@
 (use-package org
   :hook ((org-mode . org-display-inline-images))
   :config
-  (setq org-ellipsis " ▾"
-        org-auto-align-tags nil
-        org-tags-column 0
-        org-hide-emphasis-markers t
-        org-pretty-entities t
-        org-startup-with-inline-images t
-        org-startup-folded nil
-        org-directory "~/Desktop/org/Todo/"
-        org-agenda-files (list "~/Desktop/org/Todo/")
+  (setq org-ellipsis "…"
+
         ;; org-agenda-files '("work.org" "projekt.org")
-        org-hide-leading-stars t
-        org-src-edit-src-content-indentation 0
-        org-src-preserve-indentation t
-        org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "STARTED(s)" "DELEGATED(d)" "QA(q)" "|" "DONE(d)" "CANCELLED(c)"))
-        org-log-into-drawer t
-        org-todo-keyword-faces org-custom-todo-faces
-        org-clock-sound "~/.emacs.d/etc/sound/bell.mp3"
-        org-log-done 'time
-        org-fontify-emphasized-text t
-        org-fontify-whole-heading-line t
-        org-confirm-babel-evaluate nil
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t
-        org-cycle-separator-lines 2
-        org-return-follows-link t
-        org-agenda-tags-column 0
         org-agenda-block-separator ?─
+        org-agenda-files '("~/Desktop/org/agenda.org")
+        org-agenda-skip-deadline-if-done t
+        org-agenda-skip-scheduled-if-deadline-is-shown t
+        org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-timestamp-if-deadline-is-shown t
+        org-agenda-skip-timestamp-if-done t
+        org-agenda-span 1
+        org-agenda-start-day "+0d"
+        org-agenda-tags-column 0
         org-agenda-time-grid
         '((daily today require-timed)
           (800 1000 1200 1400 1600 1800 2000)
           " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+        org-agenda-custom-commands '(("v" "Agenda and todos"
+                                      ((tags "PRIORITY=\"A\""
+                                             ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                                              (org-agenda-overriding-header "HIGH PRIORITY unfinished tasks:")))
+                                      (tags "PRIORITY=\"B\""
+                                            ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                                             (org-agenda-overriding-header "MEDIUM PRIORITY unfinished tasks:")))
+                                      (tags "PRIORITY=\"C\""
+                                            ((org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done))
+                                             (org-agenda-overriding-header "LOW PRIORITY unfinished tasks:")))
+                                      (agenda "")
+                                      (alltodo ""))))
+        org-auto-align-tags nil
+        org-clock-sound "~/.emacs.d/etc/sound/bell.mp3"
+        org-confirm-babel-evaluate nil
+        org-cycle-separator-lines 2
+        org-directory "~/Desktop/org/Todo/"
+        org-fontify-emphasized-text t
+        org-fontify-whole-heading-line t
+        org-hide-emphasis-markers t
+        org-hide-leading-stars t
+        org-log-done 'time
+        org-log-into-drawer t
+        org-pretty-entities t
+        org-return-follows-link t
+        org-src-edit-src-content-indentation 0
+        org-src-fontify-natively t
+        org-src-preserve-indentation t
+        org-src-tab-acts-natively t
+        org-startup-folded nil
+        ;; org-agenda-prefix-format '((agenda . "  %?-2i %t ")
+        ;;                            (todo . " %i %-12:c")
+        ;;                            (tags . " %i %-12:c")
+        ;;                            (search . " %i %-12:c"))
+        org-startup-with-inline-images t
+        org-tags-column 0
+        org-todo-keyword-faces org-custom-todo-faces
+        org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "STARTED(s)" "DELEGATED(d)" "QA(q)" "|" "DONE(d)" "CANCELLED(c)"))
         org-agenda-current-time-string
         "◀── now ─────────────────────────────────────────────────"))
-
-(use-package restclient
-  :defer t)
 
 (defun mk/play-sound (orgin-fn sound)
   (cl-destructuring-bind (_ _ file) sound
@@ -1182,42 +1243,20 @@
 
   (setq-local org-confirm-babel-evaluate nil)
 
-  ;; (auto-fill-mode nil)
-  (org-indent-mode)
-  ;; (visual-line-mode)
-  (variable-pitch-mode)
+  ;; (variable-pitch-mode)
 
-  (dolist (face '((org-level-1 . (1.5 .  bold))
-                  (org-level-2 . (1.1 .  bold))
-                  (org-level-3 . (1.0 .  semi-bold))
-                  (org-level-4 . (1.0 .  semi-bold))
-                  (org-level-5 . (1.0 .  normal))
-                  (org-level-6 . (1.0 .  normal))
-                  (org-level-7 . (1.0 .  normal))
-                  (org-level-8 . (1.0 .  normal))))
-    (set-face-attribute (car face) nil :font "Iosevka Term SS14"
-                        :weight (cdr (cdr face))
-                        :height (car (cdr face))))
-
-  ;; Setup fonts for org-mode
-  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-block nil                :inherit 'fixed-pitch)
-  (set-face-attribute 'org-table nil                :inherit 'fixed-pitch)
-  (set-face-attribute 'org-formula nil              :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil                 :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil                :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil             :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil      :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil            :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil             :inherit 'fixed-pitch)
-  (set-face-attribute 'line-number nil              :inherit 'fixed-pitch)
-  (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch)
+ (custom-set-faces
+   '(org-level-1 ((t (:inherit outline-1 :height 1.2 :weight bold))))
+   '(org-level-2 ((t (:inherit outline-2 :height 1.18 :weight bold))))
+   '(org-level-3 ((t (:inherit outline-3 :height 1.16 :weight bold))))
+   '(org-level-4 ((t (:inherit outline-4 :height 1.15 :weight bold))))
+   '(org-level-5 ((t (:inherit outline-5 :height 1.1 :weight bold))))
+   '(org-level-6 ((t (:inherit outline-5 :height 1 :weight bold))))
+   '(org-level-7 ((t (:inherit outline-5 :height 1 :weight semi-bold)))))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp . t)
                                  (shell . t)
-                                 (swift . t)
-                                 (swiftui . t)
                                  (restclient . t)))
 
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
@@ -1227,24 +1266,31 @@
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
 
+(use-package restclient
+  :defer t)
+
 (use-package ob-restclient
   :defer t)
 
 (use-package ob-swift
-  :after org-mode
-  :defer 10)
-
-(use-package ob-swiftui
   :defer t
   :after org-mode
   :config
-  (add-hook 'org-babel-after-execute-hook (lambda ()
-                                            (when org-inline-image-overlays
-                                              (org-redisplay-inline-images))))
-  (add-to-list 'org-babel-tangle-lang-exts
-               '("swiftui" . "swift"))
-  (add-to-list 'org-src-lang-modes
-               '("swiftui" . swift)))
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               (append org-babel-load-languages
+                                       '((swift . t)))))
+(use-package ob-swiftui
+  :defer t
+  :after org-mode
+  ;; :config
+  ;; (add-hook 'org-babel-after-execute-hook (lambda ()
+  ;;                                           (when org-inline-image-overlays
+  ;;                                             (org-redisplay-inline-images))))
+  ;; (add-to-list 'org-babel-tangle-lang-exts
+  ;;              '("swiftui" . "swift"))
+  ;; (add-to-list 'org-src-lang-modes
+  ;;              '("swiftui" . swift))
+  )
 
 (use-package org-modern
   :hook ((org-mode . org-modern-mode)
@@ -1254,11 +1300,11 @@
         org-modern-hide-stars t
         org-modern-star '("❶" "❷" "❸" "❹" "❺" "❻" "❼")))
 
-(use-package visual-fill-column
-  :hook ((org-mode . visual-fill-column-mode))
-  :config
-  (setq visual-fill-column-width 120
-        visual-fill-column-center-text t))
+(use-package olivetti
+  :hook ((org-mode . olivetti-mode))
+  :custom
+  (setq olivetti-style 'fancy
+        olivetti-hide-mode-line t))
 
 (use-package elfeed
   :commands elfeed
@@ -1348,8 +1394,7 @@
   :ensure nil)
 
 (use-package eglot
-  :hook (
-	 (swift-mode . eglot-ensure)
+  :hook ((swift-mode . eglot-ensure)
 	 ((kotlin-mode kotlin-ts-mode) . eglot-ensure))
   :ensure nil
   :bind
@@ -1360,23 +1405,26 @@
   ("C-c e r" . #'eglot-rename)
   ("C-c e d" . #'eglot-find-declaration)
   ("C-c e D" . #'eglot-find-typeDefinition)
-  ("C-c e i" . #'eglot-find-implementation)
+("C-c e i" . #'eglot-find-implementation)
   ("C-c e b" . #'eglot-format-buffer)
   :custom
-  (eglot-report-progress t)
+  (eglot-report-progress nil)
   (eglot-autoshutdown nil)
   (eglot-connect-timeout 120)
   (eglot-sync-connect 3)
   (eglot-events-buffer-size 0)
-  (eglot-events-buffer-config '(size: 0))
+  (eglot-events-buffer-config '(size: 0 :format full))
   :config
 
   ;; (add-to-list 'eglot-server-programs '((kotlin-mode  kotlin-ts-mode) . ("kotlin-language-server" :initializationOptions (:storagePath "/tmp"))))
   (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact))
   (add-to-list 'eglot-server-programs
-               '((typescript-mode typescript-tsx-mode) . ("typescript-language-server" "--stdio")))
+               '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
 
   (add-hook 'typescript-mode-hook 'eglot-ensure)
+  (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
+  (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
+
   (add-hook 'eglot-managed-mode-hook
             (lambda ()
               (unless (derived-mode-p 'kotlin-ts-mode)
@@ -1385,7 +1433,8 @@
   (setq eglot-stay-out-of '(corfu company flycheck)
 	eglot-extend-to-xref t
 	eglot-send-changes-idle-time 0.5
-	eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+	eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly
+        jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
 (use-package xcode-additions
@@ -1399,7 +1448,7 @@
 
 (use-package swift-refactor
   :ensure nil
-  :after (swift-mode kotlin-mode)
+  :after swift-mode
   :bind
   ("C-c r s" . #'swift-refactor:split-function-list)
   ("M-t" . #'swift-refactor:insert-todo)
@@ -1626,7 +1675,7 @@
 
 (use-package copilot-chat
   ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
-  ;; (package-vc-install "https://github.com/chep/copilot-chat.el")
+;; (package-vc-install "https://github.com/chep/copilot-chat.el")
   :ensure nil
   :defer t
   :commands (copilot-chat-doc
@@ -1643,6 +1692,7 @@
   ("C-x c p t" . #'copilot-chat-test)      ;; Write tests
   ("C-x c p r" . #'copilot-chat-review)    ;; Review code
   ("C-x c p b" . #'copilot-chat-add-current-buffer) ;; Add current buffer
+  ("C-x c p i" . #'copilot-chat-ask-and-insert)
   ("C-x c p o" . #'copilot-chat-optimize))
 
   ;; :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
@@ -1651,13 +1701,34 @@
 ;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
 ;; (package-vc-install "https://github.com/chep/copilot-chat.el")
 ;; (package-vc-install "https://github.com/copilot-emacs/copilot.el"):
+;; (package-vc-install "https://github.com/orzechowskid/tsx-mode.el.git")
 
 ;; (use-package typescript-mode
 ;;   :ensure t
 ;;   :mode ("\\.ts\\'" "\\.tsx\\'")
-;;   :hook ((typescript-mode . eglot-ensure))
+;;   :hook (
+;;          (typescript-mode . eglot-ensure)
+;;          (typescript-mode . setup-programming-mode)
+;;          (typescript-mode . colorful-mode)
+;;          (typescript-mode . typescript-ts-mode)
+;;          (typescript-mode . txs-ts-mode))
 ;;   :config
-;;   (setq typescript-indent-level 4))
+;;   (setq typescript-indent-level 2))
+
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (setq treesit-language-source-alist
+        '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))))
+
+  (dolist (source treesit-language-source-alist)
+    (unless (treesit-ready-p (car source))
+      (treesit-install-language-grammar (car source))))
+
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
 
 ;; (use-package web-mode
 ;;   :mode ("\\.jsx\\'")
@@ -1667,15 +1738,15 @@
 ;;   (setq web-mode-code-indent-offset 2)
 ;;   (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 
-;; (cl-defmethod project-root ((project (head eglot-project)))
-;;   (cdr project))
+(cl-defmethod project-root ((project (head eglot-project)))
+  (cdr project))
 
-;; (defun my-project-try-tsconfig-json (dir)
-;;   (when-let* ((found (locate-dominating-file dir "tsconfig.json")))
-;;     (cons 'eglot-project found)))
+(defun my-project-try-tsconfig-json (dir)
+  (when-let* ((found (locate-dominating-file dir "tsconfig.json")))
+    (cons 'eglot-project found)))
 
-;; (add-hook 'project-find-functions
-;;           'my-project-try-tsconfig-json nil nil)
+(add-hook 'project-find-functions
+          'my-project-try-tsconfig-json nil nil)
 
 ;; (add-to-list 'eglot-server-programs '((typescript-mode) . ("tailwindcss-language-server" "--stdio")))
 ;; (add-to-list 'eglot-server-programs '((typescript-mode) . ("vscode-eslint-language-server" "--stdio")))
@@ -1752,7 +1823,7 @@
   :hook (kotlin-mode . kotlin-ts-mode)
   :config
   (eldoc-mode -1)
-  (setq treemacs-width 40)
+  (setq treemacs-width 45)
   (setq treesit-font-lock-level 4))
 
 (use-package kotlin-development
