@@ -652,17 +652,10 @@
   :bind ("C-x e" . er/expand-region))
 
 (use-package eldoc-box
-  :after eldoc
-  :config
-  (setq eldoc-box-max-pixel-width 600
-        eldoc-box-max-pixel-height 600))
-
-(use-package eldoc
-  :ensure nil
-  :config
-  (setq eldoc-idle-delay 2
-	eldoc-echo-area-use-multiline-p nil
-        flycheck-display-errors-delay 0.5))
+  :after eglot
+  :bind ("C-x C-e" . (lambda ()
+                       (interactive)
+                       (eldoc-box-help-at-point))))
 
 (use-package kind-icon
   :after corfu
@@ -1239,11 +1232,15 @@
 
   (advice-add 'org-timer-update-mode-line :override #'mk/org-timer-update-mode-line)
 
+  (add-hook 'org-babel-after-execute-hook (lambda ()
+                                            (when org-inline-image-overlays
+                                              (org-redisplay-inline-images))))
+
   (require 'org-tempo)
+  (require 'ob-swiftui)
+  (ob-swiftui-setup)
 
-  (setq-local org-confirm-babel-evaluate nil)
-
-  ;; (variable-pitch-mode)
+  (setq-local org-confirm-babel-evaluate t)
 
  (custom-set-faces
    '(org-level-1 ((t (:inherit outline-1 :height 1.2 :weight bold))))
@@ -1256,6 +1253,7 @@
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp . t)
+                                 (swift . t)
                                  (shell . t)
                                  (restclient . t)))
 
@@ -1282,14 +1280,15 @@
 (use-package ob-swiftui
   :defer t
   :after org-mode
-  ;; :config
-  ;; (add-hook 'org-babel-after-execute-hook (lambda ()
-  ;;                                           (when org-inline-image-overlays
-  ;;                                             (org-redisplay-inline-images))))
-  ;; (add-to-list 'org-babel-tangle-lang-exts
-  ;;              '("swiftui" . "swift"))
-  ;; (add-to-list 'org-src-lang-modes
-  ;;              '("swiftui" . swift))
+  :config
+  (add-hook 'org-babel-after-execute-hook (lambda ()
+                                            (when org-inline-image-overlays
+                                              (org-redisplay-inline-images))))
+  (add-to-list 'org-babel-tangle-lang-exts
+               '("swiftui" . "swift"))
+  (add-to-list 'org-src-lang-modes
+               '("swiftui" . swift))
+  (ob-swiftui-setup)
   )
 
 (use-package org-modern
@@ -1405,7 +1404,7 @@
   ("C-c e r" . #'eglot-rename)
   ("C-c e d" . #'eglot-find-declaration)
   ("C-c e D" . #'eglot-find-typeDefinition)
-("C-c e i" . #'eglot-find-implementation)
+  ("C-c e i" . #'eglot-find-implementation)
   ("C-c e b" . #'eglot-format-buffer)
   :custom
   (eglot-report-progress nil)
@@ -1424,16 +1423,11 @@
   (add-hook 'typescript-mode-hook 'eglot-ensure)
   (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
   (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
-
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (unless (derived-mode-p 'kotlin-ts-mode)
-                (eldoc-box-hover-mode t))))
   
   (setq eglot-stay-out-of '(corfu company flycheck)
 	eglot-extend-to-xref t
 	eglot-send-changes-idle-time 0.5
-	eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly
+	;; eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly
         jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
@@ -1815,14 +1809,12 @@
 (use-package kotlin-mode
   :defer t
   :config
-  (eldoc-mode -1)
   (setq-default kotlin-tab-width 2))
 
 (use-package kotlin-ts-mode
   :defer t
   :hook (kotlin-mode . kotlin-ts-mode)
   :config
-  (eldoc-mode -1)
   (setq treemacs-width 45)
   (setq treesit-font-lock-level 4))
 
@@ -1839,7 +1831,6 @@
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator)))
   :config
-  (eldoc-mode nil)
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))  ; or "test_device" if you prefer
 
 (provide 'init)

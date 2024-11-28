@@ -114,9 +114,7 @@
     (message "xcrun devicectl device process launch --device %s %s" identifier appIdentifier))
   (format "sh -c '\
     trap \"xcrun devicectl device process terminate --device %s --bundle-identifier %s; exit\" EXIT INT TERM; \
-    xcrun devicectl device process launch --device %s %s & \
-    echo \"App launched, capturing log...\"; \
-    xcrun devicectl device console show --device %s | grep --line-buffered %s & \
+    xcrun devicectl device process launch --console --device %s %s & \
     wait'"
           identifier
           appIdentifier

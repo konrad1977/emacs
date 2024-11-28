@@ -315,7 +315,7 @@
   (orderless-match-face-2                       (:foreground yellow :background surface0 :weight 'semi-bold))
   (orderless-match-face-3                       (:foreground mauve :background surface0 :weight 'semi-bold))
 
-  (comint-highlight-prompt                      (:background peach :foreground crust))
+  (comint-highlight-prompt                      (:background dark-red :foreground red))
 
   (completions-annotations                      (:foreground subtext0 :italic t))
   (completions-highlight                        (:foreground blue :italic t))
@@ -572,6 +572,9 @@
   (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
   (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
   (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
+
+  (eldoc-box-body                                (:background mantle :foreground lavender))
+  (eldoc-box-border                              (:background crust))
 
   (with-eval-after-load "swift-mode"
     (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
