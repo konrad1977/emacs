@@ -41,12 +41,16 @@
   :type '(repeat symbol)
   :group 'darken-buffer)
 
-(defcustom darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*dashboard*" )
+(defcustom darken-buffer-ignore-buffers '("Messages" "dashboard" )
   "List of buffer names where effects should not be applied."
   :type '(repeat string)
   :group 'darken-buffer)
 
-(defcustom darken-buffer-ignore-buffer-regexp '("\\*.+\\*" "\\*Flycheck.+\\*" "\\*compilation\\*" "\\*Help\\*" "\\*Warnings\\*" "\\*Backtrace\\*" "\\*Echo Area [0-9]+")
+(defcustom darken-buffer-ignore-buffer-regexp '("\*Flycheck.+\*"
+                                                "\*compilation\*"
+                                                "\*Warnings\*"
+                                                "\*Backtrace\*"
+                                                "\*Echo Area [0-9]+")
   "List of regular expressions matching buffer names to ignore."
   :type '(repeat regexp)
   :group 'darken-buffer)

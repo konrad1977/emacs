@@ -471,9 +471,9 @@
 (use-package punch-line
   :ensure nil
   :defer t
-  :hook (after-init . punch-line-mode)
-  :custom
-  (punch-weather-update)
+  :hook ((after-init . punch-line-mode)
+         (after-init . punch-weather-update)
+         (after-init . punch-line-load-task))
   :config
   (setq
    ;; punch-line-separator " 〉 "
@@ -532,6 +532,7 @@
 (with-eval-after-load 'evil
   (dolist (state '(normal insert visual motion emacs))
     (evil-define-key state 'global (kbd "s-M") nil)
+    (evil-define-key state 'global (kbd "C-.") nil)
     (evil-define-key state 'global (kbd "C-k") nil)))
 
 (use-package evil-collection
@@ -1021,8 +1022,8 @@
 
   (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   :config
-  ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20240620")
-  (setq chatgpt-shell-model-version "qwen2.5-coder")
+  (setq chatgpt-shell-model-version "claude-3-5-sonnet-20240620")
+  ;; (setq chatgpt-shell-model-version "qwen2.5-coder")
   :bind ("C-x C-v" . chatgpt-shell-quick-insert)
          ("C-x C-p" . chatgpt-shell-prompt-compose)
          ("C-x c g s" . chatgpt-shell-send-and-review-region)
@@ -1448,6 +1449,8 @@
   ("M-t" . #'swift-refactor:insert-todo)
   ("M-m" . #'swift-refactor:insert-mark)
   (:map swift-mode-map
+        ("C-c x t" . #'xcode-additions:toggle-device-choice)
+        ("C-c x c" . #'xcode-additions:show-current-configuration)
         ("C-c r a" . #'swift-refactor:wrap-selection)
         ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
         ("C-c r i" . #'swift-refactor:tidy-up-constructor)

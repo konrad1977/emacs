@@ -17,6 +17,8 @@
 (defvar-local current-run-on-device nil)
 (defvar-local current-errors-or-warnings nil)
 (defvar-local xcode-additions:last-device-type nil)
+(defvar-local xcode-additions:device-choice nil
+  "Stores the user's choice of device (simulator or physical device).")
 
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
 
@@ -326,29 +328,32 @@ Full project path: %s"
     (car (cdr (assoc choice choices))))))
 
 (defun xcode-addition:ask-for-device-or-simulator ()
-"Show menu for runnings on simulator or device."
-(interactive)
-(when (ios-device:id)
-  (setq current-run-on-device (xcode-additions:device-or-simulator-menu :title "Run on simulator or device?"))))
+  "Show menu for running on simulator or device."
+  (interactive)
+  (when (and (ios-device:id) (not xcode-additions:device-choice))
+    (setq xcode-additions:device-choice
+          (xcode-additions:device-or-simulator-menu :title "Run on simulator or device?"))
+    (setq current-run-on-device xcode-additions:device-choice)))
 
 (defun xcode-additions:run-in-simulator ()
   "Run the app in simulator."
-  (not current-run-on-device))
+  (not xcode-additions:device-choice))
 
 ;;;###autoload
 (defun xcode-additions:reset ()
-  "Reset the current project root."
+  "Reset the current project root and device choice."
   (interactive)
   (ios-simulator:reset)
   (periphery-kill-buffer)
-  (setq current-run-on-device nil
-        current-local-device-id nil
-        current-is-xcode-project nil
-        current-build-folder nil
-        current-app-identifier nil
-        current-build-configuration nil
-        current-project-root nil
-        current-xcode-scheme nil)
+  (setq-local current-run-on-device nil
+              current-local-device-id nil
+              current-is-xcode-project nil
+              current-build-folder nil
+              current-app-identifier nil
+              current-build-configuration nil
+              current-project-root nil
+              current-xcode-scheme nil
+              xcode-additions:device-choice nil)  ; Reset device choice
   (mode-line-hud:update :message "Resetting configuration"))
 
 ;;;###autoload
@@ -495,7 +500,36 @@ Full project path: %s"
     (let ((default-directory (xcode-additions:derived-data-path)))
         (if (file-directory-p default-directory)
             (dired default-directory)
-        (message "No build folder found"))))
+          (message "No build folder found"))))
+
+(defun xcode-additions:toggle-device-choice ()
+  "Toggle between simulator and physical device."
+  (interactive)
+  (setq xcode-additions:device-choice (not xcode-additions:device-choice))
+  (setq current-run-on-device xcode-additions:device-choice)
+  (message "Now running on %s" (if xcode-additions:device-choice "physical device" "simulator")))
+
+(defun xcode-additions:show-current-configuration ()
+  "Display the current Xcode project configuration."
+  (interactive)
+  (let ((config-message
+         (format "Current Configuration:
+Project Root: %s
+Scheme: %s
+Build Configuration: %s
+App Identifier: %s
+Build Folder: %s
+Running on: %s"
+                 current-project-root
+                 current-xcode-scheme
+                 current-build-configuration
+                 current-app-identifier
+                 current-build-folder
+                 (if xcode-additions:device-choice "Physical Device" "Simulator"))))
+    (with-current-buffer (get-buffer-create "*Xcode Configuration*")
+      (erase-buffer)
+      (insert config-message)
+      (display-buffer (current-buffer)))))
 
 (provide 'xcode-additions)
 ;;; xcode-additions.el ends here

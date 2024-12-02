@@ -70,10 +70,10 @@
   (match                                (:background yellow :foreground crust))
   (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
-  (mode-line-inactive                   (:background surface0 :foreground mantle))
-  (mode-line-active                     (:background mantle :foreground subtext0))
+  (mode-line-inactive                   (:background surface0 :foreground subtext0))
+  (mode-line-active                     (:background mantle :foreground text))
   (mode-line-highlight                  (:foreground flamingo))
-  (mode-line-buffer-id                  (:foreground subtext0))
+  (mode-line-buffer-id                  (:foreground lavender))
   (mode-line-emphasis                   (:foreground blue))
 
   (numbers                              (:background peach))

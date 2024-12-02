@@ -16,7 +16,6 @@
 (with-eval-after-load 'json
   (require 'json))
 
-
 (defcustom ios-simulator:debug nil
   "Enable debug mode for iOS simulator."
   :type 'boolean
@@ -33,7 +32,7 @@
   :group 'ios-simulator)
 
 (defface ios-simulator-background-face
-  '((t (:inherit default :family "Menlo" :height 140)))
+  '((t (:inherit default :height 150)))
   "Buffer background color."
   :group 'ios-simulator)
 
