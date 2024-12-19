@@ -3,27 +3,41 @@
 
 ;;; code:
 
+
+;; Compile-time variable declarations to avoid warnings
 (eval-when-compile
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
 
+;; Package management setup
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
 
+;; Ensure use-package is installed for Emacs versions < 29
+(when (< emacs-major-version 29)
+  (unless (package-installed-p 'use-package)
+    (unless package-archive-contents
+      (package-refresh-contents))
+    (package-install 'use-package)))
+
+;; Upgrade built-in packages
 (setopt package-install-upgrade-built-in t)
 
+;; Reset version control backends to default
+(setq vc-handled-backends (eval (car (get 'vc-handled-backends 'standard-value))))
+
+;; Add local packages directory to load-path
 (let ((dir (expand-file-name "localpackages" user-emacs-directory)))
   (when (file-directory-p dir)
     (add-to-list 'load-path dir)
     (let ((default-directory dir))
-    (normal-top-level-add-subdirs-to-load-path))))
+      (normal-top-level-add-subdirs-to-load-path))))
 
 ;;   ;; Add themes directory to custom theme load path
 (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
-
 
 (global-unset-key (kbd "C-<wheel-up>"))
 (global-unset-key (kbd "C-<wheel-down>"))
@@ -44,6 +58,10 @@
 	use-package-always-ensure t
 	use-package-compute-statistics t
 	use-package-minimum-reported-time 0.1))
+
+(use-package welcome-screen
+  :ensure nil
+  :defer t)
 
 (use-package emacs
   :init
@@ -76,9 +94,8 @@
    global-auto-revert-non-file-buffers t
    completion-ignore-case t
    display-line-numbers-width 4
-   cursor-in-non-selected-windows nil
    find-file-visit-truename nil
-
+   line-spacing 0.01
    ad-redefinition-action 'accept
    ;; vc-follow-symlinks t
    large-file-warning-threshold (* 25 1024 1024)
@@ -101,16 +118,62 @@
    fast-but-imprecise-scrolling nil
    redisplay-skip-fontification-on-input nil
 
-   ;; jit-lock-chunk-size 10000       ; Process larger chunks at once
-   ;; jit-lock-defer-time 0.05        ; Tiny delay for better responsiveness
-   ;; jit-lock-stealth-load 1000       ; More lines in background
-   ;; jit-lock-stealth-nice 0.2       ; Higher priority for background tasks
-   ;; jit-lock-stealth-time 1        ; More frequent background processing 1
    ;; Buffer local performance settings
    line-move-visual nil  ; Slightly faster than visual line mode
    )
-
   ;; Mac-specific optimizations
+
+(use-package emacs
+  :init
+  (fset 'yes-or-no-p 'y-or-n-p)
+  (global-hl-line-mode 1)
+  (global-auto-revert-mode 1)
+  (global-so-long-mode 1)
+  (pixel-scroll-precision-mode 1)
+  (set-display-table-slot standard-display-table 0 ?\ )
+  (display-battery-mode 1)
+  :config
+  (setq-default
+   confirm-kill-emacs (lambda (prompt)
+			(y-or-n-p-with-timeout prompt 2 nil))
+   confirm-kill-processes nil
+   fringes-outside-margins nil
+   indicate-buffer-boundaries nil
+   indicate-empty-lines nil
+   create-lockfiles nil
+   auto-revert-verbose nil
+   auto-revert-interval 1
+   make-backup-files nil
+   auto-save-default nil
+   auto-save-interval 2000
+   auto-save-timeout 20
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t
+   global-auto-revert-non-file-buffers t
+   completion-ignore-case t
+   display-line-numbers-width 4
+   cursor-in-non-selected-windows nil
+   find-file-visit-truename nil
+   line-spacing 0.01
+   ad-redefinition-action 'accept
+   large-file-warning-threshold (* 25 1024 1024)
+   backup-by-copying t
+   backup-directory-alist `(("." . "~/.saves"))
+   auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory)
+   auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
+   debug-on-error nil
+   custom-file (concat user-emacs-directory "var/custom.el")
+   scroll-margin 0
+   scroll-conservatively 101
+   scroll-preserve-screen-position t
+   scroll-step 1
+   auto-window-vscroll nil
+   backward-delete-char-untabify-method 'hungry
+   fast-but-imprecise-scrolling nil
+   redisplay-skip-fontification-on-input nil
+   line-move-visual nil)
   (when (eq system-type 'darwin)
     (setq mac-option-key-is-meta nil
           mac-command-key-is-meta t
@@ -119,7 +182,9 @@
           dired-use-ls-dired nil
           browse-url-browser-function #'mk/browser-split-window)
     (setq mac-redisplay-dont-reset-vscroll t
-          mac-mouse-wheel-smooth-scroll nil)))
+          mac-mouse-wheel-smooth-scroll nil))
+  (when (file-exists-p custom-file)
+    (load custom-file))))
 
 (defun setup-programming-mode ()
   "Setup programming mode."
@@ -232,15 +297,16 @@
   (setq welcome-dashboard-latitude 56.7365
         welcome-dashboard-longitude 16.2981
         welcome-dashboard-use-nerd-icons t
+        welcome-dashboard-max-number-of-projects 8
         welcome-dashboard-show-weather-info t
         welcome-dashboard-use-fahrenheit nil
         welcome-dashboard-max-left-padding 1
-        welcome-dashboard-max-number-of-todos 10
+        welcome-dashboard-max-number-of-todos 5
         welcome-dashboard-path-max-length 70
         welcome-dashboard-min-left-padding 10
         welcome-dashboard-image-file "~/.emacs.d/themes/emacs.png"
-        welcome-dashboard-image-width 300
-        welcome-dashboard-image-height 300
+        welcome-dashboard-image-width 200
+        welcome-dashboard-image-height 200
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
   (welcome-dashboard-create-welcome-hook))
 
@@ -249,12 +315,39 @@
 
 (use-package nerd-icons
   :custom
-  ;; (set-fontset-font t 'symbol "CaskaydiaCove Nerd Font Mono" nil 'prepend)
-  ;; (nerd-icons-font-family "CaskaydiaCove Nerd Font Mono")
-  (nerd-icons-scale-factor 0.9)
-  :config
-  (setq nerd-icons-scale-factor 0.9)
   (setq nerd-icons-color-icons t))
+
+(use-package nerd-icons-completion
+  :after marginalia
+  :config
+  (nerd-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+(use-package nerd-icons-corfu
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
+
+(use-package nerd-icons-ibuffer
+  :ensure t
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode)
+  :custom
+  (setq nerd-icons-ibuffer-icon t)
+  (setq nerd-icons-ibuffer-color-icon t)
+  (setq nerd-icons-ibuffer-icon-size 1.0)
+  (setq nerd-icons-ibuffer-human-readable-size t))
+
+(use-package treemacs-nerd-icons
+  :after treemacs
+  :functions treemacs-load-theme
+  :custom-face
+  (treemacs-nerd-icons-root-face ((t (:inherit nerd-icons- :height 1.3))))
+  (treemacs-nerd-icons-file-face ((t (:inherit treemacs-file-face :height 1.0))))
+  :config
+  (treemacs-load-theme "nerd-icons"))
 
 (use-package ligature
   :hook (prog-mode . ligature-mode)
@@ -286,7 +379,6 @@
      ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
      "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft")))
 
-
 (use-package no-littering)
 
 (use-package autothemer
@@ -294,12 +386,13 @@
    ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-frappe t)
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
+  ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
@@ -312,7 +405,7 @@
   (setq zoom-size '(0.7 . 0.7)
         zoom-ignored-major-modes '(dired-mode vterm-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
         zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
-        zoom-ignored-buffer-name-regexps '("^\\*" "^ \\*")))
+        zoom-ignored-buffer-name-regexps '("^\\*" "^ \\*" "*MINIMAP*")))
 
 (use-package prog-mode
   :ensure nil
@@ -359,16 +452,18 @@
   :init
   (vertico-posframe-mode 1)
   (vertico-posframe-cleanup)
+  ;; :custom-face
+  ;; (vertico-posframe ((t (:background "#1d2021"))))
+  ;; (vertico-posframe-border ((t (:background "#1d2021"))))
   :config
   (setq vertico-posframe-parameters
         '((left-fringe . 0)
           (right-fringe . 0)
           (alpha . 94))
-        vertico-posframe-poshandler #'posframe-poshandler-window-top-center
+        vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         vertico-posframe-truncate-lines t
         vertico-posframe-min-width 80
         vertico-posframe-width 160
-        ;; vertico-posframe-min-height 13
         vertico-posframe-border-width 20))
 
 ;; Configure directory extension.
@@ -391,20 +486,6 @@
 
 (use-package marginalia
   :hook (after-init . marginalia-mode))
-
-(use-package nerd-icons-completion
-  :after marginalia
-  :config
-  (nerd-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
-
-(use-package nerd-icons-corfu
-  :after corfu
-  :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
-
-(use-package nerd-icons-dired
-  :hook (dired-mode . nerd-icons-dired-mode))
 
 (use-package consult
   :after evil
@@ -433,14 +514,14 @@
    :preview-key '(:debounce 0.4 any))
   (setq consult-narrow-key "<"))
 
-(use-package embark-consult
-  :after (embark consult))
-
 (use-package embark
   :defer t
   :bind
   ("C-." . embark-act)
   ("C-;" . embark-dwim))
+
+(use-package embark-consult
+  :after (embark consult))
 
 (use-package wgrep
   :defer t)
@@ -448,6 +529,7 @@
 (use-package consult-project-extra
   :after consult
   :bind
+  ("M-O" . #'consult-project-buffer)
   ("C-<tab>" . #'consult-projectile-switch-to-buffer)
   ("M-R" . #'consult-projectile-recentf))
 
@@ -471,23 +553,34 @@
 (use-package punch-line
   :ensure nil
   :defer t
+  :bind(("C-x t n" . punch-line-what-am-i-doing-next)
+        ("C-x t N" . punch-line-what-am-i-doing-next-task)
+        ("C-x t d" . punch-line-what-am-i-doing-done)
+        ("C-x t a" . punch-line-what-am-i-doing-show-all)
+        (:repeat-map punch-line-repeat-map
+                     ("n" . punch-line-what-am-i-doing-next)
+                     ("N" . punch-line-what-am-i-doing-next-task)
+                     ("d" . punch-line-what-am-i-doing-done)
+                     ("a" . punch-line-what-am-i-doing-show-all)))
   :hook ((after-init . punch-line-mode)
          (after-init . punch-weather-update)
-         (after-init . punch-line-load-task))
+         (after-init . punch-load-tasks)
+         ;; (after-init . punch-setup-org-hooks)
+         )
+  :custom
+  (punch-height 10)
   :config
-  (setq
-   ;; punch-line-separator " 〉 "
-   punch-line-separator "  "
-   punch-show-project-info nil
-   punch-show-git-info t
-   punch-show-lsp-info t
-   punch-show-copilot-info nil
-   punch-show-battery-info t
-   punch-show-weather-info t
-   punch-weather-latitude "56.7365"
-   punch-weather-longitude "16.2981"
-   punch-line-music-max-length 80
-   punch-line-music-info '(:service apple)))
+  (setq punch-show-project-info nil
+        punch-show-git-info t
+        punch-show-lsp-info t
+        punch-show-copilot-info nil
+        punch-show-battery-info t
+        punch-show-flycheck-info t
+        punch-show-weather-info t
+        punch-weather-latitude "56.7365"
+        punch-weather-longitude "16.2981"
+        punch-line-music-max-length 80
+        punch-line-music-info '(:service apple)))
 
 (use-package evil
   :hook (after-init . evil-mode)
@@ -510,6 +603,7 @@
 	evil-split-window-below t
 	evil-kill-on-visual-paste nil
 	evil-default-cursor t
+        evil-echo-state nil
 	evil-want-C-i-jump t)
   :config
   (evil-select-search-module 'evil-search-module 'evil-search)
@@ -632,15 +726,6 @@
   :custom-face
   (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
 
-(use-package treemacs-nerd-icons
-  :after treemacs
-  :functions treemacs-load-theme
-  :custom-face
-  (treemacs-nerd-icons-root-face ((t (:inherit nerd-icons- :height 1.3))))
-  (treemacs-nerd-icons-file-face ((t (:inherit treemacs-file-face :height 1.0))))
-  :config
-  (treemacs-load-theme "nerd-icons"))
-
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
@@ -653,10 +738,36 @@
   :bind ("C-x e" . er/expand-region))
 
 (use-package eldoc-box
-  :after eglot
+  :hook (eldoc-mode . eldoc-box-hover-at-point-mode)
+  :custom
+  (setq eldoc-box-clear-with-C-g t
+        eldoc-box-max-pixel-width 200
+        eldoc-box-max-pixel-height 200)
   :bind ("C-x C-e" . (lambda ()
                        (interactive)
                        (eldoc-box-help-at-point))))
+
+(use-package corfu
+  :hook (after-init . global-corfu-mode)
+  :bind
+  (:map corfu-map
+        ("SPC" . corfu-insert-separator)
+        ("<escape>" . corfu-quit)
+        ("C-j" . corfu-next)
+        ("C-k" . corfu-previous))
+  :custom
+  (corfu-auto t)
+  (corfu-preview-current 'insert)
+  :init
+  (corfu-popupinfo-mode 1)
+  (setq corfu-auto-delay 0.2          ; Reduced from 0.3
+	corfu-auto-prefix 2
+        corfu-popupinfo-delay 0.2
+        corfu-preselect 'valid
+        cofru-preview-current t
+	corfu-count 10
+	corfu-quit-at-boundary 'separator
+	corfu-quit-no-match t))
 
 (use-package kind-icon
   :after corfu
@@ -712,29 +823,6 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
   (add-to-list 'kind-icon-mapping '(tabnine "ai" :icon "cloud" :face shadow) t))
 
-(use-package corfu
-  :hook ((prog-mode . corfu-mode)
-         (localizeable-mode . corfu-mode)
-         (org-mode . corfu-mode)
-         (corfu-mode . corfu-popupinfo-mode))
-  :bind
-  (:map corfu-map
-        ("SPC" . corfu-insert-separator)
-        ("<escape>" . corfu-quit)
-        ("C-j" . corfu-next)
-        ("C-k" . corfu-previous))
-  :custom
-  (corfu-auto t)
-  (corfu-preview-current 'insert)
-  :init
-  (setq corfu-auto-delay 0.2          ; Reduced from 0.3
-	corfu-auto-prefix 2
-        corfu-popupinfo-delay 0.2
-        corfu-preselect 'valid
-        cofru-preview-current t
-	corfu-count 10
-	corfu-quit-at-boundary 'separator
-	corfu-quit-no-match t))
 
 (use-package savehist
   :defer 2
@@ -780,8 +868,8 @@
   :ensure nil
   :hook (after-init . darken-buffer-mode)
   :config
-  (setq darken-buffer-percentage 0
-        lighten-inactive-buffer-percentage 4))
+  (setq darken-buffer-percentage 2
+        lighten-inactive-buffer-percentage 2))
 
 (use-package avy
   :defer t
@@ -812,17 +900,19 @@
   :hook (treemacs-mode . treemacs-project-follow-mode)
   :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
-  :custom-face
-  (treemacs-directory-face ((t (:family "Verdana" :height 0.8 :weight thin))))
-  (treemacs-directory-collapsed-face ((t (:family "Verdana" :height 0.8 :weight thin))))
-  ;; (treemacs-file-face ((t (:family "Verdana" :height 0.8))))
-  (treemacs-git-ignored-face ((t (:family "Verdana" :height 0.8 :slant italic))))
-  (treemacs-git-unmodified-face ((t (:family "Verdana" :height 0.8 :weight normal))))
-  (treemacs-git-untracked-face ((t (:family "Verdana" :height 0.8 :weight normal))))
-  (treemacs-git-added-face ((t (:family "Verdana" :height 0.8 :weight normal))))
-  (treemacs-git-renamed-face ((t (:family "Verdana" :height 0.8 :weight normal))))
-  (treemacs-git-modified-face ((t (:family "Verdana" :height 0.8 :weight normal))))
-  (treemacs-tags-face ((t (:family "Verdana" :height 0.8))))
+  :config
+  (let ((font-family "SF Compact Text"))
+    (custom-set-faces
+     `(treemacs-directory-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-directory-collapsed-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-git-ignored-face ((t (:family ,font-family :height 0.8 :slant italic :weight light))))
+     `(treemacs-git-conflict-face ((t (:family ,font-family :height 0.8 :slant italic :weight light))))
+     `(treemacs-git-unmodified-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-git-untracked-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-git-added-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-git-renamed-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-git-modified-face ((t (:family ,font-family :height 0.8 :weight light))))
+     `(treemacs-tags-face ((t (:family ,font-family :height 0.8))))))
   :config
   (setq treemacs-follow-after-init t
         treemacs-collapse-dirs 0
@@ -1016,14 +1106,14 @@
     "Add qwen2.5-coder to the list of Ollama models."
     (append (funcall orig-fun)
             (list (chatgpt-shell-ollama-make-model
-                   :version "qwen2.5-coder"
+                   :version "qwen2.5-coder:14b"
                    :token-width 4
                    :context-window 8192))))
 
   (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   :config
-  (setq chatgpt-shell-model-version "claude-3-5-sonnet-20240620")
-  ;; (setq chatgpt-shell-model-version "qwen2.5-coder")
+  ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
+  (setq chatgpt-shell-model-version "qwen2.5-coder:14b")
   :bind ("C-x C-v" . chatgpt-shell-quick-insert)
          ("C-x C-p" . chatgpt-shell-prompt-compose)
          ("C-x c g s" . chatgpt-shell-send-and-review-region)
@@ -1068,6 +1158,7 @@
     "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
     "SPC" '(execute-extended-command :which-key "M-x")
     "s" '(consult-line-multi :which-key "Consult multi search")
+    "F" '(consult-line :which-key "Consult outline")
     "0" '(treemacs-select-window :which-key "Treemacs")
     "1" '(winum-select-window-1 :which-key "Window 1")
     "2" '(winum-select-window-2 :which-key "Window 2")
@@ -1215,23 +1306,14 @@
         "◀── now ─────────────────────────────────────────────────"))
 
 (defun mk/play-sound (orgin-fn sound)
+  "Play a sound when a task is marked as done."
   (cl-destructuring-bind (_ _ file) sound
     (make-process :name (concat "play-sound-" file)
                   :connection-type 'pipe
                   :command `("afplay" ,file))))
 (advice-add 'play-sound :around 'mk/play-sound)
 
-(defun mk/org-timer-update-mode-line ()
-  "Update the timer time in the mode line."
-  (if org-timer-pause-time
-      nil
-    (setq org-timer-mode-line-string
-      (concat "🍅 " (substring (org-timer-value-string) 0 -1) ""))
-    (force-mode-line-update)))
-
 (with-eval-after-load 'org
-
-  (advice-add 'org-timer-update-mode-line :override #'mk/org-timer-update-mode-line)
 
   (add-hook 'org-babel-after-execute-hook (lambda ()
                                             (when org-inline-image-overlays
@@ -1350,14 +1432,15 @@
         c-offsets-alist '((innamespace . 0))))
 
 (use-package swift-mode
-  :defer t
-  :mode "\\.swift\\'"
+  :defer t)
+
+(use-package swift-ts-mode
+  :ensure nil
+  :custom
+  (swift-ts-basic-offset 4)
+  (swift-ts:indent-trailing-call-member t)
   :config
-  (setq swift-mode:basic-offset 4
-        swift-mode:parenthesized-expression-offset 4
-        swift-mode:multiline-statement-offset 4
-        swift-mode:highlight-anchor t)
-  (setq font-lock-maximum-decoration '((swift-mode . 3) (emacs-lisp-mode . 3) (t . t))))
+  (add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-ts-mode)))
 
 (use-package localizeable-mode
   :mode "\\.strings\\'"
@@ -1369,32 +1452,31 @@
 
 (use-package ios-simulator
   :ensure nil
-  :after swift-mode
+  :after swift-ts-mode
   :bind
-  (:map swift-mode-map
+  (:map swift-ts-mode-map
         ("M-s" . #'ios-simulator:terminate-current-app)
         ;; ("C-x a c" . #'ios-simulator:appcontainer)
         ("C-x c l" . #'ios-simulator:change-language)))
 
 (use-package swift-additions
   :ensure nil
-  :after swift-mode
+  :after swift-ts-mode
   :bind
-  (:map swift-mode-map
+  (:map swift-ts-mode-map
 	("M-r" . #'swift-additions:run)
 	("M-B" . #'swift-additions:run-without-compiling)
 	("C-c t m" .  #'swift-additions:test-module-silent)
 	("C-c t p" .  #'swift-additions:test-swift-package-from-file)
 	("C-c C-c" . #'swift-additions:compile-and-run)
 	("C-c C-b" . #'swift-additions:compile-app)
-	("C-c C-f" . #'periphery-search-dwiw-rg) ;; Override swift-mode send to buffer
-	))
+	("C-c C-f" . #'periphery-search-dwiw-rg)))
 
 (use-package swift-lsp
   :ensure nil)
 
 (use-package eglot
-  :hook ((swift-mode . eglot-ensure)
+  :hook (((swift-ts-mode) . eglot-ensure)
 	 ((kotlin-mode kotlin-ts-mode) . eglot-ensure))
   :ensure nil
   :bind
@@ -1415,9 +1497,7 @@
   (eglot-events-buffer-size 0)
   (eglot-events-buffer-config '(size: 0 :format full))
   :config
-
-  ;; (add-to-list 'eglot-server-programs '((kotlin-mode  kotlin-ts-mode) . ("kotlin-language-server" :initializationOptions (:storagePath "/tmp"))))
-  (add-to-list 'eglot-server-programs '(swift-mode . my-swift-mode:eglot-server-contact))
+  (add-to-list 'eglot-server-programs '(swift-ts-mode . my-swift-mode:eglot-server-contact))
   (add-to-list 'eglot-server-programs
                '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
 
@@ -1428,27 +1508,27 @@
   (setq eglot-stay-out-of '(corfu company flycheck)
 	eglot-extend-to-xref t
 	eglot-send-changes-idle-time 0.5
-	;; eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly
+        eldoc-documentation-strategy 'eldoc-documentation-default
         jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
 (use-package xcode-additions
  :ensure nil
- :after swift-mode
+ :after swift-ts-mode
  :bind
- (:map swift-mode-map
+ (:map swift-ts-mode-map
        ("M-K" .  #'xcode-additions:clean-build-folder)
        ("C-c C-d" . #'xcode-additions:start-debugging)
        ("C-c C-x" . #'xcode-additions:reset)))
 
 (use-package swift-refactor
   :ensure nil
-  :after swift-mode
+  :after swift-ts-mode
   :bind
   ("C-c r s" . #'swift-refactor:split-function-list)
   ("M-t" . #'swift-refactor:insert-todo)
   ("M-m" . #'swift-refactor:insert-mark)
-  (:map swift-mode-map
+  (:map swift-ts-mode-map
         ("C-c x t" . #'xcode-additions:toggle-device-choice)
         ("C-c x c" . #'xcode-additions:show-current-configuration)
         ("C-c r a" . #'swift-refactor:wrap-selection)
@@ -1493,9 +1573,9 @@
 
 (use-package periphery-swiftformat
   :ensure nil
-  :after swift-mode
+  :after swift-ts-mode
   :bind
-  (:map swift-mode-map
+  (:map swift-ts-mode-map
         ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
         ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
         ("C-c C-p" . #'periphery-run-swiftformat-for-project)))
@@ -1510,42 +1590,29 @@
 
 (use-package periphery-loco
   :ensure nil
-  :after swift-mode
+  :after swift-ts-mode
   :bind
   ("C-c C-k" . #'periphery-run-loco))
 
 (use-package periphery-swiftlint
   :ensure nil
-  :after swift-mode
+  :after swift-ts-mode
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-(use-package filer
-  :ensure nil
-  :bind
-  ("M-O" . filer-find-file))
-
-(use-package tree-sitter
-  :hook ((swift-mode . tree-sitter-mode)
-         (typescript-mode . tree-sitter-mode)
-	 (xml-mode . tree-sitter-mode)
-	 (nxml-mode . tree-sitter-mode)
-         (tree-sitter-after-on . tree-sitter-hl-mode)))
-
-(use-package tree-sitter-langs
-  :after tree-sitter)
-
-;; (use-package rainbow-mode
-;;   :hook (emacs-lisp-mode . rainbow-mode))
+;; (use-package filer
+;;   :ensure nil
+;;   :bind
+;;   ("M-O" . filer-find-file))
 
 (use-package colorful-mode
   :hook (prog-mode . colorful-mode))
 
 (use-package svg-tag-mode
   :defer 10
-  :hook ((swift-mode . svg-tag-mode)
+  :hook ((swift-ts-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode)
-         (kotlin-mode . svg-tag-mode))
+         (kotlin-ts-mode . svg-tag-mode))
   :config
   (setq svg-tag-tags (periphery-svg-tags)))
 
@@ -1640,7 +1707,7 @@
   (setq treesit-font-lock-level 4))
 
 (use-package indent-bars
-  :hook ((emacs-lisp-mode tree-sitter-hl-mode kotlin-mode) . indent-bars-mode)
+  :hook ((emacs-lisp-mode swift-ts-mode kotlin-ts-mode) . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.1))
   (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
@@ -1670,27 +1737,6 @@
   (setq copilot-indent-offset-warning-disable t)
   (setq copilot-max-char 1000000))
 
-(use-package copilot-chat
-  ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
-;; (package-vc-install "https://github.com/chep/copilot-chat.el")
-  :ensure nil
-  :defer t
-  :commands (copilot-chat-doc
-              copilot-chat-explain
-              copilot-chat-fix
-              copilot-chat-test
-              copilot-chat-review
-              copilot-chat-optimize
-              copilot-chat-add-current-buffer)
-  :bind
-  ("C-x c p d" . #'copilot-chat-doc)       ;; Open documentation
-  ("C-x c p e" . #'copilot-chat-explain)   ;; Explain code
-  ("C-x c p f" . #'copilot-chat-fix)       ;; Fix code issues
-  ("C-x c p t" . #'copilot-chat-test)      ;; Write tests
-  ("C-x c p r" . #'copilot-chat-review)    ;; Review code
-  ("C-x c p b" . #'copilot-chat-add-current-buffer) ;; Add current buffer
-  ("C-x c p i" . #'copilot-chat-ask-and-insert)
-  ("C-x c p o" . #'copilot-chat-optimize))
 
   ;; :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
   ;; :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
@@ -1809,24 +1855,26 @@
   :config
   (flycheck-kotlin-setup))
 
-(use-package kotlin-mode
-  :defer t
-  :config
-  (setq-default kotlin-tab-width 2))
+;; (use-package kotlin-mode
+;;   :defer t
+;;   :config
+;;   (setq-default kotlin-tab-width 2))
 
 (use-package kotlin-ts-mode
   :defer t
-  :hook (kotlin-mode . kotlin-ts-mode)
+  :mode "\\.kt\\'"
+  ;; :hook (kotlin-mode . kotlin-ts-mode)
   :config
   (setq treemacs-width 45)
   (setq treesit-font-lock-level 4))
 
 (use-package kotlin-development
   :defer t
-  :hook ((kotlin-mode) . kotlin-development-mode-setup)
+  :hook ((kotlin-mode kotlin-ts-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
   :bind ((:map kotlin-mode-map
                ("C-c C-c" . kotlin-development-build-and-run)
+               ("M-K" . kotlin-development-clean-build)
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator))
          (:map kotlin-ts-mode-map
@@ -1835,6 +1883,44 @@
                ("C-c C-e k" . kotlin-development-kill-emulator)))
   :config
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))  ; or "test_device" if you prefer
+
+(use-package copilot-chat
+  ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
+;; (package-vc-install "https://github.com/chep/copilot-chat.el")
+  :ensure nil
+  :defer t
+  :commands (copilot-chat-doc
+              copilot-chat-explain
+              copilot-chat-fix
+              copilot-chat-test
+              copilot-chat-review
+              copilot-chat-optimize
+              copilot-chat-add-current-buffer)
+  :bind
+  ("C-x c p d" . #'copilot-chat-doc)       ;; Open documentation
+  ("C-x c p e" . #'copilot-chat-explain)   ;; Explain code
+  ("C-x c p f" . #'copilot-chat-fix)       ;; Fix code issues
+  ("C-x c p t" . #'copilot-chat-test)      ;; Write tests
+  ("C-x c p r" . #'copilot-chat-review)    ;; Review code
+  ("C-x c p b" . #'copilot-chat-add-current-buffer) ;; Add current buffer
+  ("C-x c p i" . #'copilot-chat-ask-and-insert)
+  ("C-x c p o" . #'copilot-chat-optimize))
+
+(use-package jinx
+  :ensure t
+  :hook (after-init . global-jinx-mode)  ; Enable Jinx globally
+  :bind (("C-x c k" . jinx-correct)      ; Traditional Emacs spell-check binding
+         ("C-x c l" . jinx-languages))   ; Quick language switching
+  :config
+  (setq jinx-languages "en")
+  (setq jinx-exclude-modes
+        '(minibuffer-mode          ; Mini buffer
+          dired-mode               ; Directory editor
+          fundamental-mode))       ; Fundamental mode
+
+  ;; Custom faces for misspelled words (optional)
+  (custom-set-faces
+   '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
 
 (provide 'init)
 ;;; init.el ends here

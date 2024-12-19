@@ -7,9 +7,13 @@
 (defconst periphery-quick-regex-parser "\\([^:]+\\):\\([0-9]+\\)?:\\([0-9]+\\):\s?\\(.+\\)"
   "Parse vimgrep like strings (compilation).")
 
+(defvar periphery-quick:debug nil
+  "Enable debug logging.")
+
 (defun periphery-quick:debug-log (msg &rest args)
   "Log debug MSG with ARGS."
-  (apply #'message (concat "DEBUG: " msg) args))
+  (when periphery-quick:debug
+    (apply #'message (concat "DEBUG: " msg) args)))
 
 (defun periphery-quick:parse (input)
   "Parse as (INPUT)."

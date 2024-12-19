@@ -79,12 +79,13 @@
   (interactive)
   (let* ((project-root (periphery-helper:project-root-dir))
          (default-directory project-root)
-         (command "rg --files --color=never --no-heading --sortr=accessed --smart-case --follow")
+         (command "rg --files --color=never --no-heading --sortr=accessed --follow --smart-case")
          (process (start-process-shell-command "filer-rg" nil command))
          (candidates '())
          (candidate-count 0)
          (selection nil)
          (done nil))
+
     (set-process-filter
      process
      (lambda (_process output)

@@ -77,7 +77,7 @@
   (mode-line-emphasis                   (:foreground blue))
 
   (numbers                              (:background peach))
-  (region                               (:background text :foreground crust))
+  (region                               (:background crust))
   (tooltip                              (:background overlay2 :foreground crust))
   (shadow                               (:foreground overlay2))
   (success                              (:foreground green))
@@ -473,7 +473,7 @@
 
   ;; ;; Font lock
   (font-lock-bracket-face               (:foreground pink))
-  (font-lock-builtin-face               (:foreground pink))
+  (font-lock-builtin-face               (:foreground red))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
   (font-lock-constant-face              (:foreground yellow :bold t))
@@ -572,6 +572,16 @@
   (tree-sitter-hl-face:keyword.operator          (:foreground sapphire :bold t))
   (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
   (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
+
+  (swift-ts-face-annotation                      (:inherit 'tree-sitter-hl-face:annotation))
+  (swift-ts-face-annotation.builtin              (:inherit 'tree-sitter-hl-face:annotation.builtin))
+  (swift-ts-face-annotation.type                 (:inherit 'tree-sitter-hl-face:annotation.type))
+  (swift-ts-face-punctuation.type                (:inherit 'font-lock-punctuation-face))
+  (swift-ts-face-face-label                      (:inherit 'tree-sitter-hl-face:label))
+  (swift-ts-face-method.call                     (:inherit 'font-lock-function-call-face))
+  (swift-ts-face-method.name                     (:inherit 'font-lock-function-name-face))
+  (swift-ts-face-keyword.type                    (:inherit 'tree-sitter-hl-face:keyword.type))
+  (swift-ts-face-variable.synthesized            (:inherit 'tree-sitter-hl-face:variable.synthesized))
 
   (eldoc-box-body                                (:background mantle :foreground lavender))
   (eldoc-box-border                              (:background crust))

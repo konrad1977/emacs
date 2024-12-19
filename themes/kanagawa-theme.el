@@ -69,7 +69,7 @@
 
  ;; Customize faces
  (
-  (default                                       (:background sumiInk-1 :foreground fujiWhite))
+  (default                                       (:background sumiInk-1b :foreground fujiWhite))
   (button                                        (:foreground sakuraPink))
   ;; (internal-border                               (:background sumiInk-3))
   (child-frame-border                            (:foreground sumiInk-0))
@@ -80,8 +80,8 @@
   (header-line                                   (:background winterBlue))
   (highlight                                     (:background comet :foreground springViolet1))
   (hl-line                                       (:background sumiInk-2))
+  (fringe                                        (:inherit 'default))
   ;; (homoglyph                                     (:foreground waveAqua2))
-  (fringe                                        (:background sumiInk-1))
   (line-number                                   (:foreground sumiInk-4))
   (line-number-current-line                      (:background sumiInk-2 :foreground surimiOrange :weight 'semi-bold))
   (lv-separator                                  (:foreground waveBlue-2 :background sumiInk-2))
@@ -91,7 +91,7 @@
   (mode-line-inactive                            (:background sumiInk-3 :foreground sumiInk-6))
   (mode-line-active                              (:background winterBlue :foreground crystalBlue))
   (mode-line-highlight                           (:foreground boatYellow2))
-  (mode-line-buffer-id                           (:foreground crystalBlue))
+  (mode-line-buffer-id                           (:foreground sumiInk-6))
   (mode-line-emphasis                            (:foreground crystalBlue))
   (numbers                                       (:background sakuraPink))
   (region                                        (:background waveBlue-1))
@@ -108,33 +108,33 @@
   (elisp-shorthand-font-lock-face                (:foreground fujiWhite))
 
   (font-lock-bracket-face                        (:foreground peachRed))
-  (font-lock-builtin-face                        (:foreground springBlue))
+  (font-lock-builtin-face                        (:foreground peachRed))
   (font-lock-comment-delimiter-face              (:foreground comet :italic t))
   (font-lock-comment-face                        (:foreground comet :italic t))
   (font-lock-constant-face                       (:foreground surimiOrange))
   (font-lock-delimiter-face                      (:foreground peachRed))
   (font-lock-doc-face                            (:foreground fujiGray))
   (font-lock-doc-markup-face                     (:foreground fujiGray))
-  (font-lock-escape-face                         (:foreground fujiGray))
-  (font-lock-function-call-face                  (:foreground crystalBlue :weight 'normal))
+  (font-lock-escape-face                         (:foreground samuraiRed))
+  (font-lock-function-call-face                  (:foreground crystalBlue))
   (font-lock-function-name-face                  (:foreground crystalBlue))
   (font-lock-keyword-face                        (:foreground oniViolet :weight 'normal :italic t))
   (font-lock-misc-punctuation-face               (:foreground roninYellow))
   (font-lock-negation-char-face                  (:foreground peachRed))
   (font-lock-number-face                         (:foreground peachRed))
-  (font-lock-operator-face                       (:foreground carpYellow))
+  (font-lock-operator-face                       (:foreground surimiOrange))
   (font-lock-preprocessor-face	                 (:foreground boatYellow2))
-  (font-lock-property-name-face	                 (:foreground carpYellow))
-  (font-lock-property-use-face	                 (:foreground springBlue :weight 'thin))
+  (font-lock-property-name-face	                 (:foreground dragonBlue :weight 'normal :italic t))
+  (font-lock-property-use-face	                 (:foreground dragonBlue))
   (font-lock-punctuation-face                    (:foreground surimiOrange :weight 'normal))
   (font-lock-reference-face                      (:foreground peachRed))
   (font-lock-regexp-face                         (:foreground boatYellow2))
-  (font-lock-regexp-grouping-backslash           (:foreground boatYellow2))
+  (font-lock-regexp-grouping-backslash           (:foreground roninYellow))
   (font-lock-regexp-grouping-construct           (:foreground surimiOrange))
   (font-lock-string-face                         (:foreground springGreen :italic t))
   (font-lock-type-face                           (:foreground waveAqua2 :weight 'normal))
   (font-lock-variable-name-face                  (:foreground dragonBlue :weight 'light))
-  (font-lock-variable-use-face                   (:foreground fujiWhite))
+  (font-lock-variable-use-face                   (:foreground carpYellow))
   (font-lock-warning-face                        (:foreground roninYellow))
 
   (info-xref                                     (:foreground peachRed))
@@ -143,6 +143,7 @@
   (epa-mark                                      (:foreground waveRed))
   (dired-mark                                    (:foreground waveRed))
   (trailing-whitespace                           (:background comet))
+
 
   ;; Battery colors
   (doom-modeline-battery-critical                (:foreground peachRed))
@@ -218,13 +219,11 @@
   (org-modern-tag                                (:foreground sumiInk-4 :background winterBlue :height 0.8 :weight 'semi-bold))
 
   ;; which-key
-  (which-key-key-face                            (:inherit 'font-lock-variable-name-face))
-  (which-func                                    (:inherit 'font-lock-function-name-face :bold t))
+  (which-key-key-face                            (:inherit 'font-lock-constant-face))
+  (which-func                                    (:inherit 'font-lock-property-name-face :bold t))
   (which-key-group-description-face              (:foreground waveRed))
   (which-key-command-description-face            (:foreground crystalBlue))
   (which-key-local-map-description-face          (:foreground carpYellow))
-  (which-key-posframe                            (:background waveBlue-1))
-  (which-key-posframe-border	                 (:background waveBlue-1))
 
   ;; swiper
   (swiper-line-face                              (:foreground carpYellow))
@@ -327,29 +326,22 @@
   (ivy-posframe                                  (:background sumiInk-2))
   (ivy-posframe-border                           (:background sumiInk-3))
 
-  ;;treemacs
-  (treemacs-directory-collapsed-face             (:foreground sumiInk-6))
-  (treemacs-window-background-face               (:background sumiInk-1b))
-  (treemacs-directory-face                       (:foreground sumiInk-6))
-  (treemacs-file-face                            (:foreground sumiInk-6))
+  ;; treemacs
+  (treemacs-file-face                            (:foreground sumiInk-4))
+  (treemacs-directory-collapsed-face             (:inherit 'treemacs-directory-face))
+  (treemacs-window-background-face               (:background sumiInk-0))
+  (treemacs-directory-face                       (:inherit 'treemacs-file-face))
   (treemacs-nerd-icons-file-face                 (:inherit 'treemacs-file-face))
-  (treemacs-nerd-icons-root-face                 (:inherit 'treemacs-directory-face))
+  (treemacs-nerd-icons-root-face                 (:inherit 'treemacs-file-face))
+  (treemacs-tags-face                            (:foreground waveRed :height 0.8))
 
-  (treemacs-git-renamed-face                     (:foreground dragonBlue :baground winterGreen :weight 'normal))
-  (treemacs-git-ignored-face                     (:foreground sumiInk-4 :italic t :weight 'thin))
-  (treemacs-git-unmodified-face                  (:foreground sumiInk-6 :weight 'thin))
-  (treemacs-git-untracked-face                   (:foreground springGreen :weight 'normal :italic t))
-  (treemacs-git-modified-face                    (:foreground springBlue  :weight 'normal))
+  (treemacs-git-renamed-face                     (:foreground dragonBlue :baground winterGreen))
+  (treemacs-git-ignored-face                     (:foreground sumiInk-4))
+  (treemacs-git-unmodified-face                  (:foreground sumiInk-6))
+  (treemacs-git-untracked-face                   (:foreground springGreen))
+  (treemacs-git-modified-face                    (:foreground springBlue))
 
-  ;; lsp and lsp-ui
-  ;; (lsp-headerline-breadcrumb-path-error-face     (:underline (:color springGreen :style 'wave) :foreground sumiInk-4 :background sumiInk-0))
   (lsp-headerline-breadcrumb-path-face           (:background sumiInk-0))
-  ;; (lsp-headerline-breadcrumb-path-hint-face      (:background sumiInk-0))
-  ;; (lsp-headerline-breadcrumb-path-info-face      (:background sumiInk-0))
-  ;; (lsp-headerline-breadcrumb-separator-face      (:background sumiInk-0))
-  ;; (lsp-headerline-breadcrumb-symbols-face        (:background sumiInk-0))
-  ;; (lsp-headerline-breadcrumb-project-prefix-face (:background sumiInk-0))
-  ;; (lsp-headerline-breadcrumb-symbols-error-face  (:foreground peachRed))
 
   (lsp-ui-doc-background                         (:background sumiInk-0 :foreground peachRed))
   (lsp-ui-doc-header                             (:background sumiInk-0 :foreground peachRed))
@@ -415,7 +407,7 @@
   (vertico-multiline                             (:background winterBlue :foreground waveAqua2))
   (vertico-group-title                           (:foreground sumiInk-5 :bold t))
   (vertico-group-separator                       (:foreground sumiInk-5 :strike-through t))
-  (vertico-current                               (:background waveBlue-2 :weight 'normal))
+  (vertico-current                               (:foreground springBlue :distant-foreground fujiGray :background winterBlue :weight 'normal))
 
   (vertico-posframe-border                       (:background sumiInk))
   (vertico-posframe                              (:background sumiInk))
@@ -470,7 +462,7 @@
   (git-gutter:deleted                            (:foreground waveRed))
   (git-gutter:modified                           (:foreground springBlue))
 
-  (marginalia-documentation (:foreground sumiInk-5 :italic t :weight 'thin))
+  (marginalia-documentation                      (:foreground dragonBlue :italic t))
 
   (diff-hl-margin-change                         (:foreground springBlue :background winterBlue))
   (diff-hl-margin-delete                         (:foreground peachRed :background winterRed))
@@ -501,7 +493,7 @@
  ;; Tree sitter highlightning
   (tree-sitter-hl-face:annotation                (:foreground springBlue :background winterBlue :weight 'semi-bold))
   (tree-sitter-hl-face:annotation.builtin        (:foreground crystalBlue :backgroud winterBlue :weight 'semi-bold))
-  (tree-sitter-hl-face:annotation.type           (:foreground peachRed :background winterRed))
+  (tree-sitter-hl-face:annotation.type           (:foreground springGreen :background winterGreen :weight 'semi-bold))
 
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
   (tree-sitter-hl-face:function.call             (:inherit 'font-lock-function-call-face))
@@ -552,6 +544,21 @@
 
   (tree-sitter-hl-face:case-pattern              (:foreground autumnYellow))
 
+  (swift-ts-face-annotation                      (:inherit 'tree-sitter-hl-face:annotation))
+  (swift-ts-face-annotation.builtin              (:inherit 'tree-sitter-hl-face:annotation.builtin))
+  (swift-ts-face-annotation.type                 (:inherit 'tree-sitter-hl-face:annotation.type))
+
+  (swift-ts-face-punctuation.type                (:inherit 'font-lock-punctuation-face))
+  (swift-ts-face-compiler                        (:inherit 'tree-sitter-hl-face:keyword.compiler))
+  ;; (swift-ts-face-constructor.call                (:inherit 'tree-sitter-hl-face:constructor))
+
+  (swift-ts-face-face-label                      (:inherit 'tree-sitter-hl-face:label))
+  (swift-ts-face-method.call                     (:inherit 'font-lock-function-call-face))
+  (swift-ts-face-method.name                     (:inherit 'font-lock-function-name-face))
+  (swift-ts-face-keyword.annotation              (:foreground waveRed :background winterRed :weight 'bold))
+  ;; (swift-ts-face-keyword.type                    (:inherit 'tree-sitter-hl-face:keyword.type))
+  (swift-ts-face-variable.synthesized            (:inherit 'tree-sitter-hl-face:variable.synthesized))
+
   (focus-unfocused (:foreground sumiInk-4))
   (window-stool-face (:background sumiInk-2)) ; :underline (:color sumiInk-3)))
 
@@ -590,7 +597,7 @@
   (punch-line-time-face           (:foreground sumiInk-5))
   (punch-line-major-mode-face     (:foreground sumiInk-5))
 
-  (eglot-inlay-hint-face (:inherit 'font-lock-property-name-face :height 0.8 :weight 'normal))
+  (eglot-inlay-hint-face (:foreground sumiInk-4 :height 0.8 :weight 'normal))
   ;; (eglot-parameter-hint-face (:foreground springViolet2 :height 0.8))
   ;; (eglot-type-hint-face (:foreground sumiInk-5 :height 0.8))
 

@@ -371,7 +371,7 @@ Options are 'junit or 'kotest."
 
 (defun kotlin-development-build-and-launch ()
   "Build and launch the app when emulator is already running."
-  (mode-line-hud:update :message "Building...")
+  ;; (mode-line-hud:update :message "Building...")
   (kotlin-development-execute-build))
 
 (defun kotlin-development-start-emulator-and-build ()
@@ -604,8 +604,7 @@ Options are 'junit or 'kotest."
             (when kotlin-development-debug
               (message "Launch command was: %s" launch-command)))
         (mode-line-hud:update
-         :message (format "Running: %s"
-                          (propertize package-name 'face 'font-lock-constant-face)))))))
+         :message (propertize package-name 'face 'font-lock-constant-face))))))
 
 ;;;###autoload
 (defun kotlin-development-verify-lsp-server ()
@@ -629,35 +628,12 @@ Options are 'junit or 'kotest."
 (defun kotlin-development-common-hook ()
   "Common setup for both Kotlin modes."
   (setq-local comment-start "// "
-              comment-end "")
-  ;; (run-with-timer 0.1 nil
-  ;;                 (lambda ()
-  ;;                   (mode-line-hud:update
-  ;;                    :message (format "Initializing: %s"
-  ;;                                   (propertize "kotlin-ls" 'face 'font-lock-keyword-face)))))
-  ;; Setup the eglot hook
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (when (eglot-managed-p)
-                (mode-line-hud:notification
-                 :message (format "Ready: %s"
-                                (propertize "kotlin-ls" 'face 'font-lock-constant-face))
-                 :seconds 2
-                 :reset t)))))
+              comment-end ""))
 
 ;;;###autoload
 (defun kotlin-development-setup ()
   "Main setup function for Kotlin development environment."
   (interactive)
-
-  ;; (kotlin-development-kotlin-mode-setup)
-  ;; Verify LSP server first
-  ;; (kotlin-development-verify-lsp-server)
-
-  ;; ;; Register LSP server with eglot
-  ;; (add-to-list 'eglot-server-programs
-  ;;              `((kotlin-mode kotlin-ts-mode) . (,kotlin-development-lsp-server-path)))
-	    
   ;; Configure tree-sitter
   (add-to-list 'treesit-language-source-alist
                '(kotlin "https://github.com/fwcd/tree-sitter-kotlin"))
@@ -667,11 +643,7 @@ Options are 'junit or 'kotest."
 
   ;; Setup both modes
   (kotlin-development-common-hook)
-
-  (add-hook 'kotlin-ts-mode (lambda () (setq-local indent-tabs-mode nil)))
-  (eldoc-mode -1)
-  ;; (setq compilation-transform-file-match-patterns nil)
-  )
+  (add-hook 'kotlin-ts-mode (lambda () (setq-local indent-tabs-mode nil))))
 
 ;;;###autoload
 (defun kotlin-development-validate-android-setup ()
@@ -771,16 +743,5 @@ ADB: %s" sdk-path emulator-path adb-path)))
   (kotlin-development-minor-mode 1)
   (kotlin-development-setup))
 
-;; (defun my/hide-path-in-compilation-errors ()
-;;   "Hide the path in compilation error messages but keep them clickable."
-;;   (save-excursion
-;;     (goto-char compilation-filter-start)
-;;     (while (re-search-forward "\\(e:\\|w:\\|alert:\\|info:\\|ERROR:\\) \\(file://\\)?\\(.*/\\)?\\([^/]+\\):\\([0-9]+\\):\\([0-9]+\\)" nil t)
-;;       (when (match-beginning 3)
-;;         (add-text-properties (match-beginning 3) (match-end 3) '(invisible t)))))
-
-;;   (add-hook 'compilation-filter-hook #'my/hide-path-in-compilation-errors))
-
 (provide 'kotlin-development)
-
 ;;; kotlin-development.el ends here

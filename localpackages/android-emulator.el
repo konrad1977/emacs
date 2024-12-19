@@ -270,6 +270,43 @@ Each element should be a string representing a tag or filter pattern."
     (with-current-buffer android-emulator-buffer-name
       (erase-buffer))))
 
+(defun android-emulator-stop ()
+  "Stop the Android emulator."
+  (interactive)
+  (when android-emulator--process
+    (delete-process android-emulator--process)
+    (setq android-emulator--process nil)))
+
+(defun android-emulator-cold-boot ()
+  "Perform a cold boot of the Android emulator.
+This function stops the current emulator if running, deletes the cache,
+and starts a fresh instance of the emulator."
+  (interactive)
+  (when (and android-emulator-name
+             (y-or-n-p "Are you sure you want to perform a cold boot? This will clear all emulator data."))
+    (let ((cache-dir (expand-file-name (concat "~/.android/avd/" android-emulator-name ".avd/cache"))))
+      ;; Stop current emulator if running
+      (when android-emulator--process
+        (android-emulator-stop))
+      ;; Delete cache directory
+      (when (file-exists-p cache-dir)
+        (delete-directory cache-dir t))
+      ;; Start emulator with -no-snapshot flag
+      (let ((default-directory android-emulator-sdk-path)
+            (command (list (concat (file-name-as-directory "emulator") "emulator")
+                          "-avd" android-emulator-name
+                          "-no-snapshot"
+                          "-no-snapshot-load"
+                          "-no-snapshot-save")))
+        (setq android-emulator--process
+              (make-process
+               :name "android-emulator"
+               :buffer (get-buffer-create android-emulator-buffer-name)
+               :command command
+               :filter #'android-emulator--process-filter
+               :sentinel #'android-emulator--process-sentinel)))
+      (message "Cold booting Android emulator %s..." android-emulator-name))))
+
 (defun android-emulator-diagnose ()
   "Diagnose Android emulator setup issues."
   (interactive)
@@ -392,8 +429,10 @@ Each element should be a string representing a tag or filter pattern."
                  buffer
                  emulator-path
                  "-avd" android-emulator-name
+                 "-no-audio"
 		 ;; "-change-locale" android-emulator-language
-                 "-verbose")))
+                 ;; "-verbose"
+                 )))
 
         ;; Set process as the buffer's process
         (set-process-buffer android-emulator--process buffer)

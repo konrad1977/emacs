@@ -23,9 +23,9 @@
   :group 'ios-device)
 
 (defvar ios-device-current-buffer-name nil)
-(defvar ios-device-current-device-id nil)
+(defvar ios-device-current-device-id "B957748B-F538-47DB-A5AC-66FB12FFBB10")
 (defvar ios-device-current-install-command nil)
-(defvar ios-device-current-device-identifier nil)
+(defvar ios-device-current-device-identifier "B957748B-F538-47DB-A5AC-66FB12FFBB10")
 (defvar ios-device-current-app-identifier nil)
 (defvar ios-device-current-buffer nil)
 

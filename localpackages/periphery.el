@@ -5,6 +5,25 @@
 
 ;;; Code:
 
+(defconst periphery-buffer-name "*Periphery*")
+
+(defvar periphery-debug nil
+  "Debug mode.")
+
+(defvar default-length 8)
+
+(defconst periphery-regex-patterns
+  '((parser . "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
+    (parentheses . "\\(\(.+?\)\\)")
+    (strings . "\\(\"[^\"]+\"\\)")
+    (quotes . "\\('[^']+'\\)")
+    (xctest . "^\\([^:]+\\):\\([0-9]+\\):\\w?\\([^:]*\\)[^.]+\\.\\([^:|]*\\)\s?:\\(.*\\)")
+    (todos . "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)")
+    (search . "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
+    (missing-product . ": error: Missing package product '\\([^']+\\)' (in target '\\([^']+\\)' from project '\\([^']+\\)')")
+    (package-error . "^xcodebuild: error: Could not resolve package dependencies:")
+    (build-failure . "^The following build commands failed:")))
+
 (defface periphery-filename-face
   '((t (:inherit link)))
   "Filename face."
@@ -110,9 +129,6 @@
   "Face for the first sentence of the message (up to the first colon)."
   :group 'periphery)
 
-(defvar periphery-debug nil
-  "Debug mode.")
-
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
 
@@ -125,29 +141,12 @@
 (define-key periphery-mode-map (kbd "RET") #'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
-(defconst periphery-buffer-name "*Periphery*")
+
 
 (defvar periphery-mode-map nil "Keymap for periphery.")
 
-(defvar default-length 8)
-
 (defconst periphery-regex-parser "\\(\\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\\s?\\(\\w+\\):\\(.*\\)\n\\s+\\(.*\\(?:\n\\s+.*\\)*\\)"
   "Parse vimgrep like strings (compilation).")
-
-(defconst mark-inside-parenteses "\\(\(.+?\)\\)"
-  "Mark parenteses.")
-
-(defconst mark-strings-regex "\\(\"[^\"]+\"\\)"
-  "Mark all string.")
-
-(defconst periphery-regex-mark-quotes "\\('[^']+'\\)"
-  "Mark quotes in text.")
-
-(defconst xctest-regex-parser "^\\([^:]+\\):\\([0-9]+\\):\\w?\\([^:]*\\)[^.]+\\.\\([^:|]*\\)\s?:\\(.*\\)"
-  "XCTest regex.")
-
-(defconst todos-clean-regex "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)"
-  "Parse Todos and hacks.")
 
 (defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
@@ -206,7 +205,7 @@
 (defun periphery--parse-xctest-putput (line)
   "Run regex for xctest case."
   (save-match-data
-    (and (string-match xctest-regex-parser line)
+    (and (string-match (alist-get 'xctest periphery-regex-patterns) line)
          (let* ((file (match-string 1 line))
                 (linenumber (match-string 2 line))
                 (result (match-string 4 line))
@@ -219,7 +218,7 @@
             :line linenumber
             :keyword "Failed"
             :result message
-            :regex mark-strings-regex)))))
+            :regex (alist-get 'strings periphery-regex-patterns))))))
 
 (defun periphery--parse-output-line (line)
   "Run regex over curent LINE."
@@ -238,7 +237,7 @@
             :line linenumber
             :keyword type
             :result result
-            :regex periphery-regex-mark-quotes)
+            :regex (alist-get 'quotes periphery-regex-patterns))
            ))))
 
 (defun periphery--propertize-severity (severity)
@@ -247,43 +246,38 @@
     (propertize (format " %s " (periphery--center-text type)) 'face (periphery--full-color-from-keyword severity))))
 
 (defun periphery--center-text (word)
-  "Center (as WORD)."
-  (if (<= (length word) default-length)
-      (progn
-        (setq padding  (/ (- default-length (string-width word)) 3))
-        (setq copy (concat (make-string padding ?\s) word))
+  "Center WORD to default length."
+  (let* ((word-len (string-width word))
+         (padding (/ (- default-length word-len) 3))
+         (result (concat (make-string padding ?\s) word)))
+    (while (< (string-width result) (- default-length 1))
+      (setq result (concat result " ")))
+    result))
 
-        (while (< (string-width copy) (- default-length 1))
-          (setq copy (concat copy " ")))
-        copy
-        )
-    word))
-
-(cl-defun periphery--full-color-from-keyword (keyword)
-  "Get color from KEYWORD."
+(defun periphery--color-from-keyword (keyword)
+  "Get color face from KEYWORD."
   (let ((type (upcase (string-trim-left keyword))))
-    (cond
-     ((string= type "WARNING") 'periphery-warning-face-full)
-     ((string= type "MATCH") 'periphery-warning-face-full)
-     ((string= type "INFO") 'periphery-note-face-full)
-     ((string= type "ERROR") 'periphery-error-face-full)
-     ((string= type "NOTE") 'periphery-note-face-full)
-     ((or (string= type "FIX") (string= type "FIXME")) 'periphery-fix-face-full)
-     ((or (string= type "PERF") (string= type "PERFORMANCE")) 'periphery-performance-face-full)
-     ((string= type "TODO") 'periphery-todo-face-full)
-     ((string= type "HACK") 'periphery-hack-face-full)
-     (t 'periphery-error-face-full))))
+    (pcase type
+      ((or "WARNING" "MATCH") 'periphery-warning-face)
+      ("TODO" 'periphery-todo-face)
+      ((or "ERROR" "HACK") 'periphery-error-face)
+      ((or "FIX" "FIXME") 'periphery-fix-face)
+      ((or "PERF" "PERFORMANCE") 'periphery-performance-face)
+      (_ 'periphery-info-face))))
 
-(cl-defun periphery--color-from-keyword (keyword)
-  "Get color from KEYWORD."
+(defun periphery--full-color-from-keyword (keyword)
+  "Get full color face from KEYWORD."
   (let ((type (upcase (string-trim-left keyword))))
-    (cond
-     ((string= type "WARNING") 'periphery-warning-face)
-     ((string= type "TODO") 'periphery-todo-face)
-     ((or (string= type "ERROR") (string= type "HACK")) 'periphery-error-face)
-     ((or (string= type "FIX") (string= type "FIXME")) 'periphery-fix-face)
-     ((or (string= type "PERF") (string= type "PERFORMANCE")) 'periphery-performance-face)
-     (t 'periphery-info-face))))
+    (pcase type
+      ((or "WARNING" "MATCH") 'periphery-warning-face-full)
+      ("INFO" 'periphery-note-face-full)
+      ("ERROR" 'periphery-error-face-full)
+      ("NOTE" 'periphery-note-face-full)
+      ((or "FIX" "FIXME") 'periphery-fix-face-full)
+      ((or "PERF" "PERFORMANCE") 'periphery-performance-face-full)
+      ("TODO" 'periphery-todo-face-full)
+      ("HACK" 'periphery-hack-face-full)
+      (_ 'periphery-error-face-full))))
 
 (cl-defun periphery--mark-all-symbols (&key input regex property)
   "Highlight all quoted symbols (as INPUT REGEX PROPERTY)."
@@ -315,7 +309,7 @@
                :line "1"
                :keyword "error"
                :result failure-msg
-               :regex periphery-regex-mark-quotes)
+               :regex (alist-get 'quotes periphery-regex-patterns))
               errors)))
     errors))
 
@@ -340,7 +334,7 @@
                :line "1"
                :keyword "error"
                :result failure-msg
-               :regex periphery-regex-mark-quotes)
+               :regex (alist-get 'quotes periphery-regex-patterns))
               errors)))
     errors))
 
@@ -368,26 +362,24 @@
                :line "999"
                :keyword "error"
                :result failure-msg
-               :regex periphery-regex-mark-quotes)
+               :regex (alist-get 'quotes periphery-regex-patterns))
               errors)))
     errors))
 
 (defun parse-compiler-errors (text)
-  "Parse compiler error messages, build failures, and package dependency errors from LOG (as TEXT)."
-  (let ((regex "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
-        (errors '()))
+  "Parse compiler errors from TEXT."
+  (let ((errors '()))
     (with-temp-buffer
       (insert text)
-      ;; Parse compiler errors/warnings
       (goto-char (point-min))
-      (while (re-search-forward regex nil t)
+      (while (re-search-forward (alist-get 'parser periphery-regex-patterns) nil t)
         (let* ((path (or (match-string 1) ""))
                (line (or (match-string 2) ""))
                (column (or (match-string 3) ""))
                (error-type (or (match-string 4) ""))
-               (msg-part1 (string-trim-left (or (match-string 5) "")))
-               (msg-part2 (string-trim-left (or (match-string 6) "")))
-               (msg (string-trim (format "%s: %s" msg-part1 msg-part2))))
+               (msg (string-trim (format "%s: %s"
+                                       (string-trim-left (or (match-string 5) ""))
+                                       (string-trim-left (or (match-string 6) ""))))))
           (when (and (not (string-empty-p path))
                      (not (string-empty-p line))
                      (not (string-empty-p error-type)))
@@ -397,19 +389,12 @@
                    :line line
                    :keyword error-type
                    :result msg
-                   :regex periphery-regex-mark-quotes)
+                   :regex (alist-get 'quotes periphery-regex-patterns))
                   errors))))
-
-      ;; Append missing package product errors
-      (setq errors (append errors (parse-missing-package-product (current-buffer))))
-
-      ;; Append package dependency errors
-      (setq errors (append errors (parse-package-dependency-errors (current-buffer))))
-
-      ;; Append build failures
-      (setq errors (append errors (parse-build-failures (current-buffer)))))
-
-    ;; Sort errors before warnings, and ensure build failures are treated as errors
+      (setq errors (append errors
+                          (parse-missing-package-product (current-buffer))
+                          (parse-package-dependency-errors (current-buffer))
+                          (parse-build-failures (current-buffer)))))
     (periphery-sort-error errors)))
 
 (cl-defun periphery-run-parser (input)
@@ -446,13 +431,24 @@
                (t (string< (car a) (car b))))))))
 
 (defun periphery--is-buffer-visible ()
-  "Check if a buffer is visible."
-  (let ((buffer (get-buffer periphery-buffer-name)))
-    (when buffer
-      (let ((window (get-buffer-window buffer)))
-        (if window
-            t ; Buffer is visible
-          nil))))) ; Buffer is not visible
+  "Check if periphery buffer is visible."
+  (when-let* ((buffer (get-buffer periphery-buffer-name)))
+    (get-buffer-window buffer)))
+
+(defun periphery-kill-buffer ()
+  "Kill the periphery buffer."
+  (interactive)
+  (when-let* ((buffer (get-buffer periphery-buffer-name)))
+    (kill-buffer buffer)))
+
+(defun periphery-toggle-buffer ()
+  "Toggle visibility of the Periphery buffer window."
+  (interactive)
+  (if-let* ((buffer (get-buffer periphery-buffer-name)))
+      (if (get-buffer-window buffer)
+          (delete-window (get-buffer-window buffer))
+        (display-buffer buffer))
+    (message "Buffer %s does not exist" periphery-buffer-name)))
 
 (cl-defun periphery-run-test-parser (input succesCallback)
   (setq periphery-errorList nil)
@@ -467,27 +463,11 @@
       (periphery--listing-command (delete-dups periphery-errorList))
     (funcall succesCallback)))
 
-(defun periphery-kill-buffer ()
-  "Kill the periphery buffer."
-  (interactive)
-  (when (get-buffer periphery-buffer-name)
-    (kill-buffer periphery-buffer-name)))
-
-(defun periphery-toggle-buffer ()
-  "Toggle visibility of the Periphery buffer window."
-  (interactive)
-  (let ((buffer (get-buffer periphery-buffer-name)))
-    (if (not buffer)
-        (message "Buffer %s does not exist" periphery-buffer-name)
-      (if (get-buffer-window buffer)
-          (delete-window (get-buffer-window buffer))
-        (display-buffer buffer)))))
-
 ;;; - Bartycrouch parsing
 (defun periphery--clean-up-comments (text)
   "Cleanup comments from (as TEXT) fixmes and todos."
   (save-match-data
-    (and (string-match todos-clean-regex text)
+    (and (string-match (alist-get 'todos periphery-regex-patterns) text)
          (if-let* ((keyword (match-string 1 text))
                 (comment (match-string 2 text)))
              (list keyword comment)))))
@@ -503,7 +483,7 @@
   (setq default-length 8)
   (setq-local case-fold-search nil) ;; Make regex case sensitive
   (save-match-data
-    (and (string-match periphery-parse-search text)
+    (and (string-match (alist-get 'search periphery-regex-patterns) text)
          (let* ((file (match-string 1 text))
                 (line (match-string 2 text))
                 (column (match-string 3 text))
@@ -537,9 +517,9 @@
                :input (periphery--mark-all-symbols
                        :input (periphery--mark-all-symbols
                                :input (periphery--process-message result)
-                               :regex mark-strings-regex
+                               :regex (alist-get 'strings periphery-regex-patterns)
                                :property '(face highlight))
-                       :regex mark-inside-parenteses
+                       :regex (alist-get 'parentheses periphery-regex-patterns)
                        :property '(face periphery-warning-face))
                :regex regex
                :property '(face periphery-identifier-face)))))
@@ -586,9 +566,9 @@
                                  result
                                  'face
                                   (periphery--color-from-keyword keyword))
-                               :regex mark-strings-regex
+                               :regex (alist-get 'strings periphery-regex-patterns)
                                :property '(face highlight))
-                       :regex mark-inside-parenteses
+                       :regex (alist-get 'parentheses periphery-regex-patterns)
                        :property '(face periphery-warning-face))
                :regex regex
                :property '(face periphery-identifier-face)))))
@@ -597,20 +577,26 @@
   "Parse search result (as TITLE TEXT QUERY)."
   (setq default-length 8)
   (setq periphery-errorList '())
-  (dolist (line (split-string text "\n"))
-    (when-let* ((entry (parse--search-query (string-trim-left line) query)))
-      (push entry periphery-errorList)))
+  (if (string-empty-p text)
+      (periphery-message-with-count
+       :tag "No matches found"
+       :text ""
+       :count "0"
+       :attributes 'periphery-error-face)
+    (dolist (line (split-string text "\n"))
+      (when-let* ((entry (parse--search-query (string-trim-left line) query)))
+        (push entry periphery-errorList)))
 
-  (when periphery-errorList
-    (progn
-      (periphery--listing-command periphery-errorList)
-      (if (proper-list-p tabulated-list-entries)
-          (periphery-message-with-count
-           :tag "Found"
-           :text ""
-           :count (format "%d" (length periphery-errorList))
-           :attributes 'success))
-      (switch-to-buffer-other-window periphery-buffer-name))))
+    (when periphery-errorList
+      (progn
+        (periphery--listing-command periphery-errorList)
+        (if (proper-list-p tabulated-list-entries)
+            (periphery-message-with-count
+             :tag "Found"
+             :text ""
+             :count (format "%d" (length periphery-errorList))
+             :attributes 'success))
+        (switch-to-buffer-other-window periphery-buffer-name)))))
 
 (defun periphery--parse-ktlint (text)
   "Parse Ktlint error messages from TEXT."
@@ -633,7 +619,7 @@
                    :line line
                    :keyword "warning"
                    :result (format "%s (%s)" message rule)
-                   :regex periphery-regex-mark-quotes)
+                   :regex (alist-get 'quotes periphery-regex-patterns))
                   errors))))
       errors)))
 

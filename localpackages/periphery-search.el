@@ -9,7 +9,7 @@
 (require 'mode-line-hud)
 
 (defvar current-query "")
-(defvar periphery-quick:debug t)
+(defvar periphery-quick:debug nil)
 
 (defun run-async-command (command callback)
   "Run COMMAND asynchronously and call CALLBACK with the result."
@@ -38,11 +38,10 @@
                                (lambda (result)
                                  (when periphery-quick:debug
                                    (message "Search result: %s" result))
-                                 (if (string-empty-p result)
-                                     (message "No results")
-                                   (send-search-result-to-periphery result))))))
+                                (if (string-empty-p result)
+                                    (periphery-parse-search-result :text "" :query current-query)
+                                  (send-search-result-to-periphery result))))))
       (message-with-color :tag "[FAILED]" :text (format "Install %s to use this command." searcher) :attributes 'warning))))
-
 
 (defun send-search-result-to-periphery (text)
   "Send result (as TEXT) to periphery."
@@ -86,9 +85,7 @@
   "Query todos and fixmes in the project."
   (interactive)
   (if (executable-find "rg")
-      (progn
-        (periphery-run-query "rg -e" "(TODO|NOTE|FIX|FIXME|HACK|PERF):")
-        (mode-line-hud:update :message (propertize "Showing Todo's" 'face 'font-lock-keyword-face)))
+      (periphery-run-query "rg -e" "(TODO|NOTE|FIX|FIXME|HACK|PERF):")
     (message-with-color :tag "[FAILED]" :text "Install 'rg' to use this command." :attributes 'warning)))
 
 ;;;###autoload
