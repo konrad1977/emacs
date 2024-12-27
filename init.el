@@ -29,6 +29,12 @@
 ;; Reset version control backends to default
 (setq vc-handled-backends (eval (car (get 'vc-handled-backends 'standard-value))))
 
+;; Add themes directory to custom theme load path
+(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
+
+(add-to-list 'custom-theme-load-path (expand-file-name "localpackages/kanagawa-emacs" user-emacs-directory))
+(add-to-list 'custom-theme-load-path (expand-file-name "localpackages/neofusion-emacs" user-emacs-directory))
+
 ;; Add local packages directory to load-path
 (let ((dir (expand-file-name "localpackages" user-emacs-directory)))
   (when (file-directory-p dir)
@@ -36,8 +42,6 @@
     (let ((default-directory dir))
       (normal-top-level-add-subdirs-to-load-path))))
 
-;;   ;; Add themes directory to custom theme load path
-(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
 
 (global-unset-key (kbd "C-<wheel-up>"))
 (global-unset-key (kbd "C-<wheel-down>"))
@@ -63,6 +67,12 @@
   :ensure nil
   :defer t)
 
+(use-package candyshop
+  :ensure nil
+  :hook (after-init . candyshop-mode)
+  :config
+  (setq candyshop-alpha-values '(100 90)))
+
 (use-package emacs
   :init
   (fset 'yes-or-no-p 'y-or-n-p)
@@ -71,6 +81,7 @@
   (global-so-long-mode 1)
   (pixel-scroll-precision-mode 1)
   (set-display-table-slot standard-display-table 0 ?\ )
+  (select-frame-set-input-focus (selected-frame))
   :config
   (setq-default
    confirm-kill-emacs (lambda (prompt)
@@ -391,7 +402,8 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
+  (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
@@ -428,19 +440,21 @@
   :hook (after-init . vertico-mode)
   :bind
   (:map vertico-map
-  ("C-j" . vertico-next)
-  ("C-k" . vertico-previous)
-  ("C-d" . vertico-scroll-down)
-  ("C-u" . vertico-scroll-up))
+        ("C-j" . vertico-next)
+        ("C-k" . vertico-previous)
+        ("C-d" . vertico-scroll-down)
+        ("C-u" . vertico-scroll-up))
   :config
   (advice-add #'vertico--format-candidate :around
-    (lambda (orig cand prefix suffix index _start)
-      (setq cand (funcall orig cand prefix suffix index _start))
-      (concat
-        (if (= vertico--index index)
-          (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
-          "  ")
-  cand)))
+              (lambda (orig cand prefix suffix index _start)
+                (setq cand (funcall orig cand prefix suffix index _start))
+                (concat
+                 (if (= vertico--index index)
+                     (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
+                   "  ")
+                 cand)))
+  (setq enable-recursive-minibuffers t) ;; Tillåt rekursiva minibuffers
+  (minibuffer-depth-indicate-mode 1)
   (setq vertico-resize t
         vertico-count 12
         vertico-multiline t
@@ -1605,8 +1619,8 @@
 ;;   :bind
 ;;   ("M-O" . filer-find-file))
 
-(use-package colorful-mode
-  :hook (prog-mode . colorful-mode))
+;; (use-package colorful-mode
+;;   :hook (prog-mode . colorful-mode))
 
 (use-package svg-tag-mode
   :defer 10

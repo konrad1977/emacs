@@ -23,7 +23,7 @@
 
 ;; MacOS specific settings
 (when (eq system-type 'darwin)
-  (push '(ns-use-native-fullscreen . t) default-frame-alist)
+  (push '(ns-use-native-fullscreen . nil) default-frame-alist)
   (push '(ns-transparent-titlebar . t) default-frame-alist)
   (push '(ns-appearance . dark) default-frame-alist))
 
