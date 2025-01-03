@@ -33,6 +33,7 @@
 (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
 
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/kanagawa-emacs" user-emacs-directory))
+(add-to-list 'custom-theme-load-path (expand-file-name "localpackages/mito-laser-emacs" user-emacs-directory))
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/neofusion-emacs" user-emacs-directory))
 
 ;; Add local packages directory to load-path
@@ -62,10 +63,6 @@
 	use-package-always-ensure t
 	use-package-compute-statistics t
 	use-package-minimum-reported-time 0.1))
-
-(use-package welcome-screen
-  :ensure nil
-  :defer t)
 
 (use-package candyshop
   :ensure nil
@@ -213,8 +210,7 @@
   
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
-        left-fringe-width 50
-        right-fringe-width 0
+        left-fringe-width 30
         word-wrap nil
         show-trailing-whitespace nil
         column-number-mode nil
@@ -302,8 +298,6 @@
 
 (use-package welcome-dashboard
   :ensure nil
-  :custom-face
-  (welcome-dashboard-path-face ((t (:height 0.8))))
   :config
   (setq welcome-dashboard-latitude 56.7365
         welcome-dashboard-longitude 16.2981
@@ -403,10 +397,10 @@
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
   ;; (load-theme 'kanagawa t)
-  (load-theme 'neofusion t)
+  ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
-  ;; (load-theme 'mito-laser t)
+  (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
@@ -458,18 +452,18 @@
   (setq vertico-resize t
         vertico-count 12
         vertico-multiline t
-        vertico-scroll-margin 0
+        vertico-scroll-margin 10
         vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
   :init
   (vertico-posframe-mode 1)
-  (vertico-posframe-cleanup)
   ;; :custom-face
   ;; (vertico-posframe ((t (:background "#1d2021"))))
   ;; (vertico-posframe-border ((t (:background "#1d2021"))))
   :config
+  (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
         '((left-fringe . 0)
           (right-fringe . 0)
@@ -585,6 +579,8 @@
   (punch-height 10)
   :config
   (setq punch-show-project-info nil
+        punch-line-left-separator " "
+        punch-line-right-separator "   "
         punch-show-git-info t
         punch-show-lsp-info t
         punch-show-copilot-info nil
@@ -629,12 +625,14 @@
   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
-  (define-key evil-motion-state-map (kbd "q") #'exit-minibuffer)
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
-  (define-key evil-normal-state-map (kbd "C-g") 'evil-ex-nohighlight)  ;; Add shortcut to stop highlights
 
-  ;; (evil-ex-define-cmd "q[uit]" 'safe-kill-buffer-and-window)
+  (evil-set-initial-state 'minibuffer-mode 'emacs)
+
   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
+  (evil-define-key 'normal 'global
+    "q" 'evil-quit
+    "\C-g" 'evil-quit)
   (evil-mode 1))
 
 (with-eval-after-load 'evil
