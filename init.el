@@ -580,7 +580,7 @@
   :config
   (setq punch-show-project-info nil
         punch-line-left-separator " "
-        punch-line-right-separator "   "
+        punch-line-right-separator "  "
         punch-show-git-info t
         punch-show-lsp-info t
         punch-show-copilot-info nil
@@ -627,7 +627,7 @@
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
-  (evil-set-initial-state 'minibuffer-mode 'emacs)
+  ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
 
   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
   (evil-define-key 'normal 'global
