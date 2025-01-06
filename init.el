@@ -68,7 +68,7 @@
   :ensure nil
   :hook (after-init . candyshop-mode)
   :config
-  (setq candyshop-alpha-values '(100 90)))
+  (setq candyshop-alpha-values '(100 86)))
 
 (use-package emacs
   :init
@@ -105,7 +105,7 @@
    find-file-visit-truename nil
    line-spacing 0.01
    ad-redefinition-action 'accept
-   ;; vc-follow-symlinks t
+   vc-follow-symlinks t
    large-file-warning-threshold (* 25 1024 1024)
    backup-by-copying t
    backup-directory-alist `(("." . "~/.saves"))
@@ -113,11 +113,12 @@
    auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
    debug-on-error nil
    custom-file (concat user-emacs-directory "var/custom.el")
+
    ;; Fundamental scrolling behavior
-   scroll-margin 0
-   scroll-conservatively 101
+   ;; scroll-margin 0
+   ;; scroll-conservatively 101
    scroll-preserve-screen-position t
-   scroll-step 1
+   ;; scroll-step 1
    auto-window-vscroll nil
 
    backward-delete-char-untabify-method 'hungry
@@ -355,34 +356,22 @@
   (treemacs-load-theme "nerd-icons"))
 
 (use-package ligature
-  :hook (prog-mode . ligature-mode)
   :config
-  (ligature-set-ligatures
-   'prog-mode
-   '(
-     (";" (rx (+ ";")))
-     ("&" (rx (+ "&")))
-     ("%" (rx (+ "%")))
-     ("?" (rx (or ":" "=" "\." (+ "?"))))
-     ("!" (rx (+ (or "=" "!" "\." ":" "~"))))
-     ("\\" (rx (or "/" (+ "\\"))))
-     ("+" (rx (or ">" (+ "+"))))
-     (":" (rx (or ">" "<" "=" "//" ":=" (+ ":"))))
-     ("/" (rx (+ (or ">"  "<" "|" "/" "\\" "\*" ":" "!" "="))))
-     ("=" (rx (+ (or ">" "<" "|" "/" "~" ":" "!" "="))))
-     ("|" (rx (+ (or ">" "<" "|" "/" ":" "!" "}" "\]" "-" "=" ))))
-     ("*" (rx (or ">" "/" ")" (+ "*"))))
-     ("\." (rx (or "=" "-" "\?" "\.=" "\.<" (+ "\."))))
-     ("-" (rx (+ (or ">" "<" "|" "~" "-"))))
-     ("#" (rx (or ":" "=" "!" "(" "\?" "\[" "{" "_(" "_" (+ "#"))))
-     (">" (rx (+ (or ">" "<" "|" "/" ":" "=" "-"))))
-     ("<" (rx (+ (or "\+" "\*" "\$" "<" ">" ":" "~"  "!" "-"  "/" "|" "="))))
-     ("_" (rx (+ (or "_" "|"))))
-     ("~" (rx (or ">" "=" "-" "@" "~>" (+ "~"))))
-     "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="
-     ("w" (rx (+ "w")))
-     ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
-     "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft")))
+  ;; Enable all Cascadia Code ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("--" "---" "==" "===" "!=" "!==" "=!="
+                              "=:=" "=/=" "<=" ">=" "&&" "&&&" "&=" "++" "+++" "***" ";;" "!!"
+                              "??" "???" "?:" "?." "?=" "<:" ":<" ":>" ">:" "<:<" "<>" "<<<" ">>>"
+                              "<<" ">>" "||" "-|" "_|_" "|-" "||-" "|=" "||=" "##" "###" "####"
+                              "#{" "#[" "]#" "#(" "#?" "#_" "#_(" "#:" "#!" "#=" "^=" "<$>" "<$"
+                              "$>" "<+>" "<+" "+>" "<*>" "<*" "*>" "</" "</>" "/>" "<!--" "<#--"
+                              "-->" "->" "->>" "<<-" "<-" "<=<" "=<<" "<<=" "<==" "<=>" "<==>"
+                              "==>" "=>" "=>>" ">=>" ">>=" ">>-" ">-" "-<" "-<<" ">->" "<-<" "<-|"
+                              "<=|" "|=>" "|->" "<->" "<~~" "<~" "<~>" "~~" "~~>" "~>" "~-" "-~"
+                              "~@" "[||]" "|]" "[|" "|}" "{|" "[<" ">]" "|>" "<|" "||>" "<||"
+                              "|||>" "<|||" "<|>" "..." ".." ".=" "..<" ".?" "::" ":::" ":=" "::="
+                              ":?" ":?>" "//" "///" "/*" "*/" "/=" "//=" "/==" "@_" "__" "???"
+                              "<:<" ";;;"))
+  (global-ligature-mode t))
 
 (use-package no-littering)
 
@@ -396,11 +385,11 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
-  (load-theme 'mito-laser t)
+  ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
@@ -631,7 +620,7 @@
 
   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
   (evil-define-key 'normal 'global
-    "q" 'evil-quit
+    ;; "q" 'evil-quit
     "\C-g" 'evil-quit)
   (evil-mode 1))
 
@@ -1117,15 +1106,23 @@
   (defun add-qwen-to-ollama-models (orig-fun)
     "Add qwen2.5-coder to the list of Ollama models."
     (append (funcall orig-fun)
-            (list (chatgpt-shell-ollama-make-model
+            (list
+             (chatgpt-shell-ollama-make-model
                    :version "qwen2.5-coder:14b"
                    :token-width 4
-                   :context-window 8192))))
+                   :context-window 8192)
+
+             (chatgpt-shell-ollama-make-model
+                   :version "nezahatkorkmaz/deepseek-v3"
+                   :token-width 4
+                   :context-window 8192)
+             )))
 
   (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   :config
   ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
-  (setq chatgpt-shell-model-version "qwen2.5-coder:14b")
+  ;; (setq chatgpt-shell-model-version "qwen2.5-coder:14b")
+  (setq chatgpt-shell-model-version "nezahatkorkmaz/deepseek-v3")
   :bind ("C-x C-v" . chatgpt-shell-quick-insert)
          ("C-x C-p" . chatgpt-shell-prompt-compose)
          ("C-x c g s" . chatgpt-shell-send-and-review-region)
@@ -1403,12 +1400,81 @@
 (use-package elfeed
   :commands elfeed
   :config
-  (setq elfeed-feeds '(("https://planet.emacslife.com/atom.xml")
-                       ("https://www.reddit.com/r/emacs.rss")
-                       ("https://xenodium.com/rss"))
-        elfeed-search-filter "@7-days-ago +unread"
-        elfeed-search-title-max-width 100
-        elfeed-search-title-min-width 100))
+
+(defun add-icon-to-title (icon tag all-tags title)
+  "Add ICON if TAG is present in ALL-TAGS to the TITLE string."
+  (if (member tag all-tags)
+      (concat icon " ")
+    ""))
+
+(defun my/elfeed-search-print-entry (entry)
+  (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
+         (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
+         (title-faces (if (member 'unread (elfeed-entry-tags entry))
+                          (elfeed-search--faces (elfeed-entry-tags entry))
+                        '(:weight thin :inherit font-lock-comment-face)))
+         (feed (elfeed-entry-feed entry))
+         (feed-title (when feed
+                      (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
+         (tags (seq-filter
+                (lambda (tag) (not (string-equal feed-title tag)))
+                (mapcar #'symbol-name (elfeed-entry-tags entry))))
+         (icons '(("swift" . "")
+                 ("emacs" . "")
+                 ("neovim" . "")
+                 ("ai" . "")
+                 ("singularity" . "")
+                 ("kotlin" . "")
+                 ("techcrunch" . "")
+                 ))
+         (title-with-icons (concat
+                           (mapconcat
+                            (lambda (icon-pair)
+                              (add-icon-to-title (cdr icon-pair) (car icon-pair) tags " "))
+                            icons "")
+                           " "
+                           title))
+         (tags-str (mapconcat
+                    (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
+                    tags ","))
+         (title-width (- (window-width) 10 elfeed-search-trailing-width))
+         (title-column (elfeed-format-column
+                        title-with-icons (elfeed-clamp
+                                elfeed-search-title-min-width
+                                title-width
+                                elfeed-search-title-max-width)
+                        :left)))
+    (insert (propertize date 'face 'elfeed-search-date-face) " ")
+    (insert (propertize title-column 'face title-faces 'kbd-help title) " ")
+    ;; (when feed-title
+    ;;   (insert (propertize feed-title 'face 'elfeed-search-feed-face) " "))
+    (when tags
+      (insert tags-str))))
+  
+  (setq elfeed-search-print-entry-function #'my/elfeed-search-print-entry)
+  (setq elfeed-feeds '(
+                       ("https://www.reddit.com/r/emacs.rss" emacs)
+                       ("https://www.reddit.com/r/neovim.rss" neovim)
+                       ("https://www.reddit.com/r/kotlin.rss" kotlin)
+                       ("https://www.reddit.com/r/swift.rss" swift)
+                       ("https://www.reddit.com/r/artificialInteligence.rss" ai)
+                       ("https://www.reddit.com/r/singularity.rss" singularity)
+                       ("https://techcrunch.com/rss" techcrunch)
+                       ))
+
+  (setq elfeed-search-face-alist
+        '((emacs font-lock-function-name-face)
+          (neovim font-lock-type-face)
+          (kotlin font-lock-keyword-face)
+          (swift font-lock-constant-face)
+          (techcrunch font-lock-variable-name-face)
+          (ai font-lock-number-face)
+          (singularity font-lock-constant-face)
+          (read font-lock-comment-face)))
+  (setq elfeed-search-filter "@4-days-ago +unread"
+        elfeed-search-title-max-width 140
+        elfeed-search-title-min-width 140))
+
 
 (use-package highlight-symbol
   :defer t
