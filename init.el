@@ -67,70 +67,9 @@
 (use-package candyshop
   :ensure nil
   :hook (after-init . candyshop-mode)
+  :bind ("C-c t c" . candyshop-toggle)
   :config
-  (setq candyshop-alpha-values '(100 86)))
-
-(use-package emacs
-  :init
-  (fset 'yes-or-no-p 'y-or-n-p)
-  (global-hl-line-mode 1)
-  (global-auto-revert-mode 1)
-  (global-so-long-mode 1)
-  (pixel-scroll-precision-mode 1)
-  (set-display-table-slot standard-display-table 0 ?\ )
-  (select-frame-set-input-focus (selected-frame))
-  :config
-  (setq-default
-   confirm-kill-emacs (lambda (prompt)
-			(y-or-n-p-with-timeout prompt 2 nil))
-   confirm-kill-processes nil
-   fringes-outside-margins nil
-   indicate-buffer-boundaries nil
-   indicate-empty-lines nil
-   display-battery-mode 1
-   create-lockfiles nil
-   auto-revert-verbose nil
-   auto-revert-interval 1
-   make-backup-files nil
-   auto-save-default nil
-   auto-save-interval 2000
-   auto-save-timeout 20
-   delete-old-versions t
-   kept-new-versions 6
-   kept-old-versions 2
-   version-control t
-   global-auto-revert-non-file-buffers t
-   completion-ignore-case t
-   display-line-numbers-width 4
-   find-file-visit-truename nil
-   line-spacing 0.01
-   ad-redefinition-action 'accept
-   vc-follow-symlinks t
-   large-file-warning-threshold (* 25 1024 1024)
-   backup-by-copying t
-   backup-directory-alist `(("." . "~/.saves"))
-   auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory)
-   auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
-   debug-on-error nil
-   custom-file (concat user-emacs-directory "var/custom.el")
-
-   ;; Fundamental scrolling behavior
-   ;; scroll-margin 0
-   ;; scroll-conservatively 101
-   scroll-preserve-screen-position t
-   ;; scroll-step 1
-   auto-window-vscroll nil
-
-   backward-delete-char-untabify-method 'hungry
-   
-   ;; Performance improvements
-   fast-but-imprecise-scrolling nil
-   redisplay-skip-fontification-on-input nil
-
-   ;; Buffer local performance settings
-   line-move-visual nil  ; Slightly faster than visual line mode
-   )
-  ;; Mac-specific optimizations
+  (setq candyshop-alpha-values '(100 92)))
 
 (use-package emacs
   :init
@@ -160,12 +99,12 @@
    kept-new-versions 6
    kept-old-versions 2
    version-control t
+   line-spacing 0.08
    global-auto-revert-non-file-buffers t
    completion-ignore-case t
    display-line-numbers-width 4
    cursor-in-non-selected-windows nil
    find-file-visit-truename nil
-   line-spacing 0.01
    ad-redefinition-action 'accept
    large-file-warning-threshold (* 25 1024 1024)
    backup-by-copying t
@@ -193,7 +132,7 @@
     (setq mac-redisplay-dont-reset-vscroll t
           mac-mouse-wheel-smooth-scroll nil))
   (when (file-exists-p custom-file)
-    (load custom-file))))
+    (load custom-file)))
 
 (defun setup-programming-mode ()
   "Setup programming mode."
@@ -211,7 +150,7 @@
   
   (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
-        left-fringe-width 30
+        left-fringe-width 20
         word-wrap nil
         show-trailing-whitespace nil
         column-number-mode nil
@@ -320,8 +259,7 @@
   (set-message-beep 'silent))
 
 (use-package nerd-icons
-  :custom
-  (setq nerd-icons-color-icons t))
+  :defer t)
 
 (use-package nerd-icons-completion
   :after marginalia
@@ -385,11 +323,11 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
-  ;; (load-theme 'mito-laser t)
+  (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
@@ -436,7 +374,7 @@
                      (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
                    "  ")
                  cand)))
-  (setq enable-recursive-minibuffers t) ;; Tillåt rekursiva minibuffers
+  (setq enable-recursive-minibuffers nil) ;; Tillåt rekursiva minibuffers
   (minibuffer-depth-indicate-mode 1)
   (setq vertico-resize t
         vertico-count 12
@@ -526,7 +464,7 @@
 (use-package consult-project-extra
   :after consult
   :bind
-  ("M-O" . #'consult-project-buffer)
+  ;; ("M-O" . #'consult-project-buffer)
   ("C-<tab>" . #'consult-projectile-switch-to-buffer)
   ("M-R" . #'consult-projectile-recentf))
 
@@ -568,8 +506,11 @@
   (punch-height 10)
   :config
   (setq punch-show-project-info nil
-        punch-line-left-separator " "
-        punch-line-right-separator "  "
+        punch-line-modal-use-fancy-icon t
+        punch-line-modal-divider-style 'arrow
+        punch-line-modal-size 'medium
+        punch-line-left-separator "  "
+        punch-line-right-separator "  "
         punch-show-git-info t
         punch-show-lsp-info t
         punch-show-copilot-info nil
@@ -620,8 +561,8 @@
 
   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
   (evil-define-key 'normal 'global
-    ;; "q" 'evil-quit
-    "\C-g" 'evil-quit)
+     "q" 'minibuffer-quit
+    "\C-g" 'minibuffer-quit)
   (evil-mode 1))
 
 (with-eval-after-load 'evil
@@ -739,7 +680,7 @@
   :bind ("C-x e" . er/expand-region))
 
 (use-package eldoc-box
-  :hook (eldoc-mode . eldoc-box-hover-at-point-mode)
+  :hook (eldoc-mode . eldoc-box-hover-mode)
   :custom
   (setq eldoc-box-clear-with-C-g t
         eldoc-box-max-pixel-width 200
@@ -996,6 +937,10 @@
   (add-to-list 'projectile-globally-ignored-directories "node_modules")
   (add-to-list 'projectile-globally-ignored-directories "build"))
 
+(use-package project
+  :ensure nil
+  :bind ("M-O" . project-find-file))
+
 (use-package pulsar
   :hook (after-init . pulsar-global-mode)
   :config
@@ -1099,30 +1044,7 @@
   (setq dall-e-shell-openai-key (getenv "OPENAI_API_KEY")))
 
 (use-package chatgpt-shell
-  :init
-  (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
-  (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
-  (require 'chatgpt-shell-ollama)
-  (defun add-qwen-to-ollama-models (orig-fun)
-    "Add qwen2.5-coder to the list of Ollama models."
-    (append (funcall orig-fun)
-            (list
-             (chatgpt-shell-ollama-make-model
-                   :version "qwen2.5-coder:14b"
-                   :token-width 4
-                   :context-window 8192)
-
-             (chatgpt-shell-ollama-make-model
-                   :version "nezahatkorkmaz/deepseek-v3"
-                   :token-width 4
-                   :context-window 8192)
-             )))
-
-  (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
-  :config
-  ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
-  ;; (setq chatgpt-shell-model-version "qwen2.5-coder:14b")
-  (setq chatgpt-shell-model-version "nezahatkorkmaz/deepseek-v3")
+  :defer t
   :bind ("C-x C-v" . chatgpt-shell-quick-insert)
          ("C-x C-p" . chatgpt-shell-prompt-compose)
          ("C-x c g s" . chatgpt-shell-send-and-review-region)
@@ -1131,7 +1053,29 @@
                           (interactive)
                           (split-window-right)
                           (other-window 1)
-                          (chatgpt-shell))))
+                          (chatgpt-shell)))
+         :config
+  (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
+  (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
+  (require 'chatgpt-shell-ollama)
+  (defun add-qwen-to-ollama-models (orig-fun)
+    "Add qwen2.5-coder to the list of Ollama models."
+    (append (funcall orig-fun)
+            (list
+             (chatgpt-shell-ollama-make-model
+                   :version "qwen2.5-coder"
+                   :token-width 4
+                   :context-window 8192)
+
+             (chatgpt-shell-ollama-make-model
+                   :version "phi4"
+                   :token-width 4
+                   :context-window 8192)
+             )))
+
+  (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
+  ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
+  (setq chatgpt-shell-model-version "qwerty-2.5-coder"))
 
 (use-package ob-chatgpt-shell
   :ensure nil
@@ -1469,7 +1413,7 @@
           (swift font-lock-constant-face)
           (techcrunch font-lock-variable-name-face)
           (ai font-lock-number-face)
-          (singularity font-lock-constant-face)
+          (singularity font-lock-number-face)
           (read font-lock-comment-face)))
   (setq elfeed-search-filter "@4-days-ago +unread"
         elfeed-search-title-max-width 140
@@ -1789,14 +1733,14 @@
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.1))
   (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
-  (indent-bars-highlight-current-depth '(:blend 0.6)) ; pump up the BG blend on current
+  (indent-bars-color '(highlight :face-bg t :blend 0.15))
+  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
   (indent-bars-treesit-support t)
   (indent-bars-no-descend-string t)
   (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
-  (indent-bars-color '(highlight :face-bg t :blend 0.1))
-  (indent-bars-width-frac 0.4)
+  (indent-bars-width-frac 0.1)
   (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag nil)
+  (indent-bars-zigzag t)
   (indent-bars-pattern ".")
   (indent-bars-prefer-character t)
   (indent-bars-display-on-blank-lines t))
@@ -1892,16 +1836,6 @@
         (when (member window-to-delete windows)
           (delete-window window-to-delete))))))
 
-;; (use-package dotenv-mode
-;;   :defer 2)
-
-;; (use-package add-node-modules-path
-;;   :hook ((typescript-ts-mode tsx-ts-mode typescriptreact-mode js-mode) . add-node-modules-path))
-
-;; (use-package yasnippet
-;;   :defer 2
-;;   :hook (lsp-mode . yas-minor-mode))
-
 (use-package compile
   :ensure nil
   :hook (compilation-finish-functions .
@@ -1933,11 +1867,6 @@
   :config
   (flycheck-kotlin-setup))
 
-;; (use-package kotlin-mode
-;;   :defer t
-;;   :config
-;;   (setq-default kotlin-tab-width 2))
-
 (use-package kotlin-ts-mode
   :defer t
   :mode "\\.kt\\'"
@@ -1960,7 +1889,8 @@
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator)))
   :config
-  (setq kotlin-development-emulator-name "Medium_Phone_API_35"))  ; or "test_device" if you prefer
+  (add-hook 'kotlin-ts-mode-hook (lambda () (eldoc-mode -1)))
+  (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
 (use-package copilot-chat
   ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
@@ -1999,6 +1929,16 @@
   ;; Custom faces for misspelled words (optional)
   (custom-set-faces
    '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
+
+(use-package ultra-scroll
+  :ensure nil
+  :init
+  (setq scroll-margin 0
+        scroll-conservatively 101)
+  :config
+  (ultra-scroll-mode 1))
+
+;; (package-vc-install '(ultra-scroll :vc-backend Git :url  "https://github.com/jdtsmith/ultra-scroll"))
 
 (provide 'init)
 ;;; init.el ends here
