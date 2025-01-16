@@ -14,23 +14,23 @@
   :group 'files)
 
 (defface filer-filename-face
-  '((t (:inherit default)))
+  '((t (:inherit default :foreground nil)))
   "Face for filenames in filer results."
   :group 'filer)
 
 (defface filer-path-face
-  '((t (:foreground "#888899")))
+  '((t (:inherit font-lock-comment-face)))
   "Face for file paths in filer results."
   :group 'filer)
 
 (defface filer-project-name-face
-  '((t (:foreground "#555565")))
-  "Face for file paths in filer results."
+  '((t (:inherit font-lock-number-face)))
+  "Face for project names in filer results."
   :group 'filer)
 
 (defface filer-path-delimiter-face
-  '((t (:foreground "#BBBBCC")))
-  "Face for file paths in filer results."
+  '((t (:inherit font-lock-delimiter-face)))
+  "Face for path delimiters in filer results."
   :group 'filer)
 
 (defcustom filer-show-full-path nil
@@ -38,15 +38,22 @@
   :group 'filer
   :type 'boolean)
 
-(defcustom filer-include-project-name nil
+(defcustom filer-include-project-name t
   "When non-nil, include project name in results."
   :group 'filer
   :type 'boolean)
 
-(defcustom filer-max-results 500
+(defcustom filer-max-results 1000
   "Maximum number of results to process."
   :group 'filer
   :type 'integer)
+
+(defcustom filer-path-position 'right
+  "Position of the file path relative to the filename.
+Can be either 'left or 'right."
+  :group 'filer
+  :type '(choice (const :tag "Right side" right)
+                (const :tag "Left side" left)))
 
 (defun filer-format-candidate (file project-root)
   "Format FILE as a candidate for completion, relative to PROJECT-ROOT."
@@ -55,23 +62,31 @@
          (file-name (file-name-nondirectory relative-path))
          (file-dir (file-name-directory relative-path))
          (project-name (file-name-nondirectory (directory-file-name project-root)))
-         (icon (nerd-icons-icon-for-file full-path)))
+         (icon (nerd-icons-icon-for-file full-path))
+         (path-part
+          (concat
+           (if filer-include-project-name
+               (propertize (or project-name "") 'face 'filer-project-name-face)
+             "")
+           (if (and file-dir (not (string= file-dir "")))
+               (concat (propertize "/" 'face 'filer-path-delimiter-face)
+                      (propertize (directory-file-name file-dir)
+                                'face 'filer-path-face))
+             ""))))
     (cons
      (if filer-show-full-path
          (format "%s %s"
                  icon
                  (propertize relative-path 'face 'filer-filename-face))
-       (format "%s %s %s%s"
-               icon
-               (propertize file-name 'face 'filer-filename-face)
-	       (if filer-include-project-name
-		   (propertize project-name 'face 'filer-project-name-face)
-		 ""
-		 )
-               (if file-dir
-                   (concat (propertize "/" 'face 'filer-path-delimiter-face)
-                           (propertize (directory-file-name file-dir) 'face 'filer-path-face))
-                 "")))
+       (pcase filer-path-position
+         ('right (format "%s %s %s"
+                        icon
+                        (propertize file-name 'face 'filer-filename-face)
+                        path-part))
+         ('left (format "%s %s %s"
+                       icon
+                       path-part
+                       (propertize file-name 'face 'filer-filename-face)))))
      full-path)))
 
 (defun filer-find-file ()

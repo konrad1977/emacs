@@ -24,7 +24,7 @@
   :type 'string
   :group 'swift-additions:xcodebuild)
 
-(defcustom swift-additions:build-system "YES"
+(defcustom swift-additions:modern-build-system "YES"
   "Whether to use the modern build system."
   :type '(choice (const "YES")
                  (const "NO"))
@@ -35,7 +35,7 @@
   :type '(repeat string)
   :group 'swift-additions:xcodebuild)
 
-(defvar swift-additions:optimization-level 'fast 
+(defvar swift-additions:optimization-level 'fast
   "Build optimization level.")
 
 ;; Internal variables
@@ -57,21 +57,22 @@
 
 (defun swift-additions:handle-build-error (error-message)
   "Handle build ERROR-MESSAGE and display appropriate feedback."
+  (swift-additions:cleanup)
   (mode-line-hud:update
    :message (format "Build failed: %s"
-                   (propertize (substring error-message 0
-                                        (min 50 (length error-message)))
-                               'face 'error)))
+                   (propertize (truncate-string-to-width error-message 50) 'face 'error)))
   (periphery-run-parser error-message))
 
 (defun swift-additions:get-optimization-flags ()
-  "Get optimization flags."
-  (pcase swift-additions:optimization-level
-    ('fast '("SWIFT_COMPILATION_MODE=wholemodule"
-            "COMPILER_INDEX_STORE_ENABLE=NO"
-            "DEBUG_INFORMATION_FORMAT=dwarf"))
-    ('debug '("SWIFT_COMPILATION_MODE=incremental"
-             "COMPILER_INDEX_STORE_ENABLE=YES"))))
+  "Get optimization flags based on current optimization level."
+      `("SWIFT_COMPILATION_MODE=wholemodule"
+        "COMPILER_INDEX_STORE_ENABLE=NO"
+        "DEBUG_INFORMATION_FORMAT=dwarf"
+        "SWIFT_PARALLEL_MODULE_JOBS=8"
+        "SWIFT_USE_PARALLEL_WHOLE_MODULE_OPTIMIZATION=YES"
+        "SWIFT_ENABLE_BATCH_MODE=YES"
+        "SWIFT_USE_PARALLEL_SOURCEJOB_TASKS=YES"
+        "BUILD_LIBRARY_FOR_DISTRIBUTION=NO"))
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -79,21 +80,15 @@
     "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
   "xcrun xcodebuild build \\"))
 
-(defvar swift-additions:optimization-level 'fast
-  "Build optimization level: 'fast or 'debug.")
-
-(defun swift-additions:get-optimal-jobs ()
-  "Get optimal number of parallel jobs based on CPU cores."
-  (number-to-string (max 1 (- (num-processors) 1))))
-
-(defun swift-additions:get-optimization-flags ()
-  "Get optimization flags based on current optimization level."
-  (pcase swift-additions:optimization-level
-    ('fast '("SWIFT_COMPILATION_MODE=wholemodule"
-            "COMPILER_INDEX_STORE_ENABLE=NO"
-            "DEBUG_INFORMATION_FORMAT=dwarf"))
-    ('debug '("SWIFT_COMPILATION_MODE=incremental"
-             "COMPILER_INDEX_STORE_ENABLE=YES"))))
+(defun swift-additions:setup-build-environment ()
+  "Setup optimal environment variables for build."
+  (setenv "SWIFT_DETERMINISTIC_HASHING" "1")
+  (setenv "SWIFT_ENABLE_INCREMENTAL_COMPILATION" "1")
+  (when (eq swift-additions:optimization-level 'fast)
+    (setenv "SWIFT_DISABLE_SAFETY_CHECKS" "1"))
+  (setenv "SWIFT_MEMORY_ALLOCATOR" "malloc")  ; Snabbare än standard
+  (setenv "SWIFT_MAX_PARALLEL_LTO_JOBS"
+          (number-to-string (max 1 (/ (num-processors) 2)))))
 
 (cl-defun swift-additions:build-app-command (&key sim-id derived-path)
   "Xcodebuild with (as SIM-ID DERIVED-PATH)."
@@ -109,15 +104,14 @@
        (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
      (format "-configuration %s \\" swift-additions:default-configuration)
      "-parallelizeTargets \\"
-     (format "-UseModernBuildSystem=%s \\" swift-additions:build-system)
+     ;; (format "-UseModernBuildSystem=%s \\" swift-additions:modern-build-system)
      "-enableAddressSanitizer NO \\"
      "-enableThreadSanitizer NO \\"
      "-enableUndefinedBehaviorSanitizer NO \\"
      (mapconcat (lambda (flag) (concat flag " \\"))
-                (swift-additions:get-optimization-flags)
-                "")
-     (mapconcat (lambda (flag) (concat flag " \\"))
-                swift-additions:additional-build-flags
+                (append
+                 (swift-additions:get-optimization-flags)
+                 swift-additions:additional-build-flags)
                 "")
      "-derivedDataPath .build | xcode-build-server parse -avv")))
 
@@ -126,26 +120,12 @@
   (number-to-string (max 1 (- (num-processors) 1))))
 
 (defun swift-additions:compilation-time ()
-    "Get the time of the compilation."
-    (if-let* ((end-time (current-time)))
-        (format "%.1f" (float-time (time-subtract end-time swift-additions:compilation-time)))
-      nil))
+  "Get the time of the compilation."
+  (if-let* ((end-time (current-time))
+           (start-time swift-additions:compilation-time))
+      (format "%.1f" (float-time (time-subtract end-time start-time)))
+    "N/A"))
 
-(defun swift-additions:run()
-    "Rerun already compiled and installed app."
-    (interactive)
-    (periphery-kill-buffer)
-    (ios-simulator:kill-buffer)
-
-    (if (xcode-additions:run-in-simulator)
-        (ios-simulator:install-and-run-app
-         :rootfolder (xcode-additions:project-root)
-         :build-folder (xcode-additions:build-folder :device-type :simulator)
-         :simulatorId (ios-simulator:simulator-identifier)
-         :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
-      (ios-device:install-app
-       :buildfolder (xcode-additions:build-folder :device-type :device)
-       :appIdentifier (xcode-additions:fetch-or-load-app-identifier))))
 
 (defun swift-additions:run-app-on-device-after-build ()
   "Run app on device after build."
@@ -178,15 +158,19 @@
   "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
   (when swift-additions:debug
     (message "checking for error: %s" output))
-  (when (swift-additions:check-if-build-was-successful output)
-     (funcall callback))
-   (periphery-run-parser output))
+  (condition-case err
+      (when (swift-additions:check-if-build-was-successful output)
+        (funcall callback))
+    (error
+     (swift-additions:handle-build-error (error-message-string err))))
+  (periphery-run-parser output))
 
-(cl-defun swift-additions:get-current-sdk (&key sim-id)
-"Return the current SDK with SIM-ID."
-(if sim-id
-    "iphoneos"
-  "iphonesimulator"))
+(defun swift-additions:cleanup ()
+  "Cleanup resources and state."
+  (when swift-additions:build-progress-spinner
+    (spinner-stop swift-additions:build-progress-spinner))
+  (setq swift-additions:current-build-command nil
+        swift-additions:compilation-time nil))
 
 (defun swift-additions:successful-build ()
   "Show that the build was successful."
@@ -199,28 +183,21 @@
   (setq swift-additions:build-progress-spinner spinner-current
         swift-additions:compilation-time (current-time))
 
-  (swift-additions:log-debug "Running build command: %s" command)
+  (condition-case err
+      (async-start-command-to-string
+       :command command
+       :callback (lambda (text)
+                  (spinner-stop swift-additions:build-progress-spinner)
+                  (if (swift-additions:check-if-build-was-successful text)
+                      (progn
+                        (funcall callback text)
+                        (swift-additions:cleanup))
+                    (swift-additions:handle-build-error text)))
+       :update-callback update-callback
+       :debug swift-additions:debug)
+    (error
+     (swift-additions:handle-build-error (error-message-string err)))))
 
-  (async-start-command-to-string
-   :command command
-   :callback (lambda (text)
-              (spinner-stop swift-additions:build-progress-spinner)
-              (if (swift-additions:check-if-build-was-successful text)
-                  (funcall callback text)
-                (swift-additions:handle-build-error text)))
-   :update-callback update-callback
-   :debug swift-additions:debug))
-
-;;;###autoload
-(defun swift-additions:compile-and-run ()
-  "Compile and run app."
-  (interactive)
-  (swift-additions:compile :run t))
-
-(defun swift-additions:compile-app ()
-  "Compile app."
-  (interactive)
-  (swift-additions:compile :run nil))
 
 (cl-defun swift-additions:compile (&key run)
   "Build project using xcodebuild (as RUN)."
@@ -240,6 +217,8 @@
 
 (cl-defun swift-additions:compile-for-simulator (&key run)
   "Compile app for simulator with optional RUN after completion."
+  (swift-additions:cleanup)
+  (swift-additions:setup-build-environment)
   (setq swift-additions:current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
@@ -259,15 +238,14 @@
      :command build-command
      :callback (lambda (text)
                 (if run-once-compiled
-                    (swift-additions:check-for-errors
-                     text #'swift-additions:run-app-after-build)
-                  (swift-additions:check-for-errors
-                   text #'swift-additions:successful-build)))
+                    (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
+                  (swift-additions:check-for-errors text #'swift-additions:successful-build)))
      :update-callback (lambda (text)
                        (xcode-additions:parse-compile-lines-output :input text)))))
 
 (defun swift-additions:compile-for-device (&key run)
   "Compile and optionally RUN on device."
+  (swift-additions:cleanup)
   (setq swift-additions:current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
@@ -294,14 +272,6 @@
      :update-callback (lambda (text)
                        (xcode-additions:parse-compile-lines-output :input text)))))
 
-;;;###autoload
-(defun swift-additions:test-module-silent ()
-"Test module."
-(interactive)
-(save-some-buffers t)
-(periphery-kill-buffer)
-(ios-simulator:kill-buffer)
-(swift-additions:test-swift-package))
 
 (defun swift-additions:is-a-swift-package-base-project ()
   "Check if project is a swift package based."
@@ -371,6 +341,44 @@
   (let ((buffer-dir (file-name-directory (or (buffer-file-name) default-directory))))
     (locate-dominating-file buffer-dir "Package.swift")))
 
+;;;###autoload
+(defun swift-additions:compile-and-run ()
+  "Compile and run app."
+  (interactive)
+  (swift-additions:compile :run t))
+
+;;;###autoload
+(defun swift-additions:compile-app ()
+  "Compile app."
+  (interactive)
+  (swift-additions:compile :run nil))
+
+;;;###autoload
+(defun swift-additions:run()
+    "Rerun already compiled and installed app."
+    (interactive)
+    (periphery-kill-buffer)
+    (ios-simulator:kill-buffer)
+
+    (if (xcode-additions:run-in-simulator)
+        (ios-simulator:install-and-run-app
+         :rootfolder (xcode-additions:project-root)
+         :build-folder (xcode-additions:build-folder :device-type :simulator)
+         :simulatorId (ios-simulator:simulator-identifier)
+         :appIdentifier (xcode-additions:fetch-or-load-app-identifier))
+      (ios-device:install-app
+       :buildfolder (xcode-additions:build-folder :device-type :device)
+       :appIdentifier (xcode-additions:fetch-or-load-app-identifier))))
+
+;;;###autoload
+(defun swift-additions:test-module-silent ()
+  "Test module."
+  (interactive)
+  (save-some-buffers t)
+  (periphery-kill-buffer)
+  (ios-simulator:kill-buffer)
+  (swift-additions:test-swift-package))
+
 (defun swift-additions:diagnose ()
   "Display diagnostic information about the current Swift development environment."
   (interactive)
@@ -397,7 +405,7 @@
       (princ (format "Current Build Configuration: %s\n"
                     (or swift-additions:current-build-configuration "Not set")))
       (princ (format "Default Configuration: %s\n" swift-additions:default-configuration))
-      (princ (format "Build System: %s\n" swift-additions:build-system))
+      (princ (format "Build System: %s\n" swift-additions:modern-build-system))
       (princ (format "Additional Build Flags: %s\n"
                     (if swift-additions:additional-build-flags
                         (mapconcat #'identity swift-additions:additional-build-flags " ")
@@ -474,26 +482,5 @@
       (when swift-additions:debug
         (princ "NOTE: Debug mode is enabled - this may affect performance\n")))))
 
-(defun swift-additions:copy-diagnostics ()
-  "Copy diagnostic information to clipboard."
-  (interactive)
-  (let ((orig-buffer (current-buffer)))
-    (swift-additions:diagnose)
-    (with-current-buffer "*Swift Diagnostics*"
-      (kill-ring-save (point-min) (point-max))
-      (message "Diagnostic information copied to clipboard"))
-    (switch-to-buffer orig-buffer)))
-
-(defun swift-additions:save-diagnostics (filename)
-  "Save diagnostic information to FILENAME."
-  (interactive "FSave diagnostics to file: ")
-  (let ((orig-buffer (current-buffer)))
-    (swift-additions:diagnose)
-    (with-current-buffer "*Swift Diagnostics*"
-      (write-region (point-min) (point-max) filename))
-    (message "Diagnostic information saved to %s" filename)
-    (switch-to-buffer orig-buffer)))
-
 (provide 'swift-additions)
-
 ;;; swift-additions.el ends here

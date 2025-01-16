@@ -603,8 +603,7 @@ Options are 'junit or 'kotest."
             (message "Failed to launch app: %s" result)
             (when kotlin-development-debug
               (message "Launch command was: %s" launch-command)))
-        (mode-line-hud:update
-         :message (propertize package-name 'face 'font-lock-constant-face))))))
+        (mode-line-hud:update :message "")))))
 
 ;;;###autoload
 (defun kotlin-development-verify-lsp-server ()
@@ -722,7 +721,7 @@ ADB: %s" sdk-path emulator-path adb-path)))
             (define-key map (kbd "M-K") #'kotlin-development-clean-build)
             (define-key map (kbd "C-c a") #'kotlin-development-analyze-code)
             (define-key map (kbd "C-c d") #'kotlin-development-check-dependencies)
-            (define-key map (kbd "C-c f") #'kotlin-development-fix-code-style)
+            (define-key map (kbd "C-c C-o") #'kotlin-development-fix-code-style)
             (define-key map (kbd "C-c h") #'kotlin-development-show-build-history)
             map))
 

@@ -7,6 +7,7 @@
 ;;; Code:
 
 (require 'periphery-helper)
+(require 'cl-lib)
 
 (defgroup ios-device nil
   "Customization group for ios-device package."

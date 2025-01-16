@@ -43,7 +43,6 @@
     (let ((default-directory dir))
       (normal-top-level-add-subdirs-to-load-path))))
 
-
 (global-unset-key (kbd "C-<wheel-up>"))
 (global-unset-key (kbd "C-<wheel-down>"))
 (global-unset-key [C-wheel-up])
@@ -69,11 +68,10 @@
   :hook (after-init . candyshop-mode)
   :bind ("C-c t c" . candyshop-toggle)
   :config
-  (setq candyshop-alpha-values '(100 92)))
+  (setq candyshop-alpha-values '(100 95)))
 
 (use-package emacs
   :init
-  (fset 'yes-or-no-p 'y-or-n-p)
   (global-hl-line-mode 1)
   (global-auto-revert-mode 1)
   (global-so-long-mode 1)
@@ -84,6 +82,7 @@
   (setq-default
    confirm-kill-emacs (lambda (prompt)
 			(y-or-n-p-with-timeout prompt 2 nil))
+   use-short-answers t
    confirm-kill-processes nil
    fringes-outside-margins nil
    indicate-buffer-boundaries nil
@@ -91,6 +90,8 @@
    create-lockfiles nil
    auto-revert-verbose nil
    auto-revert-interval 1
+   auto-save-no-message t
+   delete-by-moving-to-trash t
    make-backup-files nil
    auto-save-default nil
    auto-save-interval 2000
@@ -332,15 +333,19 @@
   ;; (load-theme 'doom-laserwave t)
   )
 
-(use-package zoom
-  :hook (after-init . zoom-mode)
-  :config
-  (setq zoom-size '(0.7 . 0.7)
-        zoom-ignored-major-modes '(dired-mode vterm-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
-        zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
-        zoom-ignored-buffer-name-regexps '("^\\*" "^ \\*" "*MINIMAP*")))
+(advice-add #'balance-windows :override #'balance-windows-area)
+
+; (use-package zoom
+;;   :hook (after-init . zoom-mode)
+;;   :config
+;;   (setq zoom-size '(0.7 . 0.7))
+;;   ;; zoom-ignored-major-modes '(dired-mode vterm-mode dape-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
+;;   ;; zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
+;;   (add-to-list 'zoom-ignored-buffer-name-regexps "*MINIMAP*")
+;;   (add-to-list 'zoom-ignored-buffer-name-regexps "*Ilist*"))
 
 (use-package prog-mode
+
   :ensure nil
   :hook ((prog-mode . display-line-numbers-mode)            ;; Insert och färglägg rad för rad
 	 (prog-mode . highlight-symbol-mode)
@@ -397,6 +402,7 @@
           (alpha . 94))
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         vertico-posframe-truncate-lines t
+        vertico-posframe-min-height 1
         vertico-posframe-min-width 80
         vertico-posframe-width 160
         vertico-posframe-border-width 20))
@@ -432,6 +438,8 @@
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
   ("C-c m b" . #'consult-imenu)
+  ("C-<tab>" . #'consult-project-buffer)
+  ("M-R" . #'consult-recent-file)
   :init
   (advice-add #'register-preview :override #'consult-register-window)
   ;; Optionally configure the register formatting. This improves the register
@@ -460,19 +468,6 @@
 
 (use-package wgrep
   :defer t)
-
-(use-package consult-project-extra
-  :after consult
-  :bind
-  ;; ("M-O" . #'consult-project-buffer)
-  ("C-<tab>" . #'consult-projectile-switch-to-buffer)
-  ("M-R" . #'consult-projectile-recentf))
-
-(use-package consult-ls-git
-  :after consult)
-
-(use-package consult-projectile
-  :after projectile)
 
 (use-package recentf
   :config
@@ -507,7 +502,7 @@
   :config
   (setq punch-show-project-info nil
         punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'arrow
+        punch-line-modal-divider-style 'flame
         punch-line-modal-size 'medium
         punch-line-left-separator "  "
         punch-line-right-separator "  "
@@ -557,6 +552,9 @@
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
 
+  (setq evil-normal-state-cursor '(box "systemBlueColor")
+        evil-insert-state-cursor '(bar "systemRedColor")
+        evil-visual-state-cursor '(hollow "systemPurpleColor"))
   ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
 
   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
@@ -670,6 +668,10 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package rainbow-mode
+  :ensure nil
+  :hook (emacs-lisp-mode . rainbow-mode))
 
 (use-package google-this
   :commands (google-this)
@@ -810,8 +812,9 @@
   :ensure nil
   :hook (after-init . darken-buffer-mode)
   :config
-  (setq darken-buffer-percentage 2
-        lighten-inactive-buffer-percentage 2))
+  (setq darken-buffer-ignore-buffers-regexp '("^\\*.*\\*$")
+        darken-buffer-percentage 5
+        lighten-inactive-buffer-percentage 3))
 
 (use-package avy
   :defer t
@@ -919,24 +922,6 @@
 (use-package yaml-mode
   :commands (yaml-mode))
 
-;; (use-package json-mode
-;;   :commands (json-mode))
-
-(use-package projectile
-  :defer 1
-  :hook (prog-mode . projectile-mode)
-  :bind
-  ("C-M-r" . projectile-replace)
-  :custom
-  (setq projectile-enable-caching t
-	projectile-file-exists-local-cache-expire (* 5 60)
-	projectile-indexing-method 'hybrid
-	projectile-completion-system 'default)
-  :config
-  (add-to-list 'projectile-globally-ignored-directories ".git")
-  (add-to-list 'projectile-globally-ignored-directories "node_modules")
-  (add-to-list 'projectile-globally-ignored-directories "build"))
-
 (use-package project
   :ensure nil
   :bind ("M-O" . project-find-file))
@@ -988,7 +973,8 @@
   :defer t
   :commands (magit-status magit-ediff-show-working-tree)
   :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  (setq magit-save-repository-buffers nil))
 
 (use-package blamer
   :commands blamer-mode
@@ -1028,15 +1014,6 @@
 	vterm-clipboard-warning-max-lines 20
 	vterm-clipboard-warning-max-chars 256))
 
-(defun project-root-override (dir)
-  "Find DIR's project root by searching for a '.project.el' file."
-  (let ((root (or (locate-dominating-file dir ".xcodeproj")
-                  (locate-dominating-file dir ".envrc")
-                  (locate-dominating-file dir ".projectile")))
-        (backend (ignore-errors (vc-responsible-backend dir))))
-    (when root (if (version<= emacs-version "28")
-                    (cons 'vc root)
-                 (list 'vc backend root)))))
 
 (use-package dall-e-shell
   :defer t
@@ -1075,13 +1052,23 @@
 
   (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
-  (setq chatgpt-shell-model-version "qwerty-2.5-coder"))
+  (setq chatgpt-shell-model-version "qwen2.5-coder"))
 
 (use-package ob-chatgpt-shell
   :ensure nil
   :commands (org-babel-execute:chatgpt-shell)
   :config
   (ob-chatgpt-shell-setup))
+
+(defun project-root-override (dir)
+  "Find DIR's project root by searching for a '.project.el' file."
+  (let ((root (or (locate-dominating-file dir ".xcodeproj")
+                  (locate-dominating-file dir ".envrc")
+                  (locate-dominating-file dir ".projectile")))
+        (backend (ignore-errors (vc-responsible-backend dir))))
+    (when root (if (version<= emacs-version "28")
+                    (cons 'vc root)
+                 (list 'vc backend root)))))
 
 (use-package project
   :defer t
@@ -1123,12 +1110,6 @@
     "'" '((lambda () (interactive) (toggle-vterm)) :which-key "Term"))
 
   (mk/leader-keys
-    "aa" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
-
-  (mk/leader-keys
-    "tt" '(lambda () (interactive) (mk/toggle-transparency) :which-key "Toggle transparenty"))
-
-  (mk/leader-keys
     "gg" '(google-this :which-key "Google this"))
 
   (mk/leader-keys
@@ -1143,7 +1124,9 @@
     "eb" '(eval-buffer :which-key "Eval buffer")
     "el" '(eval-last-sexp :which-key "Eval before point")
     "ea" '(embark-act :which-key "Embark act")
-    "er" '(eval-region :which-key "Eval region"))
+    "er" '(eval-region :which-key "Eval region")
+    "er" '(eval-region :which-key "Eval region")
+    "ef" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
 
   (mk/leader-keys
     "fs" '(save-buffer :which-key "Save file")
@@ -1175,10 +1158,7 @@
     "wx" '(delete-window :hich-key "Delete window"))
 
   (mk/leader-keys
-    "pf" '(projectile-find-file-dwim :which-key "Find file")
-    "pk" '(projectile-kill-buffers :which-key "Kill buffers")
-    "ps" '(project-switch-project :which-key "Switch project")
-    "pS" '(projectile-switch-open-project :which-key "Switch open project"))
+    "ps" '(project-switch-project :which-key "Switch project"))
 
   (mk/leader-keys
     "vs" '(magit-status :which-key "Status")
@@ -1364,13 +1344,13 @@
                 (lambda (tag) (not (string-equal feed-title tag)))
                 (mapcar #'symbol-name (elfeed-entry-tags entry))))
          (icons '(("swift" . "")
-                 ("emacs" . "")
-                 ("neovim" . "")
-                 ("ai" . "")
-                 ("singularity" . "")
-                 ("kotlin" . "")
-                 ("techcrunch" . "")
-                 ))
+                  ("swiftui" . "")
+                  ("emacs" . "")
+                  ("neovim" . "")
+                  ("artificialInteligence" . "")
+                  ("singularity" . "")
+                  ("kotlin" . "")
+                  ("techcrunch" . "")))
          (title-with-icons (concat
                            (mapconcat
                             (lambda (icon-pair)
@@ -1401,9 +1381,9 @@
                        ("https://www.reddit.com/r/neovim.rss" neovim)
                        ("https://www.reddit.com/r/kotlin.rss" kotlin)
                        ("https://www.reddit.com/r/swift.rss" swift)
-                       ("https://www.reddit.com/r/artificialInteligence.rss" ai)
-                       ("https://www.reddit.com/r/singularity.rss" singularity)
-                       ("https://techcrunch.com/rss" techcrunch)
+                       ("https://www.reddit.com/r/swiftui.rss" swiftui)
+                       ("https://www.reddit.com/r/artificialInteligence.rss" artificialInteligence)
+                       ;; ("https://techcrunch.com/rss" techcrunch)
                        ))
 
   (setq elfeed-search-face-alist
@@ -1453,9 +1433,6 @@
         c-default-style "linux"
         c-offsets-alist '((innamespace . 0))))
 
-(use-package swift-mode
-  :defer t)
-
 (use-package swift-ts-mode
   :ensure nil
   :custom
@@ -1478,8 +1455,7 @@
   :bind
   (:map swift-ts-mode-map
         ("M-s" . #'ios-simulator:terminate-current-app)
-        ;; ("C-x a c" . #'ios-simulator:appcontainer)
-        ("C-x c l" . #'ios-simulator:change-language)))
+        ("C-x s l" . #'ios-simulator:change-language)))
 
 (use-package swift-additions
   :ensure nil
@@ -1487,12 +1463,15 @@
   :bind
   (:map swift-ts-mode-map
 	("M-r" . #'swift-additions:run)
-	("M-B" . #'swift-additions:run-without-compiling)
 	("C-c t m" .  #'swift-additions:test-module-silent)
 	("C-c t p" .  #'swift-additions:test-swift-package-from-file)
 	("C-c C-c" . #'swift-additions:compile-and-run)
 	("C-c C-b" . #'swift-additions:compile-app)
 	("C-c C-f" . #'periphery-search-dwiw-rg)))
+
+(use-package domain-blocker
+  :ensure nil
+  :after swift-ts-mode)
 
 (use-package swift-lsp
   :ensure nil)
@@ -1579,8 +1558,8 @@
   :after prog-mode
   :bind
   ("C-c S" . #'periphery-quick:find-ask)
-  ("M-F" . #'periphery-quick:find)
-  ("C-c f f" . #'periphery-quick:find-in-file)
+  ("M-F" . #'periphery-quick:find-ask)
+  ;; ("C-c f f" . #'periphery-quick:find-in-file)
   ("C-c f t" . #'periphery-quick:todos))
 
 (use-package periphery-search
@@ -1622,13 +1601,12 @@
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-;; (use-package filer
-;;   :ensure nil
-;;   :bind
-;;   ("M-O" . filer-find-file))
-
-;; (use-package colorful-mode
-;;   :hook (prog-mode . colorful-mode))
+(use-package filer
+  :ensure nil
+  :bind
+  ("C-c f f" . filer-find-file)
+  :config
+  (setq filer-include-project-name nil))
 
 (use-package svg-tag-mode
   :defer 10
@@ -1670,18 +1648,6 @@
   (interactive "p")
   (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
   (byte-recompile-directory (locate-user-emacs-file "themes") 0))
-
-(setq mk-transparency-disabled-p t)
-
-(defun mk/toggle-transparency ()
-  "Toggle transparency."
-  (interactive)
-  (let* ((not-transparent-p (and (boundp 'mk-transparency-disabled-p) mk-transparency-disabled-p))
-         (alpha (if not-transparent-p 95 100)))
-    (setq mk-transparency-disabled-p (not not-transparent-p))
-    (progn
-      (set-frame-parameter (selected-frame) 'alpha `(,alpha . ,alpha))
-      (add-to-list 'default-frame-alist `(alpha . (,alpha . ,alpha))))))
 
 (defun xref-eglot+dumb-backend ()
   "Return the xref backend for eglot+dumb."
@@ -1731,19 +1697,12 @@
 (use-package indent-bars
   :hook ((emacs-lisp-mode swift-ts-mode kotlin-ts-mode) . indent-bars-mode)
   :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.1))
-  (indent-bars-color-by-depth '(:regexp "outline-\\([0-9]+\\)" :blend 1)) ; blend=1: blend with BG only
   (indent-bars-color '(highlight :face-bg t :blend 0.15))
   (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
   (indent-bars-treesit-support t)
-  (indent-bars-no-descend-string t)
   (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
   (indent-bars-width-frac 0.1)
-  (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag t)
-  (indent-bars-pattern ".")
-  (indent-bars-prefer-character t)
-  (indent-bars-display-on-blank-lines t))
+  (indent-bars-prefer-character t))
 
 (use-package copilot
   ;; :vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
@@ -1931,14 +1890,16 @@
    '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
 
 (use-package ultra-scroll
-  :ensure nil
+  :vc (ultra-scroll
+       :url "https://github.com/jdtsmith/ultra-scroll"
+       :main-file "ultra-scroll.el"
+       :branch "main"
+       :rev :newest)
   :init
   (setq scroll-margin 0
         scroll-conservatively 101)
   :config
   (ultra-scroll-mode 1))
-
-;; (package-vc-install '(ultra-scroll :vc-backend Git :url  "https://github.com/jdtsmith/ultra-scroll"))
 
 (provide 'init)
 ;;; init.el ends here

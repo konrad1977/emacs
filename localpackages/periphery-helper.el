@@ -31,7 +31,7 @@
   "Run COMMAND asynchronously, optionally call UPDATE-CALLBACK with incremental output, and CALLBACK with the final result."
   (when debug
     (message "Starting async-start-command-to-string with command: %s" command))
-  (let ((output-buffer (generate-new-buffer " *async-command-output*"))
+  (let ((output-buffer (generate-new-buffer "*async-command-output*"))
         (process nil))
     (setq process
           (make-process

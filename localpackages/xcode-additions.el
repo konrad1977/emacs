@@ -6,16 +6,16 @@
 (require 'mode-line-hud)
 (require 'xcodebuildserver)
 
-(defvar-local current-project-root nil)
-(defvar-local current-xcode-scheme nil)
-(defvar-local current-build-settings-json nil)
-(defvar-local current-build-configuration nil)
-(defvar-local current-app-identifier nil)
-(defvar-local current-build-folder nil)
-(defvar-local current-is-xcode-project nil)
-(defvar-local current-local-device-id nil)
-(defvar-local current-run-on-device nil)
-(defvar-local current-errors-or-warnings nil)
+(defvar current-project-root nil)
+(defvar current-xcode-scheme nil)
+(defvar current-build-settings-json nil)
+(defvar current-build-configuration nil)
+(defvar current-app-identifier nil)
+(defvar current-build-folder nil)
+(defvar current-is-xcode-project nil)
+(defvar current-local-device-id nil)
+(defvar current-run-on-device nil)
+(defvar current-errors-or-warnings nil)
 (defvar-local xcode-additions:last-device-type nil)
 (defvar-local xcode-additions:device-choice nil
   "Stores the user's choice of device (simulator or physical device).")
@@ -173,7 +173,7 @@ Full project path: %s"
     (let-alist (seq-elt json 0)
       .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
 
-(cl-defun xcode-additions:build-menu (&key title &key list)
+(cl-defun xcode-additions:build-menu (&key title list)
   "Builds a widget menu from (as TITLE as LIST)."
   (if (<= (length list) 1)
       (elt list 0)
@@ -183,22 +183,17 @@ Full project path: %s"
         (cdr (assoc choice choices))))))
 
 (defun xcode-additions:parse-build-folder (directory)
-  "Parse build folders from (as DIRECTORY)."
-  ;; check if directory exists first
-    (if (file-directory-p directory)
-        (let* ((folders (directory-files directory nil "^[^.].*" t)))
-            (mapc (lambda (folder)
-                    (when (file-directory-p folder)
-                    (file-name-nondirectory folder)))
-                  folders))
-      nil))
+  "Parse build folders from DIRECTORY.
+Returns a list of folder names, excluding hidden folders."
+  (if (file-directory-p directory)
+      (let ((folders (directory-files directory nil "^[^.].*" t)))
+        (cl-remove-if-not
+         (lambda (folder)
+           (and (file-directory-p (expand-file-name folder directory))
+                (not (member folder '("." "..")))))
+         folders))
+    nil))
 
-(defun xcode-additions:project-root ()
-  "Get the project root."
-  (unless current-project-root
-    (setq current-project-root (cdr (project-current)))
-    (setq-local defualt-directory current-project-root))
-  current-project-root)
 
 (defun xcode-additions:scheme ()
   "Get the xcode scheme if set otherwuse prompt user."
@@ -227,7 +222,7 @@ Full project path: %s"
   "Get build folder. Automatically choose based on device type (iphoneos or iphonesimulator), or let the user choose if there are multiple options."
   (when (or (not current-build-folder)
             (not (eq device-type xcode-additions:last-device-type)))
-    (let* ((default-directory (concat (xcode-additions:derived-data-path) ".build/Build/Products/"))
+    (let* ((default-directory (concat (file-name-as-directory (xcode-additions:derived-data-path)) ".build/Build/Products/"))
            (all-folders (xcode-additions:parse-build-folder default-directory))
            (target-suffix (if (eq device-type :simulator) "iphonesimulator" "iphoneos"))
            (matching-folders (seq-filter (lambda (folder) (string-match-p target-suffix folder)) all-folders)))
@@ -306,8 +301,11 @@ Full project path: %s"
   "Check if we have a new project (as PROJECT).  If true reset settings."
   (unless current-project-root
     (setq current-project-root project))
-  (when (not (string= current-project-root project))
-    (progn
+
+  (let ((current-root (if (listp current-project-root)
+                         (car current-project-root)
+                       current-project-root)))
+    (when (not (string= current-root project))
       (when xcode-additions:debug
         (message "Setting up new project: %s" project))
       (xcode-additions:reset)
@@ -317,6 +315,23 @@ Full project path: %s"
 (defun xcode-additions:setup-project ()
   "Setup the current project."
   (xcode-additions:setup-current-project (xcode-additions:project-root)))
+
+(defun xcode-additions:project-root ()
+  "Get the project root as a path string."
+  (unless current-project-root
+    (let ((proj (project-current)))
+      (setq current-project-root (if proj
+                                    (project-root proj)
+                                  (error "No project found")))
+      (setq-local default-directory current-project-root)))
+  (if current-project-root
+      (directory-file-name
+       (file-name-as-directory
+        (expand-file-name
+         (if (listp current-project-root)
+             (car current-project-root)  ; Extract string from list
+           current-project-root))))      ; Use as-is if already a string
+    (error "No project found")))
 
 (cl-defun xcode-additions:device-or-simulator-menu (&key title)
 "Build device or simulator menu (as TITLE)."
@@ -360,19 +375,19 @@ Full project path: %s"
 (defun xcode-additions:start-debugging ()
   "Start debugging immediately without confirmation."
   (interactive)
-  (xcode-additions:setup-dape))
-  ;; (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
-  ;;   (dape config)))
+  (xcode-additions:setup-dape)
+  (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
+    (dape config)))
 
 (defun xcode-additions:setup-dape()
   "Setup dape."
   (interactive)
-  (setq dape-confirm-debug-command nil)
   (require 'dape)
   (add-to-list 'dape-configs
              `(ios
                modes (swift-mode)
-               command-cwd dape-command-cwd
+               command-cwd ,(or (project-root (project-current))
+                              default-directory)
                command ,(file-name-concat dape-adapter-dir
                                           "codelldb"
                                           "extension"
@@ -406,7 +421,6 @@ Full project path: %s"
                :type "lldb"
                :request "attach"
                :cwd ".")))
-
 ;;;###autoload
 (defun xcode-additions:clean-build-folder ()
   "Clean app build folder."
