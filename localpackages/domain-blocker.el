@@ -28,6 +28,7 @@
   (when domain-blocker-debug
     (apply #'message (concat "[Domain Blocker Debug] " format-string) args)))
 
+
 ;;;###autoload
 (defun domain-blocker-block ()
   "Block domain by adding it to /etc/hosts."
@@ -35,30 +36,43 @@
   (unless domain-blocker-target-domain
     (error "No target domain specified"))
   (domain-blocker-log "Attempting to block domain: %s" domain-blocker-target-domain)
-  (let ((hosts-content (with-temp-buffer
-                        (insert-file-contents "/etc/hosts")
-                        (buffer-string))))
-    (setq domain-blocker-hosts-backup hosts-content)
-    (with-temp-file "/tmp/hosts.tmp"
-      (insert hosts-content)
-      (goto-char (point-max))
-      (insert (format "\n127.0.0.1 %s" domain-blocker-target-domain)))
-    (let ((command "osascript -e 'do shell script \"cat /tmp/hosts.tmp > /etc/hosts\" with administrator privileges'"))
-      (async-shell-command command "*Domain Blocker*")
+  (unless (domain-blocker-is-blocked-p)
+    (let ((command (format "osascript -e 'do shell script \"echo \\\"127.0.0.1 %s\\\" >> /etc/hosts\" with administrator privileges'"
+                           domain-blocker-target-domain)))
+      (call-process-shell-command command nil 1)
       (domain-blocker-log "Blocking domain command initiated"))))
 
 ;;;###autoload
 (defun domain-blocker-unblock ()
-  "Unblock domain by restoring original /etc/hosts."
+  "Unblock domain by removing it from /etc/hosts."
   (interactive)
   (domain-blocker-log "Attempting to unblock domain")
-  (when domain-blocker-hosts-backup
-    (with-temp-file "/tmp/hosts.tmp"
-      (insert domain-blocker-hosts-backup))
-    (let ((command "osascript -e 'do shell script \"cat /tmp/hosts.tmp > /etc/hosts\" with administrator privileges'"))
-      (async-shell-command command "*Domain Blocker*")
-      (domain-blocker-log "Unblocking domain command initiated")
-      (setq domain-blocker-hosts-backup nil))))
+  (when domain-blocker-target-domain
+    (let ((command (format "osascript -e 'do shell script \"awk '!/%s/' /etc/hosts > /tmp/hosts.tmp && cp /tmp/hosts.tmp /etc/hosts\" with administrator privileges'"
+                           (regexp-quote domain-blocker-target-domain))))
+      (call-process-shell-command command nil 0)
+      (domain-blocker-log "Unblocking domain command initiated"))))
+
+;;;###autoload
+(defun domain-blocker-is-blocked-p ()
+  "Check if the target domain is currently blocked."
+  (when domain-blocker-target-domain
+    (with-temp-buffer
+      (insert-file-contents "/etc/hosts")
+      (goto-char (point-min))
+      (search-forward domain-blocker-target-domain (point-max) t))))
+
+;;;###autoload
+(defun domain-blocker-status ()
+  "Show the current blocking status of the target domain."
+  (interactive)
+  (if domain-blocker-target-domain
+      (message "Domain %s is currently %s"
+               domain-blocker-target-domain
+               (if (domain-blocker-is-blocked-p)
+                   "BLOCKED"
+                 "NOT BLOCKED"))
+    (message "No target domain specified")))
 
 (defun domain-blocker--cleanup ()
   "Cleanup any temporary files and restore /etc/hosts if needed."
