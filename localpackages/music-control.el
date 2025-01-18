@@ -52,6 +52,56 @@
 
 ;; Information retrieval functions
 
+(defun music-control-get-all-playlists ()
+  "Get a list of all playlists in Music.app."
+  (delete-dups
+   (split-string
+    (music-control--run-osascript
+     "tell application \"Music\"
+        set output to {}
+        repeat with aPlaylist in user playlists
+          copy (name of aPlaylist as string) to end of output
+        end repeat
+        return output
+      end tell")
+    ", ")))
+
+(defun music-control-get-playlist-tracks (playlist-name)
+  "Get a list of all tracks in the playlist with PLAYLIST-NAME."
+  (let* ((script (format "
+tell application \"Music\"
+    set output to {}
+    set theTracks to (every track of playlist \"%s\")
+    repeat with aTrack in theTracks
+        set trackName to (name of aTrack as string)
+        set trackArtist to (artist of aTrack as string)
+        copy (trackName & \" - \" & trackArtist) to end of output
+    end repeat
+    return output
+end tell" playlist-name))
+         (tracks (split-string (music-control--run-osascript script) ", ")))
+    tracks))
+
+(defun music-control-play-playlist (playlist-name &optional track-name)
+  "Play the playlist with PLAYLIST-NAME, optionally starting from TRACK-NAME."
+  (let ((script (if track-name
+                    (format "
+tell application \"Music\"
+    set thePlaylist to playlist \"%s\"
+    set theTrack to (first track of thePlaylist whose name contains \"%s\")
+    play theTrack
+    set shuffle enabled to false
+    set song repeat to all
+end tell" playlist-name (car (split-string track-name " - ")))
+                  (format "
+tell application \"Music\"
+    set thePlaylist to playlist \"%s\"
+    play thePlaylist
+    set shuffle enabled to false
+    set song repeat to all
+end tell" playlist-name))))
+    (music-control--run-osascript script)))
+
 (defun music-control-get-all-artists ()
   "Get a list of all unique artists in Music.app."
   (delete-dups
@@ -91,13 +141,6 @@ end tell" album artist))
             (< (string-to-number (car (split-string a "\\. ")))
                (string-to-number (car (split-string b "\\. "))))))))
 
-(defun music-control--run-osascript (script)
-  "Run SCRIPT using osascript and return the result."
-  (string-trim
-   (shell-command-to-string
-    (format "osascript -e %s"
-            (shell-quote-argument script)))))
-
 (defun music-control-play-track (track-name album artist)
   "Play the track with TRACK-NAME from ALBUM by ARTIST and continue with album."
   (let ((clean-name (if (string-match "[0-9]+\\. \\(.*\\)" track-name)
@@ -133,6 +176,27 @@ tell application \"Music\"
 end tell" clean-name album artist))))
 
 ;; Interactive functions
+
+(defun music-control-browse-playlist ()
+  "Browse and play music from playlists."
+  (interactive)
+  (let* ((playlists (music-control-get-all-playlists))
+         (playlist (completing-read "Choose playlist: " playlists))
+         (tracks (music-control-get-playlist-tracks playlist))
+         (action (completing-read "Action: " '("Play whole playlist" "Choose track"))))
+    (if (string= action "Play whole playlist")
+        (progn
+          (music-control-play-playlist playlist)
+          (message "Playing playlist: %s" playlist))
+      (let* ((tracks-table (lambda (string pred action)
+                            (if (eq action 'metadata)
+                                '(metadata (display-sort-function . identity))
+                              (complete-with-action action tracks string pred))))
+             (track (completing-read "Choose track: " tracks-table)))
+        (when track
+          (music-control-play-playlist playlist track)
+          (message "Playing: %s from playlist %s" track playlist))))))
+
 (defun music-control-browse-artist ()
   "Browse music by selecting artist, then album or songs."
   (interactive)
@@ -149,6 +213,7 @@ end tell" clean-name album artist))))
     (when track
       (music-control-play-track track album artist)
       (message "Playing: %s - %s - %s" artist album track))))
+
 ;; Mode definition
 
 (defvar music-control-mode-map
@@ -157,6 +222,7 @@ end tell" clean-name album artist))))
     (define-key map (kbd "C-c m n") #'music-control-next-track)
     (define-key map (kbd "C-c m b") #'music-control-previous-track)
     (define-key map (kbd "C-c m a") #'music-control-browse-artist)
+    (define-key map (kbd "C-c m l") #'music-control-browse-playlist)
     map)
   "Keymap for music-control-mode.")
 

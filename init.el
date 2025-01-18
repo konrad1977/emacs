@@ -579,17 +579,13 @@
 
 (use-package evil-mc
   :hook (evil-mode . global-evil-mc-mode)
-  :bind
-  (("C-M-<down>" . evil-mc-make-cursor-move-next-line-1)
-   ("C-M-<up>" . evil-mc-make-cursor-move-prev-line-1)
-   ("C-M-a" . evil-mc-make-cursor-here)
+  :bind (:map evil-mc-key-map
+   ("C-M-<return>" . evil-mc-toggle-cursors)
+   ("C-M-j" . evil-mc-make-and-goto-next-match)
+   ("C-M-k" . evil-mc-make-and-goto-prev-match)
+   ;; ("C-M-p" . evil-mc-pause-cursors)
+   ;; ("C-M-n" . evil-mc-resume-cursors)
    ("C-M-e" . evil-mc-make-all-cursors)
-   ("C-x C-q" . evil-mc-undo-all-cursors)
-   ("C-M-r" . evil-mc-make-and-goto-first-cursor)
-   ("C-M-l" . evil-mc-make-and-goto-next-cursor)
-   ("C-M-h" . evil-mc-make-and-goto-prev-cursor)
-   ("C-M-N" . evil-mc-make-and-goto-prev-match)
-   ("C-M-n" . evil-mc-make-and-goto-next-match)
    ("C-g" . evil-mc-undo-all-cursors)
    ("<escape>" . evil-mc-undo-all-cursors))
   :custom
@@ -1132,7 +1128,6 @@
     "fs" '(save-buffer :which-key "Save file")
     "fb" '(consult-buffer :which-key "Find buffer")
     "ff" '(find-file :which-key "Find file")
-    "fp" '(consult-ripgrep :which-key "Find symbol in project")
     "fl" '(consult-line-multi :which-key "Find line in project")
     "fr" '(consult-recent-file :which-key "Recent files")
     "fn" '(create-file-buffer :which-key "New file")
@@ -1158,6 +1153,7 @@
     "wx" '(delete-window :hich-key "Delete window"))
 
   (mk/leader-keys
+    "pf" '(consult-ripgrep :which-key "Find symbol in project")
     "ps" '(project-switch-project :which-key "Switch project"))
 
   (mk/leader-keys
@@ -1900,6 +1896,22 @@
         scroll-conservatively 101)
   :config
   (ultra-scroll-mode 1))
+
+;; (use-package nova
+;;   :vc (nova
+;;        :url "https://github.com/thisisran/nova"
+;;        :main-file "nova.el"
+;;        :branch "main"
+;;        :rev :newest)
+
+;;   :config
+;;   (nova-corfu-mode 1)
+;;   ;; (nova-corfu-popupinfo-mode 1)
+;;   (nova-vertico-mode 1))
+
+(use-package music-control
+  :ensure nil
+  :hook (after-init . music-control-mode))
 
 (provide 'init)
 ;;; init.el ends here
