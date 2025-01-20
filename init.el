@@ -282,16 +282,13 @@
   :custom
   (setq nerd-icons-ibuffer-icon t)
   (setq nerd-icons-ibuffer-color-icon t)
-  (setq nerd-icons-ibuffer-icon-size 1.0)
   (setq nerd-icons-ibuffer-human-readable-size t))
 
 (use-package treemacs-nerd-icons
-  :after treemacs
+  :after (treemacs nerd-icons)
   :functions treemacs-load-theme
-  :custom-face
-  (treemacs-nerd-icons-root-face ((t (:inherit nerd-icons- :height 1.3))))
-  (treemacs-nerd-icons-file-face ((t (:inherit treemacs-file-face :height 1.0))))
   :config
+  (setq nerd-icons-color-icons nil)
   (treemacs-load-theme "nerd-icons"))
 
 (use-package ligature
@@ -1096,12 +1093,6 @@
     "s" '(consult-line-multi :which-key "Consult multi search")
     "F" '(consult-line :which-key "Consult outline")
     "0" '(treemacs-select-window :which-key "Treemacs")
-    "1" '(winum-select-window-1 :which-key "Window 1")
-    "2" '(winum-select-window-2 :which-key "Window 2")
-    "3" '(winum-select-window-3 :which-key "Window 3")
-    "4" '(winum-select-window-4 :which-key "Window 4")
-    "5" '(winum-select-window-5 :which-key "Window 5")
-    "6" '(winum-select-window-6 :which-key "Window 6")
     "P" 'package-install
     "'" '((lambda () (interactive) (toggle-vterm)) :which-key "Term"))
 

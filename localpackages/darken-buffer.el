@@ -12,6 +12,7 @@
 ;; background color. The effect follows the active window.
 
 ;;; Code:
+(require 'face-remap)
 
 (defgroup darken-buffer nil
   "Customize darken-buffer package."
@@ -46,7 +47,13 @@
   :type '(repeat string)
   :group 'darken-buffer)
 
-(defcustom darken-buffer-ignore-buffer-regexp '("\*Flycheck.+\*"
+
+(defcustom darken-buffer-ignore-buffers-regexp '("posframe"
+                                                 ".*\\*"
+                                                 " .*"
+                                                 "\\*.*\\*"
+                                                "\*Flycheck.+\*"
+                                                "\*Flymake.+\*"
                                                 "\*compilation\*"
                                                 "\*Warnings\*"
                                                 "\*Backtrace\*"
@@ -61,13 +68,14 @@
       (member (buffer-name) darken-buffer-ignore-buffers)
       (cl-some (lambda (regexp)
                  (string-match-p regexp (buffer-name)))
-               darken-buffer-ignore-buffer-regexp)))
+               darken-buffer-ignore-buffers-regexp)))
 
 (defun darken-buffer-color-to-rgb (color)
   "Convert COLOR (hex or name) to RGB components."
   (let ((rgb (color-values color)))
-    (mapcar (lambda (x) (/ x 256))
-            rgb)))
+    (if rgb
+        (mapcar (lambda (x) (/ x 256)) rgb)
+      (error "Invalid color: %s" color))))
 
 (defun darken-buffer-rgb-to-hex (r g b)
   "Convert R G B components to hex color string."
@@ -116,15 +124,16 @@
     (face-remap-remove-relative darken-buffer--linenumber-cookie))
 
   (let* ((bg-color (darken-buffer-get-background-color))
-         (modified-bg (if is-active
-                         (if (> darken-buffer-percentage 0)
-                             (darken-buffer-darken-color bg-color darken-buffer-percentage)
-                           bg-color)
-                       (if (> lighten-inactive-buffer-percentage 0)
-                           (darken-buffer-lighten-color bg-color lighten-inactive-buffer-percentage)
-                         bg-color))))
+         (modified-bg (cond
+                       (is-active
+                        (if (> darken-buffer-percentage 0)
+                            (darken-buffer-darken-color bg-color darken-buffer-percentage)
+                          bg-color))
+                       ((> lighten-inactive-buffer-percentage 0)
+                        (darken-buffer-lighten-color bg-color lighten-inactive-buffer-percentage))
+                       (t bg-color))))
 
-    (when (not (string= modified-bg bg-color))
+    (unless (string= modified-bg bg-color)
       (setq darken-buffer--cookie
             (face-remap-add-relative 'default :background modified-bg))
       (setq darken-buffer--fringe-cookie
@@ -145,23 +154,30 @@
     (setq darken-buffer--linenumber-cookie nil)))
 
 (defun darken-buffer-window-switch-hook ()
-  "Handle window focus changes.
-Apply effects only when there are multiple visible non-ignored windows."
+  "Handle window focus changes."
   (when (bound-and-true-p darken-buffer-mode)
-    (let ((multiple-windows (> (darken-buffer-count-visible-non-ignored-windows) 1))
-          (current-window (selected-window)))
+    (let* ((windows (window-list))
+           (current-window (selected-window))
+           (valid-windows (cl-remove-if
+                          (lambda (window)
+                            (with-selected-window window
+                              (darken-buffer-should-ignore-p)))
+                          windows)))
 
-      ;; First restore everything to default state
-      (dolist (window (window-list))
-        (with-selected-window window
-          (darken-buffer-remove-effect)))
-
-      ;; Then apply effects only if we have multiple non-ignored windows
-      (when multiple-windows
-        (dolist (window (window-list))
+      (if (<= (length valid-windows) 1)  ; Only one valid window
+          (dolist (window windows)
+            (with-selected-window window
+              (darken-buffer-remove-effect)))
+        (dolist (window windows)
           (with-selected-window window
+            (darken-buffer-remove-effect)
             (unless (darken-buffer-should-ignore-p)
-              (darken-buffer-apply-effect (eq window current-window)))))))))
+              (darken-buffer-apply-effect
+               (eq window current-window)))))))))
+
+(defun darken-buffer--window-selection-change-function (_)
+  "Function to handle window selection changes."
+  (darken-buffer-window-switch-hook))
 
 ;;;###autoload
 (define-minor-mode darken-buffer-mode
@@ -171,10 +187,10 @@ Apply effects only when there are multiple visible non-ignored windows."
   (if darken-buffer-mode
       (progn
         (add-hook 'window-selection-change-functions
-                  (lambda (_) (darken-buffer-window-switch-hook)))
+                  'darken-buffer--window-selection-change-function)
         (darken-buffer-window-switch-hook))
     (remove-hook 'window-selection-change-functions
-                 (lambda (_) (darken-buffer-window-switch-hook)))
+                 'darken-buffer--window-selection-change-function)
     (dolist (window (window-list))
       (with-selected-window window
         (darken-buffer-remove-effect)))))
