@@ -740,7 +740,8 @@ ADB: %s" sdk-path emulator-path adb-path)))
 (defun kotlin-development-mode-setup ()
   "Setup for both kotlin-mode and kotlin-ts-mode."
   (kotlin-development-minor-mode 1)
-  (kotlin-development-setup))
+  (kotlin-development-setup)
+  (global-eldoc-mode -1))
 
 (provide 'kotlin-development)
 ;;; kotlin-development.el ends here

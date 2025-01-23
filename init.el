@@ -100,6 +100,7 @@
    kept-new-versions 6
    kept-old-versions 2
    version-control t
+   ring-bell-function 'ignore
    line-spacing 0.08
    global-auto-revert-non-file-buffers t
    completion-ignore-case t
@@ -321,25 +322,28 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
-  (load-theme 'mito-laser t)
+  ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
 
-(advice-add #'balance-windows :override #'balance-windows-area)
+;; (advice-add #'balance-windows :override #'balance-windows-area)
 
-; (use-package zoom
-;;   :hook (after-init . zoom-mode)
-;;   :config
-;;   (setq zoom-size '(0.7 . 0.7))
-;;   ;; zoom-ignored-major-modes '(dired-mode vterm-mode dape-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
-;;   ;; zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
-;;   (add-to-list 'zoom-ignored-buffer-name-regexps "*MINIMAP*")
-;;   (add-to-list 'zoom-ignored-buffer-name-regexps "*Ilist*"))
+(use-package zoom
+  :hook (after-init . zoom-mode)
+  :config
+  (setq zoom-size '(0.7 . 0.7))
+  zoom-ignored-major-modes '(dired-mode vterm-mode dape-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
+  zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
+  (add-to-list 'zoom-ignored-buffer-name-regexps "*Ilist*"))
+
+(use-package which-key
+  :ensure nil
+  :hook (after-init . which-key-mode))
 
 (use-package prog-mode
 
@@ -461,7 +465,8 @@
   ("C-;" . embark-dwim))
 
 (use-package embark-consult
-  :after (embark consult))
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package wgrep
   :defer t)
@@ -556,7 +561,7 @@
 
   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
   (evil-define-key 'normal 'global
-     "q" 'minibuffer-quit
+     ;; "q" 'minibuffer-quit
     "\C-g" 'minibuffer-quit)
   (evil-mode 1))
 
@@ -806,7 +811,7 @@
   :hook (after-init . darken-buffer-mode)
   :config
   (setq darken-buffer-ignore-buffers-regexp '("^\\*.*\\*$")
-        darken-buffer-percentage 5
+        darken-buffer-percentage 0
         lighten-inactive-buffer-percentage 3))
 
 (use-package avy
@@ -1044,8 +1049,9 @@
              )))
 
   (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
-  ;; (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
-  (setq chatgpt-shell-model-version "qwen2.5-coder"))
+  (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
+  ;; (setq chatgpt-shell-model-version "qwen2.5-coder")
+  )
 
 (use-package ob-chatgpt-shell
   :ensure nil
@@ -1319,6 +1325,7 @@
     ""))
 
 (defun my/elfeed-search-print-entry (entry)
+  "Print ENTRY to the buffer."
   (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
          (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
          (title-faces (if (member 'unread (elfeed-entry-tags entry))
@@ -1465,7 +1472,9 @@
 
 (use-package eglot
   :hook (((swift-ts-mode) . eglot-ensure)
-	 ((kotlin-mode kotlin-ts-mode) . eglot-ensure))
+	 ((kotlin-mode kotlin-ts-mode) . (lambda ()
+                                           (eglot-ensure)
+                                           (eldoc-mode -1))))
   :ensure nil
   :bind
   ("C-c e f" . #'eglot-code-action-quickfix)
@@ -1600,7 +1609,7 @@
   :hook ((swift-ts-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode)
          (kotlin-ts-mode . svg-tag-mode))
-  :config
+  :init
   (setq svg-tag-tags (periphery-svg-tags)))
 
 (defun mk/browser-split-window (url &optional new-window)
@@ -1835,30 +1844,31 @@
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator)))
   :config
-  (add-hook 'kotlin-ts-mode-hook (lambda () (eldoc-mode -1)))
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
 (use-package copilot-chat
-  ;; :vc (:url "https://github.com/chep/copilot-chat.el" :rev :newest)
-;; (package-vc-install "https://github.com/chep/copilot-chat.el")
   :ensure nil
   :defer t
   :commands (copilot-chat-doc
-              copilot-chat-explain
-              copilot-chat-fix
-              copilot-chat-test
-              copilot-chat-review
-              copilot-chat-optimize
-              copilot-chat-add-current-buffer)
+             copilot-chat-explain
+             copilot-chat-fix
+             copilot-chat-test
+             copilot-chat-review
+             copilot-chat-optimize
+             copilot-chat-add-current-buffer
+             copilot-chat-ask-and-insert
+             copilot-chat-custom-prompt-selection)
   :bind
-  ("C-x c p d" . #'copilot-chat-doc)       ;; Open documentation
-  ("C-x c p e" . #'copilot-chat-explain)   ;; Explain code
-  ("C-x c p f" . #'copilot-chat-fix)       ;; Fix code issues
-  ("C-x c p t" . #'copilot-chat-test)      ;; Write tests
-  ("C-x c p r" . #'copilot-chat-review)    ;; Review code
-  ("C-x c p b" . #'copilot-chat-add-current-buffer) ;; Add current buffer
-  ("C-x c p i" . #'copilot-chat-ask-and-insert)
-  ("C-x c p o" . #'copilot-chat-optimize))
+  (("C-x c p d" . copilot-chat-doc)                     ;; Open documentation
+   ("C-x c p e" . copilot-chat-explain)                 ;; Explain code
+   ("C-x c p f" . copilot-chat-fix)                     ;; Fix code issues
+   ("C-x c p t" . copilot-chat-test)                    ;; Write tests
+   ("C-x c p r" . copilot-chat-review)                  ;; Review code
+   ;; ("C-x c p b" . copilot-chat-review-whole-buffer)     ;; Review code
+   ("C-x c p b" . copilot-chat-add-current-buffer)      ;; Add current buffer
+   ("C-x c p a" . copilot-chat-ask-and-insert)          ;; Ask and insert
+   ("C-x c p s" . copilot-chat-custom-prompt-selection) ;; Custom prompt selection
+   ("C-x c p o" . copilot-chat-optimize)))              ;; Optimize code
 
 (use-package jinx
   :ensure t

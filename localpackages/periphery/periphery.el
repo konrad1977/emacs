@@ -661,24 +661,24 @@
 (defun periphery-svg-tags ()
   "Get svg tags."
   '(("^[ \t]*\\([;|\/][;|\/]+\\W+\\w+\\b:.*\\)" . ((lambda (tag)
-                                                    (svg-tag-make (periphery--remove-leading-keyword tag)
-                                                                :face (svg-color-from-tag tag)
-                                                                :inverse t))))
+                                                     (svg-tag-make (periphery--remove-leading-keyword tag)
+                                                                   :face (svg-color-from-tag tag)
+                                                                   :inverse t))))
     ("^[ \t]*\\([;|\/][;|\/]+\\W+\\w+\\b:\\)" . ((lambda (tag)
-                                                  (svg-tag-make (periphery--remove-comments tag)
-                                                              :face (svg-color-from-tag tag)
-                                                              :crop-right t))))
+                                                   (svg-tag-make (periphery--remove-comments tag)
+                                                                 :face (svg-color-from-tag tag)
+                                                                 :crop-right t))))
     ("^[ \t]*// swiftlint:\\(enable\\|disable\\) .*" . ((lambda (tag)
-                                                       (let* ((parts (split-string tag " " t))
-                                                              (action (nth 1 parts))
-                                                              (text (string-join (cddr parts) " ")))
-                                                         (svg-tag-make (concat "SwiftLint: " action)
-                                                                     :face (if (string= action "enable")
-                                                                             'periphery-note-face-full
-                                                                           'periphery-fix-face-full)
-                                                                     :inverse t)
-                                                         (svg-tag-make text
-                                                                     :face 'periphery-mark-face-full
-                                                                     :crop-left t)))))))
+                                                          (let* ((parts (split-string tag " " t))
+                                                                 (action (nth 1 parts))
+                                                                 (text (string-join (cddr parts) " ")))
+                                                            (svg-tag-make (concat "SwiftLint: " action)
+                                                                       :face (if (string= action "enable")
+                                                                               'periphery-note-face-full
+                                                                             'periphery-fix-face-full)
+                                                                       :inverse t)
+                                                            (svg-tag-make text
+                                                                       :face 'periphery-mark-face-full
+                                                                       :crop-left t)))))))
 (provide 'periphery)
 ;;; periphery.el ends here

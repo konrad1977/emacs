@@ -55,7 +55,7 @@ Return the displayed phantom."
                (`(,offset . ,pos-eol)
                 (save-excursion
                   (goto-char p)
-                  (cons (- p (point-at-bol)) (point-at-eol))))
+                  (cons (- p (line-beginning-position)) (line-end-position))))
                (ov (make-overlay pos-eol (1+ pos-eol)))
                ;; If the error is on the last line, and that line doesn't end
                ;; with a newline, the overlay will be displayed at the end of
@@ -129,6 +129,12 @@ MSG is trimmed beforehand."
   :package-version '(flycheck-inline . "0.1")
   :group 'flycheck-inline)
 
+(defface flycheck-inline-marker
+  '((t :foreground "#FF7777"))
+  "Flycheck-inline face for informational messages."
+  :package-version '(flycheck-inline . "0.1")
+  :group 'flycheck-inline)
+
 (defcustom flycheck-inline-display-function #'flycheck-inline-display-phantom
   "Function to display inline errors.
 
@@ -162,7 +168,7 @@ IDs can also be seen in Flycheck's error list."
   :package-version '(flycheck-inline . "0.1")
   :safe #'booleanp)
 
-
+
 ;;; Displaying inline errors with phantoms
 
 (defun flycheck-inline--displayed-p (err)
@@ -186,7 +192,6 @@ POS defaults to point."
         (seq-remove #'flycheck-inline-phantom-delete flycheck-inline--phantoms)))
 
 
-
 ;;; Display inline errors
 
 (defun flycheck-inline--error-position (err)
@@ -229,12 +234,22 @@ POS defaults to point."
     (while (re-search-forward regex nil t)
       (let* ((start (match-beginning 0))
              (end (match-end 0))
+             (all-props (text-properties-at start))
+             (existing-props (when all-props
+                             (cl-loop for (key val) on all-props by #'cddr
+                                     unless (eq key 'face)
+                                     append (list key val))))
              (existing-face (get-text-property start 'face))
-             (existing-background (and existing-face (face-attribute existing-face :background)))
-             (new-properties (list 'face
-                                    (append (if existing-background `(:background ,existing-background) nil)
-                                            property))))
-        (add-text-properties start end new-properties)))
+             (background (when (and existing-face (face-attribute existing-face :background nil))
+                          `(:background ,(face-attribute existing-face :background nil))))
+             (merged-props (append existing-props
+                                 (list 'face
+                                       (if (and property (listp property))
+                                           (append background property)
+                                         (if background
+                                             (append background (list property))
+                                           property))))))
+        (add-text-properties start end merged-props)))
     (buffer-string)))
 
 (defun flycheck-inline-remove-client (text)
@@ -246,17 +261,16 @@ POS defaults to point."
 (defun flycheck-inline-display-error (err)
   "Display `flycheck-error' ERR inline."
   (let* ((pos (flycheck-inline--error-position err))
-         (current-face (flycheck-inline--error-face err))
-         (cleaned-msg (format "⇧ %s "(flycheck-inline-remove-client (flycheck-inline--error-message err))))
-         (msg (propertize cleaned-msg 'face current-face))
+         (cleaned-msg (propertize
+                      (format " %s "
+                             (flycheck-inline-remove-client
+                              (flycheck-inline--error-message err)))
+                      'face (flycheck-inline--error-face err)))
+         ;; Modified regex to handle both straight and curved quotes
          (result (mark-all-symbols
-                  :input msg
-                  :regex "\\('[^']+'\\)"
-                  :property '(:foreground "#FF5D62" :weight bold :height 150 :underline t)))
-         (result (flycheck-inline--mark-all-symbols
-                  :input result
-                  :regex "\\(\\w+\([^\)]*\)\\)"
-                  :property '(:foreground "#D27E99" :weight bold :height 150 :underline t))))
+                  :input cleaned-msg
+                  :regex "[''][^'']*['']"  ; Matches both types of quotes
+                  :property 'flycheck-inline-marker)))
     (funcall flycheck-inline-display-function result pos err)))
 
 (defun flycheck-inline--error-face (err)
