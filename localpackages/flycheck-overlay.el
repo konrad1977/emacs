@@ -52,6 +52,13 @@
   "Face used for info overlays."
   :group 'flycheck-overlay)
 
+(defface flycheck-overlay-marker
+  '((t :inherit font-lock-number-face
+       :height 0.8
+       :weight semi-bold))
+  "Face used for info overlays."
+  :group 'flycheck-overlay)
+
 (defun flycheck-overlay--sort-errors (errors)
   "Safely sort ERRORS by their buffer positions."
   (condition-case nil
@@ -129,16 +136,21 @@ REGION should be a cons cell (BEG . END) of buffer positions."
                                 (current-column)))
                      (indicator (pcase type
                                 ('error "")
-                                ('warning " ")
-                                ('info " ")
-                                (_ " ")))
-                     (display-msg (concat " " indicator msg " "))
+                                ('warning "")
+                                ('info "")
+                                (_ "")))
+                     (existing-bg (face-background face nil t))
+                     (display-msg (concat " " indicator "  " msg " "))
                      (display-string
                       (concat
                        "\n"
                        (make-string col-pos ?\s)
                        (propertize display-msg 'face face 'cursor-intangible t 'rear-nonsticky t))))
-                (overlay-put ov 'after-string display-string)
+                (overlay-put ov 'after-string (flycheck-overlay--mark-all-symbols
+                                               :input display-string
+                                               :regex "\\('.*'\\)"
+                                               :property `(:inherit flycheck-overlay-marker
+                                                           :background ,existing-bg)))
                 (overlay-put ov 'help-echo msg))
               (overlay-put ov 'priority 2000)
               ov))))
@@ -146,6 +158,24 @@ REGION should be a cons cell (BEG . END) of buffer positions."
      (message "Error creating overlay: %S" ov-err)
      nil)))
 
+(defun replace-curly-quotes (text)
+  "Replace curly quotes with straight quotes in TEXT."
+  (replace-regexp-in-string "[“”]" "\""
+    (replace-regexp-in-string "[‘’]" "'" text)))
+
+(cl-defun flycheck-overlay--mark-all-symbols (&key input regex property)
+  "Highlight all symbols matching REGEX in INPUT with specified PROPERTY."
+  (save-match-data
+    (setq input (replace-curly-quotes input))  ; Replace curly quotes with straight quotes
+    (let ((pos 0))
+      (while (string-match regex input pos)
+        (let* ((start (match-beginning 1))
+               (end (match-end 1))
+               (existing-face (text-properties-at start input))
+               (new-face (append existing-face (list 'face property))))
+          (add-text-properties start end new-face input)
+          (setq pos end))))
+    input))
 
 (defun flycheck-overlay--clean-message (msg)
   "Remove all text up to and including the first ':' in MSG."
