@@ -70,7 +70,7 @@
   :group 'periphery)
 
 (defface periphery-fix-face-full
-  '((t (:foreground "#1B2431" :bold t :background "#89b4fa" :distant-foreground "#89b4fa")))
+  '((t (:foreground "#1B2431" :background "#89b4fa" :distant-foreground "#89b4fa")))
   "FIX with background."
   :group 'periphery)
 
@@ -115,7 +115,7 @@
   :group 'periphery)
 
 (defface periphery-todo-face-full
-  '((t (:foreground "#182A32" :bold t :background "#74c7ec" :distant-foreground  "#74c7ec")))
+  '((t (:foreground "#182A32" :background "#74c7ec" :distant-foreground  "#74c7ec")))
   "Performance face."
   :group 'periphery)
 
