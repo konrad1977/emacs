@@ -48,13 +48,6 @@
 (global-unset-key [C-wheel-up])
 (global-unset-key [C-wheel-down])
 
-(progn
-  (use-package spinner :defer t :demand nil)
-  (use-package request :defer t :demand nil)
-  (use-package async :defer t :demand nil)
-  (use-package all-the-icons :defer t :demand nil)
-  (use-package rg :defer t :demand nil))
-
 (use-package use-package
   :config
   (setq use-package-verbose nil
@@ -62,6 +55,31 @@
 	use-package-always-ensure t
 	use-package-compute-statistics t
 	use-package-minimum-reported-time 0.1))
+
+(use-package rg :ensure t)
+(use-package spinner :ensure t)
+(use-package async :ensure t)
+(use-package request :ensure t)
+
+(use-package nerd-icons
+  :defer t
+  :ensure t)
+
+(use-package all-the-icons
+  :defer t
+  :ensure t)
+
+(use-package drag-stuff
+  :defer t
+  :ensure t)
+
+(use-package dumb-jump
+  :config
+  (put 'dumb-jump-go 'byte-obsolete-info nil)
+  (setq dumb-jump-window 'current
+        dumb-jump-quiet t
+        xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 (use-package candyshop
   :ensure nil
@@ -150,7 +168,7 @@
   (setq-default indent-tabs-mode nil)
   (infer-indentation-style)
   
-  (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
+  ;; (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
         left-fringe-width 20
         word-wrap nil
@@ -260,9 +278,6 @@
 (when (fboundp 'set-message-beep)
   (set-message-beep 'silent))
 
-(use-package nerd-icons
-  :defer t)
-
 (use-package nerd-icons-completion
   :after marginalia
   :config
@@ -322,10 +337,10 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  (load-theme 'kanagawa t)
+  ;; (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
-  ;; (load-theme 'oxocarbon t)
+  (load-theme 'oxocarbon t)
   ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
@@ -346,9 +361,8 @@
   :hook (after-init . which-key-mode))
 
 (use-package prog-mode
-
   :ensure nil
-  :hook ((prog-mode . display-line-numbers-mode)            ;; Insert och färglägg rad för rad
+  :hook ((prog-mode . display-line-numbers-mode)
 	 (prog-mode . highlight-symbol-mode)
 	 (prog-mode . electric-pair-mode)
 	 (prog-mode . electric-indent-mode)
@@ -384,7 +398,7 @@
   (minibuffer-depth-indicate-mode 1)
   (setq vertico-resize t
         vertico-count 12
-        vertico-multiline t
+        vertico-multiline nil
         vertico-scroll-margin 10
         vertico-cycle t))
 
@@ -392,9 +406,6 @@
   :after vertico
   :init
   (vertico-posframe-mode 1)
-  ;; :custom-face
-  ;; (vertico-posframe ((t (:background "#1d2021"))))
-  ;; (vertico-posframe-border ((t (:background "#1d2021"))))
   :config
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
@@ -461,8 +472,7 @@
 (use-package embark
   :defer t
   :bind
-  ("C-." . embark-act)
-  ("C-;" . embark-dwim))
+  ("C-." . embark-act))
 
 (use-package embark-consult
   :hook
@@ -499,12 +509,10 @@
          (after-init . punch-load-tasks)
          ;; (after-init . punch-setup-org-hooks)
          )
-  :custom
-  (punch-height 10)
   :config
   (setq punch-show-project-info nil
         punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'flame
+        punch-line-modal-divider-style 'arrow
         punch-line-modal-size 'medium
         punch-line-left-separator "  "
         punch-line-right-separator "  "
@@ -581,15 +589,16 @@
 
 (use-package evil-mc
   :hook (evil-mode . global-evil-mc-mode)
-  :bind (:map evil-mc-key-map
-   ("C-M-<return>" . evil-mc-toggle-cursors)
-   ("C-M-j" . evil-mc-make-and-goto-next-match)
-   ("C-M-k" . evil-mc-make-and-goto-prev-match)
-   ;; ("C-M-p" . evil-mc-pause-cursors)
-   ;; ("C-M-n" . evil-mc-resume-cursors)
+  :bind (
    ("C-M-e" . evil-mc-make-all-cursors)
-   ("C-g" . evil-mc-undo-all-cursors)
-   ("<escape>" . evil-mc-undo-all-cursors))
+   (:map evil-mc-key-map
+         ("C-M-<return>" . evil-mc-toggle-cursors)
+         ("C-M-j" . evil-mc-make-and-goto-next-match)
+         ("C-M-k" . evil-mc-make-and-goto-prev-match)
+         ;; ("C-M-p" . evil-mc-pause-cursors)
+         ;; ("C-M-n" . evil-mc-resume-cursors)
+         ("C-g" . evil-mc-undo-all-cursors)
+         ("<escape>" . evil-mc-undo-all-cursors)))
   :custom
   (evil-mc-mode-line-text-inverse-colors t)
   (evil-mc-undo-cursors-on-keyboard-quit t)
@@ -643,8 +652,8 @@
   :config
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
-(use-package ws-butler
-  :hook (prog-mode . ws-butler-mode))
+;; (use-package ws-butler
+;;   :hook (prog-mode . ws-butler-mode))
 
 (use-package evil-visualstar
   :after evil
@@ -665,10 +674,10 @@
   (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
 
 (use-package rainbow-delimiters
+  :ensure nil
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package rainbow-mode
-  :ensure nil
   :hook (emacs-lisp-mode . rainbow-mode))
 
 (use-package google-this
@@ -701,13 +710,12 @@
   (corfu-auto t)
   (corfu-preview-current 'insert)
   :init
-  (corfu-popupinfo-mode 1)
+  ;; (corfu-popupinfo-mode 1)
   (setq corfu-auto-delay 0.2          ; Reduced from 0.3
 	corfu-auto-prefix 2
-        corfu-popupinfo-delay 0.2
+        corfu-popupinfo-delay 0.1
         corfu-preselect 'valid
         cofru-preview-current t
-	corfu-count 10
 	corfu-quit-at-boundary 'separator
 	corfu-quit-no-match t))
 
@@ -901,14 +909,17 @@
   (setq flycheck-check-syntax-automatically '(save mode-enabled)
 	flycheck-idle-change-delay 2.0))
 
-(use-package flycheck-inline
+(use-package flycheck-overlay
   :ensure nil
   :after flycheck
-  :config (add-hook 'flycheck-mode-hook #'flycheck-inline-mode))
+  :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode))
 
 (use-package flycheck-eglot
   :hook (eglot-managed-mode . flycheck-eglot-mode)
   :custom (flycheck-eglot-exclusive nil))
+
+(use-package consult-flycheck
+  :bind ("M-+" . consult-flycheck))
 
 (use-package markdown-mode
   :commands (markdown-mode)
@@ -992,6 +1003,7 @@
                    :height 130
                    :bold t
                    :italic t))))
+
 (use-package git-gutter
   :defer 2
   :hook (prog-mode . git-gutter-mode)
@@ -1016,42 +1028,44 @@
 (use-package dall-e-shell
   :defer t
   :config
-  (setq dall-e-shell-openai-key (getenv "OPENAI_API_KEY")))
+  (setq dall-e-shell-openai-key (shell-command-to-string "echo $OPENAI_API_KEY")))
 
 (use-package chatgpt-shell
   :defer t
-  :bind ("C-x C-v" . chatgpt-shell-quick-insert)
-         ("C-x C-p" . chatgpt-shell-prompt-compose)
-         ("C-x c g s" . chatgpt-shell-send-and-review-region)
-         ("C-x c g r" . chatgpt-shell-refactor-code)
-         ("C-x C-s" . (lambda ()
-                          (interactive)
-                          (split-window-right)
-                          (other-window 1)
-                          (chatgpt-shell)))
-         :config
+  :bind
+  ("C-x C-v" . chatgpt-shell-quick-insert)
+  ("C-x C-p" . chatgpt-shell-prompt-compose)
+  ("C-x c g s" . chatgpt-shell-send-and-review-region)
+  ("C-x c g r" . chatgpt-shell-refactor-code)
+  ("C-x C-s" . (lambda ()
+                 (interactive)
+                 (split-window-right)
+                 (other-window 1)
+                 (chatgpt-shell)))
+  :config
+  ;; (require 'chatgpt-shell-ollama)
+  ;; (defun add-qwen-to-ollama-models (orig-fun)
+  ;;   "Add qwen2.5-coder to the list of Ollama models."
+  ;;   (append (funcall orig-fun)
+  ;;           (list
+  ;;            (chatgpt-shell-ollama-make-model
+  ;;             :version "deepseek-r1:8b"
+  ;;             :token-width 4
+  ;;             :context-window 8192))))
+  ;; (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
   (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
-  (require 'chatgpt-shell-ollama)
-  (defun add-qwen-to-ollama-models (orig-fun)
-    "Add qwen2.5-coder to the list of Ollama models."
-    (append (funcall orig-fun)
-            (list
-             (chatgpt-shell-ollama-make-model
-                   :version "qwen2.5-coder"
-                   :token-width 4
-                   :context-window 8192)
+  (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022"))
 
-             (chatgpt-shell-ollama-make-model
-                   :version "phi4"
-                   :token-width 4
-                   :context-window 8192)
-             )))
-
-  (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
-  (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022")
-  ;; (setq chatgpt-shell-model-version "qwen2.5-coder")
-  )
+(use-package gptel
+  :defer t
+  :commands (gptel gptel-menu gptel-send gptel-request)
+  :config
+  (setq gptel-default-mode 'org-mode)
+  (setq gptel-model 'claude-3-5-sonnet-20241022)
+  (setq gptel-backend (gptel-make-anthropic "Claude"
+                        :stream t
+                        :key (getenv "ANTHROPIC_API_KEY"))))
 
 (use-package ob-chatgpt-shell
   :ensure nil
@@ -1086,7 +1100,7 @@
 
 ;; general
 (use-package general
-  :defer 2
+  :ensure t
   :config
   (general-create-definer mk/leader-keys
     :keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
@@ -1401,31 +1415,13 @@
 
 ;; Drag lines and regions around
 (use-package drag-stuff
+  :ensure t
   :defer t
   :bind (:map evil-visual-state-map
 	      ("C-j" . drag-stuff-down)
 	      ("C-k" . drag-stuff-up)))
 
 ;; Quickly jump to definition or usage
-(use-package dumb-jump
-  :defer t
-  :config
-  (put 'dumb-jump-go 'byte-obsolete-info nil)
-  (setq dumb-jump-window 'current
-        dumb-jump-quiet t
-        xref-show-definitions-function #'xref-show-definitions-completing-read)
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
-
-(use-package c++-mode
-  :defer t
-  :ensure nil
-  :mode (("\\.metal\\'" . c++-mode)
-         ("\\.cpp\\'" . c++-mode)
-         ("\\.h\\'" . c++-mode))
-  :config
-  (setq c-basic-offset 4
-        c-default-style "linux"
-        c-offsets-alist '((innamespace . 0))))
 
 (use-package swift-ts-mode
   :ensure nil
@@ -1657,9 +1653,11 @@
         (xref-backend-identifier-at-point 'dumb-jump)))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot+dumb)))
+  "Return the completion table for eglot+dumb."
   (xref-backend-identifier-completion-table 'eglot))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot+dumb)) identifier)
+  "Return the definitions for eglot+dumb."
   (or (xref-backend-definitions 'eglot (car identifier))
       (xref-backend-definitions 'dumb-jump (cdr identifier))))
 
@@ -1680,39 +1678,12 @@
 ;;   (setq window-stool-n-from-top 2
 ;;         window-stool-n-from-bottom 0))
 
-(use-package eglot-booster
-  ;; :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
-  :after eglot
-  :config (eglot-booster-mode))
 
 (use-package treesit
   :ensure nil
   :config
   (setq treesit-font-lock-level 4))
 
-(use-package indent-bars
-  :hook ((emacs-lisp-mode swift-ts-mode kotlin-ts-mode) . indent-bars-mode)
-  :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.15))
-  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
-  (indent-bars-treesit-support t)
-  (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
-  (indent-bars-width-frac 0.1)
-  (indent-bars-prefer-character t))
-
-(use-package copilot
-  ;; :vc (:url "https://github.com/copilot-emacs/copilot.el" :rev :newest)
-  :ensure nil
-  :hook ((prog-mode localizeable-mode) . copilot-mode)
-  :bind
-  (:map copilot-completion-map
-        ("<tab>" . copilot-accept-completion)
-        ("TAB" . copilot-accept-completion)
-        ("C-c C-n" . copilot-next-completion)
-        ("C-c C-p" . copilot-previous-completion))
-  :config
-  (setq copilot-indent-offset-warning-disable t)
-  (setq copilot-max-char 1000000))
 
 
   ;; :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
@@ -1723,60 +1694,12 @@
 ;; (package-vc-install "https://github.com/copilot-emacs/copilot.el"):
 ;; (package-vc-install "https://github.com/orzechowskid/tsx-mode.el.git")
 
-;; (use-package typescript-mode
-;;   :ensure t
-;;   :mode ("\\.ts\\'" "\\.tsx\\'")
-;;   :hook (
-;;          (typescript-mode . eglot-ensure)
-;;          (typescript-mode . setup-programming-mode)
-;;          (typescript-mode . colorful-mode)
-;;          (typescript-mode . typescript-ts-mode)
-;;          (typescript-mode . txs-ts-mode))
-;;   :config
-;;   (setq typescript-indent-level 2))
-
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (setq treesit-language-source-alist
-        '((typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
-          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))))
-
-  (dolist (source treesit-language-source-alist)
-    (unless (treesit-ready-p (car source))
-      (treesit-install-language-grammar (car source))))
-
-  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
-
-;; (use-package web-mode
-;;   :mode ("\\.jsx\\'")
-;;   :config
-;;   (setq web-mode-markup-indent-offset 2)
-;;   (setq web-mode-css-indent-offset 2)
-;;   (setq web-mode-code-indent-offset 2)
-;;   (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
-
-(cl-defmethod project-root ((project (head eglot-project)))
-  (cdr project))
-
-(defun my-project-try-tsconfig-json (dir)
-  (when-let* ((found (locate-dominating-file dir "tsconfig.json")))
-    (cons 'eglot-project found)))
-
-(add-hook 'project-find-functions
-          'my-project-try-tsconfig-json nil nil)
-
-;; (add-to-list 'eglot-server-programs '((typescript-mode) . ("tailwindcss-language-server" "--stdio")))
-;; (add-to-list 'eglot-server-programs '((typescript-mode) . ("vscode-eslint-language-server" "--stdio")))
-;; (add-to-list 'eglot-server-programs '((typescript-mode) "typescript-language-server" "--stdio"))
 
 (use-package nxml-mode
   :ensure nil
   :mode "\\.xml\\'"
   :hook ((nxml-mode . setup-programming-mode)
-	 (nxml-mode . colorful-mode)))
+	 (nxml-mode . rainbow-mode)))
 
 (defun safe-kill-buffer-and-window ()
   "Kill the current buffer and delete its window if it's not the last one."
@@ -1819,13 +1742,11 @@
 
 (use-package flycheck-kotlin
   :defer t
-  :config
-  (flycheck-kotlin-setup))
+  :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
 
 (use-package kotlin-ts-mode
   :defer t
   :mode "\\.kt\\'"
-  ;; :hook (kotlin-mode . kotlin-ts-mode)
   :config
   (setq treemacs-width 45)
   (setq treesit-font-lock-level 4))
@@ -1846,9 +1767,26 @@
   :config
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
-(use-package copilot-chat
+(use-package copilot
+  :vc (copilot :url "https://github.com/copilot-emacs/copilot.el" :branch "main" :rev :newest)
   :ensure nil
+  :hook ((prog-mode localizeable-mode) . copilot-mode)
+  :bind
+  (:map copilot-completion-map
+        ("<tab>" . copilot-accept-completion)
+        ("TAB" . copilot-accept-completion)
+        ("C-c C-n" . copilot-next-completion)
+        ("C-c C-p" . copilot-previous-completion))
+  :config
+  (setq copilot-indent-offset-warning-disable t)
+  (setq copilot-max-char 1000000))
+
+
+(use-package copilot-chat
+  :vc (copilot-chat :url "https://github.com/chep/copilot-chat.el" :branch "master" :rev :newest)
   :defer t
+  :config
+  (add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message)
   :commands (copilot-chat-doc
              copilot-chat-explain
              copilot-chat-fix
@@ -1870,21 +1808,18 @@
    ("C-x c p s" . copilot-chat-custom-prompt-selection) ;; Custom prompt selection
    ("C-x c p o" . copilot-chat-optimize)))              ;; Optimize code
 
-(use-package jinx
-  :ensure t
-  :hook (after-init . global-jinx-mode)  ; Enable Jinx globally
-  :bind (("C-x c k" . jinx-correct)      ; Traditional Emacs spell-check binding
-         ("C-x c l" . jinx-languages))   ; Quick language switching
-  :config
-  (setq jinx-languages "en")
-  (setq jinx-exclude-modes
-        '(minibuffer-mode          ; Mini buffer
-          dired-mode               ; Directory editor
-          fundamental-mode))       ; Fundamental mode
-
-  ;; Custom faces for misspelled words (optional)
-  (custom-set-faces
-   '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
+;; (use-package jinx
+;;   :hook (after-init . global-jinx-mode)  ; Enable Jinx globally
+;;   :bind (("C-x c k" . jinx-correct)      ; Traditional Emacs spell-check binding
+;;          ("C-x c l" . jinx-languages))   ; Quick language switching
+;;   :config
+;;   (setq jinx-languages "en")
+;;   (setq jinx-exclude-modes
+;;         '(minibuffer-mode          ; Mini buffer
+;;           dired-mode               ; Directory editor
+;;           fundamental-mode))       ; Fundamental mode
+;;   (custom-set-faces
+;;    '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
 
 (use-package ultra-scroll
   :vc (ultra-scroll
@@ -1898,17 +1833,27 @@
   :config
   (ultra-scroll-mode 1))
 
-;; (use-package nova
-;;   :vc (nova
-;;        :url "https://github.com/thisisran/nova"
-;;        :main-file "nova.el"
-;;        :branch "main"
-;;        :rev :newest)
+(use-package eglot-booster
+  :vc (eglot-booster
+       :url "https://github.com/jdtsmith/eglot-booster"
+       :branch "main"
+       :rev :newest)
+  :after eglot
+  :config (eglot-booster-mode))
 
-;;   :config
-;;   (nova-corfu-mode 1)
-;;   ;; (nova-corfu-popupinfo-mode 1)
-;;   (nova-vertico-mode 1))
+(use-package indent-bars
+  :vc (indent-bars
+       :url "https://github.com/jdtsmith/indent-bars"
+       :branch "main"
+       :rev :newest)
+  :hook ((emacs-lisp-mode swift-ts-mode kotlin-ts-mode) . indent-bars-mode)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.15))
+  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
+  (indent-bars-width-frac 0.1)
+  (indent-bars-prefer-character t))
 
 (use-package music-control
   :ensure nil
