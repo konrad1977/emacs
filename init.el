@@ -56,14 +56,27 @@
 	use-package-compute-statistics t
 	use-package-minimum-reported-time 0.1))
 
-(use-package rg :ensure t)
-(use-package spinner :ensure t)
-(use-package async :ensure t)
-(use-package request :ensure t)
+(use-package rg
+  :defer t
+  :ensure t)
+
+(use-package spinner
+  :defer t
+  :ensure t)
+
+(use-package async
+  :defer t
+  :ensure t)
+
+(use-package request
+  :defer t
+  :ensure t)
 
 (use-package nerd-icons
   :defer t
-  :ensure t)
+  :ensure t
+  :custom
+  (nerd-icons-scale-factor 1.05))
 
 (use-package all-the-icons
   :defer t
@@ -74,6 +87,7 @@
   :ensure t)
 
 (use-package dumb-jump
+  :defer t
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
   (setq dumb-jump-window 'current
@@ -93,7 +107,7 @@
   (global-hl-line-mode 1)
   (global-auto-revert-mode 1)
   (global-so-long-mode 1)
-  (pixel-scroll-precision-mode 1)
+  ;; (pixel-scroll-precision-mode 1)
   (set-display-table-slot standard-display-table 0 ?\ )
   (display-battery-mode 1)
   :config
@@ -170,7 +184,7 @@
   
   ;; (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
-        left-fringe-width 20
+        left-fringe-width 10
         word-wrap nil
         show-trailing-whitespace nil
         column-number-mode nil
@@ -217,11 +231,12 @@
       (body-function . select-window)
       (window-height . 0.4)
       (slot . 1))
-     ("\\*Copilot-chat*"
-      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+     ("\\*Copilot-chat"
+      (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-height . 0.6)
-      (slot . 1)
+      (window-width . 0.3)
+      (side . right)
+      (slot . 2)
       (window-parameters . ((mode-line-format . none))))
      ("\\*Periphery\\*\\|\\*compilation\\*"
       (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
@@ -279,15 +294,15 @@
   (set-message-beep 'silent))
 
 (use-package nerd-icons-completion
-  :after marginalia
+  :after (nerd-icons marginalia)
   :config
   (nerd-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
 
 (use-package nerd-icons-corfu
-  :after corfu
-  :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  :after (nerd-icons corfu)
+  :config (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)
+  :custom (nerd-icons-corfu--space " "))
 
 (use-package nerd-icons-dired
   :hook (dired-mode . nerd-icons-dired-mode))
@@ -340,11 +355,13 @@
   ;; (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
-  (load-theme 'oxocarbon t)
-  ;; (load-theme 'mito-laser t)
+  ;; (load-theme 'oxocarbon t)
+  ;; (load-theme 'nordic t)
+  (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
+
 
 ;; (advice-add #'balance-windows :override #'balance-windows-area)
 
@@ -352,7 +369,15 @@
   :hook (after-init . zoom-mode)
   :config
   (setq zoom-size '(0.7 . 0.7))
-  zoom-ignored-major-modes '(dired-mode vterm-mode dape-mode help-mode helpful-mode rxt-help-mode help-mode-menu org-mode)
+  zoom-ignored-major-modes '(comint-mode
+                             dape-mode
+                             dired-mode
+                             help-mode
+                             help-mode-menu
+                             helpful-mode
+                             org-mode
+                             rxt-help-mode
+                             vterm-mode)
   zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
   (add-to-list 'zoom-ignored-buffer-name-regexps "*Ilist*"))
 
@@ -391,7 +416,7 @@
                 (setq cand (funcall orig cand prefix suffix index _start))
                 (concat
                  (if (= vertico--index index)
-                     (propertize "» " 'face '(:inherit font-lock-function-name-face :weight bold))
+                     (propertize "» " 'face '(:inherit font-lock-delimiter-face :weight bold))
                    "  ")
                  cand)))
   (setq enable-recursive-minibuffers nil) ;; Tillåt rekursiva minibuffers
@@ -506,14 +531,12 @@
                      ("a" . punch-line-what-am-i-doing-show-all)))
   :hook ((after-init . punch-line-mode)
          (after-init . punch-weather-update)
-         (after-init . punch-load-tasks)
-         ;; (after-init . punch-setup-org-hooks)
-         )
+         (after-init . punch-load-tasks))
   :config
   (setq punch-show-project-info nil
         punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'arrow
-        punch-line-modal-size 'medium
+        punch-line-modal-divider-style 'circle
+        punch-line-modal-size 'small
         punch-line-left-separator "  "
         punch-line-right-separator "  "
         punch-show-git-info t
@@ -677,8 +700,14 @@
   :ensure nil
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package rainbow-mode
-  :hook (emacs-lisp-mode . rainbow-mode))
+(use-package colorful-mode
+  :defer t
+  :ensure t
+  :hook (emacs-lisp-mode . colorful-mode)
+  :custom
+  (colorful-use-prefix t)
+  (colorful-prefix-alignment 'left)
+  (colorful-prefix-string "●"))
 
 (use-package google-this
   :commands (google-this)
@@ -692,8 +721,8 @@
   :hook (eldoc-mode . eldoc-box-hover-mode)
   :custom
   (setq eldoc-box-clear-with-C-g t
-        eldoc-box-max-pixel-width 200
-        eldoc-box-max-pixel-height 200)
+        eldoc-box-max-pixel-width 120
+        eldoc-box-max-pixel-height 220)
   :bind ("C-x C-e" . (lambda ()
                        (interactive)
                        (eldoc-box-help-at-point))))
@@ -799,18 +828,14 @@
          ("C-c p l" . cape-line)
          ("C-c p w" . cape-dict)
          ("C-c p r" . cape-rfc1345))
-  ;; :custom
-  ;; (setq cape-dabbrev-check-other-buffers t
-  ;;       cape-dabbrev-min-length 2)
   :config
   (add-to-list 'completion-at-point-functions #'cape-capf-buster)
 
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
   (add-hook 'completion-at-point-functions #'cape-elisp-block)
-  ;; (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-file)
+
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
@@ -895,6 +920,10 @@
 (use-package restclient
   :commands (restclient))
 
+(use-package flycheck-package
+  :defer t
+  :hook (emacs-lisp-mode . flycheck-package-setup))
+
 (use-package flycheck
   :hook (prog-mode . flycheck-mode)
   :diminish t
@@ -912,7 +941,11 @@
 (use-package flycheck-overlay
   :ensure nil
   :after flycheck
-  :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode))
+  :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode)
+  (setq flycheck-overlay-virtual-line-type 'line-no-arrow)
+  (setq flycheck-overlay-virtual-line-icon nil)
+  ;; (setq flycheck-overlay-checkers '(flycheck))
+  )
 
 (use-package flycheck-eglot
   :hook (eglot-managed-mode . flycheck-eglot-mode)
@@ -922,6 +955,8 @@
   :bind ("M-+" . consult-flycheck))
 
 (use-package markdown-mode
+  :defer t
+  :mode "\\.md\\'"
   :commands (markdown-mode)
   :hook ((markdown-mode . visual-line-mode)
          (markdown-mode . (lambda ()
@@ -983,7 +1018,8 @@
   :commands (magit-status magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  (setq magit-save-repository-buffers nil))
+  (setq magit-save-repository-buffers nil)
+  (magit-format-file-function #'magit-format-file-nerd-icons))
 
 (use-package blamer
   :commands blamer-mode
@@ -1043,16 +1079,16 @@
                  (other-window 1)
                  (chatgpt-shell)))
   :config
-  ;; (require 'chatgpt-shell-ollama)
-  ;; (defun add-qwen-to-ollama-models (orig-fun)
-  ;;   "Add qwen2.5-coder to the list of Ollama models."
-  ;;   (append (funcall orig-fun)
-  ;;           (list
-  ;;            (chatgpt-shell-ollama-make-model
-  ;;             :version "deepseek-r1:8b"
-  ;;             :token-width 4
-  ;;             :context-window 8192))))
-  ;; (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
+  (require 'chatgpt-shell-ollama)
+  (defun add-qwen-to-ollama-models (orig-fun)
+    "Add qwen2.5-coder to the list of Ollama models."
+    (append (funcall orig-fun)
+            (list
+             (chatgpt-shell-ollama-make-model
+              :version "deepseek-r1:8b"
+              :token-width 4
+              :context-window 8192))))
+  (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
   (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
   (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022"))
@@ -1234,10 +1270,6 @@
         org-src-preserve-indentation t
         org-src-tab-acts-natively t
         org-startup-folded nil
-        ;; org-agenda-prefix-format '((agenda . "  %?-2i %t ")
-        ;;                            (todo . " %i %-12:c")
-        ;;                            (tags . " %i %-12:c")
-        ;;                            (search . " %i %-12:c"))
         org-startup-with-inline-images t
         org-tags-column 0
         org-todo-keyword-faces org-custom-todo-faces
@@ -1311,8 +1343,7 @@
                '("swiftui" . "swift"))
   (add-to-list 'org-src-lang-modes
                '("swiftui" . swift))
-  (ob-swiftui-setup)
-  )
+  (ob-swiftui-setup))
 
 (use-package org-modern
   :hook ((org-mode . org-modern-mode)
@@ -1325,7 +1356,7 @@
 (use-package olivetti
   :hook ((org-mode . olivetti-mode))
   :custom
-  (setq olivetti-style 'fancy
+  (setq olivetti-style t
         olivetti-hide-mode-line t))
 
 (use-package elfeed
@@ -1424,6 +1455,7 @@
 ;; Quickly jump to definition or usage
 
 (use-package swift-ts-mode
+  :mode "\\.swift\\'"
   :ensure nil
   :custom
   (swift-ts-basic-offset 4)
@@ -1436,6 +1468,11 @@
   :bind (:map localizeable-mode-map
               ("C-c C-c" . #'swift-additions:compile-and-run)
               ("C-c C-k" . #'periphery-run-loco))
+  :defer t
+  :ensure nil)
+
+(use-package objc-mode
+  :mode "\\.h\\'"
   :defer t
   :ensure nil)
 
@@ -1478,6 +1515,7 @@
   ("C-c e e" . #'eglot-code-action-extract)
   ("C-c e R" . #'eglot-code-action-rewrite)
   ("C-c e r" . #'eglot-rename)
+  ("C-c e m" . #'eglot-menu)
   ("C-c e d" . #'eglot-find-declaration)
   ("C-c e D" . #'eglot-find-typeDefinition)
   ("C-c e i" . #'eglot-find-implementation)
@@ -1605,6 +1643,9 @@
   :hook ((swift-ts-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode)
          (kotlin-ts-mode . svg-tag-mode))
+  :config
+  (plist-put svg-lib-style-default :font-family "Jetbrains Mono")
+  (plist-put svg-lib-style-default :font-size 15)
   :init
   (setq svg-tag-tags (periphery-svg-tags)))
 
@@ -1715,6 +1756,7 @@
           (delete-window window-to-delete))))))
 
 (use-package compile
+  :defer t
   :ensure nil
   :hook (compilation-finish-functions .
          (lambda (buf str)
@@ -1752,6 +1794,7 @@
   (setq treesit-font-lock-level 4))
 
 (use-package kotlin-development
+  :mode "\\.kt\\'"
   :defer t
   :hook ((kotlin-mode kotlin-ts-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
@@ -1783,10 +1826,11 @@
 
 
 (use-package copilot-chat
-  :vc (copilot-chat :url "https://github.com/chep/copilot-chat.el" :branch "master" :rev :newest)
+  :vc (copilot-chat
+       :url "https://github.com/chep/copilot-chat.el"
+       :branch "master"
+       :rev :newest)
   :defer t
-  :config
-  (add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message)
   :commands (copilot-chat-doc
              copilot-chat-explain
              copilot-chat-fix
@@ -1797,16 +1841,18 @@
              copilot-chat-ask-and-insert
              copilot-chat-custom-prompt-selection)
   :bind
-  (("C-x c p d" . copilot-chat-doc)                     ;; Open documentation
+  (("C-x c p t" . copilot-chat-transient)
+   ("C-x c p d" . copilot-chat-doc)                     ;; Open documentation
    ("C-x c p e" . copilot-chat-explain)                 ;; Explain code
    ("C-x c p f" . copilot-chat-fix)                     ;; Fix code issues
-   ("C-x c p t" . copilot-chat-test)                    ;; Write tests
    ("C-x c p r" . copilot-chat-review)                  ;; Review code
    ;; ("C-x c p b" . copilot-chat-review-whole-buffer)     ;; Review code
    ("C-x c p b" . copilot-chat-add-current-buffer)      ;; Add current buffer
    ("C-x c p a" . copilot-chat-ask-and-insert)          ;; Ask and insert
    ("C-x c p s" . copilot-chat-custom-prompt-selection) ;; Custom prompt selection
    ("C-x c p o" . copilot-chat-optimize)))              ;; Optimize code
+
+(add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message)
 
 ;; (use-package jinx
 ;;   :hook (after-init . global-jinx-mode)  ; Enable Jinx globally
@@ -1858,6 +1904,28 @@
 (use-package music-control
   :ensure nil
   :hook (after-init . music-control-mode))
+
+(use-package aidermacs
+  :defer t
+  :vc (aidermacs
+       :url "https://github.com/MatthewZMD/aidermacs"
+       :branch "main"
+       :rev :newest)
+  :config
+  ;; Use claude-3-5-sonnet cause it is best in aider benchmark
+  (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
+  ;; Or use chatgpt model since it is most well known
+  ;; (setq aider-args '("--model" "o3-mini"))
+  ;; (setenv "OPENAI_API_KEY" <your-openai-api-key>)
+  ;; Or use gemini v2 model since it is very good and free
+  ;; (setq aider-args '("--model" "gemini/gemini-exp-1206"))
+  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+  ;; Or use your personal config file
+  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
+  ;; ;;
+  ;; Optional: Set a key binding for the transient menu
+  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 
 (provide 'init)
 ;;; init.el ends here

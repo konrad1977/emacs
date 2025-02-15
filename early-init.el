@@ -28,7 +28,7 @@
   (push '(ns-appearance . dark) default-frame-alist))
 
 (setq site-run-file nil
-      read-process-output-max (* 8 1024 1024) ;; 1mb
+      read-process-output-max (* 2 1024 1024) ;; 2mb
       inhibit-compacting-font-caches t
       frame-inhibit-implied-resize t
       vc-handled-backends nil
@@ -68,8 +68,8 @@
 
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 8 1024 1024)
-                  gc-cons-percentage 0.1
+            (setq gc-cons-threshold (* 64 1024 1024)
+                  gc-cons-percentage 0.3
                   file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)
