@@ -40,7 +40,7 @@
   :group 'periphery)
 
 (defface periphery-warning-face-full
-  '((t (:foreground "#f9e2af" :bold t :background "#2E2A1E" :distant-foreground "#f9e2af" )))
+  '((t (:foreground "#f9e2af" :bold t :background "#2E2A1E" :distant-foreground "#f9e2af")))
   "Warning face."
   :group 'periphery)
 
@@ -110,12 +110,12 @@
   :group 'periphery)
 
 (defface periphery-todo-face
-  '((t (:foreground "#74c7ec")))
+  '((t (:foreground "#74c7ec" :height 0.8 :weight normal)))
   "Performance face."
   :group 'periphery)
 
 (defface periphery-todo-face-full
-  '((t (:foreground "#182A32" :background "#74c7ec" :distant-foreground  "#74c7ec")))
+  '((t (:foreground "#182A32" :background "#74c7ec" :distant-foreground  "#74c7ec" :height 0.8 :weight normal)))
   "Performance face."
   :group 'periphery)
 
@@ -660,11 +660,11 @@
 ;;;###autoload
 (defun periphery-svg-tags ()
   "Get svg tags."
-  '(("^[ \t]*\\([;|\/][;|\/]+\\W+\\w+\\b:.*\\)" . ((lambda (tag)
-                                                     (svg-tag-make (periphery--remove-leading-keyword tag)
+  '(("^[ \t]*\\([;|\/][;|\/]?\\W+\\w+\\b:.*\\)" . ((lambda (tag)
+                                                     (svg-tag-make (periphery--remove-leading-keyword (concat tag "\t"))
                                                                    :face (svg-color-from-tag tag)
                                                                    :inverse t))))
-    ("^[ \t]*\\([;|\/][;|\/]+\\W+\\w+\\b:\\)" . ((lambda (tag)
+    ("^[ \t]*\\([;|\/][;|\/]?\\W+\\w+\\b:\\)" . ((lambda (tag)
                                                    (svg-tag-make (periphery--remove-comments tag)
                                                                  :face (svg-color-from-tag tag)
                                                                  :crop-right t))))

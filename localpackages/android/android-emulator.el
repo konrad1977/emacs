@@ -198,11 +198,15 @@ Each element should be a string representing a tag or filter pattern."
         (if moving (goto-char (process-mark proc)))))))
 
 (defun android-emulator--expand-sdk-path ()
-  "Expand the Android SDK path properly."
-  (expand-file-name
-   (or (getenv "ANDROID_HOME")
-       (getenv "ANDROID_SDK_ROOT")
-       android-emulator-sdk-path)))
+  "Expand the Android SDK path properly.
+Throws an error if no valid SDK path is found."
+  (let ((sdk-path (expand-file-name
+                   (or (getenv "ANDROID_HOME")
+                       (getenv "ANDROID_SDK_ROOT")
+                       android-emulator-sdk-path))))
+    (unless (file-directory-p sdk-path)
+      (error "Android SDK not found at %s" sdk-path))
+    sdk-path))
 
 (defun android-emulator-get-avd-home ()
   "Get the AVD home directory."
@@ -320,7 +324,9 @@ and starts a fresh instance of the emulator."
     (insert (format "ANDROID_HOME: %s\n" (or (getenv "ANDROID_HOME") "Not set")))
     (insert (format "ANDROID_SDK_ROOT: %s\n" (or (getenv "ANDROID_SDK_ROOT") "Not set")))
     (insert (format "ANDROID_AVD_HOME: %s\n" (or (getenv "ANDROID_AVD_HOME") "Not set")))
-    (insert (format "ANDROID_SDK_HOME: %s\n\n" (or (getenv "ANDROID_SDK_HOME") "Not set")))
+    (insert (format "ANDROID_SDK_HOME: %s\n" (or (getenv "ANDROID_SDK_HOME") "Not set")))
+    (insert (format "JAVA_HOME: %s\n" (or (getenv "JAVA_HOME") "Not set")))
+    (insert (format "GRADLE_JAVA_HOME: %s\n\n" (or (getenv "GRADLE_JAVA_HOME") "Not set")))
 
     ;; Check paths
     (let ((sdk-path android-emulator-sdk-path)
@@ -379,12 +385,19 @@ and starts a fresh instance of the emulator."
         android-emulator-name))))
 
 (defun android-emulator-start ()
-  "Start the Android emulator asynchronously with status updates."
+  "Start the Android emulator asynchronously with status updates.
+Handles process cleanup and provides detailed error reporting."
   (interactive)
+  (when android-emulator--process
+    (android-emulator-kill))
+  
   (let* ((sdk-path (android-emulator--expand-sdk-path))
          (emulator-path (expand-file-name "emulator/emulator" sdk-path))
          (default-directory (file-name-directory emulator-path))
          (android-emulator-name (android-emulator-select)))
+    
+    (when android-emulator-debug
+      (message "Starting emulator with SDK: %s" sdk-path))
 
     (when android-emulator-debug
       (message "Starting emulator with:")
@@ -430,9 +443,8 @@ and starts a fresh instance of the emulator."
                  emulator-path
                  "-avd" android-emulator-name
                  "-no-audio"
-		 ;; "-change-locale" android-emulator-language
-                 ;; "-verbose"
-                 )))
+                 "-change-locale" android-emulator-language
+                 "-verbose")))
 
         ;; Set process as the buffer's process
         (set-process-buffer android-emulator--process buffer)

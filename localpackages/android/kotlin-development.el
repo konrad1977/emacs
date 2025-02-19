@@ -18,7 +18,7 @@
   :group 'programming
   :prefix "kotlin-development-")
 
-(defcustom kotlin-development-debug nil
+(defcustom kotlin-development-debug t
   "Enable debug output for Kotlin development."
   :type 'boolean
   :group 'kotlin-development)
@@ -44,12 +44,25 @@
   :type 'string
   :group 'kotlin-development)
 
+(defcustom kotlin-development-gradle-version nil
+  "Specific Gradle version to use. If nil, use project's default version."
+  :type '(choice (const :tag "Use project default" nil)
+                 (string :tag "Specific version"))
+  :group 'kotlin-development)
+
 (defcustom kotlin-development-android-sdk-path
   (or (getenv "ANDROID_HOME")
       (getenv "ANDROID_SDK_ROOT")
       "~/library/android/sdk")
   "Path to Android SDK."
   :type 'string
+  :group 'kotlin-development)
+
+(defcustom kotlin-development-gradle-java-home nil 
+  "Custom Java home directory for Gradle builds.
+If nil, use the system default JAVA_HOME."
+  :type '(choice (const :tag "Use system JAVA_HOME" nil)
+                 (directory :tag "Custom JDK path"))
   :group 'kotlin-development)
 
 (defcustom kotlin-development-test-runner 'junit
@@ -210,6 +223,57 @@ Options are 'junit or 'kotest."
                                      kotlin-development-android-sdk-path)))
     (shell-command (format "%s uninstall %s" adb-path package-name))))
 
+(defun kotlin-development--setup-gradle-environment ()
+  "Set up environment variables for Gradle execution."
+  (let ((env (copy-sequence process-environment)))
+    (when kotlin-development-gradle-java-home
+      (setq env (cons (format "JAVA_HOME=%s" 
+                             (expand-file-name kotlin-development-gradle-java-home))
+                      env)))
+    (when kotlin-development-gradle-version
+      (setq env (cons (format "GRADLE_VERSION=%s" kotlin-development-gradle-version) env))
+      ;; Force Gradle to use the specified version
+      (setq env (cons "GRADLE_OPTS=-Dorg.gradle.wrapper.useDistributionUrl=true" env)))
+    env))
+
+(defun kotlin-development-set-gradle-version (version)
+  "Set the Gradle version to use for builds.
+VERSION should be a string like \"8.5\" or nil to use project default."
+  (interactive
+   (list
+    (completing-read "Gradle version (empty for project default): "
+                    '("8.5" "8.4" "8.3" "8.2" "8.1" "8.0" "7.6" "7.5" "7.4")
+                    nil nil nil nil nil t)))
+  (let ((gradle-home (expand-file-name "~/.gradle")))
+    ;; Clean Gradle caches
+    (when (file-exists-p gradle-home)
+      (dolist (cache-dir '("caches" "kotlin-dsl" "build-cache"))
+        (let ((full-path (expand-file-name cache-dir gradle-home)))
+          (when (file-exists-p full-path)
+            (delete-directory full-path t)))))
+    
+    ;; Set new version
+    (setq kotlin-development-gradle-version
+          (if (string-empty-p version) nil version))
+    
+    ;; Initialize wrapper with new version
+    (when kotlin-development-gradle-version
+      (kotlin-development-wrapper-init))
+    
+    (message "Gradle version set to: %s (caches cleaned)"
+             (or kotlin-development-gradle-version "project default"))))
+
+(defun kotlin-development-wrapper-init ()
+  "Initialize or update Gradle wrapper with specified version."
+  (interactive)
+  (when (null kotlin-development-gradle-version)
+    (user-error "Please set gradle version first with kotlin-development-set-gradle-version"))
+  (let* ((default-directory (kotlin-development-find-project-root))
+         (gradle-command (format "./gradlew wrapper --gradle-version %s --gradle-distribution-url https://services.gradle.org/distributions/gradle-%s-bin.zip --configuration-cache"
+                               kotlin-development-gradle-version
+                               kotlin-development-gradle-version)))
+    (compile gradle-command)))
+
 (defun kotlin-development-find-java-home ()
   "Find Java home directory with specific handling for Oracle JDK."
   (or (getenv "JAVA_HOME")
@@ -304,18 +368,6 @@ Options are 'junit or 'kotest."
     ;; Forward debug port
     (call-process "adb" nil nil nil "forward" "tcp:5005" "jdwp:*))")))
 
-;; ;; Helper function to install debug adapter if needed
-;; (defun kotlin-development-ensure-debug-adapter ()
-;;   "Ensure the Java debug adapter is installed."
-;;   (interactive)
-;;   (let ((adapter-dir (file-name-concat dape-adapter-dir "vscode-java-debug")))
-;;     (unless (file-exists-p adapter-dir)
-;;       (make-directory adapter-dir t)
-;;       (let ((default-directory adapter-dir))
-;;         (call-process "git" nil t t "clone" "Https://github.com/microsoft/vscode-java-debug.git" ".")
-;;         (call-process "npm" nil t t "install")
-;;         (call-process "npm" nil t t "run" "build")))))
-
 (defun kotlin-development-start-debugger ()
   "Start debugging Android application."
   (interactive)
@@ -369,6 +421,65 @@ Options are 'junit or 'kotest."
         (kotlin-development-build-and-launch)
       (kotlin-development-start-emulator-and-build))))
 
+;;;###autoload
+(defun kotlin-development-select-gradle-jdk ()
+  "Interactively select a JDK installation for Gradle builds."
+  (interactive)
+  (let* ((homebrew-base "/opt/homebrew/Cellar")
+         (default-jdk-paths (list
+                            ;; Standard macOS JDK paths
+                            "/Library/Java/JavaVirtualMachines"
+                            "~/Library/Java/JavaVirtualMachines"  ; Added user's Library
+                            "/System/Library/Java/JavaVirtualMachines"
+                            ;; Linux paths
+                            "/usr/lib/jvm"
+                            ;; Expand home directory for user-specific installations
+                            (expand-file-name "~/Library/Java/JavaVirtualMachines")))
+         ;; Find all openjdk variants in Homebrew Cellar
+         (homebrew-jdk-patterns '("openjdk" "openjdk@*"))
+         (homebrew-jdk-paths
+          (when (file-directory-p homebrew-base)
+            (cl-loop for pattern in homebrew-jdk-patterns
+                    append (file-expand-wildcards 
+                           (concat homebrew-base "/" pattern)))))
+         (all-search-paths (append default-jdk-paths homebrew-jdk-paths))
+         (jdk-paths (cl-remove-if-not #'file-directory-p all-search-paths))
+         (jdk-dirs
+          (cl-loop for path in jdk-paths
+                   append (directory-files path t "^[^.]")))
+         ;; Debug output
+         (debug-message (progn
+                         (message "Searching in paths:")
+                         (dolist (path all-search-paths)
+                           (message "- %s (exists: %s)" path (file-directory-p path)))
+                         (message "Found JDK directories:")
+                         (dolist (dir jdk-dirs)
+                           (message "- %s" dir))))
+         (jdk-options
+          (mapcar (lambda (dir)
+                    (cons (format "%s (%s)" 
+                                (file-name-nondirectory dir)
+                                dir)
+                          dir))
+                  jdk-dirs))
+         (selected (completing-read "Select JDK for Gradle: "
+                                  (mapcar #'car jdk-options)
+                                  nil t)))
+    (when selected
+      (let* ((jdk-path (cdr (assoc selected jdk-options)))
+             (final-path (cond
+                         ;; For Homebrew JDKs
+                         ((string-match-p "/opt/homebrew/Cellar/openjdk" jdk-path)
+                          (expand-file-name "libexec" jdk-path))
+                         ;; For standard macOS JDKs
+                         (t
+                          (if (string-match-p "Contents/Home$" jdk-path)
+                              jdk-path
+                            (expand-file-name "Contents/Home" jdk-path))))))
+        (setq kotlin-development-gradle-java-home final-path)
+        (message "Gradle JDK set to: %s" kotlin-development-gradle-java-home)))))
+
+
 (defun kotlin-development-build-and-launch ()
   "Build and launch the app when emulator is already running."
   ;; (mode-line-hud:update :message "Building...")
@@ -407,7 +518,8 @@ Options are 'junit or 'kotest."
   "Execute the gradle build and set up completion hook."
   (let* ((project-root (kotlin-development-find-project-root))
          (default-directory project-root)  ; Explicitly set build directory
-         (gradle-command (format "%s installDebug" kotlin-development-gradle-executable)))
+         (gradle-command "./gradlew installDebug")
+         (process-environment (kotlin-development--setup-gradle-environment)))
     (when kotlin-development-debug
       (message "Executing build in directory: %s" default-directory)
       (message "Build command: %s" gradle-command))
@@ -501,20 +613,35 @@ Options are 'junit or 'kotest."
     (message "Emulator data wiped for package %s" package-name)))
 
 (defun kotlin-development--get-package-name ()
-  "Extract package name from build.gradle.kts, with enhanced debugging."
+  "Extract package name from build.gradle.kts or build.gradle, with enhanced debugging."
   (let* ((project-root (kotlin-development-find-project-root))
-         (gradle-path (expand-file-name "app/build.gradle.kts" project-root)))
+         (build-files (directory-files-recursively 
+                      project-root
+                      "build\\.gradle\\.kts$\\|build\\.gradle$"))
+       (filtered-files (seq-filter 
+                         (lambda (file)
+                           (and (not (string-match-p "/build/" file))
+                                (not (string-match-p "/buildSrc/" file))
+                                (string-match-p "app/build\\.gradle" file)))
+                         build-files))
+         (build-file (if (= (length filtered-files) 1)
+                        (car filtered-files)
+                      (completing-read "Select build file: " 
+                                     (mapcar (lambda (f) 
+                                             (file-relative-name f project-root))
+                                            filtered-files)
+                                     nil t))))
 
     (when kotlin-development-debug
-      (message "Project root: %s" project-root)
-      (message "Looking for gradle file at: %s" gradle-path))
+      (message "Found build files: %S" build-files)
+      (message "Filtered build files: %S" filtered-files))
 
-    (if (not (file-exists-p gradle-path))
-        (message "Error: build.gradle.kts not found at %s" gradle-path)
+    (if (not build-file)
+        (user-error "No build.gradle or build.gradle.kts found in app directory")
       (with-temp-buffer
-        (insert-file-contents gradle-path)
-	(when kotlin-development-debug
-	  (message "File contents length: %d" (buffer-size)))
+        (insert-file-contents build-file)
+        (when kotlin-development-debug
+          (message "File contents length: %d" (buffer-size)))
 
         (goto-char (point-min))
         (let ((case-fold-search t)
@@ -522,53 +649,50 @@ Options are 'junit or 'kotest."
           ;; Try multiple regex patterns
           (catch 'found
             (dolist (pattern '("applicationId *= *\"\\([^\"]+\\)\""
-                               "applicationId[[:space:]]*=[[:space:]]*\"\\([^\"]+\\)\""
-                               "applicationId\\s*=\\s*\"\\([^\"]+\\)\""))
-	      (when kotlin-development-debug
-	  	(message "Trying pattern: %s" pattern))
+                             "applicationId[[:space:]]*=[[:space:]]*\"\\([^\"]+\\)\""
+                             "applicationId\\s*=\\s*\"\\([^\"]+\\)\""))
+              (when kotlin-development-debug
+                (message "Trying pattern: %s" pattern))
               (goto-char (point-min))
               (when (re-search-forward pattern nil t)
                 (let ((match (match-string 1)))
-		  (when kotlin-development-debug
-		    (message "Found match with pattern %s: %s" pattern match))
+                  (when kotlin-development-debug
+                    (message "Found match with pattern %s: %s" pattern match))
                   (setq found match)
                   (throw 'found match)))))
           found)))))
 
-(defun kotlin-development--get-launch-activity ()
-  "Extract launch activity from AndroidManifest.xml with better pattern matching."
+(defun kotlin-development--not-in-build-dir (file)
+  "Return t if FILE is not in a build directory."
+  (not (string-match-p "/build/" file)))
+
+(defun kotlin-development--find-manifest ()
+  "Find AndroidManifest.xml file in project directory recursively."
   (let* ((project-root (kotlin-development-find-project-root))
-         (manifest-path (expand-file-name "app/src/main/AndroidManifest.xml" project-root)))
-    (when (file-exists-p manifest-path)
+         (manifests (when project-root
+                     (directory-files-recursively 
+                      project-root
+                      "AndroidManifest\\.xml$"))))
+    (when manifests
+      (when kotlin-development-debug
+        (message "All manifests found: %S" manifests))
+      (let ((filtered-manifests
+             (seq-filter #'kotlin-development--not-in-build-dir manifests)))
+        (when kotlin-development-debug
+          (message "Filtered manifests: %S" filtered-manifests))
+        (car filtered-manifests)))))
+
+(defun kotlin-development--get-launch-activity ()
+  "Extract launch activity from AndroidManifest.xml."
+  (let ((manifest-path (kotlin-development--find-manifest)))
+    (when (and manifest-path (file-exists-p manifest-path))
       (with-temp-buffer
         (insert-file-contents manifest-path)
         (goto-char (point-min))
-        ;; Try different activity patterns
-        (or
-         ;; Look for activity with MAIN action and LAUNCHER category
-         (progn
-           (goto-char (point-min))
-           (when (re-search-forward
-                  (concat "<activity[^>]*android:name=\"\\([^\"]+\\)\"[^>]*>.*?"
-                          "<intent-filter>.*?"
-                          "<action android:name=\"android.intent.action.MAIN\".*?"
-                          "<category android:name=\"android.intent.category.LAUNCHER\"")
-                  nil t)
-             (match-string 1)))
-         ;; Try a more lenient pattern
-         (progn
-           (goto-char (point-min))
-           (when (re-search-forward
-                  "<activity[^>]*android:name=\"\\([^\"]+\\)\".*?MAIN.*?LAUNCHER"
-                  nil t)
-             (match-string 1)))
-         ;; Try looking for MainActivity specifically
-         (progn
-           (goto-char (point-min))
-           (when (re-search-forward
-                  "<activity[^>]*android:name=\"\\([^\"]*MainActivity[^\"]*\\)\""
-                  nil t)
-             (match-string 1))))))))
+        (when (re-search-forward
+               "<activity[^>]*?android:name=\"\\([^\"]+\\)\"[^>]*>\\(?:.\\|\n\\)*?<intent-filter>\\(?:.\\|\n\\)*?<action[^>]*?android\\.intent\\.action\\.MAIN[^>]*?>\\(?:.\\|\n\\)*?<category[^>]*?android\\.intent\\.category\\.LAUNCHER[^>]*?>"
+               nil t)
+          (match-string 1))))))
 
 (defun kotlin-development-launch-app ()
   "Launch the installed Android app."
@@ -644,7 +768,6 @@ Options are 'junit or 'kotest."
   (kotlin-development-common-hook)
   (add-hook 'kotlin-ts-mode (lambda () (setq-local indent-tabs-mode nil))))
 
-;;;###autoload
 (defun kotlin-development-validate-android-setup ()
   "Validate Android SDK setup and paths."
   (interactive)
@@ -704,7 +827,7 @@ ADB: %s" sdk-path emulator-path adb-path)))
 ;;;###autoload
 (define-minor-mode kotlin-development-minor-mode
   "Minor mode for Kotlin development environment."
-  :lighter " KotDev"
+  :lighter "KotDev"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-c C-c") #'kotlin-development-build-and-run)
             (define-key map (kbd "C-c C-r") #'kotlin-development-rebuild)
@@ -719,10 +842,13 @@ ADB: %s" sdk-path emulator-path adb-path)))
             (define-key map (kbd "M-r") #'kotlin-development-launch-app)
             (define-key map (kbd "M-s") #'kotlin-development-emulator-terminate-app)
             (define-key map (kbd "M-K") #'kotlin-development-clean-build)
-            (define-key map (kbd "C-c a") #'kotlin-development-analyze-code)
+            ;; (define-key map (kbd "C-c a") #'kotlin-development-analyze-code)
             (define-key map (kbd "C-c d") #'kotlin-development-check-dependencies)
             (define-key map (kbd "C-c C-o") #'kotlin-development-fix-code-style)
             (define-key map (kbd "C-c h") #'kotlin-development-show-build-history)
+            (define-key map (kbd "C-c j") #'kotlin-development-select-gradle-jdk)
+            (define-key map (kbd "C-c v") #'kotlin-development-set-gradle-version)
+            (define-key map (kbd "C-c w") #'kotlin-development-wrapper-init)
             map))
 
 (defun kotlin-development--debug-manifest ()

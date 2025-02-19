@@ -97,7 +97,8 @@
 
 (use-package candyshop
   :ensure nil
-  :hook (after-init . candyshop-mode)
+  :defer t
+  ;; :hook (after-init . candyshop-mode)
   :bind ("C-c t c" . candyshop-toggle)
   :config
   (setq candyshop-alpha-values '(100 95)))
@@ -184,7 +185,7 @@
   
   ;; (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
-        left-fringe-width 10
+        left-fringe-width 25
         word-wrap nil
         show-trailing-whitespace nil
         column-number-mode nil
@@ -357,6 +358,7 @@
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'nordic t)
+  ;; (load-theme 'poimandres t)
   (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
@@ -535,8 +537,8 @@
   :config
   (setq punch-show-project-info nil
         punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'circle
-        punch-line-modal-size 'small
+        punch-line-modal-divider-style 'flame
+        punch-line-modal-size 'medium
         punch-line-left-separator "  "
         punch-line-right-separator "  "
         punch-show-git-info t
@@ -802,7 +804,6 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
   (add-to-list 'kind-icon-mapping '(tabnine "ai" :icon "cloud" :face shadow) t))
 
-
 (use-package savehist
   :defer 2
   :hook (after-init . savehist-mode)
@@ -814,6 +815,18 @@
 ;; Add extensions
 (use-package cape
   :after evil
+  :init
+  ;; Add more Elisp specific backends
+  (defun mk/setup-elisp-capf ()
+    (setq-local completion-at-point-functions
+                (list (cape-capf-super
+                       #'cape-elisp-symbol
+                       #'cape-elisp-block
+                       #'cape-dabbrev
+                       #'cape-file
+                       #'cape-keyword
+                       #'elisp-completion-at-point))))
+  (add-hook 'emacs-lisp-mode-hook #'mk/setup-elisp-capf)
   :bind (
          ("<Tab>" . cape-complete)
          ("TAB" . cape-complete)
@@ -829,13 +842,8 @@
          ("C-c p w" . cape-dict)
          ("C-c p r" . cape-rfc1345))
   :config
-  (add-to-list 'completion-at-point-functions #'cape-capf-buster)
-
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-  (add-hook 'completion-at-point-functions #'cape-elisp-block)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
@@ -934,7 +942,7 @@
   (add-to-list 'flycheck-checkers 'javascript-eslint)
   (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
   :custom
-  (flycheck-checker-error-threshold 200)
+  (flycheck-checker-error-threshold 500)
   (setq flycheck-check-syntax-automatically '(save mode-enabled)
 	flycheck-idle-change-delay 2.0))
 
@@ -1711,14 +1719,6 @@
 
 (put 'narrow-to-region 'disabled nil)
 
-;; (use-package window-stool
-;;   ;; :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
-;;   :hook (prog-mode . window-stool-mode)
-;;   :defer t
-;;   :config
-;;   (setq window-stool-n-from-top 2
-;;         window-stool-n-from-bottom 0))
-
 
 (use-package treesit
   :ensure nil
@@ -1794,7 +1794,6 @@
   (setq treesit-font-lock-level 4))
 
 (use-package kotlin-development
-  :mode "\\.kt\\'"
   :defer t
   :hook ((kotlin-mode kotlin-ts-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
@@ -1906,13 +1905,11 @@
   :hook (after-init . music-control-mode))
 
 (use-package aidermacs
-  :defer t
   :vc (aidermacs
        :url "https://github.com/MatthewZMD/aidermacs"
        :branch "main"
        :rev :newest)
   :config
-  ;; Use claude-3-5-sonnet cause it is best in aider benchmark
   (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
   (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
   ;; Or use chatgpt model since it is most well known
