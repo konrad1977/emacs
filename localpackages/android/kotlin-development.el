@@ -18,7 +18,7 @@
   :group 'programming
   :prefix "kotlin-development-")
 
-(defcustom kotlin-development-debug t
+(defcustom kotlin-development-debug nil
   "Enable debug output for Kotlin development."
   :type 'boolean
   :group 'kotlin-development)
@@ -518,12 +518,25 @@ VERSION should be a string like \"8.5\" or nil to use project default."
   "Execute the gradle build and set up completion hook."
   (let* ((project-root (kotlin-development-find-project-root))
          (default-directory project-root)  ; Explicitly set build directory
-         (gradle-command "./gradlew installDebug")
-         (process-environment (kotlin-development--setup-gradle-environment)))
+         (process-environment (kotlin-development--setup-gradle-environment))
+         (gradle-command-primary "./gradlew installDevDebug")
+         (gradle-command-fallback "./gradlew installDev"))
     (when kotlin-development-debug
       (message "Executing build in directory: %s" default-directory)
-      (message "Build command: %s" gradle-command))
-    (compile gradle-command)
+      (message "Trying primary build command: %s" gradle-command-primary))
+    
+    ;; Try primary command first
+    (compile gradle-command-primary)
+    
+    ;; Add hook to try fallback if primary fails
+    (add-hook 'compilation-finish-functions
+              (lambda (buf status)
+                (when (and (string-match-p "exited abnormally" status)
+                          (string= gradle-command-primary (car compilation-arguments)))
+                  (when kotlin-development-debug
+                    (message "Primary build failed, trying fallback command: %s" gradle-command-fallback))
+                  (compile gradle-command-fallback)))
+              nil t)  ; Add to local hooks, append at end
     (add-hook 'compilation-finish-functions
               (lambda (buf status)
                 (when (string-match-p "finished" status)
@@ -618,39 +631,70 @@ VERSION should be a string like \"8.5\" or nil to use project default."
          (build-files (directory-files-recursively 
                       project-root
                       "build\\.gradle\\.kts$\\|build\\.gradle$"))
-       (filtered-files (seq-filter 
+         (filtered-files (seq-filter 
                          (lambda (file)
                            (and (not (string-match-p "/build/" file))
                                 (not (string-match-p "/buildSrc/" file))
-                                (string-match-p "app/build\\.gradle" file)))
-                         build-files))
-         (build-file (if (= (length filtered-files) 1)
-                        (car filtered-files)
-                      (completing-read "Select build file: " 
-                                     (mapcar (lambda (f) 
-                                             (file-relative-name f project-root))
-                                            filtered-files)
-                                     nil t))))
+                                (or (string-match-p "app/build\\.gradle" file)
+                                    (string-match-p "build\\.gradle" file))))
+                         build-files)))
+    
+    (when kotlin-development-debug
+      (message "All build files: %S" build-files)
+      (message "Filtered build files: %S" filtered-files))
+
+    (let ((build-file
+           (cond
+            ;; Case 1: Single app/build.gradle file
+            ((seq-find (lambda (f) (string-match-p "app/build\\.gradle" f)) filtered-files))
+            ;; Case 2: Single build.gradle file in root
+            ((seq-find (lambda (f) 
+                        (string= (file-name-nondirectory (directory-file-name 
+                                                         (file-name-directory f)))
+                               (file-name-nondirectory project-root)))
+                      filtered-files))
+            ;; Case 3: Let user choose
+            (filtered-files
+             (completing-read "Select build file: " 
+                            (mapcar (lambda (f) 
+                                    (file-relative-name f project-root))
+                                   filtered-files)
+                            nil t))
+            ;; Case 4: No build files found
+            (t (user-error "No build.gradle files found in project")))))
 
     (when kotlin-development-debug
       (message "Found build files: %S" build-files)
       (message "Filtered build files: %S" filtered-files))
 
+    (when kotlin-development-debug
+      (message "Selected build file: %s" build-file))
+
     (if (not build-file)
-        (user-error "No build.gradle or build.gradle.kts found in app directory")
+        (user-error "No build.gradle or build.gradle.kts found in project")
       (with-temp-buffer
         (insert-file-contents build-file)
         (when kotlin-development-debug
+          (message "Analyzing build file: %s" build-file)
           (message "File contents length: %d" (buffer-size)))
 
         (goto-char (point-min))
         (let ((case-fold-search t)
-              (found nil))
-          ;; Try multiple regex patterns
+              (found nil)
+              (patterns '(;; Standard Gradle patterns
+                         "applicationId\\s*=\\s*[\"']\\([^\"']+\\)[\"']"
+                         "applicationId\\s*[=:]\\s*[\"']\\([^\"']+\\)[\"']"
+                         ;; Kotlin DSL patterns
+                         "applicationId\\s*=\\s*\\([[:alnum:].]+\\)"
+                         ;; Variable assignment patterns
+                         "val\\s+APP_ID\\s*=\\s*[\"']\\([^\"']+\\)[\"']"
+                         "def\\s+APP_ID\\s*=\\s*[\"']\\([^\"']+\\)[\"']"
+                         ;; Namespace pattern (fallback)
+                         "namespace\\s*=\\s*[\"']\\([^\"']+\\)[\"']")))
+          
+          ;; Try each pattern
           (catch 'found
-            (dolist (pattern '("applicationId *= *\"\\([^\"]+\\)\""
-                             "applicationId[[:space:]]*=[[:space:]]*\"\\([^\"]+\\)\""
-                             "applicationId\\s*=\\s*\"\\([^\"]+\\)\""))
+            (dolist (pattern patterns)
               (when kotlin-development-debug
                 (message "Trying pattern: %s" pattern))
               (goto-char (point-min))
@@ -660,7 +704,26 @@ VERSION should be a string like \"8.5\" or nil to use project default."
                     (message "Found match with pattern %s: %s" pattern match))
                   (setq found match)
                   (throw 'found match)))))
-          found)))))
+
+          ;; If no match found, try manifest as fallback
+          (unless found
+            (let ((manifest (kotlin-development--find-manifest)))
+              (when manifest
+                (with-temp-buffer
+                  (insert-file-contents manifest)
+                  (goto-char (point-min))
+                  (when (re-search-forward "package=\"\\([^\"]+\\)\"" nil t)
+                    (setq found (match-string 1))
+                    (when kotlin-development-debug
+                      (message "Found package name in manifest: %s" found))))))
+
+          ;; Return result
+          (if found
+              (progn 
+                (when kotlin-development-debug
+                  (message "Final package name found: %s" found))
+                found)
+            (user-error "Could not determine package name from build files or manifest")))))))))
 
 (defun kotlin-development--not-in-build-dir (file)
   "Return t if FILE is not in a build directory."
@@ -727,7 +790,11 @@ VERSION should be a string like \"8.5\" or nil to use project default."
             (message "Failed to launch app: %s" result)
             (when kotlin-development-debug
               (message "Launch command was: %s" launch-command)))
-        (mode-line-hud:update :message "")))))
+        (progn
+          ;; Restart logcat if it was running
+          (when android-emulator-logcat-process
+            (android-emulator-restart-logcat))
+          (mode-line-hud:update :message ""))))))
 
 ;;;###autoload
 (defun kotlin-development-verify-lsp-server ()
@@ -868,6 +935,35 @@ ADB: %s" sdk-path emulator-path adb-path)))
   (kotlin-development-minor-mode 1)
   (kotlin-development-setup)
   (global-eldoc-mode -1))
+
+;; Improved error regexp for Kotlin errors with better file path handling
+(add-to-list 'compilation-error-regexp-alist
+             '("\\(?:e: \\)?\\(?:file://\\)?\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3))
+
+;; Add Kotlin-specific error patterns
+(add-to-list 'compilation-error-regexp-alist
+             '("^\\(w:\\|e:\\) \\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\):" 2 3 4 (1 . 2)))
+
+;; Add Gradle error patterns
+(add-to-list 'compilation-error-regexp-alist
+             '("^\\(FAILURE\\|ERROR\\): Build failed with an exception\\." nil nil nil 2))
+
+;; Configure compilation mode to show shorter file paths
+(defun kotlin-development-setup-compilation-mode ()
+  "Set up compilation mode for better Kotlin/Android development experience."
+  (setq-local compilation-auto-jump-to-first-error nil)
+  ;; Use relative paths in compilation buffer
+  (setq-local compilation-transform-file-match-alist
+              '(("^\\(?:e: \\)?\\(?:file://\\)?\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3)))
+  ;; Show just the file name, not the full path
+  (setq-local compilation-shorten-file-name-function #'file-name-nondirectory)
+  ;; Highlight Kotlin-specific errors
+  (setq-local compilation-error-face 'error)
+  (setq-local compilation-warning-face 'warning)
+  (setq-local compilation-info-face 'success))
+
+;; Add the setup function to compilation mode hook
+(add-hook 'compilation-mode-hook #'kotlin-development-setup-compilation-mode)
 
 (provide 'kotlin-development)
 ;;; kotlin-development.el ends here

@@ -170,10 +170,11 @@
               (darken-buffer-remove-effect)))
         (dolist (window windows)
           (with-selected-window window
-            (darken-buffer-remove-effect)
             (unless (darken-buffer-should-ignore-p)
-              (darken-buffer-apply-effect
-               (eq window current-window)))))))))
+              ;; Apply effects based on window selection, not buffer
+              (if (eq window current-window)
+                  (darken-buffer-remove-effect)
+                (darken-buffer-apply-effect nil)))))))))
 
 (defun darken-buffer--window-selection-change-function (_)
   "Function to handle window selection changes."

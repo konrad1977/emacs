@@ -110,7 +110,7 @@
   :group 'periphery)
 
 (defface periphery-todo-face
-  '((t (:foreground "#74c7ec" :height 0.8 :weight normal)))
+  '((t (:foreground "#74c7ec" :weight normal)))
   "Performance face."
   :group 'periphery)
 

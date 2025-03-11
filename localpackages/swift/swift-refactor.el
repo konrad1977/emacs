@@ -139,7 +139,7 @@
 
 ;; Taken from  https://gitlab.com/woolsweater/dotemacs.d/-/blob/main/modules/my-swift-mode.el
 ;;;###autoload
-(defun swift-refactor:split-function-list ()
+(defun code-refactor:split-function-list ()
   "While on either the header of a function-like declaration or a call to a function, split each parameter/argument to its own line."
   (interactive)
   (save-excursion

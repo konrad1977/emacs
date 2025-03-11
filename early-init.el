@@ -13,10 +13,9 @@
 (setq package-enable-at-startup t)
 
 ;; Disable unnecessary UI early
-(push '(vertical-scroll-bars) default-frame-alist)
+(push '(vertical-scroll-bars . nil) default-frame-alist)
 (push '(menu-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
-(push '(undecorated-round . t) default-frame-alist)
 (push '(fullscreen . maximized) default-frame-alist)
 (push '(background-color . "#13131a") default-frame-alist)
 (push '(foreground-color . "#a0a0ae") default-frame-alist)
@@ -25,27 +24,10 @@
 (when (eq system-type 'darwin)
   (push '(ns-use-native-fullscreen . nil) default-frame-alist)
   (push '(ns-transparent-titlebar . t) default-frame-alist)
-  (push '(ns-appearance . dark) default-frame-alist))
-
-(setq site-run-file nil
-      read-process-output-max (* 2 1024 1024) ;; 2mb
-      inhibit-compacting-font-caches t
-      frame-inhibit-implied-resize t
-      vc-handled-backends nil
-      file-name-handler-alist nil
-      kill-ring-max 100000
-      mode-line-format nil
-      inhibit-startup-buffer-menu t
-      inhibit-startup-echo-area-message user-login-name
-      initial-major-mode 'fundamental-mode
-      inhibit-splash-screen t
-      inhibit-startup-message t
-      inhibit-startup-screen t
-      initial-scratch-message nil
-      load-prefer-newer t
-      ns-use-proxy-icon nil
-      frame-title-format nil
-      frame-resize-pixelwise t)
+  (push '(ns-appearance . dark) default-frame-alist)
+  ;; (push '(undecorated . t) default-frame-alist)
+  (push '(undecorated-round . t) default-frame-alist)
+  )
 
 ;; Font settings
 (let ((mono-font "Iosevka Curly")
@@ -57,7 +39,8 @@
 ;; Native compilation settings
 (when (featurep 'native-compile)
   (setq native-comp-async-report-warnings-errors nil
-        native-comp-deferred-compilation t))
+        package-native-compile t
+        native-comp-jit-compilation t))
 
 ;; UTF-8 everywhere
 (set-language-environment "UTF-8")
@@ -65,6 +48,39 @@
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
 (set-selection-coding-system 'utf-8)
+
+(setq site-run-file nil
+      read-process-output-max (* 2 1024 1024) ;; 2mb
+      inhibit-compacting-font-caches t
+      frame-inhibit-implied-resize t
+      bidi-inhibit-bpa t
+      vc-handled-backends nil
+      file-name-handler-alist nil
+      kill-ring-max 100000
+      mode-line-format nil
+      initial-buffer-choice nil
+      inhibit-x-resources t
+      inhibit-startup-buffer-menu t
+      inhibit-startup-echo-area-message user-login-name
+      initial-major-mode 'fundamental-mode
+      inhibit-splash-screen t
+      inhibit-startup-message t
+      inhibit-startup-screen t
+      initial-scratch-message nil
+      load-prefer-newer t
+      ns-use-proxy-icon nil
+      frame-title-format nil
+      frame-resize-pixelwise t
+      package-enable-at-startup nil)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("gnu" . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+(customize-set-variable 'package-archive-priorities '(("gnu"    . 99)
+                                                      ("nongnu" . 80)
+                                                      ("stable" . 70)
+                                                      ("melpa"  . 0)))
 
 (add-hook 'emacs-startup-hook
           (lambda ()

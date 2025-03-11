@@ -1,10 +1,5 @@
 ;;; init.el --- optimized init file -*- no-byte-compile: t; lexical-binding: t; -*-
-;;; commentary:
-
-;;; code:
-
-
-;; Compile-time variable declarations to avoid warnings
+;; eval variable declarations to avoid warnings
 (eval-when-compile
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
@@ -49,7 +44,7 @@
 (global-unset-key [C-wheel-down])
 
 (use-package use-package
-  :config
+ :config
   (setq use-package-verbose nil
 	use-package-expand-minimally t
 	use-package-always-ensure t
@@ -76,7 +71,7 @@
   :defer t
   :ensure t
   :custom
-  (nerd-icons-scale-factor 1.05))
+  (nerd-icons-scale-factor 1.0))
 
 (use-package all-the-icons
   :defer t
@@ -97,77 +92,46 @@
 
 (use-package candyshop
   :ensure nil
-  :defer t
+  :defer 2
   ;; :hook (after-init . candyshop-mode)
   :bind ("C-c t c" . candyshop-toggle)
   :config
   (setq candyshop-alpha-values '(100 95)))
 
 (use-package emacs
+  :ensure nil
   :init
   (global-hl-line-mode 1)
   (global-auto-revert-mode 1)
-  (global-so-long-mode 1)
-  ;; (pixel-scroll-precision-mode 1)
   (set-display-table-slot standard-display-table 0 ?\ )
   (display-battery-mode 1)
+  :custom
+  (split-width-threshold 300)
+  (warning-minimum-level :emergency)
+  (setq backup-directory-alist `(("." . "~/.saves")))
+  (setq backup-by-copying t)
+  (setq delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)
+  (history-length 25)
   :config
-  (setq-default
-   confirm-kill-emacs (lambda (prompt)
-			(y-or-n-p-with-timeout prompt 2 nil))
-   use-short-answers t
-   confirm-kill-processes nil
-   fringes-outside-margins nil
-   indicate-buffer-boundaries nil
-   indicate-empty-lines nil
-   create-lockfiles nil
-   auto-revert-verbose nil
-   auto-revert-interval 1
-   auto-save-no-message t
-   delete-by-moving-to-trash t
-   make-backup-files nil
-   auto-save-default nil
-   auto-save-interval 2000
-   auto-save-timeout 20
-   delete-old-versions t
-   kept-new-versions 6
-   kept-old-versions 2
-   version-control t
-   ring-bell-function 'ignore
-   line-spacing 0.08
-   global-auto-revert-non-file-buffers t
-   completion-ignore-case t
-   display-line-numbers-width 4
-   cursor-in-non-selected-windows nil
-   find-file-visit-truename nil
-   ad-redefinition-action 'accept
-   large-file-warning-threshold (* 25 1024 1024)
-   backup-by-copying t
-   backup-directory-alist `(("." . "~/.saves"))
-   auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory)
-   auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t))
-   debug-on-error nil
-   custom-file (concat user-emacs-directory "var/custom.el")
-   scroll-margin 0
-   scroll-conservatively 101
-   scroll-preserve-screen-position t
-   scroll-step 1
-   auto-window-vscroll nil
-   backward-delete-char-untabify-method 'hungry
-   fast-but-imprecise-scrolling nil
-   redisplay-skip-fontification-on-input nil
-   line-move-visual nil)
   (when (eq system-type 'darwin)
     (setq mac-option-key-is-meta nil
           mac-command-key-is-meta t
           mac-command-modifier 'meta
           mac-option-modifier 'none
-          dired-use-ls-dired nil
-          browse-url-browser-function #'mk/browser-split-window)
-    (setq mac-redisplay-dont-reset-vscroll t
-          mac-mouse-wheel-smooth-scroll nil))
-  (when (file-exists-p custom-file)
-    (load custom-file)))
+          dired-use-ls-dired t
+          browse-url-browser-function #'mk/browser-split-window))
+  (setq-default
+   custom-file (concat user-emacs-directory "var/custom.el")
+   ring-bell-function 'ignore
+   completion-ignore-case t
+   use-short-answers t
+   debug-on-error nil
+   confirm-kill-emacs))
+
+(load custom-file 'noerror 'nomessage)
 
 (defun setup-programming-mode ()
   "Setup programming mode."
@@ -189,8 +153,7 @@
         word-wrap nil
         show-trailing-whitespace nil
         column-number-mode nil
-        truncate-lines t
-        display-line-numbers 'relative))
+        truncate-lines t))
 
 (use-package window
   :ensure nil
@@ -295,10 +258,10 @@
   (set-message-beep 'silent))
 
 (use-package nerd-icons-completion
-  :after (nerd-icons marginalia)
+  :after (:all nerd-icons marginalia)
+  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
-  (nerd-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+  (nerd-icons-completion-mode))
 
 (use-package nerd-icons-corfu
   :after (nerd-icons corfu)
@@ -317,11 +280,12 @@
   (setq nerd-icons-ibuffer-human-readable-size t))
 
 (use-package treemacs-nerd-icons
-  :after (treemacs nerd-icons)
+  :after treemacs
   :functions treemacs-load-theme
-  :config
-  (setq nerd-icons-color-icons nil)
-  (treemacs-load-theme "nerd-icons"))
+  :preface
+  (defun treemacs--propagate-new-icons (_theme))
+  :custom-face (cfrs-border-color ((t (:inherit posframe-border))))
+  :config (treemacs-load-theme "nerd-icons"))
 
 (use-package ligature
   :config
@@ -348,7 +312,7 @@
    ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-frappe t)
-  ;; (load-theme 'catppuccin-mocha t)
+  (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'rose-pine t)
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
@@ -359,46 +323,30 @@
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'nordic t)
   ;; (load-theme 'poimandres t)
-  (load-theme 'mito-laser t)
+  ;; (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )
 
-
-;; (advice-add #'balance-windows :override #'balance-windows-area)
-
-(use-package zoom
-  :hook (after-init . zoom-mode)
-  :config
-  (setq zoom-size '(0.7 . 0.7))
-  zoom-ignored-major-modes '(comint-mode
-                             dape-mode
-                             dired-mode
-                             help-mode
-                             help-mode-menu
-                             helpful-mode
-                             org-mode
-                             rxt-help-mode
-                             vterm-mode)
-  zoom-ignore-predicates (list (lambda () (< (count-lines (point-min) (point-max)) 20)))
-  (add-to-list 'zoom-ignored-buffer-name-regexps "*Ilist*"))
-
 (use-package which-key
   :ensure nil
-  :hook (after-init . which-key-mode))
+  :hook (after-init . which-key-mode)
+  :custom
+  (which-key-add-column-padding 2)
+  (which-key-side-window-slot -10))
 
 (use-package prog-mode
   :ensure nil
   :hook ((prog-mode . display-line-numbers-mode)
-	 (prog-mode . highlight-symbol-mode)
-	 (prog-mode . electric-pair-mode)
-	 (prog-mode . electric-indent-mode)
-	 (prog-mode . drag-stuff-mode)
-	 (prog-mode . dumb-jump-mode)
-	 (prog-mode . hs-minor-mode)
-	 (prog-mode . setup-programming-mode))
-  :config
-  (setq display-line-numbers-type 'relative))
+         (prog-mode . electric-pair-mode)
+         (prog-mode . electric-indent-mode)
+         (prog-mode . drag-stuff-mode)
+         (prog-mode . dumb-jump-mode)
+         (prog-mode . hs-minor-mode)
+         (prog-mode . setup-programming-mode))
+  :init
+  (setq-local display-line-numbers-type 'relative
+              display-line-numbers-width 5))
 
 (use-package saveplace
   :ensure nil
@@ -421,12 +369,9 @@
                      (propertize "» " 'face '(:inherit font-lock-delimiter-face :weight bold))
                    "  ")
                  cand)))
-  (setq enable-recursive-minibuffers nil) ;; Tillåt rekursiva minibuffers
-  (minibuffer-depth-indicate-mode 1)
   (setq vertico-resize t
-        vertico-count 12
-        vertico-multiline nil
-        vertico-scroll-margin 10
+        vertico-count 14
+        vertico-multiform-mode t
         vertico-cycle t))
 
 (use-package vertico-posframe
@@ -436,9 +381,7 @@
   :config
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
-        '((left-fringe . 0)
-          (right-fringe . 0)
-          (alpha . 94))
+        '((alpha . 94))
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         vertico-posframe-truncate-lines t
         vertico-posframe-min-height 1
@@ -459,10 +402,11 @@
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless flex)
+  (setq completion-styles '(orderless)
+        completion-ignore-case t
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (orderless flex)))
-                                        (eglot (styles . (orderless flex))))))
+        completion-category-overrides '((file (styles . (orderless)))
+                                        (eglot (styles . (orderless ))))))
 
 (use-package marginalia
   :hook (after-init . marginalia-mode))
@@ -576,11 +520,69 @@
         evil-echo-state nil
 	evil-want-C-i-jump t)
   :config
+  (setq evil-leader/in-all-states t)
+
+  (evil-set-leader 'normal (kbd "SPC"))
+  (evil-set-leader 'visual (kbd "SPC"))
+
+  (evil-define-key 'normal 'global (kbd "<leader>SPC") 'execute-extended-command)
+  (evil-define-key 'normal 'global (kbd "<leader> .") 'embark-act)
+  (evil-define-key 'normal 'global (kbd "<leader> P") 'package-install)
+  (evil-define-key 'normal 'global (kbd "<leader> S") 'consult-line-multi)
+  (evil-define-key 'normal 'global (kbd "<leader> F") 'consult-line)
+  (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
+  (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
+
+  ;;; Buffers
+  (evil-define-key 'normal 'global (kbd "<leader> b b") 'consult-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader> b i") 'ibuffer)
+  (evil-define-key 'normal 'global (kbd "<leader> b k") 'kill-current-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader> b m") '(lambda () (interactive) (switch-to-buffer "*Messages*")))
+  (evil-define-key 'normal 'global (kbd "<leader> b s") '(lambda () (interactive) (switch-to-buffer "*scratch*")))
+
+  (evil-define-key 'normal 'global (kbd "<leader> v s") 'magit-status)
+  (evil-define-key 'normal 'global (kbd "<leader> v b") 'magit-diff-buffer-file)
+  (evil-define-key 'normal 'global (kbd "<leader> v a") 'vc-annotate)
+  (evil-define-key 'normal 'global (kbd "<leader> v l") 'magit-log-buffer-file)
+
+  (evil-define-key 'normal 'global (kbd "<leader> f b") 'consult-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader> f d") 'delete-file)
+  (evil-define-key 'normal 'global (kbd "<leader> f e") '(lambda () (interactive) (find-file user-init-file)))
+  (evil-define-key 'normal 'global (kbd "<leader> f f") 'consult-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader> f n") 'create-file-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader> f r") 'consult-recent-file)
+  (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
+
+  (evil-define-key 'normal 'global (kbd "<leader> g g") 'google-this)
+
+  ;; Eval
+  (evil-define-key 'normal 'global (kbd "<leader> e b") 'eval-buffer)
+  (evil-define-key 'normal 'global (kbd "<leader> e l") 'eval-last-sexp)
+
+  (evil-define-key 'normal 'global (kbd "<leader> t s") 'sort-lines)
+  (evil-define-key 'normal 'global (kbd "<leader> t x") 'delete-trailing-whitespace)
+
+  (evil-define-key 'normal 'global (kbd "<leader> p F") 'consult-ripgrep)
+  (evil-define-key 'normal 'global (kbd "<leader> p s") 'project-switch-project)
+  (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers)
+  (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer)
+
+  (evil-define-key 'normal 'global (kbd "<leader> q r") 'restart-emacs)
+  (evil-define-key 'normal 'global (kbd "<leader> q q") 'save-buffers-kill-terminal)
+
+  (defun mk/consult-ripgrep-at-point-project ()
+    "Search for the word at point using consult-ripgrep from project root."
+    (interactive)
+    (consult-ripgrep (project-root (project-current)) (thing-at-point 'symbol)))
+
+  (evil-define-key 'normal 'global (kbd "<leader> p f") 'mk/consult-ripgrep-at-point-project)
+  
   (evil-select-search-module 'evil-search-module 'evil-search)
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
+
   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
@@ -720,32 +722,37 @@
   :bind ("C-x e" . er/expand-region))
 
 (use-package eldoc-box
-  :hook (eldoc-mode . eldoc-box-hover-mode)
-  :custom
-  (setq eldoc-box-clear-with-C-g t
-        eldoc-box-max-pixel-width 120
-        eldoc-box-max-pixel-height 220)
-  :bind ("C-x C-e" . (lambda ()
-                       (interactive)
-                       (eldoc-box-help-at-point))))
+  :if (display-graphic-p)
+  :diminish
+  :hook
+  (prog-mode . eldoc-box-hover-at-point-mode)
+  (eldoc-box-frame . (lambda (&rest _)
+                       (set-window-margins (selected-window) 0 0)))
+  :config
+  ;; Prettify `eldoc-box' frame
+  (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 0
+        (alist-get 'internal-border-width eldoc-box-frame-parameters) 2
+        (alist-get 'right-fringe eldoc-box-frame-parameters) 0))
 
 (use-package corfu
-  :hook (after-init . global-corfu-mode)
+  :init (global-corfu-mode)
   :bind
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
         ("<escape>" . corfu-quit)
+        ("C-g" . corfu-quit)
         ("C-j" . corfu-next)
         ("C-k" . corfu-previous))
   :custom
   (corfu-auto t)
   (corfu-preview-current 'insert)
   :init
-  ;; (corfu-popupinfo-mode 1)
+  (corfu-popupinfo-mode 1)
   (setq corfu-auto-delay 0.2          ; Reduced from 0.3
 	corfu-auto-prefix 2
-        corfu-popupinfo-delay 0.1
+        corfu-popupinfo-delay 1.0
         corfu-preselect 'valid
+        corfu-popupinfo-direction '(vertical right)
         cofru-preview-current t
 	corfu-quit-at-boundary 'separator
 	corfu-quit-no-match t))
@@ -755,10 +762,11 @@
   :custom
   (kind-icon-extra-space t)
   (kind-icon-blend-background t)
-  (kind-icon-blend-frac 0.10)
+  (kind-icon-blend-frac 0.19)
   :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
   (setq kind-icon-default-face 'corfu-default ; to compute blended backgrounds correctly
-        kind-icon-default-style '(:padding 0 :stroke 0 :margin 0 :radius 0 :height 1))
+        kind-icon-default-style '(:padding 0.0 :stroke 0 :margin 0.5 :radius 0 :height 1.0 :scale 0.95))
   (setq kind-icon-use-icons t)
   (setq kind-icon-mapping
 	  '((array          "a"   :icon "symbol-array"       :face font-lock-type-face              :collection "vscode")
@@ -769,7 +777,7 @@
 	    (class          "c"   :icon "symbol-class"       :face font-lock-type-face              :collection "vscode")
 	    (constructor    "cn"  :icon "symbol-method"      :face font-lock-function-name-face     :collection "vscode")
 	    (enum           "e"   :icon "symbol-enum"        :face font-lock-builtin-face           :collection "vscode")
-	    (enummember     "em"  :icon "symbol-enum-member" :face font-lock-builtin-face           :collection "vscode")
+ 	    (enummember     "em"  :icon "symbol-enum-member" :face font-lock-builtin-face           :collection "vscode")
 	    (enum-member    "em"  :icon "symbol-enum-member" :face font-lock-builtin-face           :collection "vscode")
 	    (event          "ev"  :icon "symbol-event"       :face font-lock-warning-face           :collection "vscode")
 	    (field          "fd"  :icon "symbol-field"       :face font-lock-variable-name-face     :collection "vscode")
@@ -801,14 +809,12 @@
 	    ;; add instance for python
 	    (instance       "in"  :icon "symbol-variable"    :face font-lock-variable-name-face     :collection "vscode")
 	    (t              "."   :icon "question"           :face font-lock-warning-face           :collection "vscode")))
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
   (add-to-list 'kind-icon-mapping '(tabnine "ai" :icon "cloud" :face shadow) t))
 
 (use-package savehist
   :defer 2
   :hook (after-init . savehist-mode)
   :config
-  (setq history-length 1000)
   (setq history-delete-duplicates t)
   (setq savehist-save-minibuffer-history t))
 
@@ -851,9 +857,10 @@
   :ensure nil
   :hook (after-init . darken-buffer-mode)
   :config
-  (setq darken-buffer-ignore-buffers-regexp '("^\\*.*\\*$")
+  (setq
+       ;;  darken-buffer-ignore-buffers-regexp '("^\\*.*\\*$")
         darken-buffer-percentage 0
-        lighten-inactive-buffer-percentage 3))
+        lighten-inactive-buffer-percentage 4))
 
 (use-package avy
   :defer t
@@ -862,9 +869,24 @@
   (setq avy-single-candidate-jump t))
 
 (use-package dape
-  :defer t
   :commands (dape-info dape-repl dape)
-  :bind
+  :custom
+  (dape-breakpoint-margin-string "●")
+  :config
+  (setq dape-buffer-window-arrangement 'right
+        dape-stack-trace-levels 10
+        dape-display-source-buffer-action '(display-buffer-same-window)
+        dape-breakpoint-margin-face 'dape-breakpoint-face
+        dape-breakpoint-face '((t (:foreground "#FF5D62"))))
+  (dape-repl-commands
+   '((" debug" . dape)
+     (" next" . dape-next)
+     (" continue" . dape-continue)
+     (" pause" . dape-pause)
+     (" step" . dape-step-in)
+     (" out" . dape-step-out)
+     (" restart" . dape-restart)
+     (" disconnect" . dape-disconnect-quit)))
   :config
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10)
@@ -879,40 +901,42 @@
   (repeat-exit-timeout 5))
 
 (use-package treemacs
-  :defer t
   :commands (treemacs treemacs-select-window)
-  :hook (treemacs-mode . treemacs-project-follow-mode)
+  :hook ((treemacs-mode . treemacs-project-follow-mode)
+         (treemacs-mode . (lambda () (set-window-fringes (treemacs-get-local-window) 0 0 nil))))
   :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
+  :custom
+  (treemacs-filewatch-mode t)
+  (treemacs-indentation 1)
+  (treemacs-resize-icons 12)
   :config
-  (let ((font-family "SF Compact Text"))
+  (let* ((font-family "SF Pro Display")
+        (font-height 0.8))
     (custom-set-faces
-     `(treemacs-directory-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-directory-collapsed-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-git-ignored-face ((t (:family ,font-family :height 0.8 :slant italic :weight light))))
-     `(treemacs-git-conflict-face ((t (:family ,font-family :height 0.8 :slant italic :weight light))))
-     `(treemacs-git-unmodified-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-git-untracked-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-git-added-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-git-renamed-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-git-modified-face ((t (:family ,font-family :height 0.8 :weight light))))
-     `(treemacs-tags-face ((t (:family ,font-family :height 0.8))))))
-  :config
+     `(treemacs-directory-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-directory-collapsed-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-git-ignored-face ((t (:family ,font-family :height ,font-height :slant italic ))))
+     `(treemacs-git-conflict-face ((t (:family ,font-family :height ,font-height :slant italic))))
+     `(treemacs-git-unmodified-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-git-untracked-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-git-added-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-git-deleted-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-git-renamed-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-git-modified-face ((t (:family ,font-family :height ,font-height))))
+     `(treemacs-tags-face ((t (:family ,font-family :height ,font-height))))))
   (setq treemacs-follow-after-init t
-        treemacs-collapse-dirs 0
+        treemacs-collapse-dirs 3  ;; Changed from t to 3
         treemacs-directory-name-transformer #'identity
         treemacs-file-name-transformer #'identity
         treemacs-show-cursor nil
-        treemacs-display-current-project-exclusively t
-        treemacs-filewatch-mode t
-        treemacs-follow-mode nil
+        treemacs-display-current-project--mode nil
         treemacs-hide-dot-git-directory t
         treemacs-git-integration t
         treemacs-space-between-root-nodes nil
         treemacs-hide-gitignored-files-mode t
         treemacs-git-mode 'extended
-        treemacs-silent-refresh	t
-        treemacs-indentation 1
+        treemacs-silent-refresh t
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
         treemacs-width 40))
 
@@ -930,6 +954,7 @@
 
 (use-package flycheck-package
   :defer t
+  :after flycheck
   :hook (emacs-lisp-mode . flycheck-package-setup))
 
 (use-package flycheck
@@ -938,22 +963,24 @@
   :bind
   ("C-c f n" . flycheck-next-error)
   ("C-c f p" . flycheck-previous-error)
+  ("C-c f g" . flycheck-mode)
   :config
   (add-to-list 'flycheck-checkers 'javascript-eslint)
   (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
+  ;; (setq-default flycheck-indication-mode 'left-margin)
+  ;; (add-hook 'flycheck-mode-hook #'flycheck-set-indication-mode)
   :custom
-  (flycheck-checker-error-threshold 500)
+  (flycheck-checker-error-threshold 400)
   (setq flycheck-check-syntax-automatically '(save mode-enabled)
 	flycheck-idle-change-delay 2.0))
 
 (use-package flycheck-overlay
   :ensure nil
-  :after flycheck
+  :hook (flycheck-mode . flycheck-overlay-mode)
+  :bind ("C-c f l" . flycheck-overlay-toggle)
   :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode)
-  (setq flycheck-overlay-virtual-line-type 'line-no-arrow)
-  (setq flycheck-overlay-virtual-line-icon nil)
-  ;; (setq flycheck-overlay-checkers '(flycheck))
-  )
+  (setq flycheck-overlay-virtual-line-type 'curved-arrow)
+  (setq flycheck-overlay-virtual-line-icon nil))
 
 (use-package flycheck-eglot
   :hook (eglot-managed-mode . flycheck-eglot-mode)
@@ -962,14 +989,18 @@
 (use-package consult-flycheck
   :bind ("M-+" . consult-flycheck))
 
+(use-package emojify
+  :defer t
+  :hook (after-init . global-emojify-mode))
+
 (use-package markdown-mode
   :defer t
   :mode "\\.md\\'"
   :commands (markdown-mode)
+  :custom
+  (markdown-header-scaling t)
   :hook ((markdown-mode . visual-line-mode)
-         (markdown-mode . (lambda ()
-                            (setq left-fringe-width 20 right-fringe-width 20)
-                            (set-window-fringes nil left-fringe-width right-fringe-width)))))
+         (markdown-mode . emojify-mode)))
 
 (use-package yaml-mode
   :commands (yaml-mode))
@@ -982,23 +1013,23 @@
   :hook (after-init . pulsar-global-mode)
   :config
   (setq pulsar-pulse t
-        pulsar-delay 0.1
+        pulsar-delay 0.025
         pulsar-iterations 10
         pulsar-face 'pulsar-cyan
         pulsar-highlight-face 'evil-ex-lazy-highlight
         pulsar-pulse-functions '(
-				 evil-yank
-				 evil-yank-line
-				 evil-delete
-				 evil-delete-line
-				 evil-jump-item
-				 evil-scroll-down
-				 evil-scroll-up
-				 evil-scroll-page-down
-				 evil-scroll-page-up
-				 evil-scroll-line-down
-				 evil-scroll-line-up
-				 evil-window-up
+                                 evil-yank
+                                 evil-yank-line
+                                 evil-delete
+                                 evil-delete-line
+                                 evil-jump-item
+                                 evil-scroll-down
+                                 evil-scroll-up
+                                 evil-scroll-page-down
+                                 evil-scroll-page-up
+                                 evil-scroll-line-down
+                                 evil-scroll-line-up
+                                 evil-window-up
                                  evil-window-rotate-upwards
                                  evil-window-rotate-downwards
                                  evil-window-down
@@ -1143,83 +1174,78 @@
         show-paren-when-point-in-periphery t))
 
 ;; general
-(use-package general
-  :ensure t
-  :config
-  (general-create-definer mk/leader-keys
-    :keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
-    :prefix "SPC"
-    :non-normal-prefix "M-SPC")
+;; (use-package general
+;;   :ensure t
+;;   :config
+;;   (general-create-definer mk/leader-keys
+;;     :keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
+;;     :prefix "SPC"
+;;     :non-normal-prefix "M-SPC")
 
-  (mk/leader-keys
-    "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
-    "SPC" '(execute-extended-command :which-key "M-x")
-    "s" '(consult-line-multi :which-key "Consult multi search")
-    "F" '(consult-line :which-key "Consult outline")
-    "0" '(treemacs-select-window :which-key "Treemacs")
-    "P" 'package-install
-    "'" '((lambda () (interactive) (toggle-vterm)) :which-key "Term"))
 
-  (mk/leader-keys
-    "gg" '(google-this :which-key "Google this"))
+;;   (mk/leader-keys
+;;     "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
+;;     "SPC" '(execute-extended-command :which-key "M-x")
+;;     "s" '(consult-line-multi :which-key "Consult multi search")
+;;     "F" '(consult-line :which-key "Consult outline")
+;;     "0" '(treemacs-select-window :which-key "Treemacs")
+;;     "P" 'package-install
+;;     "'" '((lambda () (interactive) (toggle-vterm)) :which-key "Term"))
 
-  (mk/leader-keys
-    "cc" '(calendar :which-key "Calendar"))
+;;   (mk/leader-keys
+;;     "cc" '(calendar :which-key "Calendar"))
 
-  (mk/leader-keys
-    "bm" '(lambda () (interactive) (switch-to-buffer "*Messages*") :which-key "Message buffer")
-    "bs" '(lambda () (interactive) (switch-to-buffer "*scratch*") :which-key "Scratch buffer"))
+;;   (mk/leader-keys
+;;     "ee" '(eval-expression :which-key "Eval expression")
+;;     "eb" '(eval-buffer :which-key "Eval buffer")
+;;     "el" '(eval-last-sexp :which-key "Eval before point")
+;;     "ea" '(embark-act :which-key "Embark act")
+;;     "er" '(eval-region :which-key "Eval region")
+;;     "er" '(eval-region :which-key "Eval region")
+;;     "ef" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
 
-  (mk/leader-keys
-    "ee" '(eval-expression :which-key "Eval expression")
-    "eb" '(eval-buffer :which-key "Eval buffer")
-    "el" '(eval-last-sexp :which-key "Eval before point")
-    "ea" '(embark-act :which-key "Embark act")
-    "er" '(eval-region :which-key "Eval region")
-    "er" '(eval-region :which-key "Eval region")
-    "ef" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
+;;   (mk/leader-keys
+;;     "fs" '(save-buffer :which-key "Save file")
+;;     "fb" '(consult-buffer :which-key "Find buffer")
+;;     "ff" '(find-file :which-key "Find file")
+;;     "fl" '(consult-line-multi :which-key "Find line in project")
+;;     "fr" '(consult-recent-file :which-key "Recent files")
+;;     "fn" '(create-file-buffer :which-key "New file")
+;;     "fR" '(dired-rename-file :which-key "Rename file")
+;;     "fD" '(delete-file :which-key "Delete file")
+;;     "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "User configuration"))
 
-  (mk/leader-keys
-    "fs" '(save-buffer :which-key "Save file")
-    "fb" '(consult-buffer :which-key "Find buffer")
-    "ff" '(find-file :which-key "Find file")
-    "fl" '(consult-line-multi :which-key "Find line in project")
-    "fr" '(consult-recent-file :which-key "Recent files")
-    "fn" '(create-file-buffer :which-key "New file")
-    "fR" '(dired-rename-file :which-key "Rename file")
-    "fD" '(delete-file :which-key "Delete file")
-    "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "User configuration"))
+;;   (mk/leader-keys
+;;     "hc" '(helpful-command :which-key "Describe command")
+;;     "hk" '(helpful-key :which-key "Describe key")
+;;     "hv" '(helpful-variable :which-key "Describe variable")
+;;     "ht" '(evil-tutor-start :which-key "Evil tutorial")
+;;     "h." '(helpful-at-point :which-key "Describe at-point")
+;;     "hp" '(describe-package :which-key "Describe package"))
 
-  (mk/leader-keys
-    "hc" '(helpful-command :which-key "Describe command")
-    "hk" '(helpful-key :which-key "Describe key")
-    "hv" '(helpful-variable :which-key "Describe variable")
-    "ht" '(evil-tutor-start :which-key "Evil tutorial")
-    "h." '(helpful-at-point :which-key "Describe at-point")
-    "hp" '(describe-package :which-key "Describe package"))
+;;   (mk/leader-keys
+;;     "ts" '(sort-lines :which-key "Sort lines")
+;;     "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace"))
 
-  (mk/leader-keys
-    "ts" '(sort-lines :which-key "Sort lines")
-    "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace"))
+;;   (mk/leader-keys
+;;     "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
+;;     "wp" '(previous-window-any-frame :which-key "Previous window")
+;;     "wx" '(delete-window :hich-key "Delete window"))
 
-  (mk/leader-keys
-    "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
-    "wp" '(previous-window-any-frame :which-key "Previous window")
-    "wx" '(delete-window :hich-key "Delete window"))
+;;   (mk/leader-keys
+;;     "pF" '(consult-ripgrep :which-key "Find symbol in project")
+;;     "pf" '((lambda () (interactive) (mk/consult-ripgrep-at-point-project)) :which-key "Find symbol in project")
+;;     "ps" '(project-switch-project :which-key "Switch project"))
 
-  (mk/leader-keys
-    "pf" '(consult-ripgrep :which-key "Find symbol in project")
-    "ps" '(project-switch-project :which-key "Switch project"))
+;;   (mk/leader-keys
+;;     "vs" '(magit-status :which-key "Status")
+;;     "vb" '(blamer-show-commit-info :which-key "Show git blame")
+;;     "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
+;;     "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
 
-  (mk/leader-keys
-    "vs" '(magit-status :which-key "Status")
-    "vb" '(blamer-show-commit-info :which-key "Show git blame")
-    "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
-    "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
-
-  (mk/leader-keys
-    "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
-    "qr" '(restart-emacs :which-key "Restart emacs")))
+;;   (mk/leader-keys
+;;     "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
+;;     "qr" '(restart-emacs :which-key "Restart emacs")))
 
 (setq org-custom-todo-faces '
       (("TODO" :background "#FF5D62" :distant-foreground "#FF5D62" :foreground "#FFFFFF" :weight 'bold)
@@ -1300,8 +1326,8 @@
                                               (org-redisplay-inline-images))))
 
   (require 'org-tempo)
-  (require 'ob-swiftui)
-  (ob-swiftui-setup)
+  ;; (require 'ob-swiftui)
+  ;; (ob-swiftui-setup)
 
   (setq-local org-confirm-babel-evaluate t)
 
@@ -1472,12 +1498,12 @@
   (add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-ts-mode)))
 
 (use-package localizeable-mode
+  :ensure nil
+  :after swift-ts-mode
   :mode "\\.strings\\'"
   :bind (:map localizeable-mode-map
               ("C-c C-c" . #'swift-additions:compile-and-run)
-              ("C-c C-k" . #'periphery-run-loco))
-  :defer t
-  :ensure nil)
+              ("C-c C-k" . #'periphery-run-loco)))
 
 (use-package objc-mode
   :mode "\\.h\\'"
@@ -1547,7 +1573,7 @@
   (setq eglot-stay-out-of '(corfu company flycheck)
 	eglot-extend-to-xref t
 	eglot-send-changes-idle-time 0.5
-        eldoc-documentation-strategy 'eldoc-documentation-default
+        ;; eldoc-documentation-strategy 'eldoc-documentation-default
         jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
@@ -1562,12 +1588,16 @@
 
 (use-package swift-refactor
   :ensure nil
-  :after swift-ts-mode
+  :after (swift-ts-mode kotlin-ts-mode)
   :bind
-  ("C-c r s" . #'swift-refactor:split-function-list)
-  ("M-t" . #'swift-refactor:insert-todo)
-  ("M-m" . #'swift-refactor:insert-mark)
+  (:map kotlin-ts-mode-map
+        ("C-c r s" . #'code-refactor:split-function-list)
+        ("M-t" . #'swift-refactor:insert-todo)
+        ("M-m" . #'swift-refactor:insert-mark))
   (:map swift-ts-mode-map
+        ("M-t" . #'swift-refactor:insert-todo)
+        ("M-m" . #'swift-refactor:insert-mark)
+        ("C-c r s" . #'code-refactor:split-function-list)
         ("C-c x t" . #'xcode-additions:toggle-device-choice)
         ("C-c x c" . #'xcode-additions:show-current-configuration)
         ("C-c r a" . #'swift-refactor:wrap-selection)
@@ -1725,20 +1755,11 @@
   :config
   (setq treesit-font-lock-level 4))
 
-
-
-  ;; :vc (:url "https://github.com/jdtsmith/eglot-booster" :rev :newest)
-  ;; :vc (:url "https://github.com/JasZhe/window-stool" :rev :newest)
-;; (package-vc-install "https://github.com/JasZhe/window-stool")
-;; (package-vc-install "https://github.com/jdtsmith/eglot-booster")
-;; (package-vc-install "https://github.com/chep/copilot-chat.el")
-;; (package-vc-install "https://github.com/copilot-emacs/copilot.el"):
-;; (package-vc-install "https://github.com/orzechowskid/tsx-mode.el.git")
-
-
 (use-package nxml-mode
   :ensure nil
   :mode "\\.xml\\'"
+  :config
+  (setq-local display-line-numbers-mode t)
   :hook ((nxml-mode . setup-programming-mode)
 	 (nxml-mode . rainbow-mode)))
 
@@ -1776,6 +1797,24 @@
    (compilation-max-output-line-length nil))
   :config
   (setq compilation-scroll-output t)
+  (setq compilation-transform-file-name-function
+        (lambda (file) 
+          (if (file-name-absolute-p file)
+              (file-relative-name file (project-root (project-current)))
+            file)))
+
+  ;; Customize error message format
+  (setq compilation-error-screen-columns nil    ; Don't truncate messages
+        compilation-message-face nil            ; Remove bold face from messages
+        compilation-messages-start-face nil)    ; Remove bold face from messages start
+  ;; Optional: Define custom error regexp if needed
+  (add-to-list 'compilation-error-regexp-alist-alist
+               '(my-shorter-errors
+                 "^\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\): \\(.*\\)$"
+                 1 2 3 2))
+  (add-to-list 'compilation-error-regexp-alist 'my-shorter-errors)
+
+  ;; Your existing ANSI color configuration
   (require 'ansi-color)
   (defun my/colorize-compilation-buffer ()
     (let ((inhibit-read-only t))
@@ -1783,18 +1822,13 @@
   (add-hook 'compilation-filter-hook #'my/colorize-compilation-buffer))
 
 (use-package flycheck-kotlin
-  :defer t
   :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
 
 (use-package kotlin-ts-mode
-  :defer t
-  :mode "\\.kt\\'"
-  :config
-  (setq treemacs-width 45)
-  (setq treesit-font-lock-level 4))
+  :mode "\\.kt\\'")
 
 (use-package kotlin-development
-  :defer t
+  :defer 10
   :hook ((kotlin-mode kotlin-ts-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
   :bind ((:map kotlin-mode-map
@@ -1803,9 +1837,12 @@
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator))
          (:map kotlin-ts-mode-map
+               ("C-c r s" . code-refactor:split-function-list)
                ("C-c C-c" . kotlin-development-build-and-run)
                ("C-c C-e l" . kotlin-development-list-emulators)
                ("C-c C-e k" . kotlin-development-kill-emulator)))
+  :init
+  (require 'swift-refactor)
   :config
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
@@ -1891,7 +1928,7 @@
        :url "https://github.com/jdtsmith/indent-bars"
        :branch "main"
        :rev :newest)
-  :hook ((emacs-lisp-mode swift-ts-mode kotlin-ts-mode) . indent-bars-mode)
+  :hook (prog-mode . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.15))
   (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
@@ -1905,12 +1942,19 @@
   :hook (after-init . music-control-mode))
 
 (use-package aidermacs
+  :commands (aidermacs-transient-menu)
   :vc (aidermacs
        :url "https://github.com/MatthewZMD/aidermacs"
        :branch "main"
        :rev :newest)
   :config
+  ;; (aidermacs-setup-minor-mode)
+  (setq aidermacs-auto-commits nil
+        aidermacs-use-architect-mode nil
+        ;; aidermacs-default-model "sonnet"
+        )
   (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  ;; (setq aidermacs-args '("--model" "anthropic/claude-3-7-sonnet-20250219"))
   (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
   ;; Or use chatgpt model since it is most well known
   ;; (setq aider-args '("--model" "o3-mini"))
@@ -1922,7 +1966,66 @@
   ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
   ;; ;;
   ;; Optional: Set a key binding for the transient menu
-  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
+  :bind
+  (:map global-map
+        ("C-c a" . aidermacs-transient-menu)))
+
+(use-package breadcrumb
+  :hook
+  (prog-mode . breadcrumb-local-mode)
+  :custom
+  (breadcrumb-imenu-crumb-separator
+   (concat (nerd-icons-octicon "nf-oct-chevron_right") " "))
+  (breadcrumb-project-crumb-separator
+   (concat (nerd-icons-octicon "nf-oct-chevron_right") " "))
+  (breadcrumb-imenu-max-length 0.5)
+  (breadcrumb-project-max-length 0.5)
+  :preface
+  (advice-add #'breadcrumb--format-project-node :around
+              (lambda (og p more &rest r)
+                "Icon For File"
+                (let ((string (apply og p more r)))
+                  (if (not more)
+                      (concat (nerd-icons-icon-for-file string)
+                              " " string)
+                    (concat (nerd-icons-faicon
+                             "nf-fa-folder_open"
+                             :face 'breadcrumb-project-crumbs-face)
+                            " "
+                            string)))))
+
+  (advice-add #'breadcrumb--project-crumbs-1 :filter-return
+              (lambda (return)
+                "Icon for Parent Node"
+                (if (listp return)
+                    (setf (car return)
+                          (concat
+                           " "
+                           (nerd-icons-faicon
+                            "nf-fa-rocket"
+                            :face 'breadcrumb-project-base-face)
+                           " "
+                           (car return))))
+                return))
+
+  (advice-add #'breadcrumb--format-ipath-node :around
+              (lambda (og p more &rest r)
+                "Icon for items"
+                (let ((string (apply og p more r)))
+                  (if (not more)
+                      (concat (nerd-icons-codicon
+                               "nf-cod-symbol_field"
+                               :face 'breadcrumb-imenu-leaf-face)
+                              " " string)
+                    (cond ((string= string "Packages")
+                           (concat (nerd-icons-codicon "nf-cod-package" :face 'breadcrumb-imenu-crumbs-face) " " string))
+                          ((string= string "Requires")
+                           (concat (nerd-icons-codicon "nf-cod-file_submodule" :face 'breadcrumb-imenu-crumbs-face) " " string))
+                          ((or (string= string "Variable") (string= string "Variables"))
+                           (concat (nerd-icons-codicon "nf-cod-symbol_variable" :face 'breadcrumb-imenu-crumbs-face) " " string))
+                          ((string= string "Function")
+                           (concat (nerd-icons-mdicon "nf-md-function_variant" :face 'breadcrumb-imenu-crumbs-face) " " string))
+                          (t string)))))))
 
 (provide 'init)
 ;;; init.el ends here

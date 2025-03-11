@@ -515,6 +515,17 @@ Handles process cleanup and provides detailed error reporting."
   (android-emulator-stop-logcat)
   (android-emulator-start-logcat))
 
+(defun android-emulator-toggle-logcat ()
+  "Toggle logcat monitoring on or off.
+If logcat is currently running, stop it. Otherwise, start it."
+  (interactive)
+  (if android-emulator-logcat-process
+      (progn
+        (android-emulator-stop-logcat)
+        (message "Logcat monitoring stopped"))
+    (android-emulator-start-logcat)
+    (message "Logcat monitoring started")))
+
 (defun android-emulator-build-logcat-command ()
   "Build the logcat command with appropriate filters."
   (let ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path)))
@@ -675,7 +686,7 @@ Handles process cleanup and provides detailed error reporting."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") 'android-emulator-show-crash-log)
     (define-key map (kbd "C-c C-k") 'android-emulator-clear-buffer)
-    (define-key map (kbd "C-c C-l") 'android-emulator-start-logcat)
+    (define-key map (kbd "C-c C-l") 'android-emulator-toggle-logcat)
     (define-key map (kbd "C-c C-f") 'android-emulator-set-app-identifier)
     (define-key map (kbd "C-c C-r") 'android-emulator-restart-logcat)
     map)

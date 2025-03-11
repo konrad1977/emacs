@@ -10,10 +10,7 @@
 ;;;###autoload
 (define-derived-mode localizeable-mode fundamental-mode
   (setq indicate-empty-lines t            ;; Show empty lines
-		indicate-unused-lines t           ;; Show unused lines
-        display-line-numbers t
-        left-fringe-width 12
-        left-margin-width 1
+        indicate-unused-lines t           ;; Show unused lines
         mode-name "Localizable")
   (setq font-lock-defaults '(())))
 

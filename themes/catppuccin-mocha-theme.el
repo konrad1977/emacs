@@ -49,7 +49,7 @@
 
  ;; Customize faces
  ((default                              (:background base :foreground text))
-  (border                               (:foreground overlay1))
+  (border                               (:foreground crust))
   (bookmark-face                        (:foreground red))
   (button                               (:foreground blue))
   (child-frame                          (:foreground mantle))
@@ -61,7 +61,7 @@
   (file-name-shadow                     (:foreground overlay2))
   (glyph-face                           (:background red :foreground overlay0))
   (glyphless-char                       (:foreground overlay2))
-  (header-line                          (:background mantle :foreground maroon :weight 'semi-bold :italic t))
+  (header-line                          (:background mantle :height 0.8 :box (:line-width 6 :color mantle)))
   (highlight                            (:background mantle :foreground blue :distant-foreground crust))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
@@ -70,18 +70,20 @@
   (match                                (:background yellow :foreground crust))
   (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
+
+  (mode-line                            (:background mantle :foreground text :box (:line-width 1 :color crust)))
+  (mode-line-active                     (:inherit 'mode-line))
   (mode-line-inactive                   (:background surface0 :foreground subtext0))
-  (mode-line-active                     (:background mantle :foreground text))
-  (mode-line-highlight                  (:foreground flamingo))
+  (mode-line-highlight                  (:foreground text))
   (mode-line-buffer-id                  (:foreground lavender))
   (mode-line-emphasis                   (:foreground blue))
 
   (numbers                              (:background peach))
-  (region                               (:background crust))
+  (region                               (:background lavender :foreground crust))
   (tooltip                              (:background overlay2 :foreground crust))
   (shadow                               (:foreground overlay2))
   (success                              (:foreground green))
-  (vertical-border                      (:foreground surface0))
+  (vertical-border                      (:foreground crust))
   (warning                              (:foreground yellow))
   (window-divider                       (:foreground base :distant-foreground mantle))
 
@@ -269,17 +271,6 @@
   (flycheck-inline-info                 (:inherit 'flycheck-posframe-info-face))
   (flycheck-inline-warning                (:inherit 'flycheck-posframe-warning-face))
 
-  ;; ;; indent dots
-  ;; (highlight-indent-guides-character-face       (:foreground blue))
-  ;; (highlight-indent-guides-stack-odd-face       (:foreground red))
-  ;; (highlight-indent-guides-stack-character-face (:foregroundnd red))
-  ;; (highlight-indent-guides-stack-even-face      (:foreground red))
-  ;; (highlight-indent-guides-even-face            (:foreground red))
-  ;; (highlight-indent-guides-odd-face             (:foreground red))
-  ;; (highlight-indent-guides-top-odd-face         (:foreground red))
-  ;; (highlight-indent-guides-top-character-face   (:foreground red))
-  ;; (highlight-indent-guides-top-even-face        (:foreground red))
-
    ;;;; ivy
   (ivy-current-match                            (:background blue :foreground crust :bold t))
   (ivy-action                                   (:background crust :foreground lavender))
@@ -301,7 +292,7 @@
 
   (corfu-annotations                            (:foreground overlay0))
   (corfu-current                                (:inherit 'vertico-current))
-  (corfu-border                                 (:background surface1))
+  (corfu-border                                 (:background crust :height 3))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
   (corfu-popupinfo                              (:background surface0 :foreground blue :italic t :bold t))
@@ -573,8 +564,8 @@
   (tree-sitter-hl-face:keyword.function          (:inherit 'tree-sitter-hl-face:keyword))
   (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
 
-  (swift-ts-face-annotation                      (:inherit 'tree-sitter-hl-face:annotation))
-  (swift-ts-face-annotation.builtin              (:inherit 'tree-sitter-hl-face:annotation.builtin))
+  (swift-ts-face-annotation                      (:foreground teal :weight 'semi-bold))
+  (swift-ts-face-annotation.builtin              (:foreground teal))
   (swift-ts-face-annotation.type                 (:inherit 'tree-sitter-hl-face:annotation.type))
   (swift-ts-face-punctuation.type                (:inherit 'font-lock-punctuation-face))
   (swift-ts-face-face-label                      (:inherit 'tree-sitter-hl-face:label))
@@ -582,6 +573,7 @@
   (swift-ts-face-method.name                     (:inherit 'font-lock-function-name-face))
   (swift-ts-face-keyword.type                    (:inherit 'tree-sitter-hl-face:keyword.type))
   (swift-ts-face-variable.synthesized            (:inherit 'tree-sitter-hl-face:variable.synthesized))
+  (swift-ts-face-escape                          (:inherit 'font-lock-regexp-grouping-backslash))
 
   (eldoc-box-body                                (:background mantle :foreground lavender))
   (eldoc-box-border                              (:background crust))
@@ -609,6 +601,22 @@
   (diff-removed (:foreground subtext1 :background dark-red))
   (diff-indicator-removed (:foreground subtext1 :background dark-red))
   (diff-nonexistent (:foreground subtext1))
+
+  ;; (flycheck-overlay-error       (:foreground red :background surface0 :height 150 ))
+  ;; (flycheck-overlay-info        (:foreground yellow :background surface0 :height 150))
+  ;; (flycheck-overlay-warning     (:foreground teal :background surface0 :height 150))
+  (flycheck-overlay-marker      (:foreground mauve :height 150 :italic t :weight 'semi-bold))
+
+  (punch-line-evil-normal-face  (:foreground crust :background teal :weight 'bold))
+  (punch-line-evil-visual-face  (:foreground crust :background mauve :weight 'bold))
+  (punch-line-evil-replace-face (:foreground crust :background maroon :weight 'bold))
+  (punch-line-evil-insert-face  (:foreground crust :background red :weight 'bold))
+  (punch-line-project-face      (:foreground pink :weight 'bold))
+  (punch-line-buffer-name-face  (:foreground text :weight 'bold))
+  ;; (punch-line-time-face         (:foreground background3))
+  ;; (punch-line-major-mode-face   (:foreground pink))
+  (punch-line-separator-face    (:foreground surface0 :weight 'thin))
+
  ))
 
 ;;;###autoload

@@ -108,7 +108,7 @@
      "-enableAddressSanitizer NO \\"
      "-enableThreadSanitizer NO \\"
      "-enableUndefinedBehaviorSanitizer NO \\"
-     "-resultBundlePath .bundle \\"
+     ;; "-resultBundlePath .bundle \\"
      (mapconcat (lambda (flag) (concat flag " \\"))
                 (append
                  (swift-additions:get-optimization-flags)
