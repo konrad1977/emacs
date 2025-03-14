@@ -5,8 +5,6 @@
 
 (require 'request)
 (require 'json)
-(require 'url-http)
-(require 'cl-lib)
 
 (defgroup apple-docs-query nil
   "Apple Docs Query Group."
@@ -15,7 +13,7 @@
 
 (defface apple-docs-title-face
   '((t (:inherit font-lock-keyword-face :bold t)))
-  "Title face."
+   "Title face."
   :group 'apple-docs-query)
 
 (defface apple-docs-description-face

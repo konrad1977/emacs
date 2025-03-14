@@ -10,7 +10,8 @@
       gc-cons-percentage 0.6)
 
 ;; Prevent package.el loading packages prior to init.el loading
-(setq package-enable-at-startup t)
+(setq package-enable-at-startup nil
+      package-quickstart t)
 
 ;; Disable unnecessary UI early
 (push '(vertical-scroll-bars . nil) default-frame-alist)
@@ -32,7 +33,7 @@
 ;; Font settings
 (let ((mono-font "Iosevka Curly")
       (variable-font "Iosevka Aile"))
-  (set-face-attribute 'default nil :family mono-font :height 180 :weight 'light)
+  (set-face-attribute 'default nil :family mono-font :height 170 :weight 'light)
   (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
 

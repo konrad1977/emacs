@@ -291,8 +291,8 @@
   (ivy-confirm-face                             (:foreground green))
 
   (vertico-multiline                            (:background crust))
-  (vertico-group-title                          (:foreground subtext1 :weight 'semi-bold :height 180))
-  (vertico-group-separator                      (:foreground overlay1 :strike-through t))
+  (vertico-group-title                          (:foreground blue :weight 'semi-bold :height 180))
+  (vertico-group-separator                      (:foreground blue :strike-through t))
   (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
 
   (vertico-posframe-border                      (:background crust))

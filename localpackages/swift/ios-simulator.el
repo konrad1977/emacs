@@ -354,16 +354,6 @@
 (defun ios-simulator:booted-simulator ()
   "Get booted simulator if any."
   (let ((device-id (shell-command-to-string ios-simulator:get-booted-simulator-command)))
-
-(defcustom ios-simulator-default-language "sv-SE"
-  "Default language for the simulator."
-  :type 'string
-  :group 'ios-simulator)
-
-(defcustom ios-simulator-default-language "sv-SE"
-  "Default language for the simulator."
-  :type 'string
-  :group 'ios-simulator)
     (if (not (string= "" device-id))
         (string-trim device-id)
       nil)))

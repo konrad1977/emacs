@@ -4,6 +4,7 @@
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
 
+
 ;; Package management setup
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -51,6 +52,8 @@
 	use-package-compute-statistics t
 	use-package-minimum-reported-time 0.1))
 
+(use-package no-littering)
+
 (use-package rg
   :defer t
   :ensure t)
@@ -90,13 +93,13 @@
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
-(use-package candyshop
-  :ensure nil
-  :defer 2
-  ;; :hook (after-init . candyshop-mode)
-  :bind ("C-c t c" . candyshop-toggle)
-  :config
-  (setq candyshop-alpha-values '(100 95)))
+;; (use-package candyshop
+;;   :ensure nil
+;;   :defer 2
+;;   ;; :hook (after-init . candyshop-mode)
+;;   :bind ("C-c t c" . candyshop-toggle)
+;;   :config
+;;   (setq candyshop-alpha-values '(100 95)))
 
 (use-package emacs
   :ensure nil
@@ -158,6 +161,7 @@
 (use-package window
   :ensure nil
   :bind (("C-x C-f" . toggle-frame-fullscreen)
+         ("C-x C-w" . toggle-frame-maximized)
          ("C-x C-s" . window-toggle-side-windows)
          ("C-x C-x" . safe-kill-buffer-and-window))
   :custom
@@ -214,7 +218,7 @@
       (window-height . 0.2)
       (window-width . 0.70)
       (slot . 2))
-     ("\\*Faces\\|[Hh]elp\\*"
+     ("\\*Faces\\|[Hh]elp\\*\\|\\*Copilot*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-width . 0.4)
@@ -305,7 +309,6 @@
                               "<:<" ";;;"))
   (global-ligature-mode t))
 
-(use-package no-littering)
 
 (use-package autothemer
   :init
@@ -329,6 +332,7 @@
   )
 
 (use-package which-key
+  :defer 2
   :ensure nil
   :hook (after-init . which-key-mode)
   :custom
@@ -345,20 +349,22 @@
          (prog-mode . hs-minor-mode)
          (prog-mode . setup-programming-mode))
   :init
-  (setq-local display-line-numbers-type 'relative
-              display-line-numbers-width 5))
+  (setq display-line-numbers-type 'relative
+        display-line-numbers-width 5))
 
 (use-package saveplace
   :ensure nil
   :hook (after-init . save-place-mode))
 
 (use-package vertico
+  :defer t
   :hook (after-init . vertico-mode)
   :bind
   (:map vertico-map
         ("C-j" . vertico-next)
         ("C-k" . vertico-previous)
         ("C-d" . vertico-scroll-down)
+        ("C-." . embark-act)
         ("C-u" . vertico-scroll-up))
   :config
   (advice-add #'vertico--format-candidate :around
@@ -371,11 +377,11 @@
                  cand)))
   (setq vertico-resize t
         vertico-count 14
-        vertico-multiform-mode t
         vertico-cycle t))
 
 (use-package vertico-posframe
   :after vertico
+  :bind ("C-." . embark-act)
   :init
   (vertico-posframe-mode 1)
   :config
@@ -383,10 +389,8 @@
   (setq vertico-posframe-parameters
         '((alpha . 94))
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
-        vertico-posframe-truncate-lines t
         vertico-posframe-min-height 1
-        vertico-posframe-min-width 80
-        vertico-posframe-width 160
+        vertico-posframe-min-width 150
         vertico-posframe-border-width 20))
 
 ;; Configure directory extension.
@@ -412,8 +416,7 @@
   :hook (after-init . marginalia-mode))
 
 (use-package consult
-  :after evil
-  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :defer t
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("M-S" . #'consult-line)
@@ -425,27 +428,20 @@
   ("M-R" . #'consult-recent-file)
   :init
   (advice-add #'register-preview :override #'consult-register-window)
-  ;; Optionally configure the register formatting. This improves the register
-  (setq register-preview-delay 0.5
-        register-preview-function #'consult-register-format
-        xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
-  :config
-  (consult-customize
-   consult-theme :preview-key '(:debounce 0.2 any)
-   consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
-   :preview-key '(:debounce 0.4 any))
-  (setq consult-narrow-key "<"))
+
+  ;; Use Consult for xref locations with a preview feature.
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref))
 
 (use-package embark
-  :defer t
+  :commands (embark-act embark-collect-snapshot embark-collect-live)
   :bind
-  ("C-." . embark-act))
+  ("C-." . embark-act)
+  :custom
+  (embark-quit-after-action nil))
 
 (use-package embark-consult
+  :after (embark consult)
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
@@ -517,88 +513,92 @@
 	evil-split-window-below t
 	evil-kill-on-visual-paste nil
 	evil-default-cursor t
-        evil-echo-state nil
-	evil-want-C-i-jump t)
-  :config
-  (setq evil-leader/in-all-states t)
+         evil-echo-state nil
+ 	evil-want-C-i-jump t)
+   :config
+   (setq evil-leader/in-all-states t)
 
-  (evil-set-leader 'normal (kbd "SPC"))
-  (evil-set-leader 'visual (kbd "SPC"))
+   (evil-set-leader 'normal (kbd "SPC"))
+   (evil-set-leader 'visual (kbd "SPC"))
 
-  (evil-define-key 'normal 'global (kbd "<leader>SPC") 'execute-extended-command)
-  (evil-define-key 'normal 'global (kbd "<leader> .") 'embark-act)
-  (evil-define-key 'normal 'global (kbd "<leader> P") 'package-install)
-  (evil-define-key 'normal 'global (kbd "<leader> S") 'consult-line-multi)
-  (evil-define-key 'normal 'global (kbd "<leader> F") 'consult-line)
-  (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
-  (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
+   (evil-define-key 'normal 'global (kbd "<leader>SPC") 'execute-extended-command)
+   (evil-define-key 'normal 'global (kbd "<leader> .") 'embark-act)
+   (evil-define-key 'normal 'global (kbd "<leader> P") 'package-install)
+   (evil-define-key 'normal 'global (kbd "<leader> S") 'consult-line-multi)
+   (evil-define-key 'normal 'global (kbd "<leader> F") 'consult-line)
+   (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
+   (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
 
-  ;;; Buffers
-  (evil-define-key 'normal 'global (kbd "<leader> b b") 'consult-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader> b i") 'ibuffer)
-  (evil-define-key 'normal 'global (kbd "<leader> b k") 'kill-current-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader> b m") '(lambda () (interactive) (switch-to-buffer "*Messages*")))
-  (evil-define-key 'normal 'global (kbd "<leader> b s") '(lambda () (interactive) (switch-to-buffer "*scratch*")))
+   ;;; Buffers
+   (evil-define-key 'normal 'global (kbd "<leader> b b") 'consult-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> b i") 'ibuffer)
+   (evil-define-key 'normal 'global (kbd "<leader> b k") 'kill-current-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> b m") '(lambda () (interactive) (switch-to-buffer "*Messages*")))
+   (evil-define-key 'normal 'global (kbd "<leader> b s") '(lambda () (interactive) (switch-to-buffer "*scratch*")))
 
-  (evil-define-key 'normal 'global (kbd "<leader> v s") 'magit-status)
-  (evil-define-key 'normal 'global (kbd "<leader> v b") 'magit-diff-buffer-file)
-  (evil-define-key 'normal 'global (kbd "<leader> v a") 'vc-annotate)
-  (evil-define-key 'normal 'global (kbd "<leader> v l") 'magit-log-buffer-file)
+   (evil-define-key 'normal 'global (kbd "<leader> c p") 'copilot-chat-transient)
+   (evil-define-key 'normal 'global (kbd "<leader> c c") 'claude-code-transient)
+   (evil-define-key 'normal 'global (kbd "<leader> c a") 'aidermacs-transient-menu)
 
-  (evil-define-key 'normal 'global (kbd "<leader> f b") 'consult-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader> f d") 'delete-file)
-  (evil-define-key 'normal 'global (kbd "<leader> f e") '(lambda () (interactive) (find-file user-init-file)))
-  (evil-define-key 'normal 'global (kbd "<leader> f f") 'consult-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader> f n") 'create-file-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader> f r") 'consult-recent-file)
-  (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> v s") 'magit-status)
+   (evil-define-key 'normal 'global (kbd "<leader> v b") 'magit-diff-buffer-file)
+   (evil-define-key 'normal 'global (kbd "<leader> v a") 'vc-annotate)
+   (evil-define-key 'normal 'global (kbd "<leader> v l") 'magit-log-buffer-file)
 
-  (evil-define-key 'normal 'global (kbd "<leader> g g") 'google-this)
+   (evil-define-key 'normal 'global (kbd "<leader> f b") 'consult-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> f d") 'delete-file)
+   (evil-define-key 'normal 'global (kbd "<leader> f e") '(lambda () (interactive) (find-file user-init-file)))
+   (evil-define-key 'normal 'global (kbd "<leader> f f") 'find-file)
+   (evil-define-key 'normal 'global (kbd "<leader> f n") 'create-file-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> f r") 'consult-recent-file)
+   (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
 
-  ;; Eval
-  (evil-define-key 'normal 'global (kbd "<leader> e b") 'eval-buffer)
-  (evil-define-key 'normal 'global (kbd "<leader> e l") 'eval-last-sexp)
+   (evil-define-key 'normal 'global (kbd "<leader> g g") 'google-this)
 
-  (evil-define-key 'normal 'global (kbd "<leader> t s") 'sort-lines)
-  (evil-define-key 'normal 'global (kbd "<leader> t x") 'delete-trailing-whitespace)
+   ;; Eval
+   (evil-define-key 'normal 'global (kbd "<leader> e b") 'eval-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> e l") 'eval-last-sexp)
 
-  (evil-define-key 'normal 'global (kbd "<leader> p F") 'consult-ripgrep)
-  (evil-define-key 'normal 'global (kbd "<leader> p s") 'project-switch-project)
-  (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers)
-  (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> t s") 'sort-lines)
+   (evil-define-key 'normal 'global (kbd "<leader> t x") 'delete-trailing-whitespace)
 
-  (evil-define-key 'normal 'global (kbd "<leader> q r") 'restart-emacs)
-  (evil-define-key 'normal 'global (kbd "<leader> q q") 'save-buffers-kill-terminal)
+   (evil-define-key 'normal 'global (kbd "<leader> p f") 'consult-ripgrep)
+   (evil-define-key 'normal 'global (kbd "<leader> p s") 'project-switch-project)
+   (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers)
+   (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer)
 
-  (defun mk/consult-ripgrep-at-point-project ()
-    "Search for the word at point using consult-ripgrep from project root."
-    (interactive)
-    (consult-ripgrep (project-root (project-current)) (thing-at-point 'symbol)))
+   (evil-define-key 'normal 'global (kbd "<leader> q r") 'restart-emacs)
+   (evil-define-key 'normal 'global (kbd "<leader> q q") 'save-buffers-kill-terminal)
 
-  (evil-define-key 'normal 'global (kbd "<leader> p f") 'mk/consult-ripgrep-at-point-project)
-  
-  (evil-select-search-module 'evil-search-module 'evil-search)
-  (define-key evil-motion-state-map (kbd "<up>") 'ignore)
-  (define-key evil-motion-state-map (kbd "<down>") 'ignore)
-  (define-key evil-motion-state-map (kbd "<left>") 'ignore)
-  (define-key evil-motion-state-map (kbd "<right>") 'ignore)
+   (defun mk/consult-ripgrep-at-point-project ()
+     "Search for the word at point using consult-ripgrep from project root."
+     (interactive)
+     (consult-ripgrep (project-root (project-current)) (thing-at-point 'symbol)))
 
-  (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
-  (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
-  (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
-  (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
-  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+   (evil-define-key 'normal 'global (kbd "<leader> p F") 'mk/consult-ripgrep-at-point-project)
 
-  (setq evil-normal-state-cursor '(box "systemBlueColor")
-        evil-insert-state-cursor '(bar "systemRedColor")
-        evil-visual-state-cursor '(hollow "systemPurpleColor"))
-  ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
+   (evil-select-search-module 'evil-search-module 'evil-search)
+   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
+   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
+   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
+   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
 
-  (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
-  (evil-define-key 'normal 'global
-     ;; "q" 'minibuffer-quit
-    "\C-g" 'minibuffer-quit)
-  (evil-mode 1))
+   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
+   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
+   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
+   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
+   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+
+   (setq evil-normal-state-cursor '(box "systemBlueColor")
+         evil-insert-state-cursor '(bar "systemRedColor")
+         evil-visual-state-cursor '(hollow "systemPurpleColor"))
+   ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
+
+   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
+   (evil-define-key 'normal 'global
+      ;; "q" 'minibuffer-quit
+     "\C-g" 'minibuffer-quit)
+   (evil-mode 1))
 
 (with-eval-after-load 'evil
   (dolist (state '(normal insert visual motion emacs))
@@ -614,57 +614,49 @@
   :init
   (evil-collection-init))
 
-(use-package evil-mc
-  :hook (evil-mode . global-evil-mc-mode)
-  :bind (
-   ("C-M-e" . evil-mc-make-all-cursors)
-   (:map evil-mc-key-map
-         ("C-M-<return>" . evil-mc-toggle-cursors)
-         ("C-M-j" . evil-mc-make-and-goto-next-match)
-         ("C-M-k" . evil-mc-make-and-goto-prev-match)
-         ;; ("C-M-p" . evil-mc-pause-cursors)
-         ;; ("C-M-n" . evil-mc-resume-cursors)
-         ("C-g" . evil-mc-undo-all-cursors)
-         ("<escape>" . evil-mc-undo-all-cursors)))
-  :custom
-  (evil-mc-mode-line-text-inverse-colors t)
-  (evil-mc-undo-cursors-on-keyboard-quit t)
-  (evil-mc-mode-line-text-cursor-color t)
-  :config
-  (evil-define-key 'visual evil-mc-key-map
-    "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
+ (use-package evil-mc
+   :hook (evil-mode . global-evil-mc-mode)
+   :bind (
+          ("C-M-e" . evil-mc-make-all-cursors)
+          ("C-M-n" . evil-mc-make-and-goto-next-match)
+          ("C-M-p" . evil-mc-make-and-goto-prev-match)
+          ("C-M-j" . evil-mc-make-cursor-move-next-line)
+          ("C-M-k" . evil-mc-make-cursor-move-prev-line)
+          )
+   :custom
+   (evil-mc-mode-line-text-inverse-colors t)
+   (evil-mc-undo-cursors-on-keyboard-quit t)
+   (evil-mc-mode-line-text-cursor-color t)
+   :config
+   (evil-define-key 'visual evil-mc-key-map
+     "A" #'evil-mc-make-cursor-in-visual-selection-end
+     "I" #'evil-mc-make-cursor-in-visual-selection-beg))
 
-(use-package evil-surround
-  :after evil
-  :commands global-evil-surround-mode
-  :custom
-  (evil-surround-pairs-alist
-   '((?\( . ("(" . ")"))
-     (?\[ . ("[" . "]"))
-     (?\{ . ("{" . "}"))
+ (use-package evil-surround
+   :after evil
+   :commands global-evil-surround-mode
+   :custom
+   (evil-surround-pairs-alist
+    '((?\( . ("(" . ")"))
+      (?\[ . ("[" . "]"))
+      (?\{ . ("{" . "}"))
 
-     (?\) . ("(" . ")"))
-     (?\] . ("[" . "]"))
-     (?\} . ("{" . "}"))
+      (?\) . ("(" . ")"))
+      (?\] . ("[" . "]"))
+      (?\} . ("{" . "}"))
 
-     (?< . ("<" . ">"))
-     (?> . ("<" . ">"))))
-  :hook (after-init . global-evil-surround-mode))
+      (?< . ("<" . ">"))
+      (?> . ("<" . ">"))))
+   :hook (after-init . global-evil-surround-mode))
 
 (use-package evil-commentary
   :after evil
   :init
   (evil-commentary-mode 1))
 
-(use-package evil-goggles
-  :init
-  (evil-goggles-mode)
+(use-package evil-visualstar
   :after evil
-  :config
-  (setq evil-goggles-pulse t
-        evil-goggles-duration 0.3)
-  (evil-goggles-use-diff-faces))
+  :hook (after-init . global-evil-visualstar-mode))
 
 (use-package undo-fu
  :after evil
@@ -679,26 +671,23 @@
   :config
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
 
-;; (use-package ws-butler
-;;   :hook (prog-mode . ws-butler-mode))
+;; ;; (use-package ws-butler
+;; ;;   :hook (prog-mode . ws-butler-mode))
 
-(use-package evil-visualstar
-  :after evil
-  :hook (after-init . global-evil-visualstar-mode))
 
-(use-package minimap
-  :commands (minimap-mode)
-  :config
-  (setq minimap-width-fraction 0.0
-        minimap-minimum-width 10
-        minimap-always-recenter nil
-        minimap-hide-fringes t
-        minimap-dedicated-window t
-        minimap-enlarge-certain-faces nil
-        minimap-recenter-type 'relative
-        minimap-window-location 'right)
-  :custom-face
-  (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
+;; (use-package minimap
+;;   :commands (minimap-mode)
+;;   :config
+;;   (setq minimap-width-fraction 0.0
+;;         minimap-minimum-width 10
+;;         minimap-always-recenter nil
+;;         minimap-hide-fringes t
+;;         minimap-dedicated-window t
+;;         minimap-enlarge-certain-faces nil
+;;         minimap-recenter-type 'relative
+;;         minimap-window-location 'right)
+;;   :custom-face
+;;   (minimap-font-face ((t (:family "Minimap" :height 0.17 :group 'minimap)))))
 
 (use-package rainbow-delimiters
   :ensure nil
@@ -713,26 +702,36 @@
   (colorful-prefix-alignment 'left)
   (colorful-prefix-string "●"))
 
-(use-package google-this
-  :commands (google-this)
-  :bind ("C-x C-g" . google-this))
+;; (use-package google-this
+;;   :commands (google-this)
+;;   :bind ("C-x C-g" . google-this))
 
 (use-package expand-region
   :defer t
   :bind ("C-x e" . er/expand-region))
 
-(use-package eldoc-box
-  :if (display-graphic-p)
-  :diminish
-  :hook
-  (prog-mode . eldoc-box-hover-at-point-mode)
-  (eldoc-box-frame . (lambda (&rest _)
-                       (set-window-margins (selected-window) 0 0)))
+;; (use-package eldoc-box
+;;   :if (display-graphic-p)
+;;   :diminish
+;;   :hook
+;;   (prog-mode . eldoc-box-hover-at-point-mode)
+;;   (eldoc-box-frame . (lambda (&rest _)
+;;                        (set-window-margins (selected-window) 0 0)))
+;;   :config
+;;   ;; Prettify `eldoc-box' frame
+;;   (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 0
+;;         (alist-get 'internal-border-width eldoc-box-frame-parameters) 2
+;;         (alist-get 'right-fringe eldoc-box-frame-parameters) 0))
+
+(use-package ediff
+  :ensure nil
+  :custom
+  (ediff-split-window-function #'split-window-horizontally)
+  (ediff-window-setup-function #'ediff-setup-windows-plain)
+  (setq ediff-keep-variants nil)
   :config
-  ;; Prettify `eldoc-box' frame
-  (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 0
-        (alist-get 'internal-border-width eldoc-box-frame-parameters) 2
-        (alist-get 'right-fringe eldoc-box-frame-parameters) 0))
+  (winner-mode)
+  (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
 
 (use-package corfu
   :init (global-corfu-mode)
@@ -818,7 +817,7 @@
   (setq history-delete-duplicates t)
   (setq savehist-save-minibuffer-history t))
 
-;; Add extensions
+;; ;; Add extensions
 (use-package cape
   :after evil
   :init
@@ -857,9 +856,7 @@
   :ensure nil
   :hook (after-init . darken-buffer-mode)
   :config
-  (setq
-       ;;  darken-buffer-ignore-buffers-regexp '("^\\*.*\\*$")
-        darken-buffer-percentage 0
+  (setq darken-buffer-percentage 0
         lighten-inactive-buffer-percentage 4))
 
 (use-package avy
@@ -901,6 +898,7 @@
   (repeat-exit-timeout 5))
 
 (use-package treemacs
+  :defer t
   :commands (treemacs treemacs-select-window)
   :hook ((treemacs-mode . treemacs-project-follow-mode)
          (treemacs-mode . (lambda () (set-window-fringes (treemacs-get-local-window) 0 0 nil))))
@@ -1118,19 +1116,9 @@
                  (other-window 1)
                  (chatgpt-shell)))
   :config
-  (require 'chatgpt-shell-ollama)
-  (defun add-qwen-to-ollama-models (orig-fun)
-    "Add qwen2.5-coder to the list of Ollama models."
-    (append (funcall orig-fun)
-            (list
-             (chatgpt-shell-ollama-make-model
-              :version "deepseek-r1:8b"
-              :token-width 4
-              :context-window 8192))))
-  (advice-add 'chatgpt-shell-ollama-models :around #'add-qwen-to-ollama-models)
   (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
   (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
-  (setq chatgpt-shell-model-version "claude-3-5-sonnet-20241022"))
+  (setq chatgpt-shell-model-version "claude-3-5-sonnet-latest"))
 
 (use-package gptel
   :defer t
@@ -1172,80 +1160,6 @@
         show-paren-highlight-openparen t
         show-paren-when-point-inside-paren t
         show-paren-when-point-in-periphery t))
-
-;; general
-;; (use-package general
-;;   :ensure t
-;;   :config
-;;   (general-create-definer mk/leader-keys
-;;     :keymaps '(normal insert emacs visual operator hybrid xwidget-webkit)
-;;     :prefix "SPC"
-;;     :non-normal-prefix "M-SPC")
-
-
-;;   (mk/leader-keys
-;;     "TAB" '((lambda () (interactive) (switch-to-buffer nil)) :which-key "Toggle buffers")
-;;     "SPC" '(execute-extended-command :which-key "M-x")
-;;     "s" '(consult-line-multi :which-key "Consult multi search")
-;;     "F" '(consult-line :which-key "Consult outline")
-;;     "0" '(treemacs-select-window :which-key "Treemacs")
-;;     "P" 'package-install
-;;     "'" '((lambda () (interactive) (toggle-vterm)) :which-key "Term"))
-
-;;   (mk/leader-keys
-;;     "cc" '(calendar :which-key "Calendar"))
-
-;;   (mk/leader-keys
-;;     "ee" '(eval-expression :which-key "Eval expression")
-;;     "eb" '(eval-buffer :which-key "Eval buffer")
-;;     "el" '(eval-last-sexp :which-key "Eval before point")
-;;     "ea" '(embark-act :which-key "Embark act")
-;;     "er" '(eval-region :which-key "Eval region")
-;;     "er" '(eval-region :which-key "Eval region")
-;;     "ef" '(lambda () (interactive) (elfeed) :which-key "Elfeed"))
-
-;;   (mk/leader-keys
-;;     "fs" '(save-buffer :which-key "Save file")
-;;     "fb" '(consult-buffer :which-key "Find buffer")
-;;     "ff" '(find-file :which-key "Find file")
-;;     "fl" '(consult-line-multi :which-key "Find line in project")
-;;     "fr" '(consult-recent-file :which-key "Recent files")
-;;     "fn" '(create-file-buffer :which-key "New file")
-;;     "fR" '(dired-rename-file :which-key "Rename file")
-;;     "fD" '(delete-file :which-key "Delete file")
-;;     "fe" '(lambda () (interactive) (find-file user-init-file) :which-key "User configuration"))
-
-;;   (mk/leader-keys
-;;     "hc" '(helpful-command :which-key "Describe command")
-;;     "hk" '(helpful-key :which-key "Describe key")
-;;     "hv" '(helpful-variable :which-key "Describe variable")
-;;     "ht" '(evil-tutor-start :which-key "Evil tutorial")
-;;     "h." '(helpful-at-point :which-key "Describe at-point")
-;;     "hp" '(describe-package :which-key "Describe package"))
-
-;;   (mk/leader-keys
-;;     "ts" '(sort-lines :which-key "Sort lines")
-;;     "tx" '(delete-trailing-whitespace :which-key "Delete trailing whitespace"))
-
-;;   (mk/leader-keys
-;;     "wb" '((lambda () (interactive) (xwidget-webkit-browse-url "https://www.duckduckgo.com")) :which-key "Start a browser")
-;;     "wp" '(previous-window-any-frame :which-key "Previous window")
-;;     "wx" '(delete-window :hich-key "Delete window"))
-
-;;   (mk/leader-keys
-;;     "pF" '(consult-ripgrep :which-key "Find symbol in project")
-;;     "pf" '((lambda () (interactive) (mk/consult-ripgrep-at-point-project)) :which-key "Find symbol in project")
-;;     "ps" '(project-switch-project :which-key "Switch project"))
-
-;;   (mk/leader-keys
-;;     "vs" '(magit-status :which-key "Status")
-;;     "vb" '(blamer-show-commit-info :which-key "Show git blame")
-;;     "vd" '(magit-diff-buffer-file :which-key "Diff current buffer")
-;;     "vw" '(magit-diff-working-tree :which-key "Diff working tree"))
-
-;;   (mk/leader-keys
-;;     "qq" '(save-buffers-kill-terminal :which-key "Quit emacs")
-;;     "qr" '(restart-emacs :which-key "Restart emacs")))
 
 (setq org-custom-todo-faces '
       (("TODO" :background "#FF5D62" :distant-foreground "#FF5D62" :foreground "#FFFFFF" :weight 'bold)
@@ -1391,6 +1305,7 @@
   :hook ((org-mode . olivetti-mode))
   :custom
   (setq olivetti-style t
+        olivetti-body-width 0.85
         olivetti-hide-mode-line t))
 
 (use-package elfeed
@@ -1475,6 +1390,7 @@
 
 (use-package highlight-symbol
   :defer t
+  :hook (prog-mode . highlight-symbol-mode)
   :config
   (setq highlight-symbol-idle-delay 0.8))
 
@@ -1572,7 +1488,7 @@
   
   (setq eglot-stay-out-of '(corfu company flycheck)
 	eglot-extend-to-xref t
-	eglot-send-changes-idle-time 0.5
+	eglot-send-changes-idle-time 0.3
         ;; eldoc-documentation-strategy 'eldoc-documentation-default
         jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
@@ -1759,9 +1675,9 @@
   :ensure nil
   :mode "\\.xml\\'"
   :config
-  (setq-local display-line-numbers-mode t)
   :hook ((nxml-mode . setup-programming-mode)
-	 (nxml-mode . rainbow-mode)))
+         (nxml-mode . rainbow-mode)
+         (nxml-mode . display-line-numbers-mode)))
 
 (defun safe-kill-buffer-and-window ()
   "Kill the current buffer and delete its window if it's not the last one."
@@ -1875,18 +1791,7 @@
              copilot-chat-optimize
              copilot-chat-add-current-buffer
              copilot-chat-ask-and-insert
-             copilot-chat-custom-prompt-selection)
-  :bind
-  (("C-x c p t" . copilot-chat-transient)
-   ("C-x c p d" . copilot-chat-doc)                     ;; Open documentation
-   ("C-x c p e" . copilot-chat-explain)                 ;; Explain code
-   ("C-x c p f" . copilot-chat-fix)                     ;; Fix code issues
-   ("C-x c p r" . copilot-chat-review)                  ;; Review code
-   ;; ("C-x c p b" . copilot-chat-review-whole-buffer)     ;; Review code
-   ("C-x c p b" . copilot-chat-add-current-buffer)      ;; Add current buffer
-   ("C-x c p a" . copilot-chat-ask-and-insert)          ;; Ask and insert
-   ("C-x c p s" . copilot-chat-custom-prompt-selection) ;; Custom prompt selection
-   ("C-x c p o" . copilot-chat-optimize)))              ;; Optimize code
+             copilot-chat-custom-prompt-selection))
 
 (add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message)
 
@@ -1910,10 +1815,9 @@
        :branch "main"
        :rev :newest)
   :init
-  (setq scroll-margin 0
-        scroll-conservatively 101)
-  :config
-  (ultra-scroll-mode 1))
+  (setq scroll-conservatively 101
+        scroll-margin 0)
+  :hook (after-init . ultra-scroll-mode))
 
 (use-package eglot-booster
   :vc (eglot-booster
@@ -1942,33 +1846,29 @@
   :hook (after-init . music-control-mode))
 
 (use-package aidermacs
-  :commands (aidermacs-transient-menu)
+  :commands aidermacs-transient-menu
   :vc (aidermacs
        :url "https://github.com/MatthewZMD/aidermacs"
        :branch "main"
        :rev :newest)
   :config
-  ;; (aidermacs-setup-minor-mode)
   (setq aidermacs-auto-commits nil
-        aidermacs-use-architect-mode nil
-        ;; aidermacs-default-model "sonnet"
-        )
+        aidermacs-use-architect-mode nil)
   (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
-  ;; (setq aidermacs-args '("--model" "anthropic/claude-3-7-sonnet-20250219"))
   (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
-  ;; Or use chatgpt model since it is most well known
-  ;; (setq aider-args '("--model" "o3-mini"))
-  ;; (setenv "OPENAI_API_KEY" <your-openai-api-key>)
-  ;; Or use gemini v2 model since it is very good and free
-  ;; (setq aider-args '("--model" "gemini/gemini-exp-1206"))
-  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
-  ;; Or use your personal config file
-  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
-  ;; ;;
-  ;; Optional: Set a key binding for the transient menu
-  :bind
-  (:map global-map
-        ("C-c a" . aidermacs-transient-menu)))
+  :bind (:map global-map
+              ("C-c a" . aidermacs-transient-menu)))
+
+(use-package claude-code
+  :vc (claude-code
+       :url "https://github.com/stevemolitor/claude-code.el"
+       :branch "main"
+       :rev :newest)
+  :config
+  (claude-code-mode)
+  :bind (:map global-map
+              ("C-c c" . claude-code-transient)))
+
 
 (use-package breadcrumb
   :hook

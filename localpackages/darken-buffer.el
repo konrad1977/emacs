@@ -156,29 +156,25 @@
 (defun darken-buffer-window-switch-hook ()
   "Handle window focus changes."
   (when (bound-and-true-p darken-buffer-mode)
-    (let* ((windows (window-list))
-           (current-window (selected-window))
-           (valid-windows (cl-remove-if
-                          (lambda (window)
-                            (with-selected-window window
-                              (darken-buffer-should-ignore-p)))
-                          windows)))
+    (let ((current-window (selected-window)))
+      ;; Apply effects to all windows
+      (dolist (window (window-list))
+        (with-selected-window window
+          (if (darken-buffer-should-ignore-p)
+              (darken-buffer-remove-effect)
+            ;; Check if this is the selected window
+            (if (eq window current-window)
+                (darken-buffer-apply-effect t)  ; Active window - darken it
+              (darken-buffer-apply-effect nil))))))))
 
-      (if (<= (length valid-windows) 1)  ; Only one valid window
-          (dolist (window windows)
-            (with-selected-window window
-              (darken-buffer-remove-effect)))
-        (dolist (window windows)
-          (with-selected-window window
-            (unless (darken-buffer-should-ignore-p)
-              ;; Apply effects based on window selection, not buffer
-              (if (eq window current-window)
-                  (darken-buffer-remove-effect)
-                (darken-buffer-apply-effect nil)))))))))
+(defun darken-buffer--window-selection-change-function (frame)
+  "Function to handle window selection changes in FRAME."
+  ;; Use immediate timer to ensure this runs after focus has fully changed
+  (run-with-idle-timer 0 nil #'darken-buffer-window-switch-hook))
 
 (defun darken-buffer--window-selection-change-function (_)
   "Function to handle window selection changes."
-  (darken-buffer-window-switch-hook))
+  (run-with-timer 0 nil #'darken-buffer-window-switch-hook))
 
 ;;;###autoload
 (define-minor-mode darken-buffer-mode
@@ -187,11 +183,20 @@
   :global t
   (if darken-buffer-mode
       (progn
+        ;; Use both hooks to ensure we catch all window selection changes
         (add-hook 'window-selection-change-functions
                   'darken-buffer--window-selection-change-function)
+        (add-hook 'window-configuration-change-hook
+                  'darken-buffer-window-switch-hook)
+        (add-hook 'post-command-hook 'darken-buffer-window-switch-hook)
+        ;; Apply immediately
         (darken-buffer-window-switch-hook))
     (remove-hook 'window-selection-change-functions
                  'darken-buffer--window-selection-change-function)
+    (remove-hook 'window-configuration-change-hook
+                 'darken-buffer-window-switch-hook)
+    (remove-hook 'post-command-hook 'darken-buffer-window-switch-hook)
+    ;; Remove effects from all windows
     (dolist (window (window-list))
       (with-selected-window window
         (darken-buffer-remove-effect)))))
