@@ -526,6 +526,69 @@ If logcat is currently running, stop it. Otherwise, start it."
     (android-emulator-start-logcat)
     (message "Logcat monitoring started")))
 
+(defun android-emulator-get-package-name ()
+  "Get the package name from the Android project.
+First tries to extract from the manifest file, then falls back to build.gradle files."
+  (or (android-emulator--get-package-from-manifest)
+      (android-emulator--get-package-from-gradle)
+      android-emulator-app-identifier))
+
+(defun android-emulator--get-package-from-manifest ()
+  "Extract package name from AndroidManifest.xml file."
+  (let ((manifest (android-emulator--find-manifest)))
+    (when manifest
+      (with-temp-buffer
+        (insert-file-contents manifest)
+        (goto-char (point-min))
+        (when (re-search-forward "package=\"\\([^\"]+\\)\"" nil t)
+          (match-string 1))))))
+
+(defun android-emulator--get-package-from-gradle ()
+  "Extract package name from build.gradle or build.gradle.kts files."
+  (let* ((project-root (or (android-emulator-find-project-root)
+                          default-directory))
+         (gradle-files (directory-files-recursively 
+                        project-root 
+                        "\\(build\\.gradle\\(\\.kts\\)?\\)$")))
+    (catch 'found
+      (dolist (gradle-file gradle-files)
+        (with-temp-buffer
+          (insert-file-contents gradle-file)
+          (goto-char (point-min))
+          ;; Check for applicationId in Kotlin DSL
+          (when (re-search-forward "applicationId\\s*=\\s*\"\\([^\"]+\\)\"" nil t)
+            (throw 'found (match-string 1)))
+          ;; Check for applicationId in Groovy DSL
+          (goto-char (point-min))
+          (when (re-search-forward "applicationId\\s+['\"]\\([^'\"]+\\)['\"]" nil t)
+            (throw 'found (match-string 1)))
+          ;; Check for namespace in Kotlin DSL
+          (goto-char (point-min))
+          (when (re-search-forward "namespace\\s*=\\s*\"\\([^\"]+\\)\"" nil t)
+            (throw 'found (match-string 1)))
+          ;; Check for namespace in Groovy DSL
+          (goto-char (point-min))
+          (when (re-search-forward "namespace\\s+['\"]\\([^'\"]+\\)['\"]" nil t)
+            (throw 'found (match-string 1))))))))
+
+(defun android-emulator-find-project-root ()
+  "Find the root directory of the Android project.
+Looks for common Android project indicators like settings.gradle."
+  (locate-dominating-file 
+   default-directory
+   (lambda (dir)
+     (or (file-exists-p (expand-file-name "settings.gradle" dir))
+         (file-exists-p (expand-file-name "settings.gradle.kts" dir))
+         (file-exists-p (expand-file-name "gradlew" dir))))))
+
+(defun android-emulator--find-manifest ()
+  "Find the AndroidManifest.xml file in the project."
+  (let ((project-root (android-emulator-find-project-root)))
+    (when project-root
+      (car (directory-files-recursively 
+            project-root 
+            "AndroidManifest\\.xml$")))))
+
 (defun android-emulator-build-logcat-command ()
   "Build the logcat command with appropriate filters."
   (let ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path)))

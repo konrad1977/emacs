@@ -4,9 +4,8 @@
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
 
-
-;; Package management setup
-(require 'package)
+(eval-when-compile
+  (require 'use-package))
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")
                          ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
@@ -93,6 +92,30 @@
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
+(use-package isearch
+  :ensure nil
+  :defer t
+  :config
+  (setq isearch-allow-scroll t
+        isearch-lazy-count t)
+
+    (defun mk/project-search-from-isearch ()
+    (interactive)
+    (let ((query (if isearch-regexp
+               isearch-string
+             (regexp-quote isearch-string))))
+      (isearch-update-ring isearch-string isearch-regexp)
+      (let (search-nonincremental-instead)
+        (ignore-errors (isearch-done t t)))
+      (consult-ripgrep (project-root (project-current)) query)))
+  :bind
+  ("M-f" . isearch-forward)
+  (:map isearch-mode-map
+        ("C-r" . isearch-repeat-backward)
+        ("C-o" . isearch-occur)
+        ("C-f" . mk/project-search-from-isearch)
+        ("C-d" . isearch-forward-thing-at-point)))
+
 ;; (use-package candyshop
 ;;   :ensure nil
 ;;   :defer 2
@@ -111,14 +134,22 @@
   :custom
   (split-width-threshold 300)
   (warning-minimum-level :emergency)
-  (setq backup-directory-alist `(("." . "~/.saves")))
-  (setq backup-by-copying t)
-  (setq delete-old-versions t
-        kept-new-versions 6
-        kept-old-versions 2
-        version-control t)
+  (backup-directory-alist `(("." . "~/.saves")))
+  (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
+  (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
+  (backup-by-copying t)
+  (create-lockfiles nil)
+  (make-backup-files nil)
+  (delete-old-versions t)
+  (kept-new-versions 6)
+  (kept-old-versions 2)
+  (version-control t)
   (history-length 25)
+  (minibuffer-depth-indicate-mode 1)
+  (setq enable-recursive-minibuffers t)
   :config
+  (make-directory "~/.emacs.d/backup/" t)
+  (make-directory "~/.emacs.d/auto-save/" t)
   (when (eq system-type 'darwin)
     (setq mac-option-key-is-meta nil
           mac-command-key-is-meta t
@@ -152,7 +183,6 @@
   
   ;; (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
-        left-fringe-width 25
         word-wrap nil
         show-trailing-whitespace nil
         column-number-mode nil
@@ -183,7 +213,7 @@
       (body-function . select-window)
       (window-width . 0.4)
       (side . left))
-     ("\\*occur\\|evil-marks\\*"
+     ("evil-marks\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-width . 0.10)
@@ -292,6 +322,7 @@
   :config (treemacs-load-theme "nerd-icons"))
 
 (use-package ligature
+  :hook (prog-mode . global-ligature-mode)
   :config
   ;; Enable all Cascadia Code ligatures in programming modes
   (ligature-set-ligatures 'prog-mode '("--" "---" "==" "===" "!=" "!==" "=!="
@@ -306,8 +337,7 @@
                               "~@" "[||]" "|]" "[|" "|}" "{|" "[<" ">]" "|>" "<|" "||>" "<||"
                               "|||>" "<|||" "<|>" "..." ".." ".=" "..<" ".?" "::" ":::" ":=" "::="
                               ":?" ":?>" "//" "///" "/*" "*/" "/=" "//=" "/==" "@_" "__" "???"
-                              "<:<" ";;;"))
-  (global-ligature-mode t))
+                              "<:<" ";;;")))
 
 
 (use-package autothemer
@@ -339,18 +369,21 @@
   (which-key-add-column-padding 2)
   (which-key-side-window-slot -10))
 
+;; In use-package, :custom needs direct variable-value pairs without setq. Here's the correct way:
 (use-package prog-mode
   :ensure nil
-  :hook ((prog-mode . display-line-numbers-mode)
+  :hook (
          (prog-mode . electric-pair-mode)
          (prog-mode . electric-indent-mode)
          (prog-mode . drag-stuff-mode)
          (prog-mode . dumb-jump-mode)
          (prog-mode . hs-minor-mode)
-         (prog-mode . setup-programming-mode))
-  :init
-  (setq display-line-numbers-type 'relative
-        display-line-numbers-width 5))
+         (prog-mode . setup-programming-mode)
+         (prog-mode . display-line-numbers-mode))
+  :custom
+  (left-fringe-width 20)
+  (display-line-numbers-type 'relative)
+  (display-line-numbers-width 4))
 
 (use-package saveplace
   :ensure nil
@@ -364,7 +397,6 @@
         ("C-j" . vertico-next)
         ("C-k" . vertico-previous)
         ("C-d" . vertico-scroll-down)
-        ("C-." . embark-act)
         ("C-u" . vertico-scroll-up))
   :config
   (advice-add #'vertico--format-candidate :around
@@ -381,7 +413,6 @@
 
 (use-package vertico-posframe
   :after vertico
-  :bind ("C-." . embark-act)
   :init
   (vertico-posframe-mode 1)
   :config
@@ -418,7 +449,6 @@
 (use-package consult
   :defer t
   :bind
-  ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("M-S" . #'consult-line)
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
@@ -428,15 +458,16 @@
   ("M-R" . #'consult-recent-file)
   :init
   (advice-add #'register-preview :override #'consult-register-window)
-
-  ;; Use Consult for xref locations with a preview feature.
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref))
 
 (use-package embark
   :commands (embark-act embark-collect-snapshot embark-collect-live)
   :bind
-  ("C-." . embark-act)
+  (:map minibuffer-local-map
+        (("C-." . embark-act))
+        :map embark-collect-mode-map
+        (("C-." . embark-act)))
   :custom
   (embark-quit-after-action nil))
 
@@ -526,6 +557,7 @@
    (evil-define-key 'normal 'global (kbd "<leader> P") 'package-install)
    (evil-define-key 'normal 'global (kbd "<leader> S") 'consult-line-multi)
    (evil-define-key 'normal 'global (kbd "<leader> F") 'consult-line)
+
    (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
    (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
 
@@ -533,6 +565,7 @@
    (evil-define-key 'normal 'global (kbd "<leader> b b") 'consult-buffer)
    (evil-define-key 'normal 'global (kbd "<leader> b i") 'ibuffer)
    (evil-define-key 'normal 'global (kbd "<leader> b k") 'kill-current-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> b p") 'project-list-buffers)
    (evil-define-key 'normal 'global (kbd "<leader> b m") '(lambda () (interactive) (switch-to-buffer "*Messages*")))
    (evil-define-key 'normal 'global (kbd "<leader> b s") '(lambda () (interactive) (switch-to-buffer "*scratch*")))
 
@@ -552,6 +585,9 @@
    (evil-define-key 'normal 'global (kbd "<leader> f n") 'create-file-buffer)
    (evil-define-key 'normal 'global (kbd "<leader> f r") 'consult-recent-file)
    (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
+
+   (evil-define-key 'normal 'global (kbd "<leader> j j") 'jira-issues)
+   (evil-define-key 'normal 'global (kbd "<leader> j m") 'jira-issues-menu)
 
    (evil-define-key 'normal 'global (kbd "<leader> g g") 'google-this)
 
@@ -607,6 +643,7 @@
     (evil-define-key state 'global (kbd "C-k") nil)))
 
 (use-package evil-collection
+  :defer 2
   :after evil
   :custom
   (setq evil-collection-setup-minibuffer t)
@@ -724,6 +761,8 @@
 ;;         (alist-get 'right-fringe eldoc-box-frame-parameters) 0))
 
 (use-package ediff
+  :defer t
+  :after prog-mode
   :ensure nil
   :custom
   (ediff-split-window-function #'split-window-horizontally)
@@ -757,6 +796,7 @@
 	corfu-quit-no-match t))
 
 (use-package kind-icon
+  :defer t
   :after corfu
   :custom
   (kind-icon-extra-space t)
@@ -867,23 +907,29 @@
 
 (use-package dape
   :commands (dape-info dape-repl dape)
+  ;; :hook
+  ;; (kill-emacs . dape-breakpoint-save)
+  ;; ;; Load breakpoints on startup
+  ;; (after-init . dape-breakpoint-load)
   :custom
   (dape-breakpoint-margin-string "●")
   :config
+  (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10
+
         dape-display-source-buffer-action '(display-buffer-same-window)
         dape-breakpoint-margin-face 'dape-breakpoint-face
         dape-breakpoint-face '((t (:foreground "#FF5D62"))))
-  (dape-repl-commands
-   '((" debug" . dape)
-     (" next" . dape-next)
-     (" continue" . dape-continue)
-     (" pause" . dape-pause)
-     (" step" . dape-step-in)
-     (" out" . dape-step-out)
-     (" restart" . dape-restart)
-     (" disconnect" . dape-disconnect-quit)))
+  ;; (dape-repl-commands
+  ;;  '((" debug" . dape)
+  ;;    (" next" . dape-next)
+  ;;    (" continue" . dape-continue)
+  ;;    (" pause" . dape-pause)
+  ;;    (" step" . dape-step-in)
+  ;;    (" out" . dape-step-out)
+  ;;    (" restart" . dape-restart)
+  ;;    (" disconnect" . dape-disconnect-quit)))
   :config
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10)
@@ -977,8 +1023,12 @@
   :hook (flycheck-mode . flycheck-overlay-mode)
   :bind ("C-c f l" . flycheck-overlay-toggle)
   :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode)
-  (setq flycheck-overlay-virtual-line-type 'curved-arrow)
-  (setq flycheck-overlay-virtual-line-icon nil))
+  (setq flycheck-overlay-virtual-line-type 'curved-arrow
+        flycheck-overlay-percent-darker 60
+        flycheck-overlay-text-tint-percent 80
+        flycheck-overlay-text-tint 'lighter
+        flycheck-overlay-background-lightness 60
+        flycheck-overlay-virtual-line-icon nil))
 
 (use-package flycheck-eglot
   :hook (eglot-managed-mode . flycheck-eglot-mode)
@@ -1037,6 +1087,7 @@
                                  evil-window-split)))
 
 (use-package imenu-list
+  :defer t
   :bind
   ("C-c i" . 'imenu-list-smart-toggle)
   :custom
@@ -1407,6 +1458,9 @@
 (use-package swift-ts-mode
   :mode "\\.swift\\'"
   :ensure nil
+  :bind
+  (:map swift-ts-mode-map
+        ("C-c t s" . #'swift-ts:split-func-list))
   :custom
   (swift-ts-basic-offset 4)
   (swift-ts:indent-trailing-call-member t)
@@ -1513,7 +1567,6 @@
   (:map swift-ts-mode-map
         ("M-t" . #'swift-refactor:insert-todo)
         ("M-m" . #'swift-refactor:insert-mark)
-        ("C-c r s" . #'code-refactor:split-function-list)
         ("C-c x t" . #'xcode-additions:toggle-device-choice)
         ("C-c x c" . #'xcode-additions:show-current-configuration)
         ("C-c r a" . #'swift-refactor:wrap-selection)
@@ -1570,14 +1623,13 @@
   :after kotlin-ts-mode
   :bind
   (:map kotlin-ts-mode-map
-        ("C-c C-o" . #'periphery-ktlint-lint-buffer)
         ("M-o" . #'periphery-ktlint-autocorrect-buffer)))
 
-(use-package periphery-loco
-  :ensure nil
-  :after swift-ts-mode
-  :bind
-  ("C-c C-k" . #'periphery-run-loco))
+;; (use-package periphery-loco
+;;   :ensure nil
+;;   :after swift-ts-mode
+;;   :bind
+;;   ("C-c C-k" . #'periphery-run-loco))
 
 (use-package periphery-swiftlint
   :ensure nil
@@ -1585,15 +1637,15 @@
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-(use-package filer
-  :ensure nil
-  :bind
-  ("C-c f f" . filer-find-file)
-  :config
-  (setq filer-include-project-name nil))
+;; (use-package filer
+;;   :ensure nil
+;;   :bind
+;;   ("C-c f f" . filer-find-file)
+;;   :config
+;;   (setq filer-include-project-name nil))
 
 (use-package svg-tag-mode
-  :defer 10
+  :defer 3
   :hook ((swift-ts-mode . svg-tag-mode)
          (localizeable-mode . svg-tag-mode)
          (kotlin-ts-mode . svg-tag-mode))
@@ -1667,6 +1719,7 @@
 
 
 (use-package treesit
+  :defer t
   :ensure nil
   :config
   (setq treesit-font-lock-level 4))
@@ -1708,28 +1761,17 @@
    (compilation-scroll-output 'all)
    (compilation-highlight-overlay t)
    (compilation-environment '("TERM=dumb" "TERM=xterm-256color"))
-   (compilation-window-height 15)
+   (compilation-window-height 10)
    (compilation-reuse-window t)
    (compilation-max-output-line-length nil))
   :config
-  (setq compilation-scroll-output t)
+  (setq compilation-scroll-output t
+        compilation-error-screen-columns nil)
   (setq compilation-transform-file-name-function
-        (lambda (file) 
+        (lambda (file)
           (if (file-name-absolute-p file)
               (file-relative-name file (project-root (project-current)))
             file)))
-
-  ;; Customize error message format
-  (setq compilation-error-screen-columns nil    ; Don't truncate messages
-        compilation-message-face nil            ; Remove bold face from messages
-        compilation-messages-start-face nil)    ; Remove bold face from messages start
-  ;; Optional: Define custom error regexp if needed
-  (add-to-list 'compilation-error-regexp-alist-alist
-               '(my-shorter-errors
-                 "^\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\): \\(.*\\)$"
-                 1 2 3 2))
-  (add-to-list 'compilation-error-regexp-alist 'my-shorter-errors)
-
   ;; Your existing ANSI color configuration
   (require 'ansi-color)
   (defun my/colorize-compilation-buffer ()
@@ -1741,10 +1783,10 @@
   :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
 
 (use-package kotlin-ts-mode
-  :mode "\\.kt\\'")
+  :mode ("\\.kt\\'" "\\.kts\\'"))
 
 (use-package kotlin-development
-  :defer 10
+  :after kotlin-ts-mode
   :hook ((kotlin-mode kotlin-ts-mode) . kotlin-development-mode-setup)
   :ensure nil  ; if it's a local package
   :bind ((:map kotlin-mode-map
@@ -1763,6 +1805,7 @@
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
 (use-package copilot
+  :defer t
   :vc (copilot :url "https://github.com/copilot-emacs/copilot.el" :branch "main" :rev :newest)
   :ensure nil
   :hook ((prog-mode localizeable-mode) . copilot-mode)
@@ -1778,6 +1821,7 @@
 
 
 (use-package copilot-chat
+  :defer t
   :vc (copilot-chat
        :url "https://github.com/chep/copilot-chat.el"
        :branch "master"
@@ -1820,6 +1864,7 @@
   :hook (after-init . ultra-scroll-mode))
 
 (use-package eglot-booster
+  :defer t
   :vc (eglot-booster
        :url "https://github.com/jdtsmith/eglot-booster"
        :branch "main"
@@ -1828,6 +1873,7 @@
   :config (eglot-booster-mode))
 
 (use-package indent-bars
+  :defer t
   :vc (indent-bars
        :url "https://github.com/jdtsmith/indent-bars"
        :branch "main"
@@ -1846,6 +1892,7 @@
   :hook (after-init . music-control-mode))
 
 (use-package aidermacs
+  :defer t
   :commands aidermacs-transient-menu
   :vc (aidermacs
        :url "https://github.com/MatthewZMD/aidermacs"
@@ -1860,6 +1907,7 @@
               ("C-c a" . aidermacs-transient-menu)))
 
 (use-package claude-code
+  :defer t
   :vc (claude-code
        :url "https://github.com/stevemolitor/claude-code.el"
        :branch "main"
@@ -1869,8 +1917,24 @@
   :bind (:map global-map
               ("C-c c" . claude-code-transient)))
 
+(use-package jira
+  :defer t
+  :commands (jira-issues jira-issues-menu)
+  :vc (jira
+       :url "git@github.com:unmonoqueteclea/jira.el"
+       :branch "main"
+       :rev :newest)
+  :init
+  (setq jira-username "mikael.konradsson@mobileinteraction.se"
+        jira-base-url "https://mobileinteraction.atlassian.net" ;; Jira instance URL
+        jira-token (getenv "JIRA_TOKEN")
+        jira-statuses-done '("Klart" "Done" "Closed" "Resolved" "Waiting for QA")
+        jira-statuses-todo '("Att göra" "Todo")
+        jira-statuses-error'("Error" "Rejected" "In Progress - Error" "Under granskning")
+        jira-statuses-progress '("Pågående" "QA staging" "In test" "In Progress" "In progress" "In Progress - Development" "In Progress - Design" "In Progress - Review" "In Progress - Testing")))
 
 (use-package breadcrumb
+  :defer t
   :hook
   (prog-mode . breadcrumb-local-mode)
   :custom

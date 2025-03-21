@@ -39,13 +39,13 @@
   "Build optimization level.")
 
 ;; Internal variables
-(defvar-local swift-additions:current-build-configuration nil)
-(defvar-local swift-additions:current-build-folder nil)
-(defvar-local swift-additions:current-environment-x86 nil)
-(defvar-local swift-additions:current-local-device-id nil)
-(defvar-local swift-additions:current-build-command nil)
-(defvar-local swift-additions:build-progress-spinner nil)
-(defvar-local swift-additions:compilation-time nil)
+(defvar swift-additions:current-build-configuration nil)
+(defvar swift-additions:current-build-folder nil)
+(defvar swift-additions:current-environment-x86 nil)
+(defvar swift-additions:current-local-device-id nil)
+(defvar swift-additions:current-build-command nil)
+(defvar swift-additions:build-progress-spinner nil)
+(defvar swift-additions:compilation-time nil)
 
 (defvar swift-additions:debug nil
   "Enable debug output when non-nil.")
@@ -127,7 +127,6 @@
       (format "%.1f" (float-time (time-subtract end-time start-time)))
     "N/A"))
 
-
 (defun swift-additions:run-app-on-device-after-build ()
   "Run app on device after build."
   (mode-line-hud:update :message (format "Built %s in %s seconds"
@@ -208,7 +207,9 @@
       (progn
         (periphery-kill-buffer)
         (ios-simulator:kill-buffer)
-        (xcode-addition:ask-for-device-or-simulator)
+        ;; Only ask for device/simulator if not already set
+        (unless xcode-additions:device-choice
+          (xcode-addition:ask-for-device-or-simulator))
         (if (not (xcode-additions:run-in-simulator))
             (swift-additions:compile-for-device :run run)
           (swift-additions:compile-for-simulator :run run)))

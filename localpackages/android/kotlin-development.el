@@ -251,7 +251,7 @@ If nil, will be determined automatically from build files."
 (defun kotlin-development-uninstall-app ()
   "Uninstall the current app from the emulator."
   (interactive)
-  (let* ((package-name (kotlin-development--get-package-name))
+  (let* ((package-name (android-emulator-get-package-name))
          (adb-path (expand-file-name "platform-tools/adb"
                                      kotlin-development-android-sdk-path)))
     (shell-command (format "%s uninstall %s" adb-path package-name))))
@@ -395,7 +395,7 @@ VERSION should be a string like \"8.5\" or nil to use project default."
 (defun kotlin-development-start-android-debug ()
   "Start Android debugging process."
   (interactive)
-  (let* ((package-name (kotlin-development--get-package-name))
+  (let* ((package-name (android-emulator-get-package-name))
          (main-activity (read-string "Main activity: " ".MainActivity")))
 
     ;; Kill any existing debug app
@@ -668,7 +668,7 @@ VERSION should be a string like \"8.5\" or nil to use project default."
   "Terminate the Android app using adb."
   (interactive)
   (let* ((default-directory (kotlin-development-find-project-root))
-         (package-name (or (kotlin-development--get-package-name)
+         (package-name (or (android-emulator-get-package-name)
                            (error "Could not determine package name"))))
     (shell-command (format "adb shell am force-stop %s" package-name))))
 
@@ -676,137 +676,12 @@ VERSION should be a string like \"8.5\" or nil to use project default."
   "Wipe the Android emulator data using adb."
   (interactive)
   (let* ((default-directory (kotlin-development-find-project-root))
-         (package-name (or (kotlin-development--get-package-name)
+         (package-name (or (android-emulator-get-package-name)
                            (error "Could not determine package name"))))
     (when kotlin-development-debug
       (message "Wiping data for package: %s" package-name))
     (shell-command (format "adb shell pm clear %s" package-name))
     (message "Emulator data wiped for package %s" package-name)))
-
-(defun kotlin-development--get-package-name ()
-  "Extract package name from build.gradle.kts or build.gradle, with enhanced debugging."
-  ;; Return custom package name if set
-  (if (and (boundp 'kotlin-development-package-name)
-           kotlin-development-package-name)
-      kotlin-development-package-name
-    (let* ((project-root (kotlin-development-find-project-root))
-         (build-files (directory-files-recursively 
-                      project-root
-                      "build\\.gradle\\.kts$\\|build\\.gradle$"))
-         (filtered-files (seq-filter 
-                         (lambda (file)
-                           (and (not (string-match-p "/build/" file))
-                                (not (string-match-p "/buildSrc/" file))
-                                (or (string-match-p "app/build\\.gradle" file)
-                                    (string-match-p "app/build\\.gradle\\.kts" file)
-                                    (string-match-p "build\\.gradle" file))))
-                         build-files)))
-    
-    (when kotlin-development-debug
-      (message "Project root: %s" project-root)
-      (message "All build files: %S" build-files)
-      (message "Filtered build files: %S" filtered-files)
-      (message "Current directory: %s" default-directory))
-
-    (let ((build-file
-           (cond
-            ;; Case 1: Single app/build.gradle.kts file
-            ((seq-find (lambda (f) (string-match-p "app/build\\.gradle\\.kts" f)) filtered-files))
-            ;; Case 2: Single app/build.gradle file
-            ((seq-find (lambda (f) (string-match-p "app/build\\.gradle$" f)) filtered-files))
-            ;; Case 3: Single build.gradle file in root
-            ((seq-find (lambda (f) 
-                        (string= (file-name-nondirectory (directory-file-name 
-                                                         (file-name-directory f)))
-                               (file-name-nondirectory project-root)))
-                      filtered-files))
-            ;; Case 4: Let user choose
-            (filtered-files
-             (completing-read "Select build file: " 
-                            (mapcar (lambda (f) 
-                                    (file-relative-name f project-root))
-                                   filtered-files)
-                            nil t))
-            ;; Case 5: No build files found
-            (t (user-error "No build.gradle files found in project")))))
-
-    (when kotlin-development-debug
-      (message "Found build files: %S" build-files)
-      (message "Filtered build files: %S" filtered-files)
-      (message "Selected build file: %s" build-file))
-
-    (if (not build-file)
-        (user-error "No build.gradle or build.gradle.kts found in project")
-      (with-temp-buffer
-        (insert-file-contents build-file)
-        (when kotlin-development-debug
-          (message "Analyzing build file: %s" build-file)
-          (message "File contents length: %d" (buffer-size))
-          (message "File contents: %s" (buffer-string)))
-
-        (goto-char (point-min))
-        (let ((case-fold-search t)
-              (found nil))
-          
-          ;; First try to find applicationId in defaultConfig block
-          (goto-char (point-min))
-          (when (re-search-forward "defaultConfig\\s*{" nil t)
-            (let ((block-start (point))
-                  (block-end (save-excursion
-                               (if (re-search-forward "}" nil t)
-                                   (point)
-                                 (point-max)))))
-              (goto-char block-start)
-              (when (re-search-forward "applicationId\\s*=\\s*[\"']\\([^\"']+\\)[\"']" block-end t)
-                (setq found (match-string 1))
-                (when kotlin-development-debug
-                  (message "Found applicationId in defaultConfig: %s" found)))))
-          
-          ;; If not found in defaultConfig, try namespace
-          (unless found
-            (goto-char (point-min))
-            (when (re-search-forward "namespace\\s*=\\s*[\"']\\([^\"']+\\)[\"']" nil t)
-              (setq found (match-string 1))
-              (when kotlin-development-debug
-                (message "Found namespace: %s" found))))
-          
-          ;; If still not found, try manifest as fallback
-          (unless found
-            (let ((manifest (kotlin-development--find-manifest)))
-              (when manifest
-                (with-temp-buffer
-                  (insert-file-contents manifest)
-                  (goto-char (point-min))
-                  (when (re-search-forward "package=\"\\([^\"]+\\)\"" nil t)
-                    (setq found (match-string 1))
-                    (when kotlin-development-debug
-                      (message "Found package name in manifest: %s" found)))
-                  
-                  ;; Also check for android:name in application tag
-                  (unless found
-                    (goto-char (point-min))
-                    (when (re-search-forward "android:name=\"\\(\\.\\w+\\)\"" nil t)
-                      (let ((app-class (match-string 1)))
-                        (goto-char (point-min))
-                        (when (re-search-forward "package=\"\\([^\"]+\\)\"" nil t)
-                          (setq found (match-string 1))
-                          (when kotlin-development-debug
-                            (message "Found package from manifest with app class %s: %s" 
-                                     app-class found))))))))))
-          
-          ;; If still no match, try a hardcoded fallback for this specific project
-          (unless found
-            (setq found "se.mi.kritiskakontroller")
-            (when kotlin-development-debug
-              (message "Using hardcoded fallback package name: %s" found)))
-
-          ;; Return result
-          (if found
-              (progn 
-                (when kotlin-development-debug
-                  (message "Final package name found: %s" found))
-                found)
-            (user-error "Could not determine package name from build files or manifest")))))))))
 
 (defun kotlin-development--not-in-build-dir (file)
   "Return t if FILE is not in a build directory."
@@ -866,7 +741,7 @@ VERSION should be a string like \"8.5\" or nil to use project default."
   (interactive)
   (let* ((default-directory (kotlin-development-find-project-root))
          (package-name (condition-case err
-                           (kotlin-development--get-package-name)
+                           (android-emulator-get-package-name)
                          (error
                           (message "Error getting package name: %s" (error-message-string err))
                           nil)))
@@ -876,8 +751,8 @@ VERSION should be a string like \"8.5\" or nil to use project default."
                                         kotlin-development-android-sdk-path))))
 
     (unless package-name
-      (setq package-name "se.mi.kritiskakontroller")
-      (message "Using fallback package name: %s" package-name))
+      (setq package-name (read-string "Could not determine package name. Please enter package name: "))
+      (message "Using user-provided package name: %s" package-name))
 
     (when package-name
       (android-emulator-set-app-identifier package-name))

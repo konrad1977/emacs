@@ -16,8 +16,8 @@
 (defvar current-local-device-id nil)
 (defvar current-run-on-device nil)
 (defvar current-errors-or-warnings nil)
-(defvar-local xcode-additions:last-device-type nil)
-(defvar-local xcode-additions:device-choice nil
+(defvar xcode-additions:last-device-type nil)
+(defvar xcode-additions:device-choice nil
   "Stores the user's choice of device (simulator or physical device).")
 
 (defconst xcodebuild-list-config-command "xcrun xcodebuild -list -json")
@@ -52,7 +52,7 @@
     (file-name-sans-extension (file-name-nondirectory first-match))))
 
 (defun xcode-additions:directory-contains-p (extension directory)
-  "Check if DIRECTORY contains files matching EXTENSION."
+  "Check if DIRECTORY contain files matching EXTENSION."
   (consp (directory-files directory nil extension)))
 
 (defun xcode-additions:project-directory-p (directory)
@@ -196,9 +196,14 @@ Returns a list of folder names, excluding hidden folders."
 
 
 (defun xcode-additions:scheme ()
-  "Get the xcode scheme if set otherwuse prompt user."
+  "Get the xcode scheme if set otherwise prompt user."
   (unless current-xcode-scheme
-    (setq current-xcode-scheme (xcode-additions:build-menu :title "Choose scheme: " :list (xcode-additions:get-scheme-list))))
+    (let ((schemes (xcode-additions:get-scheme-list)))
+      (if (= (length schemes) 1)
+          ;; If there's only one scheme, use it automatically
+          (setq current-xcode-scheme (car schemes))
+        ;; Otherwise prompt the user
+        (setq current-xcode-scheme (xcode-additions:build-menu :title "Choose scheme: " :list schemes)))))
   (if (not current-xcode-scheme)
       (error "No scheme selected")
     (shell-quote-argument current-xcode-scheme)))
@@ -231,12 +236,13 @@ Returns a list of folder names, excluding hidden folders."
         (message "xcode-additions:build-folder:\nAll folders: %s" all-folders)
         (message "Matching folders: %s" matching-folders))
 
+      ;; Cache the build folder for this device type
       (setq current-build-folder
             (cond
-             ;; Only one matching folder, use it
+             ;; Only one matching folder, use it automatically
              ((= (length matching-folders) 1)
               (car matching-folders))
-             ;; Multiple matching folders, let user choose
+             ;; Multiple matching folders, let user choose once
              ((> (length matching-folders) 1)
               (xcode-additions:build-menu
                :title "Choose build folder"
@@ -351,8 +357,10 @@ Returns a list of folder names, excluding hidden folders."
     (setq current-run-on-device xcode-additions:device-choice)))
 
 (defun xcode-additions:run-in-simulator ()
-  "Run the app in simulator."
-  (not xcode-additions:device-choice))
+  "Return t if app should run in simulator, nil for physical device."
+  (if (null xcode-additions:device-choice)
+      t  ; Default to simulator if not set
+    (not xcode-additions:device-choice)))
 
 ;;;###autoload
 (defun xcode-additions:reset ()
@@ -533,17 +541,29 @@ Scheme: %s
 Build Configuration: %s
 App Identifier: %s
 Build Folder: %s
-Running on: %s"
+Running on: %s
+Simulator ID: %s
+Debug Mode: %s"
                  current-project-root
                  current-xcode-scheme
                  current-build-configuration
                  current-app-identifier
                  current-build-folder
-                 (if xcode-additions:device-choice "Physical Device" "Simulator"))))
+                 (if xcode-additions:device-choice "Physical Device" "Simulator")
+                 (ios-simulator:simulator-identifier)
+                 (if xcode-additions:debug "Enabled" "Disabled"))))
     (with-current-buffer (get-buffer-create "*Xcode Configuration*")
       (erase-buffer)
       (insert config-message)
       (display-buffer (current-buffer)))))
+
+;;;###autoload
+(defun xcode-additions:toggle-debug ()
+  "Toggle debug mode for xcode-additions."
+  (interactive)
+  (setq xcode-additions:debug (not xcode-additions:debug))
+  (message "Xcode Additions debug mode %s" 
+           (if xcode-additions:debug "enabled" "disabled")))
 
 (provide 'xcode-additions)
 ;;; xcode-additions.el ends here

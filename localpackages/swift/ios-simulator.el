@@ -328,14 +328,19 @@
 
 (defun ios-simulator:get-or-choose-simulator ()
   "Get booted simulator or let user choose one."
-  (let ((booted-id (ios-simulator:booted-simulator)))
-    (if booted-id
-        (progn
-          (setq current-simulator-id booted-id)
-          (ios-simulator:setup-language)
-          (ios-simulator:setup-simulator-dwim booted-id)
-          booted-id)
-      (ios-simulator:choose-simulator))))
+  (if current-simulator-id
+      (progn
+        (ios-simulator:setup-language)
+        (ios-simulator:setup-simulator-dwim current-simulator-id)
+        current-simulator-id)
+    (let ((booted-id (ios-simulator:booted-simulator)))
+      (if booted-id
+          (progn
+            (setq current-simulator-id booted-id)
+            (ios-simulator:setup-language)
+            (ios-simulator:setup-simulator-dwim booted-id)
+            booted-id)
+        (ios-simulator:choose-simulator)))))
 
 (defun ios-simulator:choose-simulator ()
   "Choose a simulator."

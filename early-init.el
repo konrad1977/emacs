@@ -6,13 +6,11 @@
 (defvar file-name-handler-alist-original file-name-handler-alist)
 
 ;; Faster startup by reducing garbage collection
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6)
+(setq gc-cons-threshold (* 128 1024 1024)
+      file-name-handler-alist nil)
+(setq read-process-output-max (* 8 1024 1024)) ;; 4mb
 
 ;; Prevent package.el loading packages prior to init.el loading
-(setq package-enable-at-startup nil
-      package-quickstart t)
-
 ;; Disable unnecessary UI early
 (push '(vertical-scroll-bars . nil) default-frame-alist)
 (push '(menu-bar-lines . 0) default-frame-alist)
@@ -51,12 +49,10 @@
 (set-selection-coding-system 'utf-8)
 
 (setq site-run-file nil
-      read-process-output-max (* 2 1024 1024) ;; 2mb
       inhibit-compacting-font-caches t
       frame-inhibit-implied-resize t
       bidi-inhibit-bpa t
       vc-handled-backends nil
-      file-name-handler-alist nil
       kill-ring-max 100000
       mode-line-format nil
       initial-buffer-choice nil
@@ -85,8 +81,9 @@
 
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq gc-cons-threshold (* 64 1024 1024)
-                  gc-cons-percentage 0.3
+            (setq
+             ;; gc-cons-threshold (* 64 1024 1024)
+             ;;      gc-cons-percentage 0.3
                   file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)

@@ -306,7 +306,7 @@
   (orderless-match-face-2                       (:foreground yellow :background surface0 :weight 'semi-bold))
   (orderless-match-face-3                       (:foreground mauve :background surface0 :weight 'semi-bold))
 
-  (comint-highlight-prompt                      (:background dark-red :foreground red))
+  (comint-highlight-prompt                      (:background dark-red :foreground red :bold t))
 
   (completions-annotations                      (:foreground subtext0 :italic t))
   (completions-highlight                        (:foreground blue :italic t))
@@ -496,7 +496,8 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground yellow))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background surface2 :foreground text))
+
+  (highlight-symbol-face                (:foreground peach :box (:line-width -1 :color peach)))
   (info-xref                            (:foreground yellow))
 
   ;; Tree sitter highlightning
@@ -602,20 +603,16 @@
   (diff-indicator-removed (:foreground subtext1 :background dark-red))
   (diff-nonexistent (:foreground subtext1))
 
-  ;; (flycheck-overlay-error       (:foreground red :background surface0 :height 150 ))
-  ;; (flycheck-overlay-info        (:foreground yellow :background surface0 :height 150))
-  ;; (flycheck-overlay-warning     (:foreground teal :background surface0 :height 150))
-  (flycheck-overlay-marker      (:foreground mauve :height 150 :italic t :weight 'semi-bold))
-
   (punch-line-evil-normal-face  (:foreground crust :background teal :weight 'bold))
   (punch-line-evil-visual-face  (:foreground crust :background mauve :weight 'bold))
   (punch-line-evil-replace-face (:foreground crust :background maroon :weight 'bold))
   (punch-line-evil-insert-face  (:foreground crust :background red :weight 'bold))
   (punch-line-project-face      (:foreground pink :weight 'bold))
   (punch-line-buffer-name-face  (:foreground text :weight 'bold))
-  ;; (punch-line-time-face         (:foreground background3))
-  ;; (punch-line-major-mode-face   (:foreground pink))
   (punch-line-separator-face    (:foreground surface0 :weight 'thin))
+
+  (jira-face-time (:foreground yellow))
+  (jira-face-tag (:foreground mauve))
 
  ))
 

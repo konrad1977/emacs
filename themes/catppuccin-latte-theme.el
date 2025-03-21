@@ -47,7 +47,7 @@
   (crust      "#dce0e8" "#ffffff"))
 
  ;; Customize faces
- ((default                              (:background base :foreground text))
+((default                              (:background base :foreground text))
   (border                               (:foreground crust))
   (bookmark-face                        (:foreground red))
   (button                               (:foreground blue))
@@ -282,8 +282,8 @@
   (ivy-confirm-face                             (:foreground green))
 
   (vertico-multiline                            (:background crust))
-  (vertico-group-title                          (:foreground subtext1 :weight 'semi-bold :height 180))
-  (vertico-group-separator                      (:foreground overlay1 :strike-through t))
+  (vertico-group-title                          (:foreground blue :weight 'semi-bold :height 180))
+  (vertico-group-separator                      (:foreground blue :strike-through t))
   (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
 
   (vertico-posframe-border                      (:background crust))
@@ -291,7 +291,7 @@
 
   (corfu-annotations                            (:foreground overlay0))
   (corfu-current                                (:inherit 'vertico-current))
-  (corfu-border                                 (:background surface1))
+  (corfu-border                                 (:background crust :height 3))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
   (corfu-popupinfo                              (:background surface0 :foreground blue :italic t :bold t))
@@ -601,9 +601,9 @@
   (diff-indicator-removed (:foreground subtext1 :background dark-red))
   (diff-nonexistent (:foreground subtext1))
 
-  ;; (flycheck-overlay-error       (:foreground red :background surface0 :height 150 ))
-  ;; (flycheck-overlay-info        (:foreground yellow :background surface0 :height 150))
-  ;; (flycheck-overlay-warning     (:foreground teal :background surface0 :height 150))
+  ;; (flycheck-overlay-error       (:foreground crust :background red :height 150 ))
+  ;; (flycheck-overlay-info        (:foreground crust :background yellow :height 150))
+  ;; (flycheck-overlay-warning     (:foreground crust :background teal :height 150))
   (flycheck-overlay-marker      (:foreground mauve :height 150 :italic t :weight 'semi-bold))
 
   (punch-line-evil-normal-face  (:foreground crust :background teal :weight 'bold))
@@ -615,8 +615,7 @@
   ;; (punch-line-time-face         (:foreground background3))
   ;; (punch-line-major-mode-face   (:foreground pink))
   (punch-line-separator-face    (:foreground surface0 :weight 'thin))
-
- ))
+  ))
 
 ;;;###autoload
 (and load-file-name
