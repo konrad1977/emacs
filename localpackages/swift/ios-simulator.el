@@ -114,9 +114,13 @@
   (setq ios-simulator--current-simulator-name nil
         current-simulator-id nil
         current-app-identifier nil
-        current-app-name nil)
+        current-app-name nil
+        current-language-selection ios-simulator-default-language
+        current-root-folder-simulator nil
+        secondary-simulator-id nil)
   (ios-simulator:kill-buffer)
-  (ios-simulator:shut-down-all))
+  ;; (ios-simulator:shut-down-all)
+  )
 
 (defun ios-simulator-current-sdk-version ()
   "Get the current simulator sdk-version."

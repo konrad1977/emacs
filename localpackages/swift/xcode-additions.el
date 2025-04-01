@@ -28,7 +28,7 @@
   :tag "xcode-additions:xcodebuild"
   :group 'xcode-additions)
 
-(defvar xcode-additions:debug nil
+(defvar xcode-additions:debug t
   "Debug flag.")
 
 (defconst xcode-additions-extensions
@@ -355,15 +355,20 @@ Returns a list of folder names, excluding hidden folders."
   (interactive)
   (ios-simulator:reset)
   (periphery-kill-buffer)
-  (setq-local current-run-on-device nil
-              current-local-device-id nil
-              current-is-xcode-project nil
-              current-build-folder nil
-              current-app-identifier nil
-              current-build-configuration nil
-              current-project-root nil
-              current-xcode-scheme nil
-              xcode-additions:device-choice nil)  ; Reset device choice
+  (setq current-run-on-device nil
+        current-local-device-id nil
+        current-is-xcode-project nil
+        current-build-folder nil
+        current-app-identifier nil
+        current-build-configuration nil
+        current-project-root nil
+        current-xcode-scheme nil
+        current-build-settings-json nil
+        current-buildconfiguration-json-data nil
+        current-errors-or-warnings nil
+        xcode-additions:device-choice nil
+        xcode-additions:last-device-type nil)  ; Reset device choice
+  (swift-project-reset-root)
   (mode-line-hud:update :message "Resetting configuration"))
 
 ;;;###autoload
@@ -420,18 +425,22 @@ Returns a list of folder names, excluding hidden folders."
 (defun xcode-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
-  (xcode-additions:clean-build-folder-with
-   :root (xcode-additions:project-root)
-   :build-folder ".build"
-   :project-name (xcode-additions:product-name)
-   :ignore-list '("ModuleCache.noindex" "SourcePackages")))
+  (let ((root (xcode-additions:project-root)))
+    (unless root
+      (error "Not in an Xcode project"))
+    (xcode-additions:clean-build-folder-with
+     :root root
+     :build-folder (expand-file-name ".build" root)
+     :project-name (xcode-additions:product-name)
+     :ignore-list '("ModuleCache.noindex"
+                   "SourcePackages"))))
 
 (cl-defun xcode-additions:clean-build-folder-with (&key root build-folder project-name ignore-list)
-  "Clean build folder with (as ROOT) (as BUILD-FOLDER) (as PROJECT-NAME) asynchronously.
-   IGNORE-LIST is a list of folder names to ignore during cleaning."
+  "Clean build folder with ROOT, BUILD-FOLDER, PROJECT-NAME asynchronously.
+IGNORE-LIST is a list of folder names to ignore during cleaning."
   (when xcode-additions:debug
-    (message "Cleaning build %s folder for %s" build-folder project-name))
-  (let ((default-directory (concat root build-folder)))
+    (message "Cleaning build folder: %s for %s" build-folder project-name))
+  (let ((default-directory build-folder))
     (if (file-directory-p default-directory)
         (progn
           (mode-line-hud:update
