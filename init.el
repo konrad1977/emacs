@@ -4,29 +4,13 @@
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
 
-(eval-when-compile
-  (require 'use-package))
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")
-                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
-
-;; Ensure use-package is installed for Emacs versions < 29
-(when (< emacs-major-version 29)
-  (unless (package-installed-p 'use-package)
-    (unless package-archive-contents
-      (package-refresh-contents))
-    (package-install 'use-package)))
-
-;; Upgrade built-in packages
-(setopt package-install-upgrade-built-in t)
 
 ;; Reset version control backends to default
 (setq vc-handled-backends (eval (car (get 'vc-handled-backends 'standard-value))))
 
 ;; Add themes directory to custom theme load path
 (add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
-
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/kanagawa-emacs" user-emacs-directory))
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/mito-laser-emacs" user-emacs-directory))
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/neofusion-emacs" user-emacs-directory))
@@ -49,7 +33,7 @@
 	use-package-expand-minimally t
 	use-package-always-ensure t
 	use-package-compute-statistics t
-	use-package-minimum-reported-time 0.1))
+	use-package-minimum-reported-time 0.02))
 
 (use-package no-littering)
 
@@ -92,6 +76,18 @@
         xref-show-definitions-function #'xref-show-definitions-completing-read)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
+(use-package magit
+  :defer t
+  :commands (magit-status magit-ediff-show-working-tree)
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  (magit-format-file-function #'magit-format-file-nerd-icons))
+
+  ;; (magit-default-tracking-name-function #'magit-default-tracking-name-branch-only)
+  ;; (magit-status-buffer-switch-function #'switch-to-buffer)
+  ;; (setq magit-save-repository-buffers nil
+  ;;       magit-diff-refine-hunk t))
+
 (use-package isearch
   :ensure nil
   :defer t
@@ -108,13 +104,29 @@
       (let (search-nonincremental-instead)
         (ignore-errors (isearch-done t t)))
       (consult-ripgrep (project-root (project-current)) query)))
+
+    (defun isearch-consult-line ()
+    (interactive)
+    (let ((query (if isearch-regexp
+               isearch-string
+             (regexp-quote isearch-string))))
+      (isearch-update-ring isearch-string isearch-regexp)
+      (let (search-nonincremental-instead)
+        (ignore-errors (isearch-done t t)))
+      (consult-line query)))
   :bind
-  ("M-f" . isearch-forward)
+  ("M-s" . isearch-forward)
   (:map isearch-mode-map
         ("C-r" . isearch-repeat-backward)
         ("C-o" . isearch-occur)
+        ("C-e" . iedit-mode)
+        ("M-f" . isearch-consult-line)
         ("C-f" . mk/project-search-from-isearch)
         ("C-d" . isearch-forward-thing-at-point)))
+
+(use-package iedit
+  :defer t
+  :ensure t)
 
 ;; (use-package candyshop
 ;;   :ensure nil
@@ -127,6 +139,7 @@
 (use-package emacs
   :ensure nil
   :init
+  (set-window-margins (selected-window) 2 0)
   (global-hl-line-mode 1)
   (global-auto-revert-mode 1)
   (set-display-table-slot standard-display-table 0 ?\ )
@@ -138,15 +151,22 @@
   (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
   (backup-by-copying t)
+  (delete-selection-mode t)
+  (help-window-select t)
   (create-lockfiles nil)
   (make-backup-files nil)
-  (delete-old-versions t)
-  (kept-new-versions 6)
-  (kept-old-versions 2)
+  (backup-inhibited t)
   (version-control t)
-  (history-length 25)
-  (minibuffer-depth-indicate-mode 1)
-  (setq enable-recursive-minibuffers t)
+  (history-length 300)
+  (minibuffer-depth-indicate-mode t)
+  (enable-recursive-minibuffers nil)
+  (global-auto-revert-non-file-buffers t)
+  (auto-revert-avoid-polling t)
+  (auto-revert-interval 5)
+  (auto-revert-check-vc-info t)
+  (global-auto-rever-mode)
+  (switch-to-buffer-peserve-window-point t)
+  (switch-to-buffer-obey-display-actions t)
   :config
   (make-directory "~/.emacs.d/backup/" t)
   (make-directory "~/.emacs.d/auto-save/" t)
@@ -161,6 +181,8 @@
    custom-file (concat user-emacs-directory "var/custom.el")
    ring-bell-function 'ignore
    completion-ignore-case t
+   completions-detailed t
+   completions-format 'one-column
    use-short-answers t
    debug-on-error nil
    confirm-kill-emacs))
@@ -196,7 +218,7 @@
          ("C-x C-x" . safe-kill-buffer-and-window))
   :custom
   (setq window-resize-pixelwise nil
-	frame-resize-pixelwise nil
+	frame-resize-pixelwise t
 	window-divider-default-places t
 	window-divider-default-bottom-width 1
 	window-divider-default-right-width 1)
@@ -373,8 +395,8 @@
 (use-package prog-mode
   :ensure nil
   :hook (
+         (emacs-lisp-mode . electric-indent-mode)
          (prog-mode . electric-pair-mode)
-         (prog-mode . electric-indent-mode)
          (prog-mode . drag-stuff-mode)
          (prog-mode . dumb-jump-mode)
          (prog-mode . hs-minor-mode)
@@ -383,7 +405,8 @@
   :custom
   (left-fringe-width 20)
   (display-line-numbers-type 'relative)
-  (display-line-numbers-width 4))
+  (display-line-numbers-width 4)
+  (display-line-numbers-widen t))
 
 (use-package saveplace
   :ensure nil
@@ -449,7 +472,7 @@
 (use-package consult
   :defer t
   :bind
-  ("M-S" . #'consult-line)
+  ("M-f" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("<backtab>" . #'consult-buffer)
   ("C-c C-a" . #'consult-apropos)
   ("C-c m m" . #'consult-imenu-multi)
@@ -480,10 +503,12 @@
   :defer t)
 
 (use-package recentf
+  :init
+  (recentf-mode 1)
   :config
-  (setq recentf-max-saved-items 200
-        recentf-auto-cleanup 'never)
-  (recentf-mode 1))
+  (setq recentf-max-saved-items 40
+        recentf-max-menu-items 40
+        recentf-auto-cleanup 'never))
 
 (use-package mode-line-hud
   :ensure nil
@@ -508,8 +533,8 @@
   :config
   (setq punch-show-project-info nil
         punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'flame
-        punch-line-modal-size 'medium
+        punch-line-modal-divider-style 'arrow
+        punch-line-modal-size 'small
         punch-line-left-separator "  "
         punch-line-right-separator "  "
         punch-show-git-info t
@@ -582,9 +607,15 @@
    (evil-define-key 'normal 'global (kbd "<leader> f d") 'delete-file)
    (evil-define-key 'normal 'global (kbd "<leader> f e") '(lambda () (interactive) (find-file user-init-file)))
    (evil-define-key 'normal 'global (kbd "<leader> f f") 'find-file)
+   (evil-define-key 'normal 'global (kbd "<leader> f l") 'consult-focus-lines)
    (evil-define-key 'normal 'global (kbd "<leader> f n") 'create-file-buffer)
    (evil-define-key 'normal 'global (kbd "<leader> f r") 'consult-recent-file)
    (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
+
+   (evil-define-key 'normal 'global (kbd "<leader> h s") 'highlight-symbol-at-point)
+   (evil-define-key 'normal 'global (kbd "<leader> h r") 'highlight-symbol-remove-all)
+   (evil-define-key 'normal 'global (kbd "<leader> h n") 'highlight-symbol-next)
+   (evil-define-key 'normal 'global (kbd "<leader> h N") 'highlight-symbol-prev)
 
    (evil-define-key 'normal 'global (kbd "<leader> j j") 'jira-issues)
    (evil-define-key 'normal 'global (kbd "<leader> j m") 'jira-issues-menu)
@@ -631,9 +662,6 @@
    ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
 
    (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
-   (evil-define-key 'normal 'global
-      ;; "q" 'minibuffer-quit
-     "\C-g" 'minibuffer-quit)
    (evil-mode 1))
 
 (with-eval-after-load 'evil
@@ -646,7 +674,7 @@
   :defer 2
   :after evil
   :custom
-  (setq evil-collection-setup-minibuffer t)
+  ;; (setq evil-collection-setup-minibuffer t)
   (evil-collection-vterm-setup)
   :init
   (evil-collection-init))
@@ -706,7 +734,8 @@
 (use-package undo-fu-session
   :hook (after-init . undo-fu-session-global-mode)
   :config
-  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")))
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")
+        undo-fu-session-file-limit 10))
 
 ;; ;; (use-package ws-butler
 ;; ;;   :hook (prog-mode . ws-butler-mode))
@@ -747,18 +776,23 @@
   :defer t
   :bind ("C-x e" . er/expand-region))
 
-;; (use-package eldoc-box
-;;   :if (display-graphic-p)
-;;   :diminish
-;;   :hook
-;;   (prog-mode . eldoc-box-hover-at-point-mode)
-;;   (eldoc-box-frame . (lambda (&rest _)
-;;                        (set-window-margins (selected-window) 0 0)))
-;;   :config
-;;   ;; Prettify `eldoc-box' frame
-;;   (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 0
-;;         (alist-get 'internal-border-width eldoc-box-frame-parameters) 2
-;;         (alist-get 'right-fringe eldoc-box-frame-parameters) 0))
+(use-package eldoc-box
+  :if (display-graphic-p)
+  :diminish
+  :hook
+  ((swift-ts-mode emacs-lisp-mode) . eldoc-box-hover-mode)
+  (eldoc-box-frame . (lambda (&rest _)
+                       (set-window-margins (selected-window) 0 0)))
+  :config
+  (setq eldoc-box-only-multi-line t
+        eldoc-box-prettify-ts-errors t
+        eldoc-box-clear-with-C-g t)
+  (setq eldoc-box-buffer-hook
+        (remove 'eldoc-box--fontify-html eldoc-box-buffer-hook))
+  ;; Prettify `eldoc-box' frame
+  (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 0
+        (alist-get 'internal-border-width eldoc-box-frame-parameters) 2
+        (alist-get 'right-fringe eldoc-box-frame-parameters) 0))
 
 (use-package ediff
   :defer t
@@ -778,7 +812,6 @@
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
         ("<escape>" . corfu-quit)
-        ("C-g" . corfu-quit)
         ("C-j" . corfu-next)
         ("C-k" . corfu-previous))
   :custom
@@ -914,25 +947,17 @@
   :custom
   (dape-breakpoint-margin-string "●")
   :config
-  (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
+  (setq left-fringe-width 20)
+  (set-fringe-style (quote (12 . 8)))
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10
-
         dape-display-source-buffer-action '(display-buffer-same-window)
         dape-breakpoint-margin-face 'dape-breakpoint-face
         dape-breakpoint-face '((t (:foreground "#FF5D62"))))
-  ;; (dape-repl-commands
-  ;;  '((" debug" . dape)
-  ;;    (" next" . dape-next)
-  ;;    (" continue" . dape-continue)
-  ;;    (" pause" . dape-pause)
-  ;;    (" step" . dape-step-in)
-  ;;    (" out" . dape-step-out)
-  ;;    (" restart" . dape-restart)
-  ;;    (" disconnect" . dape-disconnect-quit)))
-  :config
   (setq dape-buffer-window-arrangement 'right
         dape-stack-trace-levels 10)
+  (add-hook 'dape-display-source-hook 'pulse-momentary-highlight-one-line)
+  (add-hook 'dap-running-session-mode (set-window-buffer nil (current-buffer)))
   (add-hook 'dape-on-stopped-hooks 'dape-info)
   (add-hook 'dape-on-stopped-hooks 'dape-repl))
 
@@ -1023,10 +1048,11 @@
   :hook (flycheck-mode . flycheck-overlay-mode)
   :bind ("C-c f l" . flycheck-overlay-toggle)
   :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode)
-  (setq flycheck-overlay-virtual-line-type 'curved-arrow
+  (setq flycheck-overlay-virtual-line-type 'arrow
         flycheck-overlay-percent-darker 60
         flycheck-overlay-text-tint-percent 80
         flycheck-overlay-text-tint 'lighter
+        flycheck-overlay-show-at-eol t
         flycheck-overlay-background-lightness 60
         flycheck-overlay-virtual-line-icon nil))
 
@@ -1101,13 +1127,6 @@
   (setq darkroom-text-scale-increase 1.5
         darkroom-margins '(12 . 0)))
 
-(use-package magit
-  :defer t
-  :commands (magit-status magit-ediff-show-working-tree)
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  (setq magit-save-repository-buffers nil)
-  (magit-format-file-function #'magit-format-file-nerd-icons))
 
 (use-package blamer
   :commands blamer-mode
@@ -1441,9 +1460,10 @@
 
 (use-package highlight-symbol
   :defer t
-  :hook (prog-mode . highlight-symbol-mode)
+  ;; :hook (prog-mode . highlight-symbol-mode)
   :config
-  (setq highlight-symbol-idle-delay 0.8))
+  (setq highlight-symbol-idle-delay 0.8
+        highlight-symbol-highlight-single-occurrence nil))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1452,8 +1472,6 @@
   :bind (:map evil-visual-state-map
 	      ("C-j" . drag-stuff-down)
 	      ("C-k" . drag-stuff-up)))
-
-;; Quickly jump to definition or usage
 
 (use-package swift-ts-mode
   :mode "\\.swift\\'"
@@ -1682,12 +1700,6 @@
     (progn
       (vterm-other-window))))
 
-(defun mk/recompile (&optional force)
-  "Recompile files (as FORCE) force compilation."
-  (interactive "p")
-  (byte-recompile-directory (locate-user-emacs-file "localpackages") 0)
-  (byte-recompile-directory (locate-user-emacs-file "themes") 0))
-
 (defun xref-eglot+dumb-backend ()
   "Return the xref backend for eglot+dumb."
   'eglot+dumb)
@@ -1754,7 +1766,8 @@
              (run-at-time "1 sec" nil 'delete-windows-on buf)
              (bury-buffer buf))))
   :custom
-  ((compilation-always-kill t)
+  ((add-hook 'compilation-filter-hook #'ansi-color-compilation-filter)
+   (compilation-always-kill t)
    (compilation-auto-jump-to-first-error t)
    (compilation-ask-about-save nil)
    (compilation-skip-threshold 1)
@@ -1766,18 +1779,8 @@
    (compilation-max-output-line-length nil))
   :config
   (setq compilation-scroll-output t
-        compilation-error-screen-columns nil)
-  (setq compilation-transform-file-name-function
-        (lambda (file)
-          (if (file-name-absolute-p file)
-              (file-relative-name file (project-root (project-current)))
-            file)))
-  ;; Your existing ANSI color configuration
-  (require 'ansi-color)
-  (defun my/colorize-compilation-buffer ()
-    (let ((inhibit-read-only t))
-      (ansi-color-apply-on-region (point-min) (point-max))))
-  (add-hook 'compilation-filter-hook #'my/colorize-compilation-buffer))
+        compilation-error-screen-columns nil
+        ansi-color-for-compilation-mode t))
 
 (use-package flycheck-kotlin
   :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
@@ -1818,7 +1821,6 @@
   :config
   (setq copilot-indent-offset-warning-disable t)
   (setq copilot-max-char 1000000))
-
 
 (use-package copilot-chat
   :defer t
@@ -1901,8 +1903,10 @@
   :config
   (setq aidermacs-auto-commits nil
         aidermacs-use-architect-mode nil)
-  (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
-  (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
+  ;; (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  ;; (setq aidermacs-args '("--model" "deepseek/deepseek-reasoner"))
+  (setq aidermacs-args '("--model" "deepseek/deepseek-chat"))
+  ;; (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
   :bind (:map global-map
               ("C-c a" . aidermacs-transient-menu)))
 

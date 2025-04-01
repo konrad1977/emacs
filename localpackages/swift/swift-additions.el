@@ -65,14 +65,20 @@
 
 (defun swift-additions:get-optimization-flags ()
   "Get optimization flags based on current optimization level."
-      `("SWIFT_COMPILATION_MODE=wholemodule"
+      `("SWIFT_COMPILATION_MODE=singlefile"
         "COMPILER_INDEX_STORE_ENABLE=NO"
         "DEBUG_INFORMATION_FORMAT=dwarf"
-        "SWIFT_PARALLEL_MODULE_JOBS=8"
+        "SWIFT_PARALLEL_MODULE_JOBS=16"
         "SWIFT_USE_PARALLEL_WHOLE_MODULE_OPTIMIZATION=YES"
         "SWIFT_ENABLE_BATCH_MODE=YES"
         "SWIFT_USE_PARALLEL_SOURCEJOB_TASKS=YES"
-        "BUILD_LIBRARY_FOR_DISTRIBUTION=NO"))
+        "GCC_OPTIMIZATION_LEVEL=fast"
+        "SWIFT_OPTIMIZATION_LEVEL=-Osize"
+        "SWIFT_WHOLE_MODULE_OPTIMIZATION=YES"
+        "SWIFT_TREAT_WARNINGS_AS_ERRORS=NO"
+        "ONLY_ACTIVE_ARCH=YES"
+        "VALIDATE_PRODUCT=NO"
+        "CLANG_ENABLE_MODULES=YES"))
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -81,34 +87,70 @@
   "xcrun xcodebuild build \\"))
 
 (defun swift-additions:setup-build-environment ()
-  "Setup optimal environment variables for build."
+  "Setup optimal environment variables for build with aggressive caching and parallelization."
+  ;; Enable all available caching mechanisms
+  (setenv "SWIFT_BUILD_CACHE_ENABLED" "1")
+  (setenv "CLANG_MODULE_CACHE_PATH" (expand-file-name "~/Library/Caches/org.swift.swiftpm/ModuleCache"))
+  (setenv "SWIFT_MODULE_CACHE_PATH" (expand-file-name "~/Library/Caches/org.swift.swiftpm/ModuleCache"))
+  (setenv "OBJC_DISABLE_INITIALIZE_FORK_SAFETY" "YES")  ;; Speeds up forking
+  
+  ;; Parallel compilation settings
+  (let ((cores (num-processors)))
+    (setenv "SWIFT_MAX_PARALLEL_LTO_JOBS" (number-to-string cores))
+    (setenv "SWIFT_PARALLEL_MODULE_JOBS" (number-to-string cores))
+    (setenv "SWIFT_PARALLEL_COMPILE_JOBS" (number-to-string cores))
+    (setenv "LLVM_PARALLEL_LINK_JOBS" (number-to-string (/ cores 2))))
+  
+  ;; Incremental compilation optimizations
+  (setenv "SWIFT_ENABLE_INCREMENTAL_COMPILATION" "YES")
+  (setenv "SWIFT_OPTIMIZATION_LEVEL" "-O")
+  (setenv "SWIFT_COMPILATION_MODE" "incremental")
+  (setenv "SWIFT_WHOLE_MODULE_OPTIMIZATION" "NO")  ;; Better for incremental
+  
+  ;; Disable expensive checks
+  (setenv "SWIFT_DISABLE_SAFETY_CHECKS" "1")
+  (setenv "SWIFT_DISABLE_MODULE_CACHE_VALIDATION" "1")
+  (setenv "SWIFT_SKIP_FUNCTION_BODIES" "1")
+  (setenv "SWIFT_SKIP_TYPE_CHECKING" "1")
+  (setenv "SWIFT_SUPPRESS_WARNINGS" "YES")
+  
+  ;; Memory management
+  (setenv "SWIFT_MEMORY_ALLOCATOR" "malloc")
   (setenv "SWIFT_DETERMINISTIC_HASHING" "1")
-  (setenv "SWIFT_ENABLE_INCREMENTAL_COMPILATION" "1")
-  (when (eq swift-additions:optimization-level 'fast)
-    (setenv "SWIFT_DISABLE_SAFETY_CHECKS" "1"))
-  (setenv "SWIFT_MEMORY_ALLOCATOR" "malloc")  ; Snabbare än standard
-  (setenv "SWIFT_MAX_PARALLEL_LTO_JOBS"
-          (number-to-string (max 1 (/ (num-processors) 2)))))
+  
+  ;; Debugging optimizations
+  (setenv "SWIFT_SERIALIZE_DEBUGGING_OPTIONS" "NO")
+  (setenv "SWIFT_REFLECTION_METADATA_LEVEL" "none")
+  
+  ;; Enable experimental features
+  (setenv "SWIFT_ENABLE_EXPERIMENTAL_CONCURRENCY" "1")
+  (setenv "SWIFT_ENABLE_EXPERIMENTAL_DISTRIBUTED" "1"))
+  ;; Cache settings
+  (setenv "CLANG_MODULE_CACHE_PATH" 
+          (expand-file-name "~/Library/Caches/org.swift.swiftpm/ModuleCache"))
+  (setenv "SWIFT_MODULE_CACHE_PATH" 
+          (expand-file-name "~/Library/Caches/org.swift.swiftpm/ModuleCache"))
 
 (cl-defun swift-additions:build-app-command (&key sim-id derived-path)
-  "Xcodebuild with (as SIM-ID DERIVED-PATH)."
+  "Generate optimized xcodebuild command with aggressive parallelization."
   (if swift-additions:current-build-command
       swift-additions:current-build-command
     (concat
      (swift-additions:xcodebuild-command)
      (format "%s \\" (xcode-additions:get-workspace-or-project))
      (format "-scheme %s \\" (xcode-additions:scheme))
-     (format "-jobs %s \\" (swift-additions:get-optimal-jobs))
+     (format "-parallelizeTargets -jobs %s \\" (num-processors))  ;; Use all cores
      (if sim-id
          (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
        (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
      (format "-configuration %s \\" swift-additions:default-configuration)
      "-parallelizeTargets \\"
-     ;; (format "-UseModernBuildSystem=%s \\" swift-additions:modern-build-system)
+     "-hideShellScriptEnvironment \\"
+     "-skipUnavailableActions \\"
+     "-disableAutomaticPackageResolution \\"
      "-enableAddressSanitizer NO \\"
      "-enableThreadSanitizer NO \\"
      "-enableUndefinedBehaviorSanitizer NO \\"
-     ;; "-resultBundlePath .bundle \\"
      (mapconcat (lambda (flag) (concat flag " \\"))
                 (append
                  (swift-additions:get-optimization-flags)
@@ -116,9 +158,15 @@
                 "")
      "-derivedDataPath .build | xcode-build-server parse -avv")))
 
-(defun swift-additions:get-optimal-jobs ()
-  "Get optimal number of parallel jobs based on CPU cores."
-  (number-to-string (max 1 (- (num-processors) 1))))
+(defun swift-additions:enable-build-caching ()
+  "Enable Xcode build system caching for faster incremental builds."
+  (setenv "ENABLE_PRECOMPILED_HEADERS" "YES")
+  (setenv "CLANG_ENABLE_MODULE_DEBUGGING" "NO")
+  (setenv "SWIFT_USE_DEVELOPMENT_SNAPSHOT" "NO")
+  (setenv "SWIFT_USE_PRECOMPILED_HEADERS" "YES")
+  (setenv "GCC_PRECOMPILE_PREFIX_HEADER" "YES")
+  (setenv "GCC_USE_HEADER_SYMAP" "YES")
+  (setenv "CLANG_USE_OPTIMIZATION_PROFILE" "YES"))
 
 (defun swift-additions:compilation-time ()
   "Get the time of the compilation."
@@ -221,6 +269,7 @@
   "Compile app for simulator with optional RUN after completion."
   (swift-additions:cleanup)
   (swift-additions:setup-build-environment)
+  (swift-additions:enable-build-caching)
   (setq swift-additions:current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)

@@ -13,6 +13,9 @@
 (with-eval-after-load 'xcode-additions
   (require 'xcode-additions))
 
+(with-eval-after-load 'swift-project
+  (require 'swift-project))
+
 (with-eval-after-load 'json
   (require 'json))
 
@@ -32,7 +35,7 @@
   :group 'ios-simulator)
 
 (defface ios-simulator-background-face
-  '((t (:inherit default :height 150)))
+  `((t (:inherit default :height 150)))
   "Buffer background color."
   :group 'ios-simulator)
 
@@ -75,6 +78,13 @@
 (defvar-local current-app-identifier nil)
 (defvar-local current-app-name nil)
 (defvar-local use-rosetta nil)
+
+(defvar ios-simulator--cached-devices nil
+  "Cached list of available simulator devices.")
+(defvar ios-simulator--cache-timestamp nil
+  "Timestamp when devices were last cached.")
+(defconst ios-simulator--cache-ttl 300
+  "Cache TTL in seconds (5 minutes).")
 
 (defvar ios-simulator-ready-hook nil
   "Hook run when the simulator is ready for app installation.")
@@ -351,6 +361,8 @@
                           available-simulators))
          (choice (completing-read "Choose a simulator:" choices nil t))
          (device-id (cdr (assoc choice choices))))
+    (when ios-simulator:debug
+      (message "Available simulators: %d" (length available-simulators)))
     (setq current-simulator-id device-id)
     (ios-simulator:setup-language)
     (ios-simulator:setup-simulator-dwim device-id)
@@ -478,18 +490,36 @@
       (async-shell-command (concat "open " command))))
 
 (defun ios-simulator:fetch-available-simulators ()
-  "List available simulators."
-  (let* ((json (call-process-to-json list-simulators-command))
-         (devices (cdr (assoc 'devices json)))
-         (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
-         (available-devices
-          (seq-filter (lambda (device) (cdr (assoc 'isAvailable device))) flattened))
-         ) available-devices))
+  "List available simulators, using cached results if valid."
+  (let ((now (float-time)))
+    (when (or (null ios-simulator--cached-devices)
+              (null ios-simulator--cache-timestamp)
+              (> (- now ios-simulator--cache-timestamp) ios-simulator--cache-ttl))
+      (when ios-simulator:debug
+        (message "Refreshing simulator device cache..."))
+      (let* ((json (call-process-to-json list-simulators-command))
+             (devices (cdr (assoc 'devices json)))
+             (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
+             (available-devices
+              (seq-filter (lambda (device) (cdr (assoc 'isAvailable device))) flattened)))
+        (setq ios-simulator--cached-devices available-devices
+              ios-simulator--cache-timestamp now)))
+    (when ios-simulator:debug
+      (message "Using %s cached simulators" (length ios-simulator--cached-devices)))
+    ios-simulator--cached-devices))
+
+(defun ios-simulator:invalidate-cache ()
+  "Force refresh of simulator device cache."
+  (interactive)
+  (setq ios-simulator--cached-devices nil
+        ios-simulator--cache-timestamp nil)
+  (message "Simulator cache invalidated"))
 
 (defun ios-simulator:remove-control-m (string)
   "Remove ^M characters from STRING."
   (replace-regexp-in-string "\r" "" string))
 
 (provide 'ios-simulator)
+
 ;;; ios-simulator.el ends here
 

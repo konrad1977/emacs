@@ -656,13 +656,10 @@ VERSION should be a string like \"8.5\" or nil to use project default."
   (when kotlin-development--build-timer
     (cancel-timer kotlin-development--build-timer)
     (setq kotlin-development--build-timer nil))
-  (when kotlin-development--emulator-check-timer
-    (cancel-timer kotlin-development--emulator-check-timer)
-    (setq kotlin-development--emulator-check-timer nil))
-  (when kotlin-development--emulator-process
-    (when (process-live-p kotlin-development--emulator-process)
-      (kill-process kotlin-development--emulator-process))
-    (setq kotlin-development--emulator-process nil)))
+  (when kotlin-development--process
+    (when (process-live-p kotlin-development--process)
+      (kill-process kotlin-development--process))
+    (setq kotlin-development--process nil)))
 
 (defun kotlin-development-emulator-terminate-app ()
   "Terminate the Android app using adb."

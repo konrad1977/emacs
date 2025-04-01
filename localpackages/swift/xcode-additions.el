@@ -5,6 +5,7 @@
 (require 'project)
 (require 'mode-line-hud)
 (require 'xcodebuildserver)
+(require 'swift-project)
 
 (defvar current-project-root nil)
 (defvar current-xcode-scheme nil)
@@ -269,8 +270,8 @@ Returns a list of folder names, excluding hidden folders."
   (let ((workspace (xcode-additions:workspace-name))
         (projectname (xcode-additions:project-name)))
     (if workspace
-        (format "-workspace %s.xcworkspace" (shell-quote-argument workspace))
-      (format "-project %s.xcodeproj" (shell-quote-argument projectname)))))
+        (format "-workspace %s.xcworkspace -skipPackagePluginValidation" (shell-quote-argument workspace))
+      (format "-project %s.xcodeproj -skipPackagePluginValidation" (shell-quote-argument projectname)))))
 
 (defun xcode-additions:get-configuration-list ()
   "Get list of project configurations."
@@ -306,17 +307,16 @@ Returns a list of folder names, excluding hidden folders."
 (defun xcode-additions:setup-current-project (project)
   "Check if we have a new project (as PROJECT).  If true reset settings."
   (unless current-project-root
-    (setq current-project-root project))
-
-  (let ((current-root (if (listp current-project-root)
-                         (car current-project-root)
-                       current-project-root)))
-    (when (not (string= current-root project))
-      (when xcode-additions:debug
-        (message "Setting up new project: %s" project))
-      (xcode-additions:reset)
-      (setq default-directory project)
-      (setq current-project-root project))))
+    (setq current-project-root project)
+    (let ((current-root (if (listp current-project-root)
+                            (car current-project-root)
+                          current-project-root)))
+      (when (not (string= current-root project))
+        (when xcode-additions:debug
+          (message "Setting up new project: %s" project))
+        (xcode-additions:reset)
+        (setq default-directory project)
+        (setq current-project-root project)))))
 
 (defun xcode-additions:setup-project ()
   "Setup the current project."
@@ -324,20 +324,7 @@ Returns a list of folder names, excluding hidden folders."
 
 (defun xcode-additions:project-root ()
   "Get the project root as a path string."
-  (unless current-project-root
-    (let ((proj (project-current)))
-      (setq current-project-root (if proj
-                                    (project-root proj)
-                                  (error "No project found")))
-      (setq-local default-directory current-project-root)))
-  (if current-project-root
-      (directory-file-name
-       (file-name-as-directory
-        (expand-file-name
-         (if (listp current-project-root)
-             (car current-project-root)  ; Extract string from list
-           current-project-root))))      ; Use as-is if already a string
-    (error "No project found")))
+  (setq current-project-root (swift-project-root)))
 
 (cl-defun xcode-additions:device-or-simulator-menu (&key title)
 "Build device or simulator menu (as TITLE)."
@@ -435,7 +422,7 @@ Returns a list of folder names, excluding hidden folders."
   (interactive)
   (xcode-additions:clean-build-folder-with
    :root (xcode-additions:project-root)
-   :build-folder "build"
+   :build-folder ".build"
    :project-name (xcode-additions:product-name)
    :ignore-list '("ModuleCache.noindex" "SourcePackages")))
 
@@ -461,9 +448,8 @@ Returns a list of folder names, excluding hidden folders."
                                 (member file-name ignore-list))
                       (if (file-directory-p file)
                           (progn
-                            (delete-directory-contents file ignore-list)
-                            (delete-directory file))
-                        (delete-file file))))))
+                            (delete-directory file t t))
+                        (delete-file file t))))))
               (condition-case err
                   (progn
                     (delete-directory-contents ,default-directory ',ignore-list) "successfully")

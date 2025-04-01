@@ -15,9 +15,7 @@
 ;;;###autoload
 (defun periphery-helper:project-root-dir ()
   "Get the root directory of the current project."
-  (let ((project (project-current)))
-    (when project
-      (project-root project))))
+  (swift-project-root nil 'no-error))
 
 (cl-defun async-start-shell-command-to-json (&key command &key callback)
   "Async shell command to JSON run async (as COMMAND CALLBACK)."

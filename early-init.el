@@ -5,10 +5,14 @@
 
 (defvar file-name-handler-alist-original file-name-handler-alist)
 
-;; Faster startup by reducing garbage collection
-(setq gc-cons-threshold (* 128 1024 1024)
-      file-name-handler-alist nil)
-(setq read-process-output-max (* 8 1024 1024)) ;; 4mb
+;; Faster startup by reducing garbage collection and UI overhead
+(setq gc-cons-threshold (* 384 1024 1024)  ; Raise to 384 MB
+      file-name-handler-alist nil
+      read-process-output-max (* 2 1024 1024)  ; Double buffer size
+      process-adaptive-read-buffering t
+      inhibit-compacting-font-caches t  ; Prevent GC during font ops
+      bidi-display-reordering 'left-to-right  ; Simpler text layout
+      byte-compile-warnings '(not obsolete))
 
 ;; Prevent package.el loading packages prior to init.el loading
 ;; Disable unnecessary UI early
@@ -18,8 +22,22 @@
 (push '(fullscreen . maximized) default-frame-alist)
 (push '(background-color . "#13131a") default-frame-alist)
 (push '(foreground-color . "#a0a0ae") default-frame-alist)
+;; Configure frame parameters in one go
+(setq default-frame-alist
+      `((vertical-scroll-bars . nil)
+        (menu-bar-lines . 0)
+        (tool-bar-lines . 0)
+        (fullscreen . maximized)
+        (background-color . "#13131a")
+        (foreground-color . "#a0a0ae")
+        (undecorated-round . t)
+        (inhibit-double-buffering . t)  ; Better frame rendering
+        (font-backend . "ns")  ; Force Core Text renderer on macOS
+        (cursor-type . 'bar)
+        (left-fringe . 0)
+        (right-fringe . 0)))
 
-;; MacOS specific settings
+;; macOS-specific performance tweaks
 (when (eq system-type 'darwin)
   (push '(ns-use-native-fullscreen . nil) default-frame-alist)
   (push '(ns-transparent-titlebar . t) default-frame-alist)
@@ -39,6 +57,7 @@
 (when (featurep 'native-compile)
   (setq native-comp-async-report-warnings-errors nil
         package-native-compile t
+        jit-lock-defer-time 0
         native-comp-jit-compilation t))
 
 ;; UTF-8 everywhere
@@ -48,43 +67,47 @@
 (set-keyboard-coding-system 'utf-8)
 (set-selection-coding-system 'utf-8)
 
-(setq site-run-file nil
-      inhibit-compacting-font-caches t
-      frame-inhibit-implied-resize t
-      bidi-inhibit-bpa t
-      vc-handled-backends nil
-      kill-ring-max 100000
-      mode-line-format nil
-      initial-buffer-choice nil
-      inhibit-x-resources t
-      inhibit-startup-buffer-menu t
-      inhibit-startup-echo-area-message user-login-name
-      initial-major-mode 'fundamental-mode
-      inhibit-splash-screen t
-      inhibit-startup-message t
-      inhibit-startup-screen t
-      initial-scratch-message nil
-      load-prefer-newer t
-      ns-use-proxy-icon nil
-      frame-title-format nil
-      frame-resize-pixelwise t
-      package-enable-at-startup nil)
+(setq-default site-run-file nil
+              inhibit-compacting-font-caches t
+              frame-inhibit-implied-resize t
+              lexical-binding t
+              bidi-inhibit-bpa t
+              vc-handled-backends nil
+              kill-ring-max 100000
+              mode-line-format nil
+              initial-buffer-choice nil
+              inhibit-x-resources t
+              inhibit-startup-buffer-menu t
+              inhibit-startup-echo-area-message user-login-name
+              initial-major-mode 'fundamental-mode
+              inhibit-splash-screen t
+              inhibit-startup-message t
+              inhibit-startup-screen t
+              initial-scratch-message nil
+              load-prefer-newer t
+              ns-use-proxy-icon nil
+              frame-title-format nil
+              frame-resize-pixelwise t
+              package-enable-at-startup nil)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/")
-                         ("gnu" . "https://elpa.gnu.org/packages/")
-                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
-(customize-set-variable 'package-archive-priorities '(("gnu"    . 99)
-                                                      ("nongnu" . 80)
-                                                      ("stable" . 70)
-                                                      ("melpa"  . 0)))
+;; Package system configuration
+(setq package-archives nil
+      package-enable-at-startup nil
+      package-quickstart t)  ; Cache package descriptors
+
+;; Only enable archives after startup
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                                     ("gnu" . "https://elpa.gnu.org/packages/")
+                                     ("nongnu" . "https://elpa.nongnu.org/nongnu/"))
+                  package-archive-priorities '(("gnu" . 99)
+                                               ("nongnu" . 80)
+                                               ("melpa" . 0)))))
 
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq
-             ;; gc-cons-threshold (* 64 1024 1024)
-             ;;      gc-cons-percentage 0.3
-                  file-name-handler-alist file-name-handler-alist-original)))
+            (setq file-name-handler-alist file-name-handler-alist-original)))
 
 (provide 'early-init)
 ;;; early-init.el ends here

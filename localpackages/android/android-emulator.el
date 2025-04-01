@@ -529,9 +529,12 @@ If logcat is currently running, stop it. Otherwise, start it."
 (defun android-emulator-get-package-name ()
   "Get the package name from the Android project.
 First tries to extract from the manifest file, then falls back to build.gradle files."
-  (or (android-emulator--get-package-from-manifest)
-      (android-emulator--get-package-from-gradle)
-      android-emulator-app-identifier))
+  (let ((package-name (or (android-emulator--get-package-from-manifest)
+                          (android-emulator--get-package-from-gradle)
+                          android-emulator-app-identifier)))
+    (when (and android-emulator-debug package-name)
+      (message "Found package name: %s" package-name))
+    package-name))
 
 (defun android-emulator--get-package-from-manifest ()
   "Extract package name from AndroidManifest.xml file."
