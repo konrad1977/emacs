@@ -94,7 +94,6 @@
 (defvar-local current-language-selection ios-simulator-default-language
   "Current language selection for the simulator.")
 
-(defvar secondary-simulator-id nil)
 
 (defun ios-simulator:mode-setup ()
   "Setup the iOS simulator mode."
@@ -116,8 +115,7 @@
         current-app-identifier nil
         current-app-name nil
         current-language-selection ios-simulator-default-language
-        current-root-folder-simulator nil
-        secondary-simulator-id nil)
+        current-root-folder-simulator nil)
   (ios-simulator:kill-buffer)
   ;; (ios-simulator:shut-down-all)
   )
@@ -471,8 +469,7 @@
 (cl-defun ios-simulator:terminate-app-with (&key appIdentifier)
   "Terminate runnings apps (as APPIDENTIFIER)."
   (setq current-app-identifier appIdentifier)
-  (ios-simulator:terminate-app :simulatorID current-simulator-id :appIdentifier appIdentifier)
-  (ios-simulator:terminate-app :simulatorID secondary-simulator-id :appIdentifier appIdentifier))
+  (ios-simulator:terminate-app :simulatorID current-simulator-id :appIdentifier appIdentifier))
 
 (cl-defun ios-simulator:terminate-app (&key simulatorID &key appIdentifier)
   "Terminate app (as APPIDENTIFIER as SIMULATORID)."

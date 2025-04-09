@@ -928,31 +928,38 @@ ADB: %s" sdk-path emulator-path adb-path)))
   (kotlin-development-setup)
   (global-eldoc-mode -1))
 
-;; Improved error regexp for Kotlin errors with better file path handling
-(add-to-list 'compilation-error-regexp-alist
-             '("\\(?:e: \\)?\\(?:file://\\)?\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3))
-
-;; Add Kotlin-specific error patterns
-(add-to-list 'compilation-error-regexp-alist
-             '("^\\(w:\\|e:\\) \\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\):" 2 3 4 (1 . 2)))
-
-;; Add Gradle error patterns
-(add-to-list 'compilation-error-regexp-alist
-             '("^\\(FAILURE\\|ERROR\\): Build failed with an exception\\." nil nil nil 2))
-
 ;; Configure compilation mode to show shorter file paths
 (defun kotlin-development-setup-compilation-mode ()
   "Set up compilation mode for better Kotlin/Android development experience."
-  (setq-local compilation-auto-jump-to-first-error nil)
+  (setq-local compilation-auto-jump-to-first-error t)
   ;; Use relative paths in compilation buffer
   (setq-local compilation-transform-file-match-alist
-              '(("^\\(?:e: \\)?\\(?:file://\\)?\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3)))
+              '(("^\\(?:e: \\)?\\(?:file://\\)?\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3)  ; Standard Kotlin format
+                ("^\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\): \\(?:error\\|warning\\|note\\):" 1 2 3)  ; Kotlin compiler format
+                ("^> Task :\\([^ ]+\\) FAILED" nil nil 0)  ; Gradle task failures
+                ("^Execution failed for task ':\\([^']+\\)'" nil nil 0)  ; Gradle execution failures
+                ("^\\[ERROR\\] \\(.+\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3)  ; Maven-style errors
+                ("^\\[WARNING\\] \\(.+\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3)))  ; Maven-style warnings
   ;; Show just the file name, not the full path
   (setq-local compilation-shorten-file-name-function #'file-name-nondirectory)
   ;; Highlight Kotlin-specific errors
   (setq-local compilation-error-face 'error)
   (setq-local compilation-warning-face 'warning)
-  (setq-local compilation-info-face 'success))
+  (setq-local compilation-info-face 'success)
+  ;; Better scrolling behavior
+  (setq-local compilation-scroll-output 'first-error)
+  ;; Skip confirmation for recompile
+  (setq-local compilation-ask-about-save nil)
+  ;; Auto-save buffers before compiling
+  (setq-local compilation-save-buffers-predicate
+              (lambda () (memq major-mode '(kotlin-mode kotlin-ts-mode java-mode))))
+  ;; Skip certain warnings
+  (setq-local compilation-skip-threshold 1)  ; Skip warnings (2=skip info too)
+  ;; Parse ANSI color codes in output
+  (setq-local compilation-disable-input t)
+  ;; Enable ANSI color processing
+  (setq-local compilation-auto-jump-to-next t)
+  (setq-local compilation-skip-threshold 2))
 
 ;; Add the setup function to compilation mode hook
 (add-hook 'compilation-mode-hook #'kotlin-development-setup-compilation-mode)

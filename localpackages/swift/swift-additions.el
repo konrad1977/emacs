@@ -12,28 +12,28 @@
 (defgroup swift-additions nil
   "Swift development tools and utilities for Emacs."
   :group 'programming
-  :prefix "swift-additions:")
-
-(defgroup swift-additions:xcodebuild nil
-  "XcodeBuild configuration settings."
-  :tag "swift-additions:xcodebuild"
-  :group 'swift-additions)
+  :prefix "swift-additions")
 
 (defcustom swift-additions:default-configuration "Debug"
   "Default build configuration to use."
   :type 'string
-  :group 'swift-additions:xcodebuild)
+  :group 'swift-additions)
 
 (defcustom swift-additions:modern-build-system "YES"
   "Whether to use the modern build system."
   :type '(choice (const "YES")
                  (const "NO"))
-  :group 'swift-additions:xcodebuild)
+  :group 'swift-additions)
 
 (defcustom swift-additions:additional-build-flags '()
   "Additional flags to pass to xcodebuild."
   :type '(repeat string)
-  :group 'swift-additions:xcodebuild)
+  :group 'swift-additions)
+
+(defcustom swift-additions:debug nil
+  "Enable debug mode for swift additions."
+  :type 'boolean
+  :group 'swift-additions)
 
 (defvar swift-additions:optimization-level 'fast
   "Build optimization level.")
@@ -43,9 +43,6 @@
 (defvar swift-additions:current-build-command nil)
 (defvar swift-additions:build-progress-spinner nil)
 (defvar swift-additions:compilation-time nil)
-
-(defvar swift-additions:debug nil
-  "Enable debug output when non-nil.")
 
 (defun swift-additions:log-debug (format-string &rest args)
   "Log debug message using FORMAT-STRING and ARGS when debug is enabled."
@@ -73,17 +70,26 @@
 (defun swift-additions:get-optimization-flags ()
   "Get optimization flags based on current optimization level."
   `(
-    "COMPILER_INDEX_STORE_ENABLE=NO"
+    ;; "COMPILER_INDEX_STORE_ENABLE=YES"  ; Enable index store for better incremental builds
+    "SWIFT_BUILD_CACHE_ENABLED=YES"  ; Explicitly enable Swift build cache
     "DEBUG_INFORMATION_FORMAT=dwarf"
-    "SWIFT_PARALLEL_MODULE_JOBS=16"
+    "SWIFT_PARALLEL_MODULE_JOBS=$(sysctl -n hw.ncpu)"  ; Use all available cores
     "SWIFT_USE_PARALLEL_WHOLE_MODULE_OPTIMIZATION=YES"
     "SWIFT_ENABLE_BATCH_MODE=YES"
     "SWIFT_USE_PARALLEL_SOURCEJOB_TASKS=YES"
     "GCC_OPTIMIZATION_LEVEL=0"
     "SWIFT_TREAT_WARNINGS_AS_ERRORS=NO"
-    "ONLY_ACTIVE_ARCH=YES"
+    ;; "ONLY_ACTIVE_ARCH=YES"
     "VALIDATE_PRODUCT=NO"
-    "CLANG_ENABLE_MODULES=YES"))
+    "CLANG_ENABLE_MODULES=YES"
+    "SWIFT_CACHE_COMPILE_JOB=YES"    ; Cache compilation jobs
+    "SWIFT_DEPENDENCY_CACHE_ENABLED=YES"
+    "SWIFT_USE_DEVELOPER_MODE=YES"   ; Faster development cycles
+    ;; "SWIFT_EMIT_LOCALIZED_STRINGS=NO" ; Disable localized strings processing
+    "DERIVED_DATA_CACHE_VERSION=5"   ; More aggressive caching
+    "ENABLE_PRECOMPILED_HEADERS=YES" ; Enable precompiled headers
+    ;; "CLANG_USE_OPTIMIZATION_PROFILE=YES"
+    ))
 
 (defun swift-additions:xcodebuild-command ()
 "Use x86 environement."
@@ -110,7 +116,7 @@
   ;; Parallel compilation settings
   (let ((cores (max 1 (num-processors))))
     (setenv "SWIFT_MAX_PARALLEL_LTO_JOBS" (number-to-string cores))
-    (setenv "SWIFT_PARALLEL_MODULE_JOBS" (number-to-string cores)) 
+    (setenv "SWIFT_PARALLEL_MODULE_JOBS" (number-to-string cores))
     (setenv "SWIFT_PARALLEL_COMPILE_JOBS" (number-to-string cores))
     (setenv "LLVM_PARALLEL_LINK_JOBS" (number-to-string (/ cores 2)))
     (setenv "SWIFT_DRIVER_JOBS" (number-to-string (* cores 2))) ;; More aggressive parallelism
@@ -153,14 +159,17 @@
      (swift-additions:xcodebuild-command)
      (format "%s \\" (xcode-additions:get-workspace-or-project))
      (format "-scheme %s \\" (xcode-additions:scheme))
-     (format "-parallelizeTargets -jobs %s \\" (num-processors))  ;; Use all cores
+     "-skipPackageUpdates \\" ; Skip automatic package updates
+     ;; "-derivedDataPath ~/Library/Caches/org.swift.deriveddata \\" ; Central cache location
+     ;; "-packageCachePath ~/Library/Caches/org.swift.packages \\" ; Shared package cache
+     ;; "-disableAutomaticPackageResolution \\" ; Manual package resolution control
+     "-parallelizeTargets -jobs $(sysctl -n hw.ncpu) \\" ; Dynamic core count
      (if sim-id
          (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
        (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
      (format "-configuration %s \\" swift-additions:default-configuration)
      "-hideShellScriptEnvironment \\"
      "-skipUnavailableActions \\"
-     "-disableAutomaticPackageResolution \\"
      "-enableAddressSanitizer NO \\"
      "-enableThreadSanitizer NO \\"
      "-enableUndefinedBehaviorSanitizer NO \\"
@@ -174,7 +183,7 @@
 (defun swift-additions:enable-build-caching ()
   "Enable Xcode build system caching for faster incremental builds."
   (setenv "ENABLE_PRECOMPILED_HEADERS" "YES")
-  (setenv "CLANG_ENABLE_MODULE_DEBUGGING" "NO") 
+  (setenv "CLANG_ENABLE_MODULE_DEBUGGING" "NO")
   (setenv "SWIFT_USE_DEVELOPMENT_SNAPSHOT" "NO")
   (setenv "SWIFT_USE_PRECOMPILED_HEADERS" "YES")
   (setenv "GCC_PRECOMPILE_PREFIX_HEADER" "YES")
@@ -223,8 +232,7 @@
 
 (defun swift-additions:check-for-errors (output callback)
   "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
-  (when swift-additions:debug
-    (message "checking for error: %s" output))
+  (swift-additions:log-debug "Checking for errors in output: %s" output)
   (condition-case err
       (when (swift-additions:check-if-build-was-successful output)
         (funcall callback))
@@ -279,9 +287,8 @@
                          (lambda (proc string)
                            (when (functionp update-callback)
                              (funcall update-callback string)))))
-    
-    (when swift-additions:debug
-      (message "Starting background build process: %s" command))
+
+    (swift-additions:log-debug "Running command: %s" command)
     process))
 
 (cl-defun swift-additions:compile (&key run)

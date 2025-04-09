@@ -172,9 +172,17 @@ end tell"))
           (/ seconds 60)
           (mod seconds 60)))
 
+(defvar music-control--last-update-time 0
+  "Last time track info was updated.")
+
 (defun music-control--update-current-track ()
-  "Update the current track information."
-  (setq music-control--current-track (music-control-get-current-track))
+  "Update the current track information, but throttle updates."
+  (let ((now (float-time)))
+    (when (or (null music-control--current-track)
+              (> (- now music-control--last-update-time) 
+                 (/ music-control-modeline-update-interval 2)))
+      (setq music-control--current-track (music-control-get-current-track))
+      (setq music-control--last-update-time now)))
   (force-mode-line-update))
 
 (defun music-control-display-current-track ()

@@ -15,7 +15,6 @@
 (defvar current-build-folder nil)
 (defvar current-is-xcode-project nil)
 (defvar current-local-device-id nil)
-(defvar current-run-on-device nil)
 (defvar current-errors-or-warnings nil)
 (defvar xcode-additions:last-device-type nil)
 (defvar xcode-additions:device-choice nil
@@ -28,9 +27,11 @@
   :tag "xcode-additions:xcodebuild"
   :group 'xcode-additions)
 
-(defvar xcode-additions:debug t
-  "Debug flag.")
-
+(defcustom xcode-additions:debug nil
+  "Enable debug mode for xcode additions."
+  :type 'boolean
+  :group 'xcode-additions:xcodebuild)
+        
 (defconst xcode-additions-extensions
   '(:project   ".*\\.xcodeproj$"
     :workspace ".*\\.xcworkspace$")
@@ -270,8 +271,8 @@ Returns a list of folder names, excluding hidden folders."
   (let ((workspace (xcode-additions:workspace-name))
         (projectname (xcode-additions:project-name)))
     (if workspace
-        (format "-workspace %s.xcworkspace -skipPackagePluginValidation" (shell-quote-argument workspace))
-      (format "-project %s.xcodeproj -skipPackagePluginValidation" (shell-quote-argument projectname)))))
+        (format "-workspace %s.xcworkspace" (shell-quote-argument workspace))
+      (format "-project %s.xcodeproj" (shell-quote-argument projectname)))))
 
 (defun xcode-additions:get-configuration-list ()
   "Get list of project configurations."
@@ -510,6 +511,13 @@ IGNORE-LIST is a list of folder names to ignore during cleaning."
 (defun xcode-additions:derived-data-path ()
   "Extract the DerivedData path from xcodebuild output."
   (xcode-additions:project-root))
+
+(defun xcode-additions:target-build-directory (&optional configuration)
+  "Get the build directory from xcodebuild -showBuildSettings output.
+CONFIGURATION is the build configuration (Debug/Release)."
+  (let ((json (xcode-additions:get-build-settings-json)))
+    (let-alist (seq-elt json 0)
+      .buildSettings.TARGET_BUILD_DIR)))
 
 (defun xcode-additions:open-build-folder ()
   "Open build folder."

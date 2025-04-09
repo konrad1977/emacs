@@ -1,5 +1,7 @@
 ;;; init.el --- optimized init file -*- no-byte-compile: t; lexical-binding: t; -*-
-;; eval variable declarations to avoid warnings
+
+
+;;; Code:
 (eval-when-compile
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
@@ -80,13 +82,11 @@
   :defer t
   :commands (magit-status magit-ediff-show-working-tree)
   :custom
+  (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  (setq magit-save-repository-buffers nil
+        magit-repository-directories nil)
   (magit-format-file-function #'magit-format-file-nerd-icons))
-
-  ;; (magit-default-tracking-name-function #'magit-default-tracking-name-branch-only)
-  ;; (magit-status-buffer-switch-function #'switch-to-buffer)
-  ;; (setq magit-save-repository-buffers nil
-  ;;       magit-diff-refine-hunk t))
 
 (use-package isearch
   :ensure nil
@@ -96,14 +96,14 @@
         isearch-lazy-count t)
 
     (defun mk/project-search-from-isearch ()
-    (interactive)
-    (let ((query (if isearch-regexp
-               isearch-string
-             (regexp-quote isearch-string))))
-      (isearch-update-ring isearch-string isearch-regexp)
-      (let (search-nonincremental-instead)
-        (ignore-errors (isearch-done t t)))
-      (consult-ripgrep (project-root (project-current)) query)))
+      (interactive)
+      (let ((query (if isearch-regexp
+                       isearch-string
+                     (regexp-quote isearch-string)))
+            (search-nonincremental-instead t))
+        (isearch-update-ring isearch-string isearch-regexp)
+        (isearch-done t t)
+        (consult-ripgrep (project-root (project-current)) query)))
 
     (defun isearch-consult-line ()
     (interactive)
@@ -121,8 +121,13 @@
         ("C-o" . isearch-occur)
         ("C-e" . iedit-mode)
         ("M-f" . isearch-consult-line)
-        ("C-f" . mk/project-search-from-isearch)
+        ("C-f" . (lambda ()
+                  (interactive)
+                  (condition-case nil
+                      (mk/project-search-from-isearch)
+                    (quit (isearch-abort)))))
         ("C-d" . isearch-forward-thing-at-point)))
+
 
 (use-package iedit
   :defer t
@@ -137,57 +142,75 @@
 ;;   (setq candyshop-alpha-values '(100 95)))
 
 (use-package emacs
-  :ensure nil
   :init
   (set-window-margins (selected-window) 2 0)
   (global-hl-line-mode 1)
   (global-auto-revert-mode 1)
+  (pixel-scroll-precision-mode 1)
   (set-display-table-slot standard-display-table 0 ?\ )
   (display-battery-mode 1)
+  (electric-indent-mode nil)
   :custom
+  (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
+  (setopt display-time-default-load-average nil) ; this information is useless for most
+  (setopt auto-revert-avoid-polling t) ;; Automatically reread from disk if the underlying file changes
+  (setopt auto-revert-interval 5)
+  (setopt auto-revert-check-vc-info t)
+  (setopt switch-to-buffer-obey-display-actions t)
   (split-width-threshold 300)
   (warning-minimum-level :emergency)
   (backup-directory-alist `(("." . "~/.saves")))
   (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
-  (backup-by-copying t)
-  (delete-selection-mode t)
-  (help-window-select t)
-  (create-lockfiles nil)
-  (make-backup-files nil)
-  (backup-inhibited t)
-  (version-control t)
-  (history-length 300)
-  (minibuffer-depth-indicate-mode t)
-  (enable-recursive-minibuffers nil)
-  (global-auto-revert-non-file-buffers t)
-  (auto-revert-avoid-polling t)
-  (auto-revert-interval 5)
-  (auto-revert-check-vc-info t)
-  (global-auto-rever-mode)
-  (switch-to-buffer-peserve-window-point t)
-  (switch-to-buffer-obey-display-actions t)
   :config
-  (make-directory "~/.emacs.d/backup/" t)
-  (make-directory "~/.emacs.d/auto-save/" t)
+  (setq-default
+   confirm-kill-emacs (lambda (prompt)
+                        (y-or-n-p-with-timeout prompt 2 nil))
+   use-short-answers t
+   confirm-kill-processes nil
+   fringes-outside-margins nil
+   indicate-buffer-boundaries nil
+   indicate-empty-lines nil
+   create-lockfiles nil
+   auto-revert-verbose nil
+   auto-revert-interval 1
+   auto-save-no-message t
+   delete-by-moving-to-trash t
+   make-backup-files nil
+   auto-save-default nil
+   auto-save-interval 2000
+   auto-save-timeout 20
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t
+   ring-bell-function 'ignore
+   line-spacing 0.05
+   global-auto-revert-non-file-buffers t
+   completion-ignore-case t
+   display-line-numbers-width 4
+   cursor-in-non-selected-windows nil
+   find-file-visit-truename nil
+   ad-redefinition-action 'accept
+   large-file-warning-threshold (* 25 1024 1024)
+   backup-by-copying t
+   debug-on-error nil
+   custom-file (concat user-emacs-directory "var/custom.el")
+   auto-window-vscroll nil
+   backward-delete-char-untabify-method 'hungry
+   redisplay-skip-fontification-on-input nil
+   line-move-visual nil)
+  (when (file-exists-p custom-file)
+    (load custom-file 'noerror 'nomessage))
   (when (eq system-type 'darwin)
     (setq mac-option-key-is-meta nil
           mac-command-key-is-meta t
           mac-command-modifier 'meta
           mac-option-modifier 'none
-          dired-use-ls-dired t
-          browse-url-browser-function #'mk/browser-split-window))
-  (setq-default
-   custom-file (concat user-emacs-directory "var/custom.el")
-   ring-bell-function 'ignore
-   completion-ignore-case t
-   completions-detailed t
-   completions-format 'one-column
-   use-short-answers t
-   debug-on-error nil
-   confirm-kill-emacs))
-
-(load custom-file 'noerror 'nomessage)
+          dired-use-ls-dired nil
+          browse-url-browser-function #'mk/browser-split-window)
+    (setq mac-redisplay-dont-reset-vscroll t
+          mac-mouse-wheel-smooth-scroll nil)))
 
 (defun setup-programming-mode ()
   "Setup programming mode."
@@ -210,12 +233,25 @@
         column-number-mode nil
         truncate-lines t))
 
+(defun mk/safe-kill-buffer-and-window ()
+  "Kill the current buffer and delete its window if it's not the last one."
+  (interactive)
+  (let* ((window-to-delete (selected-window))
+         (buffer-to-kill (current-buffer))
+         (frame (selected-frame))
+         (windows (window-list frame)))
+    (if (= 1 (length windows))
+        (kill-buffer buffer-to-kill)
+      (when (kill-buffer buffer-to-kill)
+        (when (member window-to-delete windows)
+          (delete-window window-to-delete))))))
+
 (use-package window
   :ensure nil
   :bind (("C-x C-f" . toggle-frame-fullscreen)
          ("C-x C-w" . toggle-frame-maximized)
          ("C-x C-s" . window-toggle-side-windows)
-         ("C-x C-x" . safe-kill-buffer-and-window))
+         ("C-x C-x" . 'mk/safe-kill-buffer-and-window))
   :custom
   (setq window-resize-pixelwise nil
 	frame-resize-pixelwise t
@@ -270,7 +306,7 @@
       (window-height . 0.2)
       (window-width . 0.70)
       (slot . 2))
-     ("\\*Faces\\|[Hh]elp\\*\\|\\*Copilot*"
+     ("\\*Faces\\|[Hh]elp\\*\\|\\*Copilot*\\|\\*occur\\*"
       (display-buffer-in-side-window)
       (body-function . select-window)
       (window-width . 0.4)
@@ -388,8 +424,15 @@
   :ensure nil
   :hook (after-init . which-key-mode)
   :custom
-  (which-key-add-column-padding 2)
-  (which-key-side-window-slot -10))
+  (setq which-key-separator " → ")
+  (which-key-side-window-location 'bottom)
+  (which-key-sort-order #'which-key-key-order-alpha) ;; Same as default, except single characters are sorted alphabetically
+  (which-key-sort-uppercase-first nil)
+  (which-key-add-column-padding 2) ;; Number of spaces to add to the left of each column
+  (which-key-min-display-lines 6)  ;; Increase the minimum lines to display, because the default is only 1
+  (which-key-idle-delay 0.8)       ;; Set the time delay (in seconds) for the which-key popup to appear
+  (which-key-max-description-length 25)
+  (which-key-allow-imprecise-window-fit nil))
 
 ;; In use-package, :custom needs direct variable-value pairs without setq. Here's the correct way:
 (use-package prog-mode
@@ -401,9 +444,13 @@
          (prog-mode . dumb-jump-mode)
          (prog-mode . hs-minor-mode)
          (prog-mode . setup-programming-mode)
-         (prog-mode . display-line-numbers-mode))
+         (prog-mode . display-line-numbers-mode)
+         ;; (prog-mode . display-fill-column-indicator-mode)
+         )
   :custom
+  ;; (display-fill-column-indicator-column 100)
   (left-fringe-width 20)
+  (right-fringe-width 20)
   (display-line-numbers-type 'relative)
   (display-line-numbers-width 4)
   (display-line-numbers-widen t))
@@ -420,7 +467,8 @@
         ("C-j" . vertico-next)
         ("C-k" . vertico-previous)
         ("C-d" . vertico-scroll-down)
-        ("C-u" . vertico-scroll-up))
+        ("C-u" . vertico-scroll-up)
+        ("C-g" . abort-recursive-edit))
   :config
   (advice-add #'vertico--format-candidate :around
               (lambda (orig cand prefix suffix index _start)
@@ -431,8 +479,9 @@
                    "  ")
                  cand)))
   (setq vertico-resize t
-        vertico-count 14
+        vertico-count 12
         vertico-cycle t))
+
 
 (use-package vertico-posframe
   :after vertico
@@ -441,13 +490,13 @@
   :config
   (vertico-posframe-cleanup)
   (setq vertico-posframe-parameters
-        '((alpha . 94))
+        '((alpha . 90))
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         vertico-posframe-min-height 1
         vertico-posframe-min-width 150
         vertico-posframe-border-width 20))
 
-;; Configure directory extension.
+;; Configure Directory extension.
 (use-package vertico-directory
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
   :commands (find-file)
@@ -463,11 +512,16 @@
   (setq completion-styles '(orderless)
         completion-ignore-case t
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (orderless)))
-                                        (eglot (styles . (orderless ))))))
+        completion-category-overrides '((file (styles basic partial-completion)))))
+        ;; completion-category-overrides '((file (styles . (orderless)))
+        ;;                                 (eglot (styles . (orderless ))))))
 
 (use-package marginalia
-  :hook (after-init . marginalia-mode))
+  :after vertico
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-lv))
+  :init
+  (marginalia-mode))
 
 (use-package consult
   :defer t
@@ -480,9 +534,12 @@
   ("C-<tab>" . #'consult-project-buffer)
   ("M-R" . #'consult-recent-file)
   :init
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format
+        xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
   (advice-add #'register-preview :override #'consult-register-window)
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref))
+  )
 
 (use-package embark
   :commands (embark-act embark-collect-snapshot embark-collect-live)
@@ -597,6 +654,7 @@
    (evil-define-key 'normal 'global (kbd "<leader> c p") 'copilot-chat-transient)
    (evil-define-key 'normal 'global (kbd "<leader> c c") 'claude-code-transient)
    (evil-define-key 'normal 'global (kbd "<leader> c a") 'aidermacs-transient-menu)
+   (evil-define-key 'normal 'global (kbd "<leader> c m") 'copilot-chat-insert-commit-message)
 
    (evil-define-key 'normal 'global (kbd "<leader> v s") 'magit-status)
    (evil-define-key 'normal 'global (kbd "<leader> v b") 'magit-diff-buffer-file)
@@ -607,10 +665,12 @@
    (evil-define-key 'normal 'global (kbd "<leader> f d") 'delete-file)
    (evil-define-key 'normal 'global (kbd "<leader> f e") '(lambda () (interactive) (find-file user-init-file)))
    (evil-define-key 'normal 'global (kbd "<leader> f f") 'find-file)
+   (evil-define-key 'normal 'global (kbd "<leader> f o") 'consult-find)
    (evil-define-key 'normal 'global (kbd "<leader> f l") 'consult-focus-lines)
    (evil-define-key 'normal 'global (kbd "<leader> f n") 'create-file-buffer)
    (evil-define-key 'normal 'global (kbd "<leader> f r") 'consult-recent-file)
    (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
+   (evil-define-key 'normal 'global (kbd "<leader> f i") 'consult-imenu-multi)
 
    (evil-define-key 'normal 'global (kbd "<leader> h s") 'highlight-symbol-at-point)
    (evil-define-key 'normal 'global (kbd "<leader> h r") 'highlight-symbol-remove-all)
@@ -620,11 +680,16 @@
    (evil-define-key 'normal 'global (kbd "<leader> j j") 'jira-issues)
    (evil-define-key 'normal 'global (kbd "<leader> j m") 'jira-issues-menu)
 
+   (evil-define-key 'normal 'global (kbd "<leader> m i") 'imenu-list)
+
    (evil-define-key 'normal 'global (kbd "<leader> g g") 'google-this)
 
    ;; Eval
    (evil-define-key 'normal 'global (kbd "<leader> e b") 'eval-buffer)
    (evil-define-key 'normal 'global (kbd "<leader> e l") 'eval-last-sexp)
+
+   (evil-define-key 'normal 'global (kbd "<leader> s s") 'isearch-forward)
+   (evil-define-key 'normal 'global (kbd "<leader> s o") 'occur)
 
    (evil-define-key 'normal 'global (kbd "<leader> t s") 'sort-lines)
    (evil-define-key 'normal 'global (kbd "<leader> t x") 'delete-trailing-whitespace)
@@ -633,6 +698,11 @@
    (evil-define-key 'normal 'global (kbd "<leader> p s") 'project-switch-project)
    (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers)
    (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer)
+
+   (evil-define-key 'normal 'global (kbd "<leader> w t") 'window-transpose-layout)
+   (evil-define-key 'normal 'global (kbd "<leader> w r") 'rotate-window-layout-clockwise)
+   (evil-define-key 'normal 'global (kbd "<leader> w f") 'flip-window-layout-horizontally)
+   (evil-define-key 'normal 'global (kbd "<leader> w F") 'flip-window-layout-vertically)
 
    (evil-define-key 'normal 'global (kbd "<leader> q r") 'restart-emacs)
    (evil-define-key 'normal 'global (kbd "<leader> q q") 'save-buffers-kill-terminal)
@@ -661,7 +731,7 @@
          evil-visual-state-cursor '(hollow "systemPurpleColor"))
    ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
 
-   (evil-define-key 'normal evil-ex-map "q" 'safe-kill-buffer-and-window)
+   (evil-define-key 'normal evil-ex-map "q" 'mk/safe-kill-buffer-and-window)
    (evil-mode 1))
 
 (with-eval-after-load 'evil
@@ -686,8 +756,7 @@
           ("C-M-n" . evil-mc-make-and-goto-next-match)
           ("C-M-p" . evil-mc-make-and-goto-prev-match)
           ("C-M-j" . evil-mc-make-cursor-move-next-line)
-          ("C-M-k" . evil-mc-make-cursor-move-prev-line)
-          )
+          ("C-M-k" . evil-mc-make-cursor-move-prev-line))
    :custom
    (evil-mc-mode-line-text-inverse-colors t)
    (evil-mc-undo-cursors-on-keyboard-quit t)
@@ -815,16 +884,18 @@
         ("C-j" . corfu-next)
         ("C-k" . corfu-previous))
   :custom
+  (corfu-cycle t)
   (corfu-auto t)
-  (corfu-preview-current 'insert)
+  (corfu-auto-prefix 2)
+  (corfu-popupinfo-mode t)
+  (corfu-separator ?\s)
   :init
-  (corfu-popupinfo-mode 1)
   (setq corfu-auto-delay 0.2          ; Reduced from 0.3
 	corfu-auto-prefix 2
         corfu-popupinfo-delay 1.0
         corfu-preselect 'valid
         corfu-popupinfo-direction '(vertical right)
-        cofru-preview-current t
+        cofru-preview-current nil
 	corfu-quit-at-boundary 'separator
 	corfu-quit-no-match t))
 
@@ -962,6 +1033,7 @@
   (add-hook 'dape-on-stopped-hooks 'dape-repl))
 
 (use-package repeat
+  :defer t
   :ensure nil
   :config (add-hook 'dape-on-start-hooks #'repeat-mode)
   :custom
@@ -975,17 +1047,13 @@
          (treemacs-mode . (lambda () (set-window-fringes (treemacs-get-local-window) 0 0 nil))))
   :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
-  :custom
-  (treemacs-filewatch-mode t)
-  (treemacs-indentation 1)
-  (treemacs-resize-icons 12)
   :config
   (let* ((font-family "SF Pro Display")
-        (font-height 0.8))
+        (font-height 0.75))
     (custom-set-faces
      `(treemacs-directory-face ((t (:family ,font-family :height ,font-height))))
      `(treemacs-directory-collapsed-face ((t (:family ,font-family :height ,font-height))))
-     `(treemacs-git-ignored-face ((t (:family ,font-family :height ,font-height :slant italic ))))
+     `(treemacs-git-ignored-face ((t (:family ,font-family :height ,font-height :slant italic))))
      `(treemacs-git-conflict-face ((t (:family ,font-family :height ,font-height :slant italic))))
      `(treemacs-git-unmodified-face ((t (:family ,font-family :height ,font-height))))
      `(treemacs-git-untracked-face ((t (:family ,font-family :height ,font-height))))
@@ -995,17 +1063,23 @@
      `(treemacs-git-modified-face ((t (:family ,font-family :height ,font-height))))
      `(treemacs-tags-face ((t (:family ,font-family :height ,font-height))))))
   (setq treemacs-follow-after-init t
-        treemacs-collapse-dirs 3  ;; Changed from t to 3
-        treemacs-directory-name-transformer #'identity
-        treemacs-file-name-transformer #'identity
-        treemacs-show-cursor nil
-        treemacs-display-current-project--mode nil
-        treemacs-hide-dot-git-directory t
-        treemacs-git-integration t
-        treemacs-space-between-root-nodes nil
         treemacs-hide-gitignored-files-mode t
-        treemacs-git-mode 'extended
-        treemacs-silent-refresh t
+        treemacs-project-follow-cleanup t
+        treemacs-width-is-initially-locked nil
+        delete-by-moving-to-trash t
+        treemacs-collapse-dirs 3
+        treemacs-display-in-side-window t
+        treemacs-is-never-other-window t
+        treemacs-indentation 2
+        treemacs-indentation-string " "
+        treemacs-filewatch-mode t
+        treemacs-git-mode 'deferred
+        treemacs-move-files-by-mouse-dragging nil
+        treemacs-move-forward-on-expand t
+        treemacs-pulse-on-success t
+        treemacs-file-event-delay 0
+        treemacs-deferred-git-apply-delay 0
+        treemacs-git-commit-diff-mode 1
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
         treemacs-width 40))
 
@@ -1039,9 +1113,12 @@
   ;; (setq-default flycheck-indication-mode 'left-margin)
   ;; (add-hook 'flycheck-mode-hook #'flycheck-set-indication-mode)
   :custom
-  (flycheck-checker-error-threshold 400)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled)
-	flycheck-idle-change-delay 2.0))
+  (setq flycheck-check-syntax-automatically
+        '(save mode-enabled idle-change))
+  (setq flycheck-idle-change-delay 0)
+  (setq flycheck-checker-cache "~/.flycheck-cache")
+  (setq flycheck-indication-mode nil)
+  (flycheck-checker-error-threshold 400))
 
 (use-package flycheck-overlay
   :ensure nil
@@ -1075,6 +1152,11 @@
   (markdown-header-scaling t)
   :hook ((markdown-mode . visual-line-mode)
          (markdown-mode . emojify-mode)))
+
+(add-hook 'comint-mode-hook
+          (lambda ()
+            (setq-local comint-prompt-read-only t)
+            (setq-local visual-line-mode t)))
 
 (use-package yaml-mode
   :commands (yaml-mode))
@@ -1113,6 +1195,7 @@
                                  evil-window-split)))
 
 (use-package imenu-list
+  :after imenu-list
   :defer t
   :bind
   ("C-c i" . 'imenu-list-smart-toggle)
@@ -1164,6 +1247,7 @@
   :config
   (add-hook 'vterm-mode-hook (lambda () (setq-local global-hl-line-mode nil)))
   (setq vterm-timer-delay nil
+        vterm-kill-buffer-on-exit t
 	vterm-clipboard-warning-max-lines 20
 	vterm-clipboard-warning-max-chars 256))
 
@@ -1327,6 +1411,7 @@
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp . t)
                                  (swift . t)
+                                 (kotlin . t)
                                  (shell . t)
                                  (restclient . t)))
 
@@ -1473,6 +1558,13 @@
 	      ("C-j" . drag-stuff-down)
 	      ("C-k" . drag-stuff-up)))
 
+(use-package markdown-ts-mode
+  :mode ("\\.md\\'" . markdown-ts-mode)
+  :defer 't
+  :config
+  (add-to-list 'treesit-language-source-alist '(markdown "https://github.com/tree-sitter-grammars/tree-sitter-markdown" "split_parser" "tree-sitter-markdown/src"))
+  (add-to-list 'treesit-language-source-alist '(markdown-inline "https://github.com/tree-sitter-grammars/tree-sitter-markdown" "split_parser" "tree-sitter-markdown-inline/src")))
+
 (use-package swift-ts-mode
   :mode "\\.swift\\'"
   :ensure nil
@@ -1516,17 +1608,18 @@
 	("C-c t p" .  #'swift-additions:test-swift-package-from-file)
 	("C-c C-c" . #'swift-additions:compile-and-run)
 	("C-c C-b" . #'swift-additions:compile-app)
+	("C-c C-x" . #'swift-additions:reset)
 	("C-c C-f" . #'periphery-search-dwiw-rg)))
 
 (use-package domain-blocker
   :ensure nil
   :after swift-ts-mode)
 
-(use-package swift-lsp
-  :ensure nil)
-
 (use-package eglot
-  :hook (((swift-ts-mode) . eglot-ensure)
+  :defer t
+  :hook (((swift-ts-mode) . (lambda ()
+                              (require 'swift-lsp)
+                              (eglot-ensure)))
 	 ((kotlin-mode kotlin-ts-mode) . (lambda ()
                                            (eglot-ensure)
                                            (eldoc-mode -1))))
@@ -1572,7 +1665,7 @@
  (:map swift-ts-mode-map
        ("M-K" .  #'xcode-additions:clean-build-folder)
        ("C-c C-d" . #'xcode-additions:start-debugging)
-       ("C-c C-x" . #'xcode-additions:reset)))
+       ("C-c C-x" . #'swift-additions:reset)))
 
 (use-package swift-refactor
   :ensure nil
@@ -1609,6 +1702,7 @@
   ("C-c C-H" . #'hacking-ws/query-thing-at-point))
 
 (use-package periphery-quick
+  ;; :defer t
   :ensure nil
   :after prog-mode
   :bind
@@ -1618,6 +1712,7 @@
   ("C-c f t" . #'periphery-quick:todos))
 
 (use-package periphery-search
+  ;; :defer t
   :ensure nil
   :after prog-mode
   :bind (:map prog-mode-map
@@ -1744,18 +1839,6 @@
          (nxml-mode . rainbow-mode)
          (nxml-mode . display-line-numbers-mode)))
 
-(defun safe-kill-buffer-and-window ()
-  "Kill the current buffer and delete its window if it's not the last one."
-  (interactive)
-  (let* ((window-to-delete (selected-window))
-         (buffer-to-kill (current-buffer))
-         (frame (selected-frame))
-         (windows (window-list frame)))
-    (if (= 1 (length windows))
-        (kill-buffer buffer-to-kill)
-      (when (kill-buffer buffer-to-kill)
-        (when (member window-to-delete windows)
-          (delete-window window-to-delete))))))
 
 (use-package compile
   :defer t
@@ -1808,7 +1891,7 @@
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
 (use-package copilot
-  :defer t
+  :defer 3
   :vc (copilot :url "https://github.com/copilot-emacs/copilot.el" :branch "main" :rev :newest)
   :ensure nil
   :hook ((prog-mode localizeable-mode) . copilot-mode)
@@ -1823,12 +1906,11 @@
   (setq copilot-max-char 1000000))
 
 (use-package copilot-chat
-  :defer t
+  :hook ((copilot-chat . visual-line-mode))
   :vc (copilot-chat
        :url "https://github.com/chep/copilot-chat.el"
        :branch "master"
        :rev :newest)
-  :defer t
   :commands (copilot-chat-doc
              copilot-chat-explain
              copilot-chat-fix
@@ -1837,9 +1919,10 @@
              copilot-chat-optimize
              copilot-chat-add-current-buffer
              copilot-chat-ask-and-insert
-             copilot-chat-custom-prompt-selection))
-
-(add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message)
+             copilot-chat-insert-commit-message
+             copilot-chat-custom-prompt-selection)
+  :config
+  (add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message))
 
 ;; (use-package jinx
 ;;   :hook (after-init . global-jinx-mode)  ; Enable Jinx globally
@@ -1902,7 +1985,8 @@
        :rev :newest)
   :config
   (setq aidermacs-auto-commits nil
-        aidermacs-use-architect-mode nil)
+        aidermacs-use-architect-mode nil
+        aidermacs-show-diff-after-change t)
   ;; (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
   ;; (setq aidermacs-args '("--model" "deepseek/deepseek-reasoner"))
   (setq aidermacs-args '("--model" "deepseek/deepseek-chat"))
@@ -1920,6 +2004,15 @@
   (claude-code-mode)
   :bind (:map global-map
               ("C-c c" . claude-code-transient)))
+
+(use-package mini-ontop
+  :defer t
+  :vc (mini-ontopp
+       :url "https://github.com/hkjels/mini-ontop.el"
+       :branch "main"
+       :rev :newest)
+  :config
+  (mini-ontop-mode))
 
 (use-package jira
   :defer t
@@ -1970,7 +2063,7 @@
                           (concat
                            " "
                            (nerd-icons-faicon
-                            "nf-fa-rocket"
+                           "nf-fa-rocket"
                             :face 'breadcrumb-project-base-face)
                            " "
                            (car return))))

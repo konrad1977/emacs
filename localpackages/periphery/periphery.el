@@ -115,7 +115,7 @@
   :group 'periphery)
 
 (defface periphery-todo-face-full
-  '((t (:foreground "#182A32" :background "#74c7ec" :distant-foreground  "#74c7ec" :height 0.8 :weight normal)))
+  '((t (:foreground "#182A32" :background "#74c7ec" :distant-foreground  "#74c7ec" :weight normal)))
   "Performance face."
   :group 'periphery)
 
@@ -125,7 +125,7 @@
   :group 'periphery)
 
 (defface periphery-first-sentence-face
-  '((t (:foreground "#9399b2" :weight normal :height 0.9)))
+  '((t (:foreground "#9399b2" :weight normal)))
   "Face for the first sentence of the message (up to the first colon)."
   :group 'periphery)
 

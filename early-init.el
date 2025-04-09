@@ -11,40 +11,37 @@
       read-process-output-max (* 2 1024 1024)  ; Double buffer size
       process-adaptive-read-buffering t
       inhibit-compacting-font-caches t  ; Prevent GC during font ops
-      bidi-display-reordering 'left-to-right  ; Simpler text layout
+      bidi-display-reordering 'left-to-right  ; Sipler text layout
+      package-archives nil
+      package-enable-at-startup nil
+      package-quickstart t
       byte-compile-warnings '(not obsolete))
 
-;; Prevent package.el loading packages prior to init.el loading
-;; Disable unnecessary UI early
-(push '(vertical-scroll-bars . nil) default-frame-alist)
-(push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(fullscreen . maximized) default-frame-alist)
-(push '(background-color . "#13131a") default-frame-alist)
-(push '(foreground-color . "#a0a0ae") default-frame-alist)
 ;; Configure frame parameters in one go
 (setq default-frame-alist
-      `((vertical-scroll-bars . nil)
-        (menu-bar-lines . 0)
-        (tool-bar-lines . 0)
-        (fullscreen . maximized)
+      `(
         (background-color . "#13131a")
-        (foreground-color . "#a0a0ae")
-        (undecorated-round . t)
-        (inhibit-double-buffering . t)  ; Better frame rendering
-        (font-backend . "ns")  ; Force Core Text renderer on macOS
+        (bottom-divider-width . 0)
         (cursor-type . 'bar)
+        (foreground-color . "#a0a0ae")
+        (fullscreen . maximized)
+        (inhibit-double-buffering . t)  ; Better frame rendering
+        ;; (internal-border-width . 32)
         (left-fringe . 0)
-        (right-fringe . 0)))
+        (menu-bar-lines . 0)
+        (right-divider-width . 0)
+        (right-fringe . 0)
+        (tool-bar-lines . 0)
+        (undecorated-round . t)
+        (vertical-scroll-bars . nil)
+        ;; (font-backend . "ns")  ; Force Core Text renderer on macOS
+        ))
 
 ;; macOS-specific performance tweaks
 (when (eq system-type 'darwin)
   (push '(ns-use-native-fullscreen . nil) default-frame-alist)
   (push '(ns-transparent-titlebar . t) default-frame-alist)
-  (push '(ns-appearance . dark) default-frame-alist)
-  ;; (push '(undecorated . t) default-frame-alist)
-  (push '(undecorated-round . t) default-frame-alist)
-  )
+  (push '(ns-appearance . dark) default-frame-alist))
 
 ;; Font settings
 (let ((mono-font "Iosevka Curly")
@@ -87,13 +84,7 @@
               load-prefer-newer t
               ns-use-proxy-icon nil
               frame-title-format nil
-              frame-resize-pixelwise t
-              package-enable-at-startup nil)
-
-;; Package system configuration
-(setq package-archives nil
-      package-enable-at-startup nil
-      package-quickstart t)  ; Cache package descriptors
+              frame-resize-pixelwise t)
 
 ;; Only enable archives after startup
 (add-hook 'after-init-hook
