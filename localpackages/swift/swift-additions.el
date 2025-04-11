@@ -275,15 +275,10 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                                        (funcall callback output)
                                        (swift-additions:cleanup))
                                    (swift-additions:handle-build-error output))
-                                 (kill-buffer log-buffer))))))
+                                 (kill-buffer log-buffer)))))))
     
     ;; Configure process handling
     (set-process-query-on-exit-flag process nil)
-    (set-process-sentinel process (lambda (proc change)
-                                    (when (string-match "\\(finished\\|exited\\)" change)
-                                      (let ((output (with-current-buffer log-buffer
-                                                      (buffer-string))))
-                                     (funcall callback output)))))
     
     ;; Start async output processing
     (when update-callback
@@ -296,7 +291,7 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                              (funcall update-callback string)))))
 
     (swift-additions:log-debug "Running command: %s" command)
-    (cons process log-buffer))))
+    (cons process log-buffer)))
 
 (cl-defun swift-additions:compile (&key run)
   "Build project using xcodebuild (as RUN)."
