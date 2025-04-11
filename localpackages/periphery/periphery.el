@@ -398,13 +398,14 @@
     (periphery-sort-error errors)))
 
 (cl-defun periphery-run-parser (input)
-  "Run parser on INPUT more efficiently."
+  "Run parser on INPUT more efficiently. Return t if errors found."
   (when periphery-debug
     (message "periphery-run-parser %s" input))
   (let ((errors (parse-compiler-errors input)))
     (setq periphery-errorList (delete-dups errors))
     (when (or (periphery--is-buffer-visible) periphery-errorList)
-      (periphery--listing-command periphery-errorList))))
+      (periphery--listing-command periphery-errorList))
+    (not (null periphery-errorList)))) ; Return t if any errors found
 
 (defun periphery-sort-error (errors)
   "Sort ERRORS."
@@ -475,7 +476,7 @@
 (cl-defun periphery-message-with-count (&key tag &key text &key count &key attributes)
   "Print a TAG and TEXT with ATTRIBUTES with Count."
   (if (not (string= text ""))
-      (mode-line-hud:update :message (format "%s %s '%s'" tag  (propertize count  'face 'periphery-error-face)  (propertize text 'face attributes)))
+      (mode-line-hud:update :message (format "%s %s '%s'" tag  (propertize count 'face 'periphery-error-face)  (propertize text 'face attributes)))
     (mode-line-hud:update :message (format "%s %s" tag count ))))
 
 (defun parse--search-query (text query)

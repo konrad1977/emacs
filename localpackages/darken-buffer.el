@@ -37,24 +37,20 @@
 (defvar-local darken-buffer--linenumber-cookie nil
   "Face remapping cookie for the linenumber in current buffer.")
 
-(defcustom darken-buffer-ignore-modes '(minibuffer-mode treemacs-mode vterm-mode eshell-mode shell-mode term-mode)
+(defcustom darken-buffer-ignore-modes '(treemacs-mode vterm-mode eshell-mode shell-mode term-mode)
   "List of major modes where effects should not be applied."
   :type '(repeat symbol)
   :group 'darken-buffer)
 
-(defcustom darken-buffer-ignore-buffers '("Messages" "dashboard" )
+(defcustom darken-buffer-ignore-buffers '("Messages" "dashboard" "*compilation*")
   "List of buffer names where effects should not be applied."
   :type '(repeat string)
   :group 'darken-buffer)
 
 
 (defcustom darken-buffer-ignore-buffers-regexp '("posframe"
-                                                 ".*\\*"
-                                                 " .*"
-                                                 "\\*.*\\*"
                                                 "\*Flycheck.+\*"
                                                 "\*Flymake.+\*"
-                                                "\*compilation\*"
                                                 "\*Warnings\*"
                                                 "\*Backtrace\*"
                                                 "\*Echo Area [0-9]+")
@@ -154,7 +150,7 @@
     (setq darken-buffer--linenumber-cookie nil)))
 
 (defun darken-buffer-window-switch-hook ()
-  "Handle window focus changes."
+  "Handle window focus change."
   (when (bound-and-true-p darken-buffer-mode)
     (let ((current-window (selected-window)))
       ;; Apply effects to all windows
@@ -167,13 +163,8 @@
                 (darken-buffer-apply-effect t)  ; Active window - darken it
               (darken-buffer-apply-effect nil))))))))
 
-(defun darken-buffer--window-selection-change-function (frame)
-  "Function to handle window selection changes in FRAME."
-  ;; Use immediate timer to ensure this runs after focus has fully changed
-  (run-with-idle-timer 0 nil #'darken-buffer-window-switch-hook))
-
 (defun darken-buffer--window-selection-change-function (_)
-  "Function to handle window selection changes."
+  "Function to handle window selection change."
   (run-with-timer 0 nil #'darken-buffer-window-switch-hook))
 
 ;;;###autoload

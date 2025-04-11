@@ -1,4 +1,4 @@
-;;; swift-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
+;;; Swift-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -112,7 +112,7 @@
   (setenv "SWIFT_USE_PRECOMPILED_HEADERS" "YES")
   (setenv "GCC_PRECOMPILE_PREFIX_HEADER" "YES")
   (setenv "XCODE_BUILD_ENABLE_DEPENDENCIES" "YES") ;; Better dependency tracking
-  
+
   ;; Parallel compilation settings
   (let ((cores (max 1 (num-processors))))
     (setenv "SWIFT_MAX_PARALLEL_LTO_JOBS" (number-to-string cores))
@@ -120,33 +120,33 @@
     (setenv "SWIFT_PARALLEL_COMPILE_JOBS" (number-to-string cores))
     (setenv "LLVM_PARALLEL_LINK_JOBS" (number-to-string (/ cores 2)))
     (setenv "SWIFT_DRIVER_JOBS" (number-to-string (* cores 2))) ;; More aggressive parallelism
-  
+
   ;; File system caching
   (setenv "XCODE_BUILD_SYSTEM_ENABLE_INCREMENTAL_DISTRIBUTED_CACHE" "YES")
   (setenv "XCODE_BUILD_SYSTEM_USE_WATCHERS" "YES")
   (setenv "XCODE_BUILD_SYSTEM_CACHE_DIR" (expand-file-name "~/Library/Developer/Xcode/DerivedData/ModuleCache")))
-  
+
   ;; Incremental compilation optimizations
   (setenv "SWIFT_ENABLE_INCREMENTAL_COMPILATION" "YES")
   (setenv "SWIFT_OPTIMIZATION_LEVEL" "-O")
   (setenv "SWIFT_COMPILATION_MODE" "incremental")
   (setenv "SWIFT_WHOLE_MODULE_OPTIMIZATION" "NO")  ;; Better for incremental
-  
+
   ;; Disable expensive checks
   (setenv "SWIFT_DISABLE_SAFETY_CHECKS" "1")
   (setenv "SWIFT_DISABLE_MODULE_CACHE_VALIDATION" "1")
   (setenv "SWIFT_SKIP_FUNCTION_BODIES" "1")
   (setenv "SWIFT_SKIP_TYPE_CHECKING" "1")
   (setenv "SWIFT_SUPPRESS_WARNINGS" "YES")
-  
+
   ;; Memory management
   (setenv "SWIFT_MEMORY_ALLOCATOR" "malloc")
   (setenv "SWIFT_DETERMINISTIC_HASHING" "1")
-  
+
   ;; Debugging optimizations
   (setenv "SWIFT_SERIALIZE_DEBUGGING_OPTIONS" "NO")
   (setenv "SWIFT_REFLECTION_METADATA_LEVEL" "none")
-  
+
   ;; Enable experimental features
   (setenv "SWIFT_ENABLE_EXPERIMENTAL_CONCURRENCY" "1")
   (setenv "SWIFT_ENABLE_EXPERIMENTAL_DISTRIBUTED" "1"))
@@ -193,7 +193,7 @@
   (setenv "SWIFT_COMPILER_INDEX_STORE_ENABLE" "YES")
   (setenv "XCODE_BUILD_SYSTEM_FORCE_ENABLE_PCH_VALIDATION" "NO")
   (setenv "SWIFT_DRIVER_JOBS" (number-to-string (* (num-processors) 2))) ;; Double the CPU cores
-  (setenv "XCODE_BUILD_SYSTEM_SHOW_ENV" swift-additions:debug)) ;; Debug logging
+  (setenv "XCODE_BUILD_SYSTEM_SHOW_ENV" (if swift-additions:debug "YES" "NO"))) ;; Debug logging
 
 (defun swift-additions:compilation-time ()
   "Get the time of the compilation."
@@ -253,43 +253,50 @@
                                          (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face))))
 
 (cl-defun swift-additions:compile-with-progress (&key command callback update-callback)
-  "Run compilation COMMAND with progress indicator and CALLBACK/UPDATE-CALLBACK in background."
+  "Run compilation COMMAND with progress indicator and CALLBACK/UPDATE-CALLBACK in background.
+Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the build output."
   (spinner-start 'progress-bar-filled)
   (setq swift-additions:build-progress-spinner spinner-current
         swift-additions:compilation-time (current-time))
 
-  (let ((process (make-process
+  (let* ((log-buffer (generate-new-buffer " *xcodebuild-log*"))
+         (process (make-process
                   :name "xcodebuild-background"
-                  :buffer nil  ; No output buffer
+                  :buffer log-buffer
                   :command (list shell-file-name shell-command-switch command)
                   :noquery t   ; Detach from Emacs process list
                   :sentinel (lambda (proc event)
                              (when (memq (process-status proc) '(exit signal))
                                (spinner-stop swift-additions:build-progress-spinner)
-                               (let ((output (with-current-buffer (process-buffer proc)
+                               (let ((output (with-current-buffer log-buffer
                                               (buffer-string))))
                                  (if (swift-additions:check-if-build-was-successful output)
                                      (progn
                                        (funcall callback output)
                                        (swift-additions:cleanup))
                                    (swift-additions:handle-build-error output))
-                                 (kill-buffer (process-buffer proc))))))))
+                                 (kill-buffer log-buffer))))))
     
     ;; Configure process handling
     (set-process-query-on-exit-flag process nil)
     (set-process-sentinel process (lambda (proc change)
-                                   (when (string-match "\\(finished\\|exited\\)" change)
-                                     (funcall callback ""))))
+                                    (when (string-match "\\(finished\\|exited\\)" change)
+                                      (let ((output (with-current-buffer log-buffer
+                                                      (buffer-string))))
+                                     (funcall callback output)))))
     
     ;; Start async output processing
     (when update-callback
       (set-process-filter process
                          (lambda (proc string)
+                           (with-current-buffer log-buffer
+                             (goto-char (point-max))
+                             (insert string))
                            (when (functionp update-callback)
                              (funcall update-callback string)))))
 
     (swift-additions:log-debug "Running command: %s" command)
-    process))
+    (cons process log-buffer))))
 
 (cl-defun swift-additions:compile (&key run)
   "Build project using xcodebuild (as RUN)."

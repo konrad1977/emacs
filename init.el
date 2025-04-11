@@ -94,7 +94,6 @@
   :config
   (setq isearch-allow-scroll t
         isearch-lazy-count t)
-
     (defun mk/project-search-from-isearch ()
       (interactive)
       (let ((query (if isearch-regexp
@@ -115,7 +114,6 @@
         (ignore-errors (isearch-done t t)))
       (consult-line query)))
   :bind
-  ("M-s" . isearch-forward)
   (:map isearch-mode-map
         ("C-r" . isearch-repeat-backward)
         ("C-o" . isearch-occur)
@@ -126,11 +124,17 @@
                   (condition-case nil
                       (mk/project-search-from-isearch)
                     (quit (isearch-abort)))))
-        ("C-d" . isearch-forward-thing-at-point)))
-
+        ("C-d" . (lambda ()
+                   (interactive)
+                   (setq isearch-case-fold-search nil)
+                   (isearch-yank-string (thing-at-point 'symbol))))))
 
 (use-package iedit
   :defer t
+  :bind
+  (:map iedit-mode-keymap
+        ("C-<return>" . iedit-toggle-selection)
+        ("C-g" . iedit--quit))
   :ensure t)
 
 ;; (use-package candyshop
@@ -590,7 +594,7 @@
   :config
   (setq punch-show-project-info nil
         punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'arrow
+        punch-line-modal-divider-style 'flame
         punch-line-modal-size 'small
         punch-line-left-separator "  "
         punch-line-right-separator "  "
@@ -693,6 +697,7 @@
 
    (evil-define-key 'normal 'global (kbd "<leader> t s") 'sort-lines)
    (evil-define-key 'normal 'global (kbd "<leader> t x") 'delete-trailing-whitespace)
+   (evil-define-key 'normal 'global (kbd "<leader> t w") '(lambda () (interactive) (whitespace-mode 'toggle)))
 
    (evil-define-key 'normal 'global (kbd "<leader> p f") 'consult-ripgrep)
    (evil-define-key 'normal 'global (kbd "<leader> p s") 'project-switch-project)
@@ -1069,7 +1074,7 @@
         delete-by-moving-to-trash t
         treemacs-collapse-dirs 3
         treemacs-display-in-side-window t
-        treemacs-is-never-other-window t
+        treemacs-is-never-other-window nil
         treemacs-indentation 2
         treemacs-indentation-string " "
         treemacs-filewatch-mode t
@@ -1839,32 +1844,33 @@
          (nxml-mode . rainbow-mode)
          (nxml-mode . display-line-numbers-mode)))
 
-
 (use-package compile
   :defer t
   :ensure nil
-  :hook (compilation-finish-functions .
-         (lambda (buf str)
-           (when (string-match "finished" str)
-             (run-at-time "1 sec" nil 'delete-windows-on buf)
-             (bury-buffer buf))))
+  :hook (compilation-mode . visual-line-mode)  ; Enable visual-line-mode in compilation buffers
   :custom
-  ((add-hook 'compilation-filter-hook #'ansi-color-compilation-filter)
-   (compilation-always-kill t)
-   (compilation-auto-jump-to-first-error t)
-   (compilation-ask-about-save nil)
-   (compilation-skip-threshold 1)
-   (compilation-scroll-output 'all)
-   (compilation-highlight-overlay t)
-   (compilation-environment '("TERM=dumb" "TERM=xterm-256color"))
-   (compilation-window-height 10)
-   (compilation-reuse-window t)
-   (compilation-max-output-line-length nil))
+  (compilation-always-kill t)
+  (compilation-auto-jump-to-first-error t)
+  (compilation-ask-about-save nil)
+  (compilation-skip-threshold 1)
+  (compilation-scroll-output 'all)
+  (compilation-highlight-overlay t)
+  (compilation-environment '("TERM=dumb" "TERM=xterm-256color"))
+  (compilation-window-height 10)
+  (compilation-reuse-window t)
+  (compilation-max-output-line-length nil)
+  (compilation-error-screen-columns nil)
+  (ansi-color-for-compilation-mode t)
   :config
-  (setq compilation-scroll-output t
-        compilation-error-screen-columns nil
-        ansi-color-for-compilation-mode t))
-
+  ;; Add ANSI color filtering
+  (add-hook 'compilation-filter-hook #'ansi-color-compilation-filter)
+  ;; Auto-close compilation buffer on success after 1 second
+  (add-hook 'compilation-finish-functions
+            (lambda (buf str)
+              (when (string-match "finished" str)
+                (run-at-time 1 nil (lambda ()
+                                    (delete-windows-on buf)
+                                    (bury-buffer buf)))))))
 (use-package flycheck-kotlin
   :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
 
