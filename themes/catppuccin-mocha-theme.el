@@ -1,4 +1,4 @@
-;;; package --- Catppuccin mocha theme
+;;; package --- Catppuccin mocha 
 ;;; Commentary:
 ;;; catppuccin-mocha based theme
 
@@ -66,7 +66,7 @@
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
   (line-number                          (:foreground surface1))
-  (line-number-current-line             (:background surface0 :foreground mauve :bold t))
+  (line-number-current-line             (:background surface0 :foreground flamingo :bold t))
   (match                                (:background dark-red :foreground peach))
   (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))

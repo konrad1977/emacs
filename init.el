@@ -3,8 +3,8 @@
 
 ;;; Code:
 (eval-when-compile
-  (defvar display-time-24hr-format t)
-  (defvar display-time-default-load-average nil))
+(defvar display-time-24hr-format t)
+(defvar display-time-default-load-average nil))
 
 (package-initialize)
 
@@ -16,6 +16,10 @@
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/kanagawa-emacs" user-emacs-directory))
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/mito-laser-emacs" user-emacs-directory))
 (add-to-list 'custom-theme-load-path (expand-file-name "localpackages/neofusion-emacs" user-emacs-directory))
+
+
+(setenv "PATH" "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin")
+(setq exec-path (split-string (getenv "PATH") path-separator))
 
 ;; Add local packages directory to load-path
 (let ((dir (expand-file-name "localpackages" user-emacs-directory)))
@@ -68,6 +72,17 @@
 (use-package drag-stuff
   :defer t
   :ensure t)
+
+(use-package ultra-scroll
+  :vc (ultra-scroll
+       :url "https://github.com/jdtsmith/ultra-scroll"
+       :main-file "ultra-scroll.el"
+       :branch "main"
+       :rev :newest)
+  :init
+  (setq scroll-conservatively 101
+        scroll-margin 0)
+  :hook (after-init . ultra-scroll-mode))
 
 (use-package dumb-jump
   :defer t
@@ -137,6 +152,183 @@
         ("C-g" . iedit--quit))
   :ensure t)
 
+;; (use-package emacs
+;;   :ensure nil
+;;   :bind
+;;   (("M-o" . other-window)
+;;    ("M-j" . duplicate-dwim)
+;;    ("M-g r" . recentf)
+;;    ("M-s g" . grep)
+;;    ("C-x ;" . comment-line)
+;;    ("M-s f" . find-name-dired)
+;;    ("C-x C-b" . ibuffer)
+;;    ("C-x w t"  . transpose-window-layout)            ; EMACS-31
+;;    ("C-x w r"  . rotate-windows)                     ; EMACS-31
+;;    ("C-x w f h"  . flip-window-layout-horizontally)  ; EMACS-31
+;;    ("C-x w f v"  . flip-window-layout-vertically)    ; EMACS-31
+;;    ("RET" . newline-and-indent)
+;;    ("C-z" . nil)
+;;    ("C-x C-z" . nil)
+;;    ("C-x C-k RET" . nil))
+;;   :custom
+;;   (ad-redefinition-action 'accept)
+;;   (column-number-mode nil)
+;;   (line-number-mode nil)
+;;   (completion-ignore-case t)
+;;   (completions-detailed t)
+;;   (delete-by-moving-to-trash t)
+;;   (display-line-numbers-width 3)
+;;   (display-line-numbers-widen t)
+;;   (delete-selection-mode 1)
+;;   (enable-recursive minibuffers t)
+;;   (find-ls-option '("-exec ls -ldh {} +" . "-ldh"))  ; find-dired results with human readable sizes
+;;   (frame-resize-pixelwise t)
+;;   (global-auto-revert-non-file-buffers t)
+;;   (help-window-select t)
+;;   (history-length 300)
+;;   (inhibit-startup-message t)
+;;   (initial-scratch-message "")
+;;   (ispell-dictionary "en_US")
+;;   (kill-do-not-save-duplicates t)
+;;   (create-lockfiles nil)   ; No backup files
+;;   (make-backup-files nil)  ; No backup files
+;;   (backup-inhibited t)     ; No backup files
+;;   (pixel-scroll-precision-mode t)
+;;   (pixel-scroll-precision-use-momentum nil)
+;;   (ring-bell-function 'ignore)
+;;   (read-answer-short t)
+;;   (recentf-max-saved-items 300) ; default is 20
+;;   (recentf-max-menu-items 15)
+;;   (recentf-auto-cleanup (if (daemonp) 300 'never))
+;;   (recentf-exclude (list "^/\\(?:ssh\\|su\\|sudo\\)?:"))
+;;   (remote-file-name-inhibit-delete-by-moving-to-trash t)
+;;   (remote-file-name-inhibit-auto-save t)
+;;   (resize-mini-windows 'grow-only)
+;;   (ring-bell-function #'ignore)
+;;   (scroll-conservatively 8)
+;;   (scroll-margin 5)
+;;   (savehist-save-minibuffer-history t)    ; t is default
+;;   (savehist-additional-variables
+;;    '(kill-ring                            ; clipboard
+;;      register-alist                       ; macros
+;;      mark-ring global-mark-ring           ; marks
+;;      search-ring regexp-search-ring))     ; searches
+;;   (save-place-file (expand-file-name "saveplace" user-emacs-directory))
+;;   (save-place-limit 600)
+;;   (set-mark-command-repeat-pop t) ; So we can use C-u C-SPC C-SPC C-SPC... instead of C-u C-SPC C-u C-SPC...
+;;   (split-width-threshold 170)     ; So vertical splits are preferred
+;;   (split-height-threshold nil)
+;;   (shr-use-colors nil)
+;;   (switch-to-buffer-obey-display-actions t)
+;;   (tab-always-indent 'complete)
+;;   (tab-width 4)
+;;   (treesit-font-lock-level 4)
+;;   (truncate-lines t)
+;;   (undo-limit (* 13 160000))
+;;   (undo-strong-limit (* 13 240000))
+;;   (undo-outer-limit (* 13 24000000))
+;;   (use-dialog-box nil)
+;;   (use-file-dialog nil)
+;;   (use-package-hook-name-suffix nil)
+;;   (use-short-answers t)
+;;   (visible-bell nil)
+;;   (window-combination-resize t)
+;;   (window-resize-pixelwise nil)
+;;   (xref-search-program 'ripgrep)
+;;   (grep-command "rg -nS --no-heading ")
+;;   (grep-find-ignored-directories
+;;    '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
+;;   :config
+;;   ;; Makes everything accept utf-8 as default, so buffers with tsx and so
+;;   ;; won't ask for encoding (because undecided-unix) every single keystroke
+;;   (modify-coding-system-alist 'file "" 'utf-8)
+
+;;   (when (eq system-type 'darwin)
+;;     (setq insert-directory-program "gls")
+;;     (setq mac-command-modifier 'meta))
+
+;;   ;; Save manual customizations to other file than init.el
+;;   (setq custom-file (locate-user-emacs-file "custom-vciars.el"))
+;;   (load custom-file 'noerror 'nomessage)
+
+;;   ;; Set line-number-mode with relative numbering
+;;   (setq display-line-numbers-type 'relative)
+;;   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+;;   ;; A Protesilaos life savier HACK
+;;   ;; Add option "d" to whenever using C-x s or C-x C-c, allowing a quick preview
+;;   ;; of the diff (if you choose `d') of what you're asked to save.
+;;   (add-to-list 'save-some-buffers-action-alist
+;;                (list "d"
+;;                      (lambda (buffer) (diff-buffer-with-file (buffer-file-name buffer)))
+;;                      "show diff between the buffer and its file"))
+
+;;   ;; On Terminal: changes the vertical separator to a full vertical line
+;;   ;;              and truncation symbol to a right arrow
+;;   (set-display-table-slot standard-display-table 'vertical-border ?\u2502)
+;;   (set-display-table-slot standard-display-table 'truncation ?\u2192)
+
+;;   ;; Ibuffer filters
+;;   (setq ibuffer-saved-filter-groups
+;;         '(("default"
+;;            ("org" (or
+;;                    (mode . org-mode)
+;;                    (name . "^\\*Org Src")
+;;                    (name . "^\\*Org Agenda\\*$")))
+;;            ("tramp" (name . "^\\*tramp.*"))
+;;            ("emacs" (or
+;;                      (name . "^\\*scratch\\*$")
+;;                      (name . "^\\*Messages\\*$")
+;;                      (name . "^\\*Warnings\\*$")
+;;                      (name . "^\\*Shell Command Output\\*$")
+;;                      (name . "^\\*Async-native-compile-log\\*$")
+;;                      (name . "^\\*straight-")))
+;;            ("ediff" (or
+;;                      (name . "^\\*ediff.*")
+;;                      (name . "^\\*Ediff.*")))
+;;            ("dired" (mode . dired-mode))
+;;            ("terminal" (or
+;;                         (mode . term-mode)
+;;                         (mode . shell-mode)
+;;                         (mode . eshell-mode)))
+;;            ("help" (or
+;;                     (name . "^\\*Help\\*$")
+;;                     (name . "^\\*info\\*$")
+;;                     (name . "^\\*helpful"))))))
+;;   (add-hook 'ibuffer-mode-hook
+;;             (lambda ()
+;;               (ibuffer-switch-to-saved-filter-groups "default")))
+;;   (setq ibuffer-show-empty-filter-groups nil) ; don't show empty groups
+
+
+;;   ;; So eshell git commands open an instance of THIS config of Emacs
+;;   (setenv "GIT_EDITOR" (format "emacs --init-dir=%s " (shell-quote-argument user-emacs-directory)))
+;;   ;; So rebase from eshell opens with a bit of syntax highlight
+;;   (add-to-list 'auto-mode-alist '("/git-rebase-todo\\'" . conf-mode))
+
+
+;;   ;; Runs 'private.el' after Emacs inits
+;;   (add-hook 'after-init-hook
+;;             (lambda ()
+;;               (let ((private-file (expand-file-name "private.el" user-emacs-directory)))
+;;                 (when (file-exists-p private-file)
+;;                   (load private-file)))))
+
+;;   :init
+;;   (set-window-margins (selected-window) 2 0)
+
+;;   (toggle-frame-maximized)
+;;   (select-frame-set-input-focus (selected-frame))
+;;   (global-auto-revert-mode 1)
+;;   (indent-tabs-mode -1)
+;;   (recentf-mode 1)
+;;   (repeat-mode 1)
+;;   (savehist-mode 1)
+;;   (save-place-mode 1)
+;;   (winner-mode)
+;;   (xterm-mouse-mode 1)
+;;   (file-name-shadow-mode 1))
+
 ;; (use-package candyshop
 ;;   :ensure nil
 ;;   :defer 2
@@ -161,8 +353,10 @@
   (setopt auto-revert-interval 5)
   (setopt auto-revert-check-vc-info t)
   (setopt switch-to-buffer-obey-display-actions t)
+  (undo-limit (* 13 160000))
+  (undo-strong-limit (* 13 240000))
+  (undo-outer-limit (* 13 24000000))
   (split-width-threshold 300)
-  (warning-minimum-level :emergency)
   (backup-directory-alist `(("." . "~/.saves")))
   (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
@@ -189,14 +383,14 @@
    kept-old-versions 2
    version-control t
    ring-bell-function 'ignore
-   line-spacing 0.05
+   ;; line-spacing 0.05
    global-auto-revert-non-file-buffers t
    completion-ignore-case t
-   display-line-numbers-width 4
+   display-line-numbers-width 3
    cursor-in-non-selected-windows nil
    find-file-visit-truename nil
    ad-redefinition-action 'accept
-   large-file-warning-threshold (* 25 1024 1024)
+   large-file-warning-threshold (* 15 1024 1024)
    backup-by-copying t
    debug-on-error nil
    custom-file (concat user-emacs-directory "var/custom.el")
@@ -257,6 +451,12 @@
          ("C-x C-s" . window-toggle-side-windows)
          ("C-x C-x" . 'mk/safe-kill-buffer-and-window))
   :custom
+  (setq transient-display-buffer-action
+        '(display-buffer-in-side-window
+          (side . bottom)
+          (slot . 0)
+          (window-parameters . ((no-other-window . t)))
+          (window-height . fit-window-to-buffer)))
   (setq window-resize-pixelwise nil
 	frame-resize-pixelwise t
 	window-divider-default-places t
@@ -291,10 +491,10 @@
       (body-function . select-window)
       (window-height . 0.4)
       (slot . 1))
-     ("\\*Copilot-chat"
+     ("\\*Copilot Chat*"
       (display-buffer-in-side-window)
       (body-function . select-window)
-      (window-width . 0.3)
+      (window-width . 0.35)
       (side . right)
       (slot . 2)
       (window-parameters . ((mode-line-format . none))))
@@ -324,10 +524,10 @@
       (side . bottom)
       (slot . 10))
      ("\\*\\(Flycheck\\|Package-Lint\\).*"
-      (display-buffer-reuse-window display-buffer-in-side-window)
+      (display-buffer-reuse-window display-buffer-below-selected)
       (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
-      (display-buffer-at-bottom)
-      (slot . 3)
+      (dedicated . t)
+      ;; (preserve-size . (t . t))
       (window-parameters . ((no-other-window . t)
                             (mode-line-format . none)))))))
 
@@ -349,6 +549,10 @@
         welcome-dashboard-image-height 200
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
   (welcome-dashboard-create-welcome-hook))
+
+;; (use-package exec-path-from-shell
+;;     :config (when (memq window-system '(mac ns x))
+;;               (exec-path-from-shell-initialize)))
 
 (when (fboundp 'set-message-beep)
   (set-message-beep 'silent))
@@ -454,7 +658,6 @@
   :custom
   ;; (display-fill-column-indicator-column 100)
   (left-fringe-width 20)
-  (right-fringe-width 20)
   (display-line-numbers-type 'relative)
   (display-line-numbers-width 4)
   (display-line-numbers-widen t))
@@ -498,7 +701,7 @@
         vertico-posframe-poshandler #'posframe-poshandler-frame-top-center
         vertico-posframe-min-height 1
         vertico-posframe-min-width 150
-        vertico-posframe-border-width 20))
+        vertico-posframe-border-width 10))
 
 ;; Configure Directory extension.
 (use-package vertico-directory
@@ -647,6 +850,9 @@
    (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
    (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
 
+   (evil-define-key 'normal 'global (kbd "<leader> a a") 'android-emulator-start-logcat)
+   (evil-define-key 'normal 'global (kbd "<leader> a q") 'android-emulator-quit-logcat)
+   (evil-define-key 'normal 'global (kbd "<leader> a r") 'android-emulator-restart-logcat)
    ;;; Buffers
    (evil-define-key 'normal 'global (kbd "<leader> b b") 'consult-buffer)
    (evil-define-key 'normal 'global (kbd "<leader> b i") 'ibuffer)
@@ -693,6 +899,7 @@
    (evil-define-key 'normal 'global (kbd "<leader> e l") 'eval-last-sexp)
 
    (evil-define-key 'normal 'global (kbd "<leader> s s") 'isearch-forward)
+   (evil-define-key 'normal 'global (kbd "<leader> s h") 'consult-isearch-history)
    (evil-define-key 'normal 'global (kbd "<leader> s o") 'occur)
 
    (evil-define-key 'normal 'global (kbd "<leader> t s") 'sort-lines)
@@ -725,8 +932,8 @@
    (define-key evil-motion-state-map (kbd "<left>") 'ignore)
    (define-key evil-motion-state-map (kbd "<right>") 'ignore)
 
-   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 3)))
-   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 3)))
+   (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 15)))
+   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 15)))
    (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
    (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
    (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
@@ -811,6 +1018,7 @@
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")
         undo-fu-session-file-limit 10))
 
+
 ;; ;; (use-package ws-butler
 ;; ;;   :hook (prog-mode . ws-butler-mode))
 
@@ -886,6 +1094,14 @@
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
         ("<escape>" . corfu-quit)
+        ("C-g" . corfu-quit)
+        ("C-n" . corfu-next)
+        ("C-p" . corfu-previous)
+        ("C-l" . corfu-complete)
+        ("C-d" . corfu-show-documentation)
+        ("C-e" . corfu-show-location)
+        ("C-h" . corfu-show-location)
+        ("M-RET" . corfu-insert)
         ("C-j" . corfu-next)
         ("C-k" . corfu-previous))
   :custom
@@ -998,7 +1214,7 @@
   :config
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-  (advice-add #'eglot-completion-at-point :around #'cape-wrap-noninterruptible)
+  (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package darken-buffer
@@ -1006,7 +1222,9 @@
   :hook (after-init . darken-buffer-mode)
   :config
   (setq darken-buffer-percentage 0
-        lighten-inactive-buffer-percentage 4))
+        darken-buffer-always-darken-percentage 10
+        lighten-inactive-buffer-percentage 3))
+
 
 (use-package avy
   :defer t
@@ -1097,9 +1315,6 @@
 (use-package project-treemacs
   :after treemacs)
 
-(use-package restclient
-  :commands (restclient))
-
 (use-package flycheck-package
   :defer t
   :after flycheck
@@ -1134,7 +1349,7 @@
         flycheck-overlay-percent-darker 60
         flycheck-overlay-text-tint-percent 80
         flycheck-overlay-text-tint 'lighter
-        flycheck-overlay-show-at-eol t
+        flycheck-overlay-show-at-eol nil
         flycheck-overlay-background-lightness 60
         flycheck-overlay-virtual-line-icon nil))
 
@@ -1162,13 +1377,6 @@
           (lambda ()
             (setq-local comint-prompt-read-only t)
             (setq-local visual-line-mode t)))
-
-(use-package yaml-mode
-  :commands (yaml-mode))
-
-(use-package project
-  :ensure nil
-  :bind ("M-O" . project-find-file))
 
 (use-package pulsar
   :hook (after-init . pulsar-global-mode)
@@ -1215,7 +1423,6 @@
   (setq darkroom-text-scale-increase 1.5
         darkroom-margins '(12 . 0)))
 
-
 (use-package blamer
   :commands blamer-mode
   :config
@@ -1255,7 +1462,6 @@
         vterm-kill-buffer-on-exit t
 	vterm-clipboard-warning-max-lines 20
 	vterm-clipboard-warning-max-chars 256))
-
 
 (use-package dall-e-shell
   :defer t
@@ -1306,6 +1512,8 @@
                  (list 'vc backend root)))))
 
 (use-package project
+  :ensure nil
+  :bind ("M-O" . project-find-file)
   :defer t
   :ensure nil
   :config
@@ -1464,8 +1672,9 @@
 (use-package olivetti
   :hook ((org-mode . olivetti-mode))
   :custom
+  (olivetti-style 'fancy)
   (setq olivetti-style t
-        olivetti-body-width 0.85
+        olivetti-body-width 100
         olivetti-hide-mode-line t))
 
 (use-package elfeed
@@ -1616,6 +1825,7 @@
 	("C-c C-x" . #'swift-additions:reset)
 	("C-c C-f" . #'periphery-search-dwiw-rg)))
 
+
 (use-package domain-blocker
   :ensure nil
   :after swift-ts-mode)
@@ -1641,25 +1851,23 @@
   ("C-c e i" . #'eglot-find-implementation)
   ("C-c e b" . #'eglot-format-buffer)
   :custom
+  (eglot-autoshutdown t)
+  (eglot-extend-to-xref t)
+  (eglot-sync-connect 1)
+  (eglot-connect-timeout 30)
   (eglot-report-progress nil)
-  (eglot-autoshutdown nil)
-  (eglot-connect-timeout 120)
-  (eglot-sync-connect 3)
   (eglot-events-buffer-size 0)
   (eglot-events-buffer-config '(size: 0 :format full))
+  (eglot-ignored-server-capabilites '(:hoverProvider))
   :config
   (add-to-list 'eglot-server-programs '(swift-ts-mode . my-swift-mode:eglot-server-contact))
   (add-to-list 'eglot-server-programs
                '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
-
   (add-hook 'typescript-mode-hook 'eglot-ensure)
   (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
   (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
-  
   (setq eglot-stay-out-of '(corfu company flycheck)
-	eglot-extend-to-xref t
 	eglot-send-changes-idle-time 0.3
-        ;; eldoc-documentation-strategy 'eldoc-documentation-default
         jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
@@ -1707,19 +1915,18 @@
   ("C-c C-H" . #'hacking-ws/query-thing-at-point))
 
 (use-package periphery-quick
-  ;; :defer t
+  :defer 2
   :ensure nil
-  :after prog-mode
   :bind
-  ("C-c S" . #'periphery-quick:find-ask)
-  ("M-F" . #'periphery-quick:find-ask)
-  ;; ("C-c f f" . #'periphery-quick:find-in-file)
-  ("C-c f t" . #'periphery-quick:todos))
+  :bind (:map prog-mode-map
+              ("C-c S" . #'periphery-quick:find-ask)
+              ("M-F" . #'periphery-quick:find-ask)
+              ;; ("C-c f f" . #'periphery-quick:find-in-file)
+              ("C-c f t" . #'periphery-quick:todos)))
 
 (use-package periphery-search
-  ;; :defer t
+  :defer 2
   :ensure nil
-  :after prog-mode
   :bind (:map prog-mode-map
               ("C-c C-s" . #'periphery-search-rg)
               ("C-c C-f" . #'periphery-search-dwiw-rg)
@@ -1755,23 +1962,31 @@
   :bind
   ("C-c C-l" . #'periphery-run-swiftlint))
 
-;; (use-package filer
-;;   :ensure nil
-;;   :bind
-;;   ("C-c f f" . filer-find-file)
+;; (use-package svg-tag-mode
+;;   :defer 3
+;;   :hook ((swift-ts-mode . svg-tag-mode)
+;;          (localizeable-mode . svg-tag-mode)
+;;          (kotlin-ts-mode . svg-tag-mode))
 ;;   :config
-;;   (setq filer-include-project-name nil))
+;;   (plist-put svg-lib-style-default :font-family "Jetbrains Mono")
+;;   (plist-put svg-lib-style-default :font-size 15)
+;;   :init
+;;   (setq svg-tag-tags (periphery-svg-tags)))
 
-(use-package svg-tag-mode
-  :defer 3
-  :hook ((swift-ts-mode . svg-tag-mode)
-         (localizeable-mode . svg-tag-mode)
-         (kotlin-ts-mode . svg-tag-mode))
-  :config
-  (plist-put svg-lib-style-default :font-family "Jetbrains Mono")
-  (plist-put svg-lib-style-default :font-size 15)
-  :init
-  (setq svg-tag-tags (periphery-svg-tags)))
+(use-package indent-bars
+  :defer t
+  :vc (indent-bars
+       :url "https://github.com/jdtsmith/indent-bars"
+       :branch "main"
+       :rev :newest)
+  :hook (prog-mode . indent-bars-mode)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.15))
+  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
+  (indent-bars-width-frac 0.1)
+  (indent-bars-prefer-character t))
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
@@ -1829,12 +2044,11 @@
 
 (put 'narrow-to-region 'disabled nil)
 
-
-(use-package treesit
-  :defer t
-  :ensure nil
-  :config
-  (setq treesit-font-lock-level 4))
+;; (use-package treesit
+;;   :defer t
+;;   :ensure nil
+;;   :config
+;;   (setq treesit-font-lock-level 4))
 
 (use-package nxml-mode
   :ensure nil
@@ -1871,10 +2085,12 @@
                 (run-at-time 1 nil (lambda ()
                                     (delete-windows-on buf)
                                     (bury-buffer buf)))))))
+
 (use-package flycheck-kotlin
   :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
 
 (use-package kotlin-ts-mode
+  :defer 3
   :mode ("\\.kt\\'" "\\.kts\\'"))
 
 (use-package kotlin-development
@@ -1912,23 +2128,12 @@
   (setq copilot-max-char 1000000))
 
 (use-package copilot-chat
-  :hook ((copilot-chat . visual-line-mode))
-  :vc (copilot-chat
-       :url "https://github.com/chep/copilot-chat.el"
-       :branch "master"
-       :rev :newest)
-  :commands (copilot-chat-doc
-             copilot-chat-explain
-             copilot-chat-fix
-             copilot-chat-test
-             copilot-chat-review
-             copilot-chat-optimize
-             copilot-chat-add-current-buffer
-             copilot-chat-ask-and-insert
-             copilot-chat-insert-commit-message
-             copilot-chat-custom-prompt-selection)
+  :vc (copilot-chat :url "https://github.com/chep/copilot-chat.el.git" :branch "main" :rev :newest)
+  :hook ((copilot-chat . visual-line-mode)
+         (git-commit-setup . copilot-chat-insert-commit-message))
   :config
-  (add-hook 'git-commit-setup-hook 'copilot-chat-insert-commit-message))
+  (setq copilot-chat-frontend 'org)
+  (setq copilot-chat-follow nil))
 
 ;; (use-package jinx
 ;;   :hook (after-init . global-jinx-mode)  ; Enable Jinx globally
@@ -1943,40 +2148,12 @@
 ;;   (custom-set-faces
 ;;    '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
 
-(use-package ultra-scroll
-  :vc (ultra-scroll
-       :url "https://github.com/jdtsmith/ultra-scroll"
-       :main-file "ultra-scroll.el"
-       :branch "main"
-       :rev :newest)
-  :init
-  (setq scroll-conservatively 101
-        scroll-margin 0)
-  :hook (after-init . ultra-scroll-mode))
 
 (use-package eglot-booster
-  :defer t
-  :vc (eglot-booster
-       :url "https://github.com/jdtsmith/eglot-booster"
-       :branch "main"
-       :rev :newest)
   :after eglot
-  :config (eglot-booster-mode))
-
-(use-package indent-bars
-  :defer t
-  :vc (indent-bars
-       :url "https://github.com/jdtsmith/indent-bars"
-       :branch "main"
-       :rev :newest)
-  :hook (prog-mode . indent-bars-mode)
-  :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.15))
-  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
-  (indent-bars-treesit-support t)
-  (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
-  (indent-bars-width-frac 0.1)
-  (indent-bars-prefer-character t))
+  :config
+  (setq eglot-booster-io-only t)
+  (eglot-booster-mode))
 
 (use-package music-control
   :ensure nil
@@ -1996,45 +2173,40 @@
   ;; (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
   ;; (setq aidermacs-args '("--model" "deepseek/deepseek-reasoner"))
   (setq aidermacs-args '("--model" "deepseek/deepseek-chat"))
-  ;; (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY"))
   :bind (:map global-map
               ("C-c a" . aidermacs-transient-menu)))
 
-(use-package claude-code
-  :defer t
-  :vc (claude-code
-       :url "https://github.com/stevemolitor/claude-code.el"
+(use-package emacs-websearch
+  :commands emacs-websearch
+  :vc (emacs-websearch
+       :url "https://github.com/zhenhua-wang/emacs-websearch"
        :branch "main"
        :rev :newest)
+  :bind (("C-c l" . emacs-websearch))
   :config
-  (claude-code-mode)
-  :bind (:map global-map
-              ("C-c c" . claude-code-transient)))
+  (setq emacs-websearch-engine 'google
+        emacs-websearch-async t))
 
-(use-package mini-ontop
-  :defer t
-  :vc (mini-ontopp
-       :url "https://github.com/hkjels/mini-ontop.el"
-       :branch "main"
-       :rev :newest)
-  :config
-  (mini-ontop-mode))
+;; (use-package claude-code
+;;   :defer t
+;;   :vc (claude-code
+;;        :url "https://github.com/stevemolitor/claude-code.el"
+;;        :branch "main"
+;;        :rev :newest)
+;;   :config
+;;   (claude-code-mode)
+;;   :bind (:map global-map
+;;               ("C-c c" . claude-code-transient)))
 
-(use-package jira
-  :defer t
-  :commands (jira-issues jira-issues-menu)
-  :vc (jira
-       :url "git@github.com:unmonoqueteclea/jira.el"
-       :branch "main"
-       :rev :newest)
-  :init
-  (setq jira-username "mikael.konradsson@mobileinteraction.se"
-        jira-base-url "https://mobileinteraction.atlassian.net" ;; Jira instance URL
-        jira-token (getenv "JIRA_TOKEN")
-        jira-statuses-done '("Klart" "Done" "Closed" "Resolved" "Waiting for QA")
-        jira-statuses-todo '("Att göra" "Todo")
-        jira-statuses-error'("Error" "Rejected" "In Progress - Error" "Under granskning")
-        jira-statuses-progress '("Pågående" "QA staging" "In test" "In Progress" "In progress" "In Progress - Development" "In Progress - Design" "In Progress - Review" "In Progress - Testing")))
+;; (use-package mini-ontop
+;;   :defer t
+;;   :vc (mini-ontopp
+;;        :url "https://github.com/hkjels/mini-ontop.el"
+;;        :branch "main"
+;;        :rev :newest)
+;;   :config
+;;   (mini-ontop-mode))
+
 
 (use-package breadcrumb
   :defer t
@@ -2093,6 +2265,22 @@
                           ((string= string "Function")
                            (concat (nerd-icons-mdicon "nf-md-function_variant" :face 'breadcrumb-imenu-crumbs-face) " " string))
                           (t string)))))))
+
+(use-package jira
+  :defer t
+  :commands (jira-issues jira-issues-menu)
+  :vc (jira
+       :url "git@github.com:unmonoqueteclea/jira.el"
+       :branch "main"
+       :rev :newest)
+  :init
+  (setq jira-username "mikael.konradsson@mobileinteraction.se"
+        jira-base-url "https://mobileinteraction.atlassian.net" ;; Jira instance URL
+        jira-token (getenv "JIRA_TOKEN")
+        jira-statuses-done '("Klart" "Done" "Closed" "Resolved" "Waiting for QA")
+        jira-statuses-todo '("Att göra" "Todo")
+        jira-statuses-error'("Error" "Rejected" "In Progress - Error" "Under granskning")
+        jira-statuses-progress '("Pågående" "QA staging" "In test" "In Progress" "In progress" "In Progress - Development" "In Progress - Design" "In Progress - Review" "In Progress - Testing")))
 
 (provide 'init)
 ;;; init.el ends here

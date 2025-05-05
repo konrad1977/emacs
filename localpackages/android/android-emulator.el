@@ -512,7 +512,7 @@ Handles process cleanup and provides detailed error reporting."
 (defun android-emulator-restart-logcat ()
   "Restart the logcat monitoring with current filters."
   (interactive)
-  (android-emulator-stop-logcat)
+  (android-emulator-quit-logcat)
   (android-emulator-start-logcat))
 
 (defun android-emulator-toggle-logcat ()
@@ -521,7 +521,7 @@ If logcat is currently running, stop it. Otherwise, start it."
   (interactive)
   (if android-emulator-logcat-process
       (progn
-        (android-emulator-stop-logcat)
+        (android-emulator-quit-logcat)
         (message "Logcat monitoring stopped"))
     (android-emulator-start-logcat)
     (message "Logcat monitoring started")))
@@ -677,7 +677,7 @@ Looks for common Android project indicators like settings.gradle."
       (when android-emulator-debug
         (message "Started logcat with command: %s" command)))))
 
-(defun android-emulator-stop-logcat ()
+(defun android-emulator-quit-logcat ()
   "Stop the logcat monitoring process and kill its buffer."
   (interactive)
   (when android-emulator-logcat-process
@@ -697,7 +697,7 @@ Looks for common Android project indicators like settings.gradle."
     (delete-process android-emulator--process)
     (setq android-emulator--process nil))
 
-  (android-emulator-stop-logcat)  ; Add this line
+  (android-emulator-quit-logcat)  ; Add this line
 
   (let ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path)))
     (shell-command (format "%s emu kill" adb-path))

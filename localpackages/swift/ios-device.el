@@ -112,10 +112,10 @@
 (cl-defun ios-device:run-cmd (&key identifier appIdentifier)
   "Generate run command for device IDENTIFIER and APP-IDENTIFIER."
   (when ios-device:debug
-    (message "xcrun devicectl device process launch --device %s %s" identifier appIdentifier))
+    (message "xcrun devicectl device process launch --terminate-existing --device %s %s" identifier appIdentifier))
   (format "sh -c '\
     trap \"xcrun devicectl device process terminate --device %s --bundle-identifier %s; exit\" EXIT INT TERM; \
-    xcrun devicectl device process launch --console --device %s %s & \
+    xcrun devicectl device process launch --terminate-existing --console --device %s %s & \
     wait'"
           identifier
           appIdentifier

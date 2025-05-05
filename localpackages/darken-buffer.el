@@ -28,6 +28,11 @@
   :type 'integer
   :group 'darken-buffer)
 
+(defcustom darken-buffer-always-darken-percentage 15
+  "Percentage by which to darken buffers in always-darken lists."
+  :type 'integer
+  :group 'darken-buffer)
+
 (defvar-local darken-buffer--cookie nil
   "Face remapping cookie for the current buffer.")
 
@@ -36,6 +41,18 @@
 
 (defvar-local darken-buffer--linenumber-cookie nil
   "Face remapping cookie for the linenumber in current buffer.")
+
+(defvar darken-buffer-apply-effect-hook nil
+  "Hook run after darken-buffer effects are applied.")
+
+(defvar darken-buffer-remove-effect-hook nil
+  "Hook run after darken-buffer effects are removed.")
+
+(defvar-local darken-buffer--ignore-cache nil
+  "Cache for whether the current buffer should be ignored.")
+
+(defvar darken-buffer--cached-bg-color nil
+  "Cached background color of the current theme.")
 
 (defcustom darken-buffer-ignore-modes '(treemacs-mode vterm-mode eshell-mode shell-mode term-mode)
   "List of major modes where effects should not be applied."
@@ -47,14 +64,26 @@
   :type '(repeat string)
   :group 'darken-buffer)
 
-
 (defcustom darken-buffer-ignore-buffers-regexp '("posframe"
-                                                "\*Flycheck.+\*"
-                                                "\*Flymake.+\*"
-                                                "\*Warnings\*"
-                                                "\*Backtrace\*"
-                                                "\*Echo Area [0-9]+")
+                                                 "\\*posframe\*"
+                                                 "messages"
+                                                 "compilation"
+                                                 "faces"
+                                                ;; "\*.\*"
+                                                 )
   "List of regular expressions matching buffer names to ignore."
+  :type '(repeat regexp)
+  :group 'darken-buffer)
+
+(defcustom darken-buffer-always-darken-buffers '("*compilation*")
+  "List of buffer names that should always be darkened when shown."
+  :type '(repeat string)
+  :group 'darken-buffer)
+
+(defcustom darken-buffer-always-darken-buffers-regexp '("\*which-key-\*"
+                                                        "\*Flycheck.+\*"
+                                                        "\*Flymake.+\*")
+  "List of regular expressions matching buffer names that should always be darkened."
   :type '(repeat regexp)
   :group 'darken-buffer)
 
@@ -65,6 +94,13 @@
       (cl-some (lambda (regexp)
                  (string-match-p regexp (buffer-name)))
                darken-buffer-ignore-buffers-regexp)))
+
+(defun darken-buffer-should-always-darken-p ()
+  "Return t if current buffer should always be darkened."
+  (or (member (buffer-name) darken-buffer-always-darken-buffers)
+      (cl-some (lambda (regexp)
+                 (string-match-p regexp (buffer-name)))
+               darken-buffer-always-darken-buffers-regexp)))
 
 (defun darken-buffer-color-to-rgb (color)
   "Convert COLOR (hex or name) to RGB components."
@@ -97,9 +133,25 @@
                            rgb)))
     (apply 'darken-buffer-rgb-to-hex lightened)))
 
+(defun darken-buffer-adjust-color (color percent lighten)
+  "Adjust COLOR by PERCENT. If LIGHTEN is non-nil, lighten the color; otherwise, darken it."
+  (let* ((rgb (darken-buffer-color-to-rgb color))
+         (adjusted (mapcar (lambda (component)
+                             (if lighten
+                                 (min 255
+                                      (floor (+ component
+                                                (* (- 255 component)
+                                                   (/ percent 100.0)))))
+                               (max 0
+                                    (floor (* component (- 100 percent) 0.01)))))
+                           rgb)))
+    (apply 'darken-buffer-rgb-to-hex adjusted)))
+
 (defun darken-buffer-get-background-color ()
-  "Get the current theme's background color."
-  (face-background 'default))
+  "Get the current theme's background color, using a cached value if available."
+  (or darken-buffer--cached-bg-color
+      (setq darken-buffer--cached-bg-color
+            (or (face-background 'default) "#000000"))))
 
 (defun darken-buffer-count-visible-non-ignored-windows ()
   "Count number of visible windows that aren't in ignore lists."
@@ -121,6 +173,8 @@
 
   (let* ((bg-color (darken-buffer-get-background-color))
          (modified-bg (cond
+                       ((darken-buffer-should-always-darken-p)
+                        (darken-buffer-darken-color bg-color darken-buffer-always-darken-percentage))
                        (is-active
                         (if (> darken-buffer-percentage 0)
                             (darken-buffer-darken-color bg-color darken-buffer-percentage)
@@ -147,7 +201,9 @@
     (setq darken-buffer--fringe-cookie nil))
   (when darken-buffer--linenumber-cookie
     (face-remap-remove-relative darken-buffer--linenumber-cookie)
-    (setq darken-buffer--linenumber-cookie nil)))
+    (setq darken-buffer--linenumber-cookie nil))
+
+  (run-hooks 'darken-buffer-remove-effect-hook))
 
 (defun darken-buffer-window-switch-hook ()
   "Handle window focus change."
@@ -163,9 +219,51 @@
                 (darken-buffer-apply-effect t)  ; Active window - darken it
               (darken-buffer-apply-effect nil))))))))
 
+(defun darken-buffer-setup-hooks ()
+  "Set up hooks for darken-buffer."
+  (add-hook 'window-selection-change-functions
+            'darken-buffer--window-selection-change-function)
+  (add-hook 'window-configuration-change-hook
+            'darken-buffer-window-switch-hook)
+  (add-hook 'post-command-hook 'darken-buffer-window-switch-hook)
+
+  (add-hook 'after-load-theme-hook #'darken-buffer-invalidate-caches)
+  (add-hook 'buffer-list-update-hook #'darken-buffer-invalidate-caches))
+
+(defun darken-buffer-remove-hooks ()
+  "Remove hooks for darken-buffer."
+    (remove-hook 'window-selection-change-functions
+                 'darken-buffer--window-selection-change-function)
+    (remove-hook 'window-configuration-change-hook
+                 'darken-buffer-window-switch-hook)
+    (remove-hook 'post-command-hook 'darken-buffer-window-switch-hook)
+    
+    (remove-hook 'after-load-theme-hook #'darken-buffer-invalidate-caches)
+    (remove-hook 'buffer-list-update-hook #'darken-buffer-invalidate-caches))
+
 (defun darken-buffer--window-selection-change-function (_)
   "Function to handle window selection change."
   (run-with-timer 0 nil #'darken-buffer-window-switch-hook))
+
+(defun darken-buffer-toggle-effect ()
+  "Toggle darken-buffer effects for the current buffer."
+  (interactive)
+  (if darken-buffer--cookie
+      (darken-buffer-remove-effect)
+    (darken-buffer-apply-effect (eq (selected-window) (get-buffer-window)))))
+
+(defun darken-buffer-set-darken-percentage (percentage)
+  "Set the darken percentage interactively."
+  (interactive "nEnter darken percentage: ")
+  (setq darken-buffer-percentage percentage)
+  (darken-buffer-window-switch-hook))
+
+(defun darken-buffer-invalidate-caches ()
+  "Invalidate all caches used by darken-buffer."
+  (setq darken-buffer--cached-bg-color nil)
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (setq darken-buffer--ignore-cache nil))))
 
 ;;;###autoload
 (define-minor-mode darken-buffer-mode
@@ -174,19 +272,12 @@
   :global t
   (if darken-buffer-mode
       (progn
-        ;; Use both hooks to ensure we catch all window selection changes
-        (add-hook 'window-selection-change-functions
-                  'darken-buffer--window-selection-change-function)
-        (add-hook 'window-configuration-change-hook
-                  'darken-buffer-window-switch-hook)
-        (add-hook 'post-command-hook 'darken-buffer-window-switch-hook)
+        (darken-buffer-setup-hooks)
+        ;; ;; Use both hooks to ensure we catch all window selection changes
         ;; Apply immediately
         (darken-buffer-window-switch-hook))
-    (remove-hook 'window-selection-change-functions
-                 'darken-buffer--window-selection-change-function)
-    (remove-hook 'window-configuration-change-hook
-                 'darken-buffer-window-switch-hook)
-    (remove-hook 'post-command-hook 'darken-buffer-window-switch-hook)
+    (darken-buffer-remove-hooks)
+
     ;; Remove effects from all windows
     (dolist (window (window-list))
       (with-selected-window window

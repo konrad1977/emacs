@@ -6,9 +6,9 @@
 (defvar file-name-handler-alist-original file-name-handler-alist)
 
 ;; Faster startup by reducing garbage collection and UI overhead
-(setq gc-cons-threshold (* 384 1024 1024)  ; Raise to 384 MB
+(setq gc-cons-threshold (* 512 1024 1024)  ; Raise to 512 MB
       file-name-handler-alist nil
-      read-process-output-max (* 2 1024 1024)  ; Double buffer size
+      read-process-output-max (* 4 1024 1024)  ; Double buffer size
       process-adaptive-read-buffering t
       inhibit-compacting-font-caches t  ; Prevent GC during font ops
       bidi-display-reordering 'left-to-right  ; Sipler text layout
@@ -44,16 +44,20 @@
   (push '(ns-appearance . dark) default-frame-alist))
 
 ;; Font settings
-(let ((mono-font "Iosevka Curly")
+(let (
+      ;; (mono-font "Geist Mono")
+      (mono-font "Iosevka Curly")
       (variable-font "Iosevka Aile"))
-  (set-face-attribute 'default nil :family mono-font :height 170 :weight 'light)
+  (set-face-attribute 'default nil :family mono-font :height 170 :weight 'ultra-light)
   (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
 
-;; Native compilation settings
-(when (featurep 'native-compile)
+; Native compilation settings
+(when (and (fboundp 'native-comp-available-p)
+              (native-comp-available-p))
   (setq native-comp-async-report-warnings-errors nil
         package-native-compile t
+        comp-deferred-compilation t
         jit-lock-defer-time 0
         native-comp-jit-compilation t))
 
