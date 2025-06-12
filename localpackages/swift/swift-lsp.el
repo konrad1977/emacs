@@ -2,6 +2,7 @@
 ;;; Commentary:
 
 ;;; Code:
+(require 'cl-lib) ;; Ensure cl-lib is available for cl-pushnew
 
 ;;;###autoload
 (defun ios-simulator-target ()
@@ -21,14 +22,15 @@
      "-Xswiftc" "-sdk"
      "-Xswiftc" sdk
      "-Xswiftc" "-target"
-     "-Xswiftc" target)))
+     "-Xswiftc" target
+     "-Xcc" "-DSWIFT_PACKAGE=0")))
 
 ;;;###autoload
 (defun my-swift-mode:eglot-server-contact (_ignored)
   "Construct the list that eglot needs to start sourcekit-lsp."
   (let ((arglist (lsp-arguments))
         (sourcekit-lsp-path (string-trim (shell-command-to-string "xcrun --find sourcekit-lsp"))))
-    (add-to-list 'arglist sourcekit-lsp-path)))
+    (cl-pushnew sourcekit-lsp-path arglist :test #'equal)))
 
 (provide 'swift-lsp)
 ;;; swift-lsp.el ends here

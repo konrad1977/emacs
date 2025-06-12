@@ -33,9 +33,49 @@
   :group 'xcode-additions:xcodebuild)
         
 (defconst xcode-additions-extensions
-  '(:project   ".*\\.xcodeproj$"
-    :workspace ".*\\.xcworkspace$")
+  '(
+    :project ".*\\.xcodeproj$"
+    :workspace ".*\\.xcworkspace$"
+    )
   "File extensions for Xcode project files.")
+
+;;;###autoload
+(defcustom xcode-additions:clean-build-ignore-list
+  '("ModuleCache.noindex" "SourcePackages")
+  "List of directories to ignore when cleaning build folder."
+  :type '(repeat string)
+  :group 'xcode-additions)
+
+(defun xcode-get-app-path ()
+  "Get the path to Xcode.app/ (with trailing slash) using xcode-select."
+  (let ((developer-path (string-trim (shell-command-to-string "xcode-select -p"))))
+    (cond
+     ;; Extract Xcode.app path from developer path and add trailing slash
+     ((string-match "\\(.*/Xcode\\.app\\)" developer-path)
+      (concat (match-string 1 developer-path) "/"))
+     
+     ;; Fallback to standard location if it exists
+     ((file-exists-p "/Applications/Xcode.app")
+      "/Applications/Xcode.app/")
+     
+     ;; Return nil if not found
+     (t nil))))
+
+(defun xcode-additions-accessability-inspector ()
+  "Launch the Accessibility Inspector."
+  (interactive)
+  (let ((accessibility-inspector-path (concat (xcode-get-app-path) "Contents/Applications/Accessibility Inspector.app")))
+    (if (file-exists-p accessibility-inspector-path)
+        (start-process "Accessibility Inspector" nil "open" accessibility-inspector-path)
+      (message "Accessibility Inspector not found at %s" accessibility-inspector-path))))
+
+(defun xcode-additions-instruments ()
+  "Launch the Instruments application."
+  (interactive)
+  (let ((instruments-file-path (concat (xcode-get-app-path) "Contents/Applications/Instruments.app")))
+    (if (file-exists-p instruments-file-path)
+        (start-process "Instruments" nil "open" instruments-file-path)
+      (message "Istruments not found at %s" instruments-file-path))))
 
 (defun xcode-additions-get-extension (type)
   "Get file extension for TYPE (:project or :workspace)."
@@ -339,7 +379,7 @@ Returns a list of folder names, excluding hidden folders."
 (defun xcode-addition:ask-for-device-or-simulator ()
   "Show menu for running on simulator or device."
   (interactive)
-  (when (and (ios-device:id) (not xcode-additions:device-choice))
+  (when (and (ios-device:connected-device-id) (not xcode-additions:device-choice))
     (setq xcode-additions:device-choice
           (xcode-additions:device-or-simulator-menu :title "Run on simulator or device?"))
     (setq current-run-on-device xcode-additions:device-choice)))
@@ -385,44 +425,45 @@ Returns a list of folder names, excluding hidden folders."
   (interactive)
   (require 'dape)
   (add-to-list 'dape-configs
-             `(ios
-               modes (swift-mode)
-               command-cwd ,(or (project-root (project-current))
-                              default-directory)
-               command ,(file-name-concat dape-adapter-dir
-                                          "codelldb"
-                                          "extension"
-                                          "adapter"
-                                          "codelldb")
-               command-args ("--port" :autoport
-                             "--settings" "{\"sourceLanguages\":[\"swift\"]}"
-                             "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
-               port :autoport
-               simulator-id ,(ios-simulator:simulator-identifier)
-               app-bundle-id ,(xcode-additions:fetch-or-load-app-identifier)
-               fn (dape-config-autoport
-                   ,(lambda (config)
-                      (with-temp-buffer
-                        (let* ((command
-                                (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S --console-pty"
-                                        (plist-get config 'simulator-id)
-                                        (plist-get config 'app-bundle-id)))
-                               (code (call-process-shell-command command nil (current-buffer))))
-                          (dape--message (format "* Running: %S *" command))
-                          (dape--message (buffer-string))
-                          (save-match-data
-                            (if (and (zerop code)
-                                     (progn (goto-char (point-min))
-                                            (search-forward-regexp "[[:digit:]]+" nil t)))
-                                (plist-put config :pid (string-to-number (match-string 0)))
-                              (dape--message (format "* Running: %S *" command))
-                              (dape--message (format "Failed to start simulator:\n%s" (buffer-string)))
-                              (user-error "Failed to start simulator")))))
-                      config))
-               :type "lldb"
-               :request "attach"
-               :cwd ".")))
-;;;###autoload
+               `(ios
+                 modes (swift-mode)
+                 command-cwd ,(or (project-root (project-current))
+                                  default-directory)
+                 command ,(file-name-concat dape-adapter-dir
+                                            "codelldb"
+                                            "extension"
+                                            "adapter"
+                                            "codelldb")
+                 command-args ("--port" :autoport
+                               "--settings" "{\"sourceLanguages\":[\"swift\"]}"
+                               "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
+                 port :autoport
+                 simulator-id ,(ios-simulator:simulator-identifier)
+                 app-bundle-id ,(xcode-additions:fetch-or-load-app-identifier)
+                 fn (dape-config-autoport
+                     ,(lambda (config)
+                        (with-temp-buffer
+                          (let* ((command
+                                  (format "xcrun simctl launch --wait-for-debugger --terminate-running-process %S %S --console-pty"
+                                          (plist-get config 'simulator-id)
+                                          (plist-get config 'app-bundle-id)))
+                                 (code (call-process-shell-command command nil (current-buffer))))
+                            (dape--message (format "* Running: %S *" command))
+                            (dape--message (buffer-string))
+                            (save-match-data
+                              (if (and (zerop code)
+                                       (progn (goto-char (point-min))
+                                              (search-forward-regexp "[[:digit:]]+" nil t)))
+                                  (plist-put config :pid (string-to-number (match-string 0)))
+                                (dape--message (format "* Running: %S *" command))
+                                (dape--message (format "Failed to start simulator:\n%s" (buffer-string)))
+                                (user-error "Failed to start simulator")))))
+                        config))
+                 :type "lldb"
+                 :request "attach"
+                 :cwd ".")))
+
+
 (defun xcode-additions:clean-build-folder ()
   "Clean app build folder."
   (interactive)
@@ -433,8 +474,7 @@ Returns a list of folder names, excluding hidden folders."
      :root root
      :build-folder (expand-file-name ".build" root)
      :project-name (xcode-additions:product-name)
-     :ignore-list '("ModuleCache.noindex"
-                   "SourcePackages"))))
+     :ignore-list xcode-additions:clean-build-ignore-list)))
 
 (cl-defun xcode-additions:clean-build-folder-with (&key root build-folder project-name ignore-list)
   "Clean build folder with ROOT, BUILD-FOLDER, PROJECT-NAME asynchronously.

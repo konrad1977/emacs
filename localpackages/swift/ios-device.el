@@ -24,9 +24,8 @@
   :group 'ios-device)
 
 (defvar ios-device-current-buffer-name nil)
-(defvar ios-device-current-device-id "B957748B-F538-47DB-A5AC-66FB12FFBB10")
+(defvar ios-device-current-device-id nil)
 (defvar ios-device-current-install-command nil)
-(defvar ios-device-current-device-identifier "B957748B-F538-47DB-A5AC-66FB12FFBB10")
 (defvar ios-device-current-app-identifier nil)
 (defvar ios-device-current-buffer nil)
 
@@ -38,17 +37,7 @@
           (concat (substring id 0 8) "-" (substring id 6))
         id)))
 
-(defun ios-device:id ()
-  "Get the id of the connected device."
-  (let ((device-id
-         (string-trim
-          (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
-    (if (= (length device-id) 0)
-        (setq ios-device-current-device-id nil)
-      (setq ios-device-current-device-id (ios-device:format-id device-id))))
-  ios-device-current-device-id)
-
-(cl-defun ios-device:install-app (&key buildfolder &key appIdentifier)
+(cl-defun ios-device:install-app (&key buildfolder appIdentifier)
   "Install app on device (BUILDFOLDER APPIDENTIFIER)."
   (let* ((default-directory buildfolder)
          (appname (ios-device:app-name-from :buildfolder buildfolder))
@@ -69,7 +58,8 @@
       (setq-local right-fringe-width 0)
       (setq-local ios-device-current-device-id device-id)
       (setq-local ios-device-current-app-identifier appIdentifier)
-      (add-hook 'kill-buffer-hook #'ios-device:cleanup nil t))
+      ;; (add-hook 'kill-buffer-hook #'ios-device:cleanup nil t)
+      )
 
     (async-start-command-to-string
      :command command
@@ -86,35 +76,43 @@
     (pop-to-buffer buffer)))
 
 (defun ios-device:fetch-device-id ()
-    "Fetch the device id."
-  (string-trim
-   (shell-command-to-string
-    "xcrun devicectl list devices | awk 'NR>3 && /iPhone/ { match($0, /[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}/); print substr($0, RSTART, RLENGTH) }'")))
+  "Fetch the identifier of a connected iPhone device using awk.
+Returns the UUID identifier string if found, nil otherwise."
+  (let ((result (string-trim
+                 (shell-command-to-string
+                  "xcrun devicectl list devices | awk '/iPhone/ && /connected/ {for(i=1;i<=NF;i++) if($i ~ /^[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}$/) {print $i; exit}}'"))))
+    (if (string= result "") nil result)))
 
 (defun ios-device:identifier ()
   "Get iOS device identifier."
-  (if ios-device-current-device-identifier
-      ios-device-current-device-identifier
-    (setq ios-device-current-device-identifier (ios-device:fetch-device-id))
-    ios-device-current-device-identifier))
+  (if ios-device-current-device-id
+      ios-device-current-device-id
+    (setq ios-device-current-device-id (ios-device:fetch-device-id))
+    ios-device-current-device-id))
+
+(defun ios-device:connected-device-id ()
+  "Get the id of the connected device."
+  (let ((result
+         (string-trim
+          (shell-command-to-string "system_profiler SPUSBDataType | sed -n -E -e '/(iPhone|iPad)/,/Serial/s/ *Serial Number: *(.+)/\\1/p'"))))
+    (if (string= result "") nil result)))
 
 (defun ios-device:kill-buffer ()
   "Kill the ios-device buffer."
   (when (and ios-device-current-buffer-name (get-buffer ios-device-current-buffer-name))
     (kill-buffer ios-device-current-buffer-name)))
 
-(cl-defun ios-device:install-cmd (&key identifier &key appname)
+(cl-defun ios-device:install-cmd (&key identifier appname)
   "Install app on device (IDENTIFIER APPNAME)."
   (format "xcrun devicectl device install app --device %s '%s.app'"
           identifier
           appname))
 
 (cl-defun ios-device:run-cmd (&key identifier appIdentifier)
-  "Generate run command for device IDENTIFIER and APP-IDENTIFIER."
+  "Generate run command for device (IDENTIFIER APPIDENTIFIER)."
   (when ios-device:debug
     (message "xcrun devicectl device process launch --terminate-existing --device %s %s" identifier appIdentifier))
   (format "sh -c '\
-    trap \"xcrun devicectl device process terminate --device %s --bundle-identifier %s; exit\" EXIT INT TERM; \
     xcrun devicectl device process launch --terminate-existing --console --device %s %s & \
     wait'"
           identifier
@@ -123,6 +121,15 @@
           appIdentifier
           identifier
           (file-name-base appIdentifier)))
+
+(defun ios-device:reset()
+  "Reset the iOS device."
+  (ios-device:kill-buffer)
+  (setq ios-device-current-buffer-name nil)
+  (setq ios-device-current-device-id nil)
+  (setq ios-device-current-install-command nil)
+  (setq ios-device-current-app-identifier nil)
+  (setq ios-device-current-buffer nil))
 
 (defun ios-device:cleanup ()
   "Cleanup function to terminate the app when the buffer is closed."
@@ -150,12 +157,11 @@
     (async-shell-command command buffer)))
 
 (cl-defun ios-device:app-name-from (&key buildfolder)
-  "Get compiled app name from (buildfolder)."
+  "Get compiled app name from (BUILDFOLDER)."
   (if (file-exists-p buildfolder)
       (let ((binary-name (directory-files buildfolder nil "\\.app$")))
         (file-name-sans-extension (car binary-name)))
     nil))
-
 
 (provide 'ios-device)
 ;;; ios-device.el ends here

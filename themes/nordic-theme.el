@@ -14,13 +14,14 @@
   (error "Requires Emacs 24 or later"))
 
 (autothemer-deftheme
-        nordic "A port of the Neovim theme"
+ nordic "A port of the Neovim theme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette
   (white3    "#ECEFF4" "#eee8d5")
+  (black    "#1d2129" "#1c1c1c")
   (black0   "#191D24" "#120e28")
   (black1   "#1E222A" "#1d1741")
   (black2   "#222630" "#271e56")
@@ -57,59 +58,62 @@
   (file-name-shadow             (:foreground gray5))
   (fringe                       (:background gray0))
   (hl-line                      (:background black1))
-  (header-line                  (:background black1))
+  (header-line                  (:background black1 :height 0.8 :box (:line-width 7 :color black1)))
   (line-number                  (:foreground gray2))
   (line-number-current-line     (:background black1 :foreground white3 :weight 'semi-bold))
-  (region                       (:background black0))
+  (region                       (:background magent_d :foreground black0))
 
-  (mode-line                    (:background black2 :foreground magenta :box (:line-width 1 :color black0)))
-  (mode-line-inactive           (:background black2 :foreground magenta))
+  (mode-line                    (:background gray0 :foreground gray5))
+  (mode-line-inactive           (:background gray0 :foreground magenta))
   (mode-line-active             (:inherit 'mode-line))
   (mode-line-highlight          (:foreground magent_d))
   (mode-line-buffer-id          (:foreground blue1))
 
-  (vertical-border              (:foreground black0))
+  (vertical-border              (:foreground black))
   (link                         (:foreground blue0))
   (custom-link                  (:foreground blue0))
   (warning                      (:foreground yellow_b))
   (error                        (:foreground red_b))
   (success                      (:foreground cyan_d))
 
-  (vertico-posframe-border      (:background black0))
-  (vertico-posframe             (:background black0 :foreground gray5))
-  (vertico-current              (:background gray3 :foreground white3))
+  (vertico-posframe-border      (:background black))
+  (vertico-posframe             (:background black))
+  (vertico-current              (:background gray3 :foreground white3 :bold t))
+  (vertico-multiline            (:background black0))
+  (vertico-group-title          (:foreground gray3 :bold t))
+  (vertico-group-separator      (:foreground gray5 :strike-through t))
 
   (corfu-current                (:inherit 'vertico-current))
   (corfu-annotations            (:background black0))
   (corfu-default                (:background black0 :foreground white3))
   (corfu-border                 (:background black0))
-  (corfu-popupinfo              (:background black0 :foreground blue0 :box (:line-width 1 :color gray0)))
+  (corfu-popupinfo              (:background black0 :foreground red :box (:line-width 1 :color gray0)))
   
   (eldoc-box-body               (:inherit 'vertico-posframe))
   (eldoc-box-border             (:background black2))
 
-  (orderless-match-face-0                        (:foreground red_b :weight 'bold))
-  (orderless-match-face-1                        (:foreground blue1 :weight 'bold))
-  (orderless-match-face-2                        (:foreground yellow_b :weight 'bold))
-  (orderless-match-face-3                        (:foreground cyan :weight 'bold))
+  (orderless-match-face-0       (:foreground red_b :weight 'bold))
+  (orderless-match-face-1       (:foreground blue1 :weight 'bold))
+  (orderless-match-face-2       (:foreground yellow_b :weight 'bold))
+  (orderless-match-face-3       (:foreground cyan :weight 'bold))
 
-  (minibuffer-prompt-end                         (:foreground magenta :background black0))
-  (minibuffer-prompt                             (:foreground red_d :background black0 :bold t))
+  (minibuffer-prompt-end        (:foreground magenta :background black0))
+  (minibuffer-prompt            (:foreground magent_d :background black0 :bold t))
 
-  (window-stool-face (:background gray2))
+  (window-stool-face            (:background gray2))
 
   ;;treemacs
-  (treemacs-window-background-face               (:background black1))
-  (treemacs-directory-face                       (:foreground blue1))
-  (treemacs-file-face                            (:foreground blue1))
-  ;; (treemacs-nerd-icons-file-face                 (:inherit 'treemacs-file-face))
-  ;; (treemacs-nerd-icons-root-face                 (:inherit 'treemacs-directory-face))
-  (treemacs-git-added-face                       (:foreground cyan_d))
-  (treemacs-git-renamed-face                     (:foreground red_b))
-  (treemacs-git-ignored-face                     (:foreground gray2 :italic t))
-  (treemacs-git-unmodified-face                  (:foreground white3))
-  (treemacs-git-untracked-face                   (:foreground green_b))
-  (treemacs-git-modified-face                    (:foreground magent_d :italic t))
+  (treemacs-window-background-face              (:background black1))
+  (treemacs-directory-face                      (:foreground gray5))
+  (treemacs-file-face                           (:foreground gray5))
+  (treemacs-nerd-icons-file-face                (:inherit 'treemacs-file-face))
+  (treemacs-nerd-icons-root-face                (:inherit 'treemacs-directory-face))
+  (treemacs-git-added-face                      (:foreground cyan_d))
+  (treemacs-git-renamed-face                    (:foreground red_b))
+  (treemacs-git-ignored-face                    (:foreground gray2 :italic t))
+  (treemacs-git-unmodified-face                 (:foreground white3))
+  (treemacs-git-untracked-face                  (:foreground green_b))
+  (treemacs-git-modified-face                   (:foreground magent_d :italic t))
 
   (elisp-shorthand-font-lock-face                (:foreground red_b))
 
@@ -189,12 +193,12 @@
   (punch-line-major-mode-face   (:foreground gray5))
   (punch-line-separator-face    (:foreground gray0 :weight 'thin))
 
-  (term                     (:background black0 :foreground magenta))
-  (term-color-black         (:background black0 :foreground black0))
-  (term-color-yellow        (:background yellow :foreground yellow))
-  (term-color-blue          (:background blue1 :foreground blue1))
-  (term-color-green         (:background green :foreground green))
-  (term-color-red           (:background red :foreground red))
+  (term                         (:background black0 :foreground magenta))
+  (term-color-black             (:background black0 :foreground black0))
+  (term-color-yellow            (:background yellow :foreground yellow))
+  (term-color-blue              (:background blue1 :foreground blue1))
+  (term-color-green             (:background green :foreground green))
+  (term-color-red               (:background red :foreground red))
 
   (ansi-color-bright-cyan       (:background cyan :foreground cyan))
   (ansi-color-blue              (:background blue0 :foreground blue0))
@@ -205,7 +209,8 @@
   (evil-mc-cursor-bar-face      (:background black0 :foreground cyan_d))
   (evil-mc-cursor-hbar-face     (:background cyan_d :foreground cyan_d))
 
-  (evil-ex-lazy-highlight        (:background red_d :foreground black0 :italic t))
+  (lazy-highlight               (:inherit 'info-index-match))
+  (evil-ex-lazy-highlight       (:inherit 'lazy-highlight))
 
   (highlight-symbol-face        (:foreground yellow_d :weight 'bold :underline t))
 
@@ -234,11 +239,6 @@
   (git-gutter:added (:foreground green_b))
   (git-gutter:deleted (:foreground red_b))
   (git-gutter:modified (:foreground magenta))
-
-  (flycheck-overlay-error (:background black0 :foreground red_b :height 0.9))
-  (flycheck-overlay-warning (:background black0 :foreground yellow_d :height 0.9))
-  (flycheck-overlay-info (:background black0 :foreground blue0 :height 0.9))
-  (flycheck-overlay-marker (:foreground red_b :italic t :height 0.9))
 
   ))
 

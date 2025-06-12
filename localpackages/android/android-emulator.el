@@ -32,6 +32,13 @@
   :type 'string
   :group 'android-emulator)
 
+(defcustom android-emulator-no-audio t
+  "Whether to disable audio in the emulator.
+When t, the emulator will start with -no-audio flag.
+When nil, the emulator will start with audio enabled."
+  :type 'boolean
+  :group 'android-emulator)
+
 (defface android-emulator-log-error-face
   '((t :foreground "red" :weight bold))
   "Face for error logs (E).")
@@ -426,7 +433,7 @@ Handles process cleanup and provides detailed error reporting."
           (erase-buffer))
 
         (mode-line-hud:update :message
-                             (format "Starting emulator %s..." android-emulator-name))
+                              (format "Starting emulator %s..." android-emulator-name))
 
         ;; Kill any existing process and timer
         (when android-emulator--process
@@ -435,16 +442,16 @@ Handles process cleanup and provides detailed error reporting."
           (cancel-timer android-emulator--check-timer))
 
         ;; Change to the emulator directory before starting
-        (let ((default-directory (file-name-directory emulator-path)))
+        (let ((default-directory (file-name-directory emulator-path))
+              (args (append (list "-avd" android-emulator-name)
+                          (when android-emulator-no-audio (list "-no-audio"))
+                          (list "-change-locale" android-emulator-language))))
           (setq android-emulator--process
-                (start-process
-                 "android-emulator"
-                 buffer
-                 emulator-path
-                 "-avd" android-emulator-name
-                 "-no-audio"
-                 "-change-locale" android-emulator-language
-                 "-verbose")))
+                (apply #'start-process
+                       "android-emulator"
+                       buffer
+                       emulator-path
+                       args)))
 
         ;; Set process as the buffer's process
         (set-process-buffer android-emulator--process buffer)
@@ -454,7 +461,7 @@ Handles process cleanup and provides detailed error reporting."
           (set (make-local-variable 'comint-process-echoes) t)
           (set (make-local-variable 'comint-use-prompt-regexp) nil))
 
-      ;; Set up process filter for ANSI color handling
+        ;; Set up process filter for ANSI color handling
 	(set-process-filter
 	 android-emulator--process
 	 (lambda (proc string)
@@ -528,12 +535,25 @@ If logcat is currently running, stop it. Otherwise, start it."
 
 (defun android-emulator-get-package-name ()
   "Get the package name from the Android project.
-First tries to extract from the manifest file, then falls back to build.gradle files."
-  (let ((package-name (or (android-emulator--get-package-from-manifest)
-                          (android-emulator--get-package-from-gradle)
-                          android-emulator-app-identifier)))
+Checks in this order:
+1. kotlin-development-package-name variable
+2. AndroidManifest.xml
+3. build.gradle files
+4. Asks user if none found."
+  (let ((package-name (or (and (boundp 'kotlin-development-package-name)
+                           kotlin-development-package-name)
+                         (android-emulator--get-package-from-manifest)
+                         (android-emulator--get-package-from-gradle)
+                         android-emulator-app-identifier)))
     (when (and android-emulator-debug package-name)
       (message "Found package name: %s" package-name))
+    
+    (unless package-name
+      (setq package-name (read-string "Could not determine package name. Please enter: "))
+      (when (boundp 'kotlin-development-package-name)
+        (setq kotlin-development-package-name package-name))
+      (setq android-emulator-app-identifier package-name))
+    
     package-name))
 
 (defun android-emulator--get-package-from-manifest ()
@@ -547,8 +567,11 @@ First tries to extract from the manifest file, then falls back to build.gradle f
           (match-string 1))))))
 
 (defun android-emulator--get-package-from-gradle ()
-  "Extract package name from build.gradle or build.gradle.kts files."
+  "Extract package name from build.gradle or build.gradle.kts files.
+Looks for applicationId or namespace in both Groovy and Kotlin DSL."
   (let* ((project-root (or (android-emulator-find-project-root)
+                          (and (boundp 'kotlin-development-current-root)
+                               kotlin-development-current-root)
                           default-directory))
          (gradle-files (directory-files-recursively 
                         project-root 
@@ -727,6 +750,130 @@ Looks for common Android project indicators like settings.gradle."
 	   (visual-line-mode 1)
            (display-buffer (current-buffer)))))))))
 
+(defun android-emulator-send-notification (title message &optional package-name)
+  "Send a notification to the Android emulator.
+TITLE: Notification title.
+MESSAGE: Notification content.
+PACKAGE-NAME: Optional, defaults to `android-emulator-app-identifier'."
+  (interactive
+   (list (read-string "Notification title: ")
+         (read-string "Notification message: ")
+         (read-string "Package name: " android-emulator-app-identifier)))
+  (let* ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path))
+         (package (or package-name android-emulator-app-identifier))
+         (cmd (format "%s shell am broadcast -a %s.SHOW_NOTIFICATION \
+--es title %s --es message %s"
+                      adb-path
+                      package
+                      (shell-quote-argument title)
+                      (shell-quote-argument message))))
+    
+    (unless (executable-find adb-path)
+      (error "ADB not found at: %s" adb-path))
+    
+    (unless package
+      (error "Package name required (set android-emulator-app-identifier)"))
+    
+    (message "Executing: %s" cmd)
+    (let ((result (shell-command-to-string cmd)))
+      (if (string-match "Broadcast completed" result)
+          (message "Notification sent successfully!")
+        (message "FAILED: %s" result))
+      result)))
+
+(defun android-emulator-debug-notification ()
+  "Send a test notification with extensive debugging output."
+  (interactive)
+  (let* ((adb-path (expand-file-name "platform-tools/adb" android-emulator-sdk-path))
+         (package-name (or android-emulator-app-identifier
+                           (android-emulator-get-package-name)
+                           (read-string "Package name: ")))
+         (debug-buffer (get-buffer-create "*Android Notification Debug*")))
+    
+    (with-current-buffer debug-buffer
+      (erase-buffer)
+      (insert "=== Android Notification Debugging ===\n\n")
+      (insert (format "ADB Path: %s\n" adb-path))
+      (insert (format "Package Name: %s\n\n" package-name))
+      
+      ;; Check if emulator is running
+      (insert "Checking emulator status...\n")
+      (let ((devices (android-emulator-get-adb-devices)))
+        (insert (format "Connected devices: %s\n" (mapconcat 'identity devices ", ")))
+        (if (android-emulator-running-p)
+            (insert "Emulator is running: YES\n")
+          (insert "Emulator is running: NO\n")))
+      
+      ;; Check if package exists on device
+      (insert "\nChecking if package exists on device...\n")
+      (let ((cmd (format "%s shell pm list packages | grep %s" adb-path package-name))
+            (result (shell-command-to-string (format "%s shell pm list packages | grep %s" 
+                                                     adb-path package-name))))
+        (insert (format "Command: %s\n" cmd))
+        (insert (format "Result: %s\n" result))
+        (if (string-match-p package-name result)
+            (insert "Package found on device: YES\n")
+          (insert "Package found on device: NO\n")))
+      
+      ;; Try all notification methods with detailed output
+      (insert "\n=== Testing Notification Methods ===\n\n")
+      
+      ;; Method 1: Direct broadcast to NotificationReceiver
+      (insert "Method 1: Direct broadcast to NotificationReceiver\n")
+      (let* ((cmd (format "%s shell am broadcast -a android.intent.action.MAIN -e title \"Debug Title\" -e message \"Debug Message\" -n %s/.NotificationReceiver"
+                          adb-path package-name))
+             (result (shell-command-to-string cmd)))
+        (insert (format "Command: %s\n" cmd))
+        (insert (format "Result: %s\n\n" result)))
+      
+      ;; Method 2: Using activity manager to start notification service
+      (insert "Method 2: Using activity manager to start notification service\n")
+      (let* ((cmd (format "%s shell am startservice -n %s/.NotificationService --es title \"Debug Title\" --es message \"Debug Message\""
+                          adb-path package-name))
+             (result (shell-command-to-string cmd)))
+        (insert (format "Command: %s\n" cmd))
+        (insert (format "Result: %s\n\n" result)))
+      
+      ;; Method 3: Custom action broadcast with different quoting
+      (insert "Method 3: Custom action broadcast with different quoting\n")
+      (let* ((cmd (format "%s shell \"am broadcast -a '%s.SHOW_NOTIFICATION' --es title 'Debug Title' --es message 'Debug Message'\""
+                          adb-path package-name))
+             (result (shell-command-to-string cmd)))
+        (insert (format "Command: %s\n" cmd))
+        (insert (format "Result: %s\n\n" result)))
+      
+      ;; Method 4: Direct intent to MainActivity
+      (insert "Method 4: Direct intent to MainActivity\n")
+      (let* ((cmd (format "%s shell am start -a android.intent.action.MAIN -n %s/.MainActivity --es notification_title \"Debug Title\" --es notification_message \"Debug Message\""
+                          adb-path package-name))
+             (result (shell-command-to-string cmd)))
+        (insert (format "Command: %s\n" cmd))
+        (insert (format "Result: %s\n\n" result)))
+      
+      ;; Check for NotificationReceiver in manifest
+      (insert "\n=== Checking App Configuration ===\n\n")
+      (let* ((cmd (format "%s shell pm dump %s | grep -A 20 \"DUMP OF SERVICE package:\"" 
+                          adb-path package-name))
+             (result (shell-command-to-string cmd)))
+        (insert "Package dump (partial):\n")
+        (insert result)
+        (insert "\n"))
+      
+      ;; Final instructions
+      (insert "\n=== Troubleshooting ===\n\n")
+      (insert "If notifications are not appearing, check:\n")
+      (insert "1. The app has proper notification permissions\n")
+      (insert "2. NotificationReceiver is properly registered in AndroidManifest.xml\n")
+      (insert "3. The device is not in Do Not Disturb mode\n")
+      (insert "4. Try rebuilding and reinstalling the app\n")
+      (insert "5. Check logcat for any errors related to notifications\n"))
+    
+    ;; Display the debug buffer
+    (display-buffer debug-buffer)
+    
+    ;; Also try sending a notification with the regular function
+    (android-emulator-send-notification "Debug Title" "Debug Message from debug function" package-name)))
+
 (defun android-emulator-colorize-log-line (line)
   "Add colors to a log line based on its log level."
   (cond
@@ -755,6 +902,8 @@ Looks for common Android project indicators like settings.gradle."
     (define-key map (kbd "C-c C-l") 'android-emulator-toggle-logcat)
     (define-key map (kbd "C-c C-f") 'android-emulator-set-app-identifier)
     (define-key map (kbd "C-c C-r") 'android-emulator-restart-logcat)
+    (define-key map (kbd "C-c C-n") 'android-emulator-send-notification)
+    (define-key map (kbd "C-c C-d") 'android-emulator-debug-notification)
     map)
   "Keymap for Android Emulator mode.")
 

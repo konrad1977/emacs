@@ -9,9 +9,20 @@
 (require 'treesit)
 (require 'compile)
 (require 'kotlin-mode)
-(require 'kotlin-ts-mode)
-(require 'mode-line-hud)
 (require 'android-emulator)
+(declare-function kotlin-mode "kotlin-mode" ())
+(declare-function kotlin-ts-mode "kotlin-ts-mode" ())
+(declare-function mode-line-hud:update "mode-line-hud" (arg0 arg1))
+(declare-function dape "dape" (config))
+(declare-function dape-quit "dape" ())
+
+;; Declare variables to prevent void variable errors
+(defvar android-emulator-name nil "Current Android emulator name.")
+(defvar android-emulator-sdk-path nil "Path to Android SDK.")
+(defvar dape-configs nil "Dape configuration list.")
+(defvar dape-request-timeout nil "Dape request timeout.")
+(defvar dape-cwd-fn nil "Dape current working directory function.")
+(defvar dape--debug-sessions nil "Active Dape debug sessions.")
 
 (defgroup kotlin-development nil
   "Customization group for Kotlin development setup."
@@ -70,6 +81,15 @@ If nil, use the system default JAVA_HOME."
 Options are 'junit or 'kotest."
   :type '(choice (const :tag "JUnit" junit)
                  (const :tag "Kotest" kotest))
+  :group 'kotlin-development)
+
+(defcustom kotlin-development-root-markers
+  '("settings.gradle" "settings.gradle.kts" "pom.xml" 
+    "build.gradle" "build.gradle.kts" "workspace.json")
+  "List of file markers that indicate a project root directory.
+The presence of any of these files in a directory indicates it's likely
+the root of a Kotlin project."
+  :type '(repeat string)
   :group 'kotlin-development)
 
 (defcustom kotlin-development-package-name nil
@@ -351,20 +371,39 @@ VERSION should be a string like \"8.5\" or nil to use project default."
 
 (defun kotlin-development-get-source-roots (project-root)
   "Get list of source roots for the project."
-  (let ((source-roots '()))
-    (dolist (path '("src/main/kotlin" "src/main/java"))
+  (let ((source-roots '())
+        (common-paths '("src/main/kotlin" 
+                       "src/main/java" 
+                       "app/src/main/kotlin" 
+                       "app/src/main/java")))
+    ;; First try standard paths
+    (dolist (path common-paths)
       (let ((full-path (expand-file-name path project-root)))
         (when (file-directory-p full-path)
           (push full-path source-roots))))
+    
+    ;; If no standard paths found, search for src directories
+    (when (null source-roots)
+      (dolist (path (directory-files-recursively project-root "^src$" t))
+        (when (and (file-directory-p path)
+                  (not (string-match-p "/build/" path)))
+          (push path source-roots))))
+    
+    ;; If still empty, add at least the project root as fallback
+    (when (null source-roots)
+      (push project-root source-roots))
+    
+    ;; Return the list of source roots
     source-roots))
 
 (defun kotlin-development-setup-dape ()
-  "Setup dape for Android debugging."
+  "Setup dape for Android debugging with comprehensive configuration."
   (interactive)
   (require 'dape)
 
-  ;; Increase the timeout for initialization
-  (setq dape-request-timeout 30)
+  ;; Increase timeouts for Android debugging
+  (setq dape-request-timeout 60)
+  (setq dape-cwd-fn #'kotlin-development-find-project-root)
 
   ;; Ensure JAVA_HOME is set first
   (kotlin-development-ensure-java-home)
@@ -372,52 +411,245 @@ VERSION should be a string like \"8.5\" or nil to use project default."
   (let* ((project-root (or (kotlin-development-find-project-root)
                            (error "Could not find project root")))
          (source-roots (kotlin-development-get-source-roots project-root))
-         (debug-adapter-path (expand-file-name
-                              "~/.emacs.d/var/dape-adapters/kotlin-debug-adapter/bin/kotlin-debug-adapter")))
+         (package-name (android-emulator-get-package-name))
+         (java-home (getenv "JAVA_HOME"))
+         (android-home (or (getenv "ANDROID_HOME") (getenv "ANDROID_SDK_ROOT"))))
 
-    (add-to-list 'dape-configs
-                 `(android-debug
-                   modes (kotlin-mode kotlin-ts-mode)
-                   command ,debug-adapter-path
-                   :type "kotlin"
-                   :request "attach"  ; Changed from "launch" to "attach" for Android
-                   :projectRoot ,project-root
-                   :hostName "localhost"
-                   :port 5005  ; Default Android debug port
-		   :classPaths [,(expand-file-name "app/build/intermediates/javac/debug/classes"
-						   project-root)]
-                   :modulePaths [,(expand-file-name "." project-root)]
-                   :args []
-		   :env (:JAVA_HOME ,(getenv "JAVA_HOME")
-				    :ANDROID_HOME ,(getenv "ANDROID_HOME"))
-                   :sourceRoots ,source-roots))))
+    ;; Debug output
+    (when kotlin-development-debug
+      (message "=== Dape Setup Debug Info ===")
+      (message "Project root: %s" project-root)
+      (message "Source roots: %S" source-roots)
+      (message "Package name: %s" package-name)
+      (message "JAVA_HOME: %s" java-home)
+      (message "ANDROID_HOME: %s" android-home)
+      (message "User emacs directory: %s" user-emacs-directory))
 
-(defun kotlin-development-start-android-debug ()
-  "Start Android debugging process."
+    ;; Ensure we have valid source roots
+    (unless source-roots
+      (setq source-roots (list (expand-file-name "app/src/main/java" project-root)
+                              (expand-file-name "app/src/main/kotlin" project-root))))
+    
+    ;; Ensure source-roots is a list of strings, not nil
+    (when (or (null source-roots) (not (listp source-roots)))
+      (setq source-roots (list (expand-file-name "src" project-root))))
+
+    ;; Configuration using kotlin-debug-adapter only
+    (let ((kotlin-adapter-path (expand-file-name "var/dape/adapters/kotlin-debug-adapter/bin/kotlin-debug-adapter" user-emacs-directory)))
+      (when kotlin-development-debug
+        (message "Kotlin adapter path: %s" kotlin-adapter-path)
+        (message "Kotlin adapter exists: %s" (file-exists-p kotlin-adapter-path))
+        (message "Kotlin adapter executable: %s" (file-executable-p kotlin-adapter-path))
+        (message "Final source roots: %S" source-roots))
+      
+      (unless (file-executable-p kotlin-adapter-path)
+        (error "Kotlin debug adapter not found at %s. Please install it first" kotlin-adapter-path))
+      
+      ;; Validate required parameters
+      (unless project-root
+        (error "Project root is nil"))
+      (unless java-home
+        (error "JAVA_HOME is nil - please set it first"))
+      (unless android-home
+        (error "ANDROID_HOME is nil - please set it first"))
+      
+      (let ((config `(:modes (kotlin-mode kotlin-ts-mode java-mode)
+                      :command ,kotlin-adapter-path
+                      :command-cwd ,project-root
+                      :type "kotlin"
+                      :request "attach"
+                      :name "Android Kotlin Debug"
+                      :hostName "localhost"
+                      :port 5005
+                      :timeout 60000
+                      :projectRoot ,project-root
+                      :sourcePaths ,source-roots
+                      :vmArgs ["-Djava.awt.headless=true"]
+                      :env (:JAVA_HOME ,java-home
+                                      :ANDROID_HOME ,android-home
+                                      :PATH ,(concat android-home "/platform-tools:" (getenv "PATH"))))))
+        (when kotlin-development-debug
+          (message "Final config to store: %S" config))
+        (setf (alist-get 'android-kotlin dape-configs) config)))
+
+    (message "Dape configured for Android debugging using kotlin-debug-adapter.")))
+
+(defun kotlin-development-dape-android-setup ()
+  "Custom setup function for Android debugging with Dape."
+  (let* ((project-root (kotlin-development-find-project-root))
+         (package-name (android-emulator-get-package-name))
+         (source-roots (kotlin-development-get-source-roots project-root)))
+    
+    ;; Setup port forwarding
+    (kotlin-development-setup-debug-port-forwarding)
+    
+    ;; Return configuration for remote debugging
+    `(:type "java"
+      :request "attach"
+      :hostName "localhost"
+      :port 5005
+      :timeout 60000
+      :projectRoot ,project-root
+      :sourcePaths ,source-roots)))
+
+(defun kotlin-development-setup-debug-port-forwarding ()
+  "Setup ADB port forwarding for debugging."
   (interactive)
-  (let* ((package-name (android-emulator-get-package-name))
-         (main-activity (read-string "Main activity: " ".MainActivity")))
+  (let ((adb-path (expand-file-name "platform-tools/adb" 
+                                   (or android-emulator-sdk-path 
+                                       kotlin-development-android-sdk-path))))
+    ;; Clear existing port forwards
+    (shell-command (format "%s forward --remove tcp:5005" adb-path))
+    
+    ;; Setup new port forwarding - this will be configured when app starts in debug mode
+    (message "Debug port forwarding will be setup when app starts in debug mode")))
 
-    ;; Kill any existing debug app
-    (call-process "adb" nil nil nil "shell" "am" "force-stop" package-name)
+(defun kotlin-development-start-app-in-debug-mode ()
+  "Start the Android app in debug mode."
+  (interactive)
+  (let* ((package-name (or (android-emulator-get-package-name)
+                          (read-string "Package name: ")))
+         (main-activity (or (kotlin-development--get-launch-activity) 
+                           (read-string "Main activity (e.g. .MainActivity): " ".MainActivity")))
+         (adb-path (expand-file-name "platform-tools/adb" 
+                                    (or android-emulator-sdk-path 
+                                        kotlin-development-android-sdk-path))))
 
+    ;; Kill any existing instance
+    (shell-command (format "%s shell am force-stop %s" adb-path package-name))
+    
     ;; Start app in debug mode
-    (call-process "adb" nil nil nil "shell" "am" "start"
-                  "-D" ; Debug flag
-                  "-n" (concat package-name "/" package-name main-activity))
-
-    ;; Forward debug port
-    (call-process "adb" nil nil nil "forward" "tcp:5005" "jdwp:*))")))
+    (let* ((full-activity (if (string-prefix-p "." main-activity)
+                             (concat package-name main-activity)
+                           main-activity))
+           (debug-command (format "%s shell am start -D -n %s/%s" 
+                                 adb-path package-name full-activity))
+           (result (shell-command-to-string debug-command)))
+      
+      (if (string-match-p "Error\\|Exception" result)
+          (message "Failed to start app in debug mode: %s" result)
+        (message "App started in debug mode. Setting up port forwarding...")
+        
+        ;; Wait a moment for app to start, then setup port forwarding
+        (run-with-timer 2 nil 
+                       (lambda ()
+                         ;; Get the PID and setup port forwarding
+                         (let* ((pid-output (shell-command-to-string 
+                                           (format "%s shell pidof %s" adb-path package-name)))
+                                (pid (string-trim pid-output)))
+                           (when (and pid (not (string-empty-p pid)))
+                             (shell-command (format "%s forward tcp:5005 jdwp:%s" adb-path pid))
+                             (message "Debug port forwarding setup complete. Ready to attach debugger!")))))))))
 
 (defun kotlin-development-start-debugger ()
   "Start debugging Android application."
   (interactive)
-  ;; Ensure debug adapter is installed
   ;; Check if emulator is running
-  (unless (string-match-p "[A-Za-z0-9]+" (shell-command-to-string "adb devices"))
-    (user-error "No Android device/emulator found. Please connect a device or start an emulator"))
-  (let ((default-directory (kotlin-development-find-project-root)))
-    (dape 'android)))
+  (unless (android-emulator-running-p)
+    (user-error "No Android device/emulator found. Please start an emulator first"))
+  
+  ;; Setup dape if not already done
+  (kotlin-development-setup-dape)
+  
+  ;; Ask user if they want to start app in debug mode or attach to running app
+  (if (y-or-n-p "Start app in debug mode? (n = attach to running app)")
+      (progn
+        (kotlin-development-start-app-in-debug-mode)
+        (message "App starting in debug mode. Use 'kotlin-development-attach-debugger' in a few seconds"))
+    (kotlin-development-attach-debugger)))
+
+(defun kotlin-development-attach-debugger ()
+  "Attach debugger to running Android app using kotlin-debug-adapter."
+  (interactive)
+  (let* ((default-directory (kotlin-development-find-project-root))
+         (config (alist-get 'android-kotlin dape-configs)))
+    ;; Use only kotlin-debug-adapter
+    (when kotlin-development-debug
+      (message "=== Attach Debugger Debug Info ===")
+      (message "Default directory: %s" default-directory)
+      (message "Config found: %s" (not (null config)))
+      (message "Config: %S" config))
+    
+    (if config
+        (condition-case err
+            (progn
+              (when kotlin-development-debug
+                (message "About to call dape with config..."))
+              (dape config))
+          (error
+           (message "Failed to attach debugger: %s" (error-message-string err))))
+      (message "Debug configuration 'android-kotlin' not found. Run kotlin-development-setup-dape first."))))
+
+(defun kotlin-development-stop-debug-session ()
+  "Stop current debug session and clean up."
+  (interactive)
+  (when (bound-and-true-p dape--debug-sessions)
+    (dape-quit)
+    (let ((adb-path (expand-file-name "platform-tools/adb" 
+                                     (or android-emulator-sdk-path 
+                                         kotlin-development-android-sdk-path))))
+      ;; Remove port forwarding
+      (shell-command (format "%s forward --remove tcp:5005" adb-path))
+      (message "Debug session stopped and port forwarding removed"))))
+
+(defun kotlin-development-show-debug-status ()
+  "Show current debug status and port forwarding info."
+  (interactive)
+  (let* ((adb-path (expand-file-name "platform-tools/adb" 
+                                    (or android-emulator-sdk-path 
+                                        kotlin-development-android-sdk-path)))
+         (forwards (shell-command-to-string (format "%s forward --list" adb-path)))
+         (buffer (get-buffer-create "*Android Debug Status*")))
+    
+    (with-current-buffer buffer
+      (erase-buffer)
+      (insert "Android Debug Status\n")
+      (insert "===================\n\n")
+      
+      ;; Emulator status
+      (insert "Emulator Status: ")
+      (if (android-emulator-running-p)
+          (insert "Running\n")
+        (insert "Not running\n"))
+      
+      ;; Package info
+      (let ((package-name (condition-case nil
+                              (android-emulator-get-package-name)
+                            (error "Unknown"))))
+        (insert (format "Package Name: %s\n" package-name)))
+      
+      ;; Port forwarding
+      (insert "\nPort Forwarding:\n")
+      (insert forwards)
+      
+      ;; Dape sessions
+      (insert "\nDape Debug Sessions:\n")
+      (if (bound-and-true-p dape--debug-sessions)
+          (insert (format "Active sessions: %s\n" (length dape--debug-sessions)))
+        (insert "No active debug sessions\n"))
+      
+      (display-buffer buffer))))
+
+(defun kotlin-development-restart-app-in-debug ()
+  "Restart the app in debug mode (useful when debugging stops working)."
+  (interactive)
+  (let* ((package-name (android-emulator-get-package-name))
+         (adb-path (expand-file-name "platform-tools/adb" 
+                                    (or android-emulator-sdk-path 
+                                        kotlin-development-android-sdk-path))))
+    
+    ;; Stop current debug session if any
+    (when (bound-and-true-p dape--debug-sessions)
+      (dape-quit))
+    
+    ;; Remove existing port forwarding
+    (shell-command (format "%s forward --remove tcp:5005" adb-path))
+    
+    ;; Force stop the app
+    (shell-command (format "%s shell am force-stop %s" adb-path package-name))
+    
+    ;; Wait a moment then restart in debug mode
+    (run-with-timer 1 nil #'kotlin-development-start-app-in-debug-mode)))
 
 (defun kotlin-development-select-emulator ()
   "Select an Android emulator interactively."
@@ -440,14 +672,20 @@ VERSION should be a string like \"8.5\" or nil to use project default."
 ;; Add these functions
 ;;;###autoload
 (defun kotlin-development-find-project-root ()
-  "Find the root directory of the Android/Kotlin project and cache it in 'kotlin-development-current-root'."
+  "Find the root directory of the Android/Kotlin project and cache it in 'kotlin-development-current-root'.
+Looks for either a .git directory or any of the root marker files specified in
+`kotlin-development-root-markers'."
   (unless (bound-and-true-p kotlin-development-current-root)
     (setq kotlin-development-current-root
-	  (let ((git-root (locate-dominating-file default-directory ".git")))
-	    (if git-root
-		(or (locate-dominating-file git-root "settings.gradle.kts")
-		    git-root)
-	      (locate-dominating-file default-directory "settings.gradle.kts")))))
+          (let ((git-root (locate-dominating-file default-directory ".git")))
+            (if git-root
+                ;; If we found git root, look for any marker in it
+                (or (cl-loop for marker in kotlin-development-root-markers
+                             thereis (locate-dominating-file git-root marker))
+                    git-root)
+              ;; No git root, look for any marker from current dir
+              (cl-loop for marker in kotlin-development-root-markers
+                       thereis (locate-dominating-file default-directory marker))))))
   kotlin-development-current-root)
 
 (defun kotlin-development-build-and-run ()
@@ -458,9 +696,19 @@ VERSION should be a string like \"8.5\" or nil to use project default."
       (user-error "Could not find project root directory"))
 
     (setq default-directory root-dir)
+    (setq kotlin-development-current-root root-dir)
+
+    ;; Ensure we have a valid AVD before proceeding
+    (kotlin-development--ensure-valid-avd)
+
     (if (android-emulator-running-p)
         (kotlin-development-build-and-launch)
-      (kotlin-development-start-emulator-and-build))))
+      (progn
+        (when kotlin-development-debug
+          (message "Starting emulator '%s' before build..." android-emulator-name))
+        ;; Start the emulator and set up build timer
+        (android-emulator-start)
+        (kotlin-development-setup-build-timer)))))
 
 ;;;###autoload
 (defun kotlin-development-set-package-name (package-name)
@@ -680,6 +928,54 @@ VERSION should be a string like \"8.5\" or nil to use project default."
     (shell-command (format "adb shell pm clear %s" package-name))
     (message "Emulator data wiped for package %s" package-name)))
 
+(defun kotlin-development-send-test-notification ()
+  "Send a test notification to the Android emulator for debugging purposes."
+  (interactive)
+  (let* ((default-directory (kotlin-development-find-project-root))
+         (package-name (or (android-emulator-get-package-name)
+                          (read-string "Package name: ")))
+         (adb-path (expand-file-name "platform-tools/adb" 
+                                    (or android-emulator-sdk-path 
+                                        kotlin-development-android-sdk-path))))
+    
+    ;; Debug output
+    (message "Sending test notification with:")
+    (message "  Package name: %s" package-name)
+    (message "  ADB path: %s" adb-path)
+    
+    ;; Try multiple approaches for better compatibility
+    (message "Trying multiple notification methods...")
+    
+    ;; Method 1: Direct broadcast to NotificationReceiver (most reliable)
+    (let ((cmd (format "%s shell am broadcast -a android.intent.action.MAIN -e title \"Test Title\" -e message \"Test Message from Emacs\" -n %s/.NotificationReceiver" 
+                      adb-path package-name))
+          (result nil))
+      (message "Executing command: %s" cmd)
+      (setq result (shell-command-to-string cmd))
+      (message "Method 1 result: %s" result)
+      
+      ;; Method 2: Using activity manager to start notification service
+      (let ((alt-cmd (format "%s shell am startservice -n %s/.NotificationService --es title \"Test Title\" --es message \"Test Message via Service\"" 
+                            adb-path package-name)))
+        (message "Executing method 2: %s" alt-cmd)
+        (setq result (shell-command-to-string alt-cmd))
+        (message "Method 2 result: %s" result))
+      
+      ;; Method 3: Custom action broadcast
+      (let ((alt-cmd (format "%s shell am broadcast -a \"%s.SHOW_NOTIFICATION\" --es title \"Test Title\" --es message \"Test Message via Custom Action\"" 
+                            adb-path package-name)))
+        (message "Executing method 3: %s" alt-cmd)
+        (setq result (shell-command-to-string alt-cmd))
+        (message "Method 3 result: %s" result))
+      
+      ;; Method 4: Using the helper function
+      (message "Trying android-emulator-send-notification function...")
+      (condition-case err
+          (progn
+            (android-emulator-send-notification "Test Title" "Test Message from helper function" package-name)
+            (message "android-emulator-send-notification called successfully"))
+        (error (message "Error in android-emulator-send-notification: %s" (error-message-string err)))))))
+
 (defun kotlin-development--not-in-build-dir (file)
   "Return t if FILE is not in a build directory."
   (not (string-match-p "/build/" file)))
@@ -822,7 +1118,7 @@ VERSION should be a string like \"8.5\" or nil to use project default."
 
   ;; Setup both modes
   (kotlin-development-common-hook)
-  (add-hook 'kotlin-ts-mode (lambda () (setq-local indent-tabs-mode nil))))
+  (add-hook 'kotlin-ts-mode-hook (lambda () (setq-local indent-tabs-mode nil))))
 
 (defun kotlin-development-validate-android-setup ()
   "Validate Android SDK setup and paths."
@@ -887,20 +1183,33 @@ ADB: %s" sdk-path emulator-path adb-path)))
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map (kbd "C-c C-c") #'kotlin-development-build-and-run)
             (define-key map (kbd "C-c C-r") #'kotlin-development-rebuild)
-            (define-key map (kbd "C-c C-d") (lambda () (interactive)
-                                              (kotlin-development-setup-dape)
-                                              (kotlin-development-start-debugger)))
+            
+            ;; Debug keybindings
+            (define-key map (kbd "C-c C-d s") #'kotlin-development-setup-dape)
+            (define-key map (kbd "C-c C-d d") #'kotlin-development-start-debugger)
+            (define-key map (kbd "C-c C-d a") #'kotlin-development-attach-debugger)
+            (define-key map (kbd "C-c C-d A") #'kotlin-development-start-app-in-debug-mode)
+            (define-key map (kbd "C-c C-d q") #'kotlin-development-stop-debug-session)
+            (define-key map (kbd "C-c C-d p") #'kotlin-development-setup-debug-port-forwarding)
+            (define-key map (kbd "C-c C-d i") #'kotlin-development-show-debug-status)
+            (define-key map (kbd "C-c C-d r") #'kotlin-development-restart-app-in-debug)
+            
+            ;; Emulator keybindings
             (define-key map (kbd "C-c C-e e") #'kotlin-development-select-emulator)
-            (define-key map (kbd "C-c C-e k") #'kotlin-development-kill-emulator)
-            (define-key map (kbd "C-c C-e l") #'kotlin-development-list-emulators)
-            (define-key map (kbd "C-c C-e s") #'kotlin-development-start-emulator)
+            (define-key map (kbd "C-c C-e k") #'android-emulator-kill)
+            (define-key map (kbd "C-c C-e l") #'android-emulator-list)
+            (define-key map (kbd "C-c C-e s") #'android-emulator-start)
             (define-key map (kbd "C-c C-e p") #'kotlin-development-set-package-name)
+            (define-key map (kbd "C-c C-e n") #'kotlin-development-send-test-notification)
+            
+            ;; Test and build keybindings
             (define-key map (kbd "C-c t t") #'kotlin-development-run-tests)
             (define-key map (kbd "M-r") #'kotlin-development-launch-app)
             (define-key map (kbd "M-s") #'kotlin-development-emulator-terminate-app)
             (define-key map (kbd "M-K") #'kotlin-development-clean-build)
             (define-key map (kbd "M-k") #'kotlin-development-clean)
-            ;; (define-key map (kbd "C-c a") #'kotlin-development-analyze-code)
+            
+            ;; Analysis and tools
             (define-key map (kbd "C-c d") #'kotlin-development-check-dependencies)
             (define-key map (kbd "C-c C-o") #'kotlin-development-fix-code-style)
             (define-key map (kbd "C-c h") #'kotlin-development-show-build-history)
@@ -908,6 +1217,8 @@ ADB: %s" sdk-path emulator-path adb-path)))
             (define-key map (kbd "C-c v") #'kotlin-development-set-gradle-version)
             (define-key map (kbd "C-c w") #'kotlin-development-wrapper-init)
             (define-key map (kbd "C-c s") #'kotlin-development-stop-gradle-daemons)
+            (define-key map (kbd "C-c C-n c") #'kotlin-development-check-notification-receiver)
+            (define-key map (kbd "C-c C-n g") #'kotlin-development-create-notification-receiver)
             map))
 
 (defun kotlin-development--debug-manifest ()
@@ -920,6 +1231,393 @@ ADB: %s" sdk-path emulator-path adb-path)))
         (insert-file-contents manifest-path)
         (xml-mode)
         (display-buffer (current-buffer))))))
+
+(defun kotlin-development-check-notification-receiver ()
+  "Check if the Android app has a proper notification receiver configured."
+  (interactive)
+  (let* ((project-root (kotlin-development-find-project-root))
+         (manifest-path (expand-file-name "app/src/main/AndroidManifest.xml" project-root))
+         (package-name (android-emulator-get-package-name))
+         (java-path (expand-file-name (format "app/src/main/java/%s" 
+                                             (replace-regexp-in-string "\\." "/" package-name))
+                                     project-root))
+         (kotlin-path (expand-file-name (format "app/src/main/kotlin/%s" 
+                                              (replace-regexp-in-string "\\." "/" package-name))
+                                      project-root)))
+    
+    (with-current-buffer (get-buffer-create "*Notification Receiver Check*")
+      (erase-buffer)
+      (insert "=== Notification Receiver Check ===\n\n")
+      
+      ;; Check manifest for receiver declarations
+      (if (file-exists-p manifest-path)
+          (progn
+            (insert "AndroidManifest.xml found at:\n")
+            (insert manifest-path "\n\n")
+            
+            (insert "Checking for receiver declarations...\n")
+            (insert-file-contents manifest-path)
+            (goto-char (point-min))
+            (if (re-search-forward "<receiver" nil t)
+                (progn
+                  (beginning-of-line)
+                  (let ((start (point)))
+                    (if (re-search-forward "</receiver>" nil t)
+                        (progn
+                          (insert "\nFound receiver declaration:\n")
+                          (insert (buffer-substring start (point)))
+                          (insert "\n"))
+                      (insert "\nReceiver tag found but not properly closed\n"))))
+              (insert "\nNo <receiver> tag found in manifest\n"))
+            
+            ;; Clear buffer content after the check
+            (delete-region (point-min) (search-backward "No <receiver>" nil t))
+            (goto-char (point-max)))
+        (insert "AndroidManifest.xml not found at expected location:\n")
+        (insert manifest-path "\n\n"))
+      
+      ;; Check for NotificationReceiver class
+      (insert "\nChecking for NotificationReceiver class...\n")
+      (let ((receiver-files (append
+                            (directory-files-recursively java-path "NotificationReceiver\\.java$" t)
+                            (directory-files-recursively kotlin-path "NotificationReceiver\\.kt$" t))))
+        (if receiver-files
+            (progn
+              (insert "Found potential notification receiver files:\n")
+              (dolist (file receiver-files)
+                (insert file "\n")
+                (insert "--- File contents ---\n")
+                (insert-file-contents file)
+                (goto-char (point-max))
+                (insert "\n\n")))
+          (insert "No NotificationReceiver class found in either Java or Kotlin source directories\n")))
+      
+      ;; Check ADB command availability
+      (insert "\nChecking ADB command...\n")
+      (let ((adb-path (expand-file-name "platform-tools/adb" 
+                                       (or android-emulator-sdk-path 
+                                           kotlin-development-android-sdk-path))))
+        (if (file-executable-p adb-path)
+            (insert (format "ADB found and executable at: %s\n" adb-path))
+          (insert (format "ADB not found or not executable at: %s\n" adb-path))))
+      
+      ;; Display the buffer
+      (display-buffer (current-buffer)))))
+
+(defun kotlin-development-create-notification-receiver ()
+  "Create a NotificationReceiver class and update AndroidManifest.xml."
+  (interactive)
+  (let* ((project-root (kotlin-development-find-project-root))
+         (package-name (android-emulator-get-package-name))
+         (kotlin-dir (expand-file-name (format "app/src/main/kotlin/%s" 
+                                             (replace-regexp-in-string "\\." "/" package-name))
+                                     project-root))
+         (manifest-path (expand-file-name "app/src/main/AndroidManifest.xml" project-root))
+         (main-activity-path (expand-file-name "MainActivity.kt" kotlin-dir)))
+    
+    ;; Create directory if it doesn't exist
+    (unless (file-exists-p kotlin-dir)
+      (make-directory kotlin-dir t))
+    
+    ;; Create NotificationReceiver.kt
+    (let ((receiver-path (expand-file-name "NotificationReceiver.kt" kotlin-dir)))
+      (with-temp-file receiver-path
+        (insert (format "package %s
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.util.Log
+import androidx.core.app.NotificationCompat
+
+/**
+ * Broadcast receiver for handling notifications sent from external sources (like Emacs).
+ * This receiver can be triggered via ADB with:
+ * adb shell am broadcast -a android.intent.action.MAIN -e title \"Title\" -e message \"Message\" -n %s/.NotificationReceiver
+ */
+class NotificationReceiver : BroadcastReceiver() {
+    companion object {
+        private const val TAG = \"NotificationReceiver\"
+        private const val CHANNEL_ID = \"EmacsDevelopmentChannel\"
+        private const val NOTIFICATION_ID = 1001
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        Log.d(TAG, \"Received broadcast: ${intent.action}\")
+        
+        val title = intent.getStringExtra(\"title\") ?: \"Notification\"
+        val message = intent.getStringExtra(\"message\") ?: \"Message from Emacs\"
+        
+        Log.d(TAG, \"Showing notification: $title - $message\")
+        showNotification(context, title, message)
+    }
+    
+    private fun showNotification(context: Context, title: String, message: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Create notification channel for Android O and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                \"Emacs Development Channel\",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = \"Notifications from Emacs development environment\"
+                enableLights(true)
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+        
+        // Create intent for when notification is tapped
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val pendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        
+        // Build the notification
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 250, 250, 250))
+            .build()
+        
+        // Show the notification
+        notificationManager.notify(NOTIFICATION_ID, notification)
+        Log.d(TAG, \"Notification displayed\")
+    }
+}" package-name package-name)))
+      
+      (message "Created NotificationReceiver.kt at %s" receiver-path))
+      
+      ;; Create NotificationService.kt for alternative notification method
+      (let ((service-path (expand-file-name "NotificationService.kt" kotlin-dir)))
+        (with-temp-file service-path
+          (insert (format "package %s
+
+import android.app.IntentService
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.util.Log
+import androidx.core.app.NotificationCompat
+
+/**
+ * Service for handling notifications sent from external sources (like Emacs).
+ * This service can be triggered via ADB with:
+ * adb shell am startservice -n %s/.NotificationService --es title \"Title\" --es message \"Message\"
+ */
+class NotificationService : IntentService(\"NotificationService\") {
+    companion object {
+        private const val TAG = \"NotificationService\"
+        private const val CHANNEL_ID = \"EmacsDevelopmentServiceChannel\"
+        private const val NOTIFICATION_ID = 1002
+    }
+
+    override fun onHandleIntent(intent: Intent?) {
+        Log.d(TAG, \"Service received intent: $intent\")
+        
+        intent?.let {
+            val title = it.getStringExtra(\"title\") ?: \"Service Notification\"
+            val message = it.getStringExtra(\"message\") ?: \"Message from Emacs Service\"
+            
+            Log.d(TAG, \"Showing notification: $title - $message\")
+            showNotification(title, message)
+        }
+    }
+    
+    private fun showNotification(title: String, message: String) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Create notification channel for Android O and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                \"Emacs Development Service Channel\",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = \"Service notifications from Emacs development environment\"
+                enableLights(true)
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+        
+        // Create intent for when notification is tapped
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        
+        // Build the notification
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_email)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 250, 250, 250))
+            .build()
+        
+        // Show the notification
+        notificationManager.notify(NOTIFICATION_ID, notification)
+        Log.d(TAG, \"Service notification displayed\")
+    }
+}" package-name package-name)))
+        
+        (message "Created NotificationService.kt at %s" service-path))
+    
+    ;; Update AndroidManifest.xml if it exists
+    (if (file-exists-p manifest-path)
+        (let ((manifest-content (with-temp-buffer
+                                 (insert-file-contents manifest-path)
+                                 (buffer-string)))
+              (receiver-declaration (format "
+        <!-- Receiver for notifications from Emacs -->
+        <receiver
+            android:name=\".NotificationReceiver\"
+            android:exported=\"true\">
+            <intent-filter>
+                <action android:name=\"android.intent.action.MAIN\" />
+                <action android:name=\"%s.SHOW_NOTIFICATION\" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Service for notifications from Emacs -->
+        <service
+            android:name=\".NotificationService\"
+            android:exported=\"true\">
+        </service>" package-name))
+              updated-content)
+          
+          ;; Check if receiver is already declared
+          (if (string-match-p "android:name=\"\\.NotificationReceiver\"" manifest-content)
+              (message "NotificationReceiver already declared in AndroidManifest.xml")
+            ;; Insert receiver declaration before closing application tag
+            (if (string-match "</application>" manifest-content)
+                (progn
+                  (setq updated-content 
+                        (concat (substring manifest-content 0 (match-beginning 0))
+                                receiver-declaration
+                                (substring manifest-content (match-beginning 0))))
+                  (with-temp-file manifest-path
+                    (insert updated-content))
+                  (message "Updated AndroidManifest.xml with NotificationReceiver and NotificationService declarations"))
+              (message "Could not find </application> tag in AndroidManifest.xml"))))
+      (message "AndroidManifest.xml not found at %s" manifest-path))
+    
+    ;; Update MainActivity.kt if it exists
+    (when (file-exists-p main-activity-path)
+      (message "Updating MainActivity.kt to handle notification intents...")
+      (with-temp-buffer
+        (insert-file-contents main-activity-path)
+        (let ((content (buffer-string))
+              (notification-code "
+    // Handle notification intents
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleNotificationIntent(intent)
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Handle notification from intent that started the activity
+        handleNotificationIntent(intent)
+    }
+    
+    private fun handleNotificationIntent(intent: Intent) {
+        val title = intent.getStringExtra(\"notification_title\")
+        val message = intent.getStringExtra(\"notification_message\")
+        
+        if (title != null && message != null) {
+            showNotification(title, message)
+        }
+    }
+    
+    private fun showNotification(title: String, message: String) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Create notification channel for Android O and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                \"MainActivityChannel\",
+                \"Main Activity Notifications\",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = \"Notifications sent directly to MainActivity\"
+                enableLights(true)
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+        
+        // Create intent for when notification is tapped
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        
+        // Build the notification
+        val notification = NotificationCompat.Builder(this, \"MainActivityChannel\")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 250, 250, 250))
+            .build()
+        
+        // Show the notification
+        notificationManager.notify(1003, notification)
+    }"))
+          
+          ;; Check if we need to add imports
+          (unless (string-match-p "import android.app.NotificationChannel" content)
+            (goto-char (point-min))
+            (when (re-search-forward "^package" nil t)
+              (forward-line 1)
+              (insert "\nimport android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.core.app.NotificationCompat\n")))
+          
+          ;; Add notification handling code before the last closing brace
+          (goto-char (point-max))
+          (when (re-search-backward "}" nil t)
+            (insert notification-code))
+          
+          ;; Write the updated content back to the file
+          (write-region (point-min) (point-max) main-activity-path)))
+      (message "Updated MainActivity.kt with notification handling code"))
+    
+    ;; Remind to rebuild
+    (message "Notification components created. Please rebuild your app for changes to take effect.")
+    (message "After rebuilding, test with: M-x kotlin-development-send-test-notification")))
 
 ;;;###autoload
 (defun kotlin-development-mode-setup ()

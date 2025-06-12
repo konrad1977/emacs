@@ -13,25 +13,27 @@
 
 
 (autothemer-deftheme
-	catppuccin-mocha "A theme based on catppuccin's amazing color scheme"
+ catppuccin-mocha "A theme based on catppuccin's amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   ;; Define our color palette
-  (rosewater  "#f5e0dc" "#ffffff")
-  (flamingo   "#f2cdcd" "#ffd7df")
+  (rosewater    "#f5e0dc" "#ffffff")
+  (flamingo     "#f2cdcd" "#ffd7df")
   (pink       "#f5c2e7" "#d7afaf")
-  (mauve      "#cba6f7" "#d7afd7")
+  (mauve        "#cba6f7" "#d7afd7")
+  (mauve-dark   "#514263" "#d7afd7")
   (red        "#f38ba8" "#ff87af")
-  (dark-red   "#311c22" "#311c22")
+  (dark-red     "#311c22" "#311c22")
   (maroon     "#eba0ac" "#ffafaf")
-  (peach      "#fab387" "#ffaf87")
+  (peach        "#fab387" "#ffaf87")
+  (peach-dark   "#32231b" "#ffaf87")
   (yellow     "#f9e2af" "#ffd7af")
   (green      "#a6e3a1" "#87afaf")
   (teal       "#94e2d5" "#afd7d7")
-  (sky        "#89dceb" "#afffff")
-  (sapphire   "#74c7ec" "#afffff")
+  (sky          "#89dceb" "#afffff")
+  (sapphire     "#74c7ec" "#afffff")
   (blue       "#89b4fa" "#00d7ff")
   (lavender   "#b4befe" "#d7d7ff")
   (text       "#cdd6f4" "#ffffff")
@@ -65,7 +67,7 @@
   (highlight                            (:foreground yellow))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
-  (line-number                          (:foreground surface1))
+  (line-number                          (:foreground surface2))
   (line-number-current-line             (:background surface0 :foreground flamingo :bold t))
   (match                                (:background dark-red :foreground peach))
   (menu                                 (:foreground rosewater))
@@ -283,9 +285,9 @@
   (ivy-confirm-face                             (:foreground green))
 
   (vertico-multiline                            (:background crust))
-  (vertico-group-title                          (:foreground blue :weight 'semi-bold :height 180))
-  (vertico-group-separator                      (:foreground blue :strike-through t))
-  (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
+  (vertico-group-title                          (:background surface0 :bold t))
+  (vertico-group-separator                      (:foreground subtext1 :background surface0 :strike-through t))
+  (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground text))
 
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground text))
@@ -295,7 +297,7 @@
   (corfu-border                                 (:background crust :height 3))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background surface0 :foreground blue :italic t :bold t))
+  (corfu-popupinfo                              (:background surface0 :foreground text))
 
   ;; posframe's
   (ivy-posframe                                 (:background surface2))
@@ -312,6 +314,7 @@
   (completions-highlight                        (:foreground blue :italic t))
   (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
   (completions-first-difference                 (:foreground red))
+
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))
   (consult-preview-line                         (:background crust))
 
@@ -349,18 +352,18 @@
   (lsp-headerline-breadcrumb-project-prefix-face	(:background peach))
   (lsp-headerline-breadcrumb-symbols-error-face     (:foreground red))
 
-  (lsp-ui-doc-background							(:background crust :foreground red))
-  (lsp-ui-doc-header								(:background crust :foreground red))
-  (lsp-ui-peek-filename								(:foreground teal))
+  (lsp-ui-doc-background						(:background crust :foreground red))
+  (lsp-ui-doc-header							(:background crust :foreground red))
+  (lsp-ui-peek-filename							(:foreground teal))
   (lsp-ui-sideline-code-action			   			(:foreground yellow))
   (lsp-ui-sideline-current-symbol					(:foreground sky))
-  (lsp-ui-sideline-symbol							(:foreground overlay1))
+  (lsp-ui-sideline-symbol						(:foreground overlay1))
 
   ;; dashboard
-  (dashboard-items-face								(:weight 'light :height 150))
+  (dashboard-items-face							(:weight 'light :height 150))
   (dashboard-banner-logo-title						(:weight 'thin :height 320))
-  (dashboard-heading								(:foreground subtext1 :weight 'thin :height 170))
-  (dashboard-no-items-face							(:foreground overlay2))
+  (dashboard-heading							(:foreground subtext1 :weight 'thin :height 170))
+  (dashboard-no-items-face						(:foreground overlay2))
 
   ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))
@@ -369,9 +372,11 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
-  (evil-ex-lazy-highlight           (:foreground crust :background yellow :bold t))
+  (lazy-highlight                   (:inherit 'info-index-match))
+  (evil-ex-lazy-highlight           (:inherit 'lazy-highlight))
   (evil-ex-substitute-matches       (:foreground red :background dark-red :bold t :strike-through t))
   (evil-ex-substitute-replacement   (:foreground teal :bold t))
+
   (evil-search-highlight-persist-highlight-face (:background yellow))
   (evil-quickscope-first-face       (:foreground yellow :underline t))
   (evil-quickscope-second-face      (:foreground peach :underline t))
@@ -467,7 +472,7 @@
   (font-lock-builtin-face               (:foreground red))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
-  (font-lock-constant-face              (:foreground peach :bold t))
+  (font-lock-constant-face              (:foreground teal :bold t))
   (font-lock-delimiter-face             (:foreground overlay2))
   (font-lock-doc-face                   (:foreground overlay2))
   (font-lock-doc-markup-face            (:foreground overlay2))
@@ -615,7 +620,10 @@
   (jira-face-time (:foreground yellow))
   (jira-face-tag (:foreground mauve))
 
- ))
+  ;; (eglot-params-highlight-symbol-face (:foreground blue :background crust :bold t))
+  ;; (eglot-parameter-hint-face (:foreground red :background crust :bold t))
+  ;; (eglot-inlay-hint-face (:foreground peach :background mantle :height 0.8))
+  ))
 
 ;;;###autoload
 (and load-file-name

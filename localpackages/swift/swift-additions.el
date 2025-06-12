@@ -71,6 +71,7 @@
   "Reset build settings and clear all cached state."
   (interactive)
   (xcode-additions:reset)
+  (ios-device:reset)
   (setq swift-additions:current-build-command nil
         swift-additions:current-environment-x86 nil
         swift-additions:build-progress-spinner nil
@@ -201,8 +202,8 @@
   ;; Disable expensive checks
   (setenv "SWIFT_DISABLE_SAFETY_CHECKS" "1")
   (setenv "SWIFT_DISABLE_MODULE_CACHE_VALIDATION" "1")
-  (setenv "SWIFT_SKIP_FUNCTION_BODIES" "1")
-  (setenv "SWIFT_SKIP_TYPE_CHECKING" "1")
+  ;; (setenv "SWIFT_SKIP_FUNCTION_BODIES" "1")  ; Breaks compilation
+  ;; (setenv "SWIFT_SKIP_TYPE_CHECKING" "1")    ; Breaks compilation
   (setenv "SWIFT_SUPPRESS_WARNINGS" "YES")
 
   ;; Memory management
@@ -216,7 +217,7 @@
   ;; Debugging optimizations
   (setenv "SWIFT_SERIALIZE_DEBUGGING_OPTIONS" "NO")
   (setenv "SWIFT_REFLECTION_METADATA_LEVEL" "none")
-  (setenv "DEBUG_INFORMATION_FORMAT" "dwarf")  ;; Faster than dwarf-with-dsym
+  ;; (setenv "DEBUG_INFORMATION_FORMAT" "dwarf")  ;; Faster than dwarf-with-dsym
 
   ;; Enable experimental features
   (setenv "SWIFT_ENABLE_EXPERIMENTAL_CONCURRENCY" "1")
@@ -234,10 +235,9 @@
      (swift-additions:xcodebuild-command)
      (format "%s \\" (xcode-additions:get-workspace-or-project))
      (format "-scheme %s \\" (xcode-additions:scheme))
-     "-skipPackageUpdates \\" ; Skip automatic package updates
-     ;; "-derivedDataPath ~/Library/Caches/org.swift.deriveddata \\" ; Central cache location
+     ;; "-skipPackageUpdates \\" ; Skip automatic package updates
      "-packageCachePath ~/Library/Caches/org.swift.packages \\" ; Shared package cache
-     "-disableAutomaticPackageResolution \\" ; Manual package resolution control
+     ;; "-disableAutomaticPackageResolution \\" ; Manual package resolution control
      "-parallelizeTargets -jobs $(sysctl -n hw.ncpu) \\" ; Dynamic core count
      (if sim-id
          (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
@@ -250,17 +250,17 @@
      "-IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$(sysctl -n hw.ncpu) \\"
      "-IDEBuildOperationMaxNumberOfConcurrentLinkTasks=$(sysctl -n hw.ncpu) \\"
      "-enableUndefinedBehaviorSanitizer NO \\"
-     (mapconcat (lambda (flag) (concat flag " \\"))
-                (append
-                 (swift-additions:get-optimization-flags)
-                 swift-additions:additional-build-flags)
-                "")
+     ;; (mapconcat (lambda (flag) (concat flag " \\"))
+     ;;            (append
+     ;;             (swift-additions:get-optimization-flags)
+     ;;             swift-additions:additional-build-flags)
+     ;;            "")
      "-derivedDataPath .build | xcode-build-server parse -avv")))
 
 (defun swift-additions:enable-build-caching ()
   "Enable Xcode build system caching for faster incremental builds."
   (setenv "ENABLE_PRECOMPILED_HEADERS" "YES")
-  (setenv "CLANG_ENABLE_MODULE_DEBUGGING" "NO")
+  ;; (setenv "CLANG_ENABLE_MODULE_DEBUGGING" "NO")
   (setenv "SWIFT_USE_DEVELOPMENT_SNAPSHOT" "NO")
   (setenv "SWIFT_USE_PRECOMPILED_HEADERS" "YES")
   (setenv "GCC_PRECOMPILE_PREFIX_HEADER" "YES")
@@ -479,30 +479,30 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
   (swift-additions:cleanup)
   (swift-additions:setup-build-environment)
   (swift-additions:enable-build-caching)
-  (swift-additions:precompile-common-headers)
+  ;; (swift-additions:precompile-common-headers)
   (setq swift-additions:current-build-command nil)
   (xcode-additions:setup-project)
   (setq run-once-compiled run)
 
   (let ((build-command (swift-additions:build-app-command
-                       :sim-id (ios-simulator:simulator-identifier)))
+                        :sim-id (ios-simulator:simulator-identifier)))
         (default-directory (xcode-additions:project-root)))
 
     (mode-line-hud:update
      :message (format "Building %s|%s"
-                     (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                     (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
+                      (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
+                      (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
 
     (xcode-additions:setup-xcodebuildserver)
 
     (swift-additions:compile-with-progress
      :command build-command
      :callback (lambda (text)
-                (if run-once-compiled
-                    (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
-                  (swift-additions:check-for-errors text #'swift-additions:successful-build)))
+                 (if run-once-compiled
+                     (swift-additions:check-for-errors text #'swift-additions:run-app-after-build)
+                   (swift-additions:check-for-errors text #'swift-additions:successful-build)))
      :update-callback (lambda (text)
-                       (xcode-additions:parse-compile-lines-output :input text)))))
+                        (xcode-additions:parse-compile-lines-output :input text)))))
 
 (defun swift-additions:compile-for-device (&key run)
   "Compile and optionally RUN on device."
