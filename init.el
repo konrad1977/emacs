@@ -1,5 +1,9 @@
 ;;; init.el --- optimized init file -*- no-byte-compile: t; lexical-binding: t; -*-
 
+;;; Commentary:
+;; Personal Emacs configuration with optimized startup and modern packages.
+;; Features include Evil mode, LSP support, project management, and development tools.
+
 ;;; Code:
 (eval-when-compile
   (defvar display-time-24hr-format t)
