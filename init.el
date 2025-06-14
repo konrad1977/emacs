@@ -1595,8 +1595,10 @@
         org-agenda-current-time-string
         "◀── now ─────────────────────────────────────────────────"))
 
-(defun mk/play-sound (orgin-fn sound)
-  "Play a sound when a task is marked as done."
+(defun mk/play-sound (origin-fn sound)
+  "Play a sound when a task is marked as done.
+ORIGIN-FN is the original function being advised.
+SOUND is the sound specification to play."
   (cl-destructuring-bind (_ _ file) sound
     (make-process :name (concat "play-sound-" file)
                   :connection-type 'pipe
