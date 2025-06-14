@@ -59,8 +59,7 @@
                         (global-auto-revert-mode 1)
                         (pixel-scroll-precision-mode 1)))
   :custom
-  (set-window-margins (selected-window) 12 12)
-  (set-fringe-style '(12 . 0)) ;; Set left fringe width to 12 and right fringe to 0
+  (set-window-margins (selected-window) 5 5)
   (set-display-table-slot standard-display-table 0 ?\ )
   (column-number-mode nil)
   (line-number-mode nil)
@@ -116,6 +115,7 @@
   (setopt version-control t)
   (setopt warning-minimum-level :emergency)
   (setopt xref-search-program 'ripgrep)
+  (setopt fringes-outside-margins t)
   (setopt grep-find-ignored-directories
           '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
   (setopt backup-directory-alist `(("." . "~/.saves")))
@@ -491,7 +491,7 @@
   (set-message-beep 'silent))
 
 (use-package ligature
-  :hook (prog-mode . global-ligature-mode)
+  :defer t
   :config
   ;; Enable all Cascadia Code ligatures in programming modes
   (ligature-set-ligatures 'prog-mode '("--" "---" "==" "===" "!=" "!==" "=!="
@@ -547,6 +547,7 @@
   (which-key-allow-imprecise-window-fit nil))
 
 ;; In use-package, :custom needs direct variable-value pairs without setq. Here's the correct way:
+
 (use-package prog-mode
   :ensure nil
   :hook ((emacs-lisp-mode . electric-indent-mode)
@@ -556,14 +557,12 @@
          (prog-mode . hs-minor-mode)
          (prog-mode . setup-programming-mode)
          (prog-mode . display-line-numbers-mode)
+         (prog-mode . global-ligature-mode)
          (prog-mode . global-prettify-symbols-mode))
-  :custom
-  ;; (setopt left-fringe 20)
-  (set-fringe-style '(32 . 0))
   :config
   (setopt display-line-numbers-type 'relative
           display-line-numbers-widen t
-          display-line-numbers-width 5))
+          display-line-numbers-width 4))
 
 (use-package saveplace
   :ensure nil
@@ -1204,6 +1203,7 @@
   :hook (after-init . darken-buffer-mode)
   :config
   (setq darken-buffer-percentage 0
+        darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*iOS Simulator*" "*Android Emulator*")
         darken-buffer-always-darken-percentage 10
         lighten-inactive-buffer-percentage 3))
 
@@ -1224,8 +1224,8 @@
   (dape-buffer-window-arrangement 'left) ;; Info buffers to the left
   (dape-breakpoint-margin-string "●") ;; ◯
   (dape-inlay-hints t)
-  (dape-stack-trace-levels 10) ;; Number of stack trace levels to show
   :config
+  (dape-breakpoint-global-mode)
   (put 'dape--overlay-arrow-position
        'overlay-arrow-string   ;; ▶ →
        (propertize "▶" 'face 'dape-stack-trace-face)))
