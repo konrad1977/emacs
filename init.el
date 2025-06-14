@@ -2170,6 +2170,9 @@
   :ensure nil
   :hook (after-init . music-control-mode))
 
+(use-package aider
+  :defer t)
+
 (use-package aidermacs
   :defer t
   :commands aidermacs-transient-menu
