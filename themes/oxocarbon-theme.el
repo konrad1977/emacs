@@ -131,7 +131,7 @@
   (font-lock-variable-use-face          (:foreground pine))
   (font-lock-warning-face               (:foreground gold))
 
-  (eglot-type-hint-face (:foreground unmuted :background dark-gold :height 0.8))
+  (eglot-type-hint-face (:foreground unmuted  :height 0.8))
 
   ;; Tree sitter highlightning
   (tree-sitter-hl-face:function                  (:inherit 'font-lock-function-name-face))
@@ -409,7 +409,7 @@
   (vertico-multiline                            (:background base :foreground text :distant-foreground text))
   (vertico-group-title                          (:foreground subtle :weight 'semi-bold :height 180))
   (vertico-group-separator                      (:foreground muted :strike-through t))
-  (vertico-current                              (:background medium-love :distant-foreground text :foreground text))
+  (vertico-current                              (:background dark-blue :distant-foreground crust :foreground pine-light :bold t))
 
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground unmuted))
@@ -631,6 +631,10 @@
   (punch-line-evil-replace-face (:foreground text :background love :weight 'bold))
   (punch-line-evil-insert-face  (:foreground text :background love :weight 'bold))
   (punch-line-separator-face    (:foreground highlight-low :weight 'thin))
+
+  (ios-simulator-background-face (:background dark-foam :foreground foam :height 0.9 :weight 'thin))
+
+  (marginalia-documentation (:foreground foam :weight 'thin :italic t))
 
   ))
 

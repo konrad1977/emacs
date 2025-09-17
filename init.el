@@ -9,6 +9,15 @@
   (defvar display-time-24hr-format t)
   (defvar display-time-default-load-average nil))
 
+;; Bootstrap use-package
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t
+      use-package-compute-statistics t)
+
 (package-initialize)
 
 ;; Add themes directory to custom theme load path
@@ -24,6 +33,7 @@
                "/usr/bin"
                "/bin"
                "/usr/sbin"
+               "/Library/TeX/texbin"
                "/sbin"
                "~/.local/bin"
                "~/.nvm/versions/node/v22.11.0/bin"
@@ -48,21 +58,29 @@
 
 (use-package use-package
   :custom
-  (use-package-verbose nil)
-  (use-package-expand-minimally t)
-  (use-package-always-ensure t)
-  (use-package-compute-statistics t)
-  (use-package-minimum-reported-time 0.02))
+  (setq package-check-signature nil)
+  (setq use-package-verbose nil
+        use-package-expand-minimally t
+        ;; use-package-always-ensure t
+        ))
 
-(use-package no-littering)
+(use-package no-littering
+  :ensure t)
+
+(use-package f
+  :ensure t)
+
+(use-package polymode
+  :defer t
+  :ensure t)
 
 (use-package emacs
   :hook (after-init . (lambda ()
                         (global-hl-line-mode 1)
                         (display-battery-mode 1)
-                        (global-auto-revert-mode 1)
-                        (pixel-scroll-precision-mode 1)))
+                        (global-auto-revert-mode 1)))
   :custom
+  (context-menu-mode t)
   (set-window-margins (selected-window) 5 5)
   (set-display-table-slot standard-display-table 0 ?\ )
   (column-number-mode nil)
@@ -77,7 +95,6 @@
   (auto-revert-check-vc-info t)
   (help-window-select t)
   (grep-command "rg -nS --no-heading ")
-  (fringes-outside-margins nil)
   (global-auto-revert-non-file-buf t)
   (find-file-visit-truename nil)
   (display-time-default-load-average nil) ; this information is useless for most
@@ -89,10 +106,12 @@
   (backward-delete-char-untabify-method 'hungry)
   (backup-by-copying t)
   (auto-save-no-message t)
+  ;; (window-divider-mode t)
   (auto-save-timeout 20)
   (auto-window-vscroll nil)
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
   (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
+  (read-extended-command-predicate #'command-completion-default-include-p)
   :config
   (setq confirm-kill-emacs (lambda (prompt)
                              (y-or-n-p-with-timeout prompt 2 nil)))
@@ -102,6 +121,7 @@
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
   (setopt kept-new-versions 6)
   (setopt kept-old-versions 2)
+  (setopt display-line-numbers-type 'relative)
   (setopt kill-do-not-save-duplicates t)
   (setopt large-file-warning-threshold (* 15 1024 1024))
   (setopt line-move-visual nil)
@@ -110,6 +130,7 @@
   (setopt read-extended-command-predicate #'command-completion-default-include-p)
   (setopt recentf-auto-cleanup (if (daemonp) 300 'never))
   (setopt recentf-max-menu-items 15)
+  (setopt compilation-skip-threshold 2)
   (setopt recentf-max-saved-items 300)
   (setopt redisplay-skip-fontification-on-input nil)
   (setopt ring-bell-function 'ignore)
@@ -118,8 +139,10 @@
   (setopt use-short-answers t)
   (setopt version-control t)
   (setopt warning-minimum-level :emergency)
+  ;; (setopt window-divider-default-right-width 4
+  ;;         window-divider-default-bottom-width 1)
   (setopt xref-search-program 'ripgrep)
-  (setopt fringes-outside-margins t)
+  (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
   (setopt grep-find-ignored-directories
           '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
   (setopt backup-directory-alist `(("." . "~/.saves")))
@@ -137,25 +160,32 @@
      dired-use-ls-dired t
      insert-directory-program "/opt/homebrew/bin/gls"
      dired-listing-switches "-aBhl --group-directories-first"
-     browse-url-browser-function #'mk/browser-split-window)
-    ;; (setq mac-redisplay-dont-reset-vscroll t
-    ;;       mac-mouse-wheel-smooth-scroll nil)
-    ))
+     browse-url-browser-function #'mk/browser-split-window)))
+;;
+;; (use-package compile-angel
+;;   :ensure t
+;;   :demand t
+;;   :config
+;;   ;; Set `compile-angel-verbose' to nil to disable compile-angel messages.
+;;   ;; (When set to nil, compile-angel won't show which file is being compiled.)
+;;   (setq compile-angel-verbose t)
+;;
+;;   ;; Uncomment the line below to compile automatically when an Elisp file is saved
+;;   ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
+;;
+;;   ;; A global mode that compiles .el files before they are loaded
+;;   ;; using `load' or `require'.
+;;   (compile-angel-on-load-mode))
 
-(use-package compile-angel
-  :ensure t
-  :demand t
-  :config
-  ;; Set `compile-angel-verbose' to nil to disable compile-angel messages.
-  ;; (When set to nil, compile-angel won't show which file is being compiled.)
-  (setq compile-angel-verbose t)
-
-  ;; Uncomment the line below to compile automatically when an Elisp file is saved
-  ;; (add-hook 'emacs-lisp-mode-hook #'compile-angel-on-save-local-mode)
-
-  ;; A global mode that compiles .el files before they are loaded
-  ;; using `load' or `require'.
-  (compile-angel-on-load-mode))
+;; (use-package markdown-mode
+;;   :defer t
+;;   :ensure t
+;;   :commands (markdown-mode gfm-mode)
+;;   :mode (("README\\.md\\'" . gfm-mode)
+;;          ("\\.md\\'" . markdown-mode)
+;;          ("\\.markdown\\'" . markdown-mode))
+;;   :config
+;;   (setq markdown-fontify-code-blocks-natively t))
 
 (use-package dired
   :ensure nil
@@ -167,14 +197,20 @@
     "h" 'dired-up-directory
     "l" 'dired-find-file))
 
+(use-package wgrep
+  :defer t)
+
 (use-package rg
+  :ensure t
   :defer t)
 
 (use-package spinner
+  :ensure t
   :defer t)
 
 (use-package async
   :defer t
+  :ensure t
   :config
   (async-bytecomp-package-mode 1))
 
@@ -184,10 +220,12 @@
 
 (use-package nerd-icons
   :defer t
+  :ensure t
   :custom
   (nerd-icons-scale-factor 1.0))
 
 (use-package drag-stuff
+  :ensure t
   :defer t)
 
 (use-package weather-scout
@@ -199,6 +237,7 @@
     (evil-set-initial-state 'weather-scout-mode 'motion)))
 
 (use-package ultra-scroll
+  :ensure t
   :defer t
   :vc (ultra-scroll
        :url "https://github.com/jdtsmith/ultra-scroll"
@@ -211,6 +250,7 @@
   :hook (after-init . ultra-scroll-mode))
 
 (use-package dumb-jump
+  :ensure t
   :defer t
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
@@ -221,6 +261,7 @@
 
 (use-package magit
   :defer t
+  :ensure t
   :commands (magit-status magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -232,12 +273,16 @@
   (setq magit-format-file-function #'magit-format-file-nerd-icons))
 
 (use-package magit-delta
+  :ensure t
   :after magit
   :hook (magit-mode . magit-delta-mode)
-  :custom-face
-  (magit-section-highlight ((t (:background "#181825"))))
   :config
   (add-to-list 'magit-delta-delta-args "--dark"))
+
+(use-package git-timemachine
+  :ensure t
+  :defer t
+  :commands (git-timemachine git-timemachine-toggle))
 
 (use-package isearch
   :ensure nil
@@ -292,35 +337,36 @@
         ("C-d" . isearch-with-region-or-thing)))
 
 (use-package iedit
+  :ensure t
   :defer t
   :bind
   (:map iedit-mode-keymap
         ("C-<return>" . iedit-toggle-selection)
         ("C-j" . iedit-next-occurrence)
         ("C-k" . iedit-prev-occurrence)
-        ("C-g" . iedit--quit))
-  :ensure t)
-
-(use-package emacs-websearch
-  :defer t
-  :commands emacs-websearch
-  :vc (emacs-websearch
-       :url "https://github.com/zhenhua-wang/emacs-websearch"
-       :branch "main"
-       :rev :newest)
-  :bind (("C-c l" . emacs-websearch))
-  :config
-  (setq emacs-websearch-engine 'duckduckgo
-        emacs-websearch-async t))
-
-;; (use-package candyshop
-;;   :ensure nil
-;;   :defer 2
-;;   ;; :hook (after-init . candyshop-mode)
-;;   :bind ("C-c t c" . candyshop-toggle)
+        ("C-g" . iedit--quit)))
+;;
+;; (use-package emacs-websearch
+;;   :defer t
+;;   :commands emacs-websearch
+;;   :vc (emacs-websearch
+;;        :url "https://github.com/zhenhua-wang/emacs-websearch"
+;;        :branch "main"
+;;        :rev :newest)
+;;   :bind (("C-c l" . emacs-websearch))
 ;;   :config
-;;   (setq candyshop-alpha-values '(100 95)))
-
+;;   (setq emacs-websearch-engine 'duckduckgo
+;;         emacs-websearch-async t))
+;;
+;; ;; (use-package candyshop
+;; ;;   :ensure nil
+;; ;;   :defer 2
+;; ;;   ;; :hook (after-init . candyshop-mode)
+;; ;;   :bind ("C-c t c" . candyshop-toggle)
+;; ;;   :config
+;; ;;   (setq candyshop-alpha-values '(100 95)))
+;;
+;;
 
 (defun setup-programming-mode ()
   "Setup programming mode."
@@ -336,7 +382,7 @@
   (setq-default indent-tabs-mode nil)
   (infer-indentation-style)
   
-  ;; (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
+  (local-set-key (kbd "M-+") #'mk/toggle-flycheck-errors)
   (setq indicate-unused-lines nil
         word-wrap nil
         show-trailing-whitespace nil
@@ -365,21 +411,22 @@
   :commands aggressive-indent-mode
   :hook
   (emacs-lisp-mode . aggressive-indent-mode))
-
-;; Highlights function and variable definitions in Emacs Lisp mode
+;;
+;; ;; Highlights function and variable definitions in Emacs Lisp mode
 (use-package highlight-defined
+  :ensure t
   :defer t
   :commands highlight-defined-mode
   :hook
   (emacs-lisp-mode . highlight-defined-mode))
 
-;; (use-package paredit
-;;   :defer t
-;;   :commands paredit-mode
-;;   :hook
-;;   (emacs-lisp-mode . paredit-mode)
-;;   :config
-;;   (define-key paredit-mode-map (kbd "RET") nil))
+(use-package paredit
+  :defer t
+  :commands paredit-mode
+  :hook
+  (emacs-lisp-mode . paredit-mode)
+  :config
+  (define-key paredit-mode-map (kbd "RET") nil))
 
 (use-package page-break-lines
   :defer t
@@ -402,11 +449,6 @@
   (window-divider-default-places t)
   (window-divider-default-bottom-width 1)
   (window-divider-default-right-width 1)  ;; (window-combination-resize t)
-  ;; (even-window-sizes 'height-only)
-  ;; (window-sides-vertical nil)
-  ;; (fit-window-to-buffer-horizontally t)
-  ;; (window-resize-pixelwise t)
-  ;; (fit-frame-to-buffer t)
   (display-buffer-alist
    '(("\\*Async Shell Command\\*" (display-buffer-no-window))
      ("\\*xwidget\\*\\|\\*xref\\*"
@@ -472,6 +514,7 @@
       (window-parameters . ((no-other-window . t)
                             (mode-line-format . none)))))))
 
+
 (use-package welcome-dashboard
   :ensure nil
   :config
@@ -491,10 +534,8 @@
         welcome-dashboard-title "Welcome Mikael. Have a great day!")
   (welcome-dashboard-create-welcome-hook))
 
-(when (fboundp 'set-message-beep)
-  (set-message-beep 'silent))
-
 (use-package ligature
+  :ensure t
   :defer t
   :config
   ;; Enable all Cascadia Code ligatures in programming modes
@@ -513,7 +554,9 @@
                                        "<:<" ";;;")))
 
 
+
 (use-package autothemer
+  :ensure t
   :init
   ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'catppuccin-macchiato t)
@@ -524,10 +567,10 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
-  (load-theme 'oxocarbon t)
+  ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'nordic t)
   ;; (load-theme 'poimandres t)
   ;; (load-theme 'mito-laser t)
@@ -550,22 +593,19 @@
   (which-key-max-description-length 45)
   (which-key-allow-imprecise-window-fit nil))
 
-;; In use-package, :custom needs direct variable-value pairs without setq. Here's the correct way:
-
 (use-package prog-mode
   :ensure nil
   :hook ((emacs-lisp-mode . electric-indent-mode)
          (prog-mode . electric-pair-mode)
          (prog-mode . drag-stuff-mode)
          (prog-mode . dumb-jump-mode)
-         (prog-mode . hs-minor-mode)
+         ;; (prog-mode . hs-minor-mode)
          (prog-mode . setup-programming-mode)
          (prog-mode . display-line-numbers-mode)
          (prog-mode . global-ligature-mode)
          (prog-mode . global-prettify-symbols-mode))
   :config
-  (setopt display-line-numbers-type 'relative
-          display-line-numbers-widen t
+  (setopt display-line-numbers-widen t
           display-line-numbers-width 4))
 
 (use-package saveplace
@@ -573,6 +613,7 @@
   :hook (after-init . save-place-mode))
 
 (use-package vertico
+  :ensure t
   :defer t
   :hook (after-init . vertico-mode)
   :bind
@@ -596,6 +637,7 @@
         vertico-cycle t))
 
 (use-package vertico-posframe
+  :ensure t
   :after vertico
   :config
   (setq vertico-posframe-parameters
@@ -614,17 +656,17 @@
           (consult-ripgrep (:not posframe))
           (consult-org-heading (:not posframe))
           (consult-xref (:not posframe))
-          (consult-imenu (:not posframe))
+          ;; (consult-imenu (:not posframe))
           (t posframe)))
   (vertico-multiform-mode)
   (vertico-posframe-cleanup))
 
 (use-package marginalia
+  :ensure t
   :after (vertico vertico-posframe)
   :config
   (marginalia-mode))
 
-;; Configure Directory extension.
 (use-package vertico-directory
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
   :commands (find-file)
@@ -635,12 +677,14 @@
               ("M-DEL" . vertico-directory-delete-word)))
 
 (use-package nerd-icons-completion
+  :ensure t
   :after (nerd-icons marginalia)
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
   (nerd-icons-completion-mode))
 
 (use-package nerd-icons-dired
+  :ensure t
   :hook (dired-mode . nerd-icons-dired-mode))
 
 (use-package nerd-icons-ibuffer
@@ -652,6 +696,7 @@
   (setq nerd-icons-ibuffer-human-readable-size t))
 
 (use-package orderless
+  :ensure t
   :config
   (orderless-define-completion-style orderless+initialism
     (orderless-matching-styles '(orderless-initialism
@@ -675,6 +720,7 @@
 
 (use-package consult
   :defer t
+  :ensure t
   :hook
   (completion-list-mode . consult-preview-at-point-mode)
   :bind
@@ -730,8 +776,6 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-(use-package wgrep
-  :defer t)
 
 (use-package visual-replace
   :defer t
@@ -752,40 +796,8 @@
   :config
   (setq show-in-echo-area nil))
 
-(use-package punch-line
-  :ensure nil
-  :defer t
-  :bind(("C-x t n" . punch-line-what-am-i-doing-next)
-        ("C-x t N" . punch-line-what-am-i-doing-next-task)
-        ("C-x t d" . punch-line-what-am-i-doing-done)
-        ("C-x t a" . punch-line-what-am-i-doing-show-all)
-        (:repeat-map punch-line-repeat-map
-                     ("n" . punch-line-what-am-i-doing-next)
-                     ("N" . punch-line-what-am-i-doing-next-task)
-                     ("d" . punch-line-what-am-i-doing-done)
-                     ("a" . punch-line-what-am-i-doing-show-all)))
-  :hook ((after-init . punch-line-mode)
-         (after-init . punch-weather-update)
-         (after-init . punch-load-tasks))
-  :config
-  (setq punch-show-project-info nil
-        punch-line-modal-use-fancy-icon t
-        punch-line-modal-divider-style 'ice
-        punch-line-modal-size 'medium
-        punch-line-left-separator "  "
-        punch-line-right-separator "  "
-        punch-show-git-info t
-        punch-show-lsp-info t
-        punch-show-copilot-info nil
-        punch-show-battery-info t
-        punch-show-flycheck-info t
-        punch-show-weather-info t
-        punch-weather-latitude "56.7365"
-        punch-weather-longitude "16.2981"
-        punch-line-music-max-length 80
-        punch-line-music-info '(:service apple)))
-
 (use-package evil
+  :ensure t
   :hook (after-init . evil-mode)
   :custom
   (evil-want-Y-yank-to-eol t)
@@ -836,8 +848,8 @@
   (evil-define-key 'normal 'global (kbd "<leader> b s") '(lambda () (interactive) (switch-to-buffer "*scratch*")))
 
   (evil-define-key 'normal 'global (kbd "<leader> c p") 'copilot-chat-transient)
-  (evil-define-key 'normal 'global (kbd "<leader> c c") 'claude-code-transient)
-  (evil-define-key 'normal 'global (kbd "<leader> c a") 'aidermacs-transient-menu)
+  (evil-define-key 'normal 'global (kbd "<leader> c c") 'claude-code-ide-menu)
+  ;; (evil-define-key 'normal 'global (kbd "<leader> c a") 'aidermacs-transient-menu)
   (evil-define-key 'normal 'global (kbd "<leader> c e") 'consult-compile-error)
   (evil-define-key 'normal 'global (kbd "<leader> c m") 'copilot-chat-insert-commit-message)
 
@@ -862,8 +874,8 @@
   (evil-define-key 'normal 'global (kbd "<leader> j m") 'jira-issues-menu)
   (evil-define-key 'normal 'global (kbd "<leader> j a") 'jira-issues-actions-menu)
 
-  (evil-define-key 'normal 'global (kbd "<leader> m i") 'imenu-list)
-  (evil-define-key 'normal 'global (kbd "<leader> m I") 'consult-imenu)
+  (evil-define-key 'normal 'global (kbd "<leader> m l") 'imenu-list-smart-toggle)
+  (evil-define-key 'normal 'global (kbd "<leader> m i") 'consult-imenu)
   (evil-define-key 'normal 'global (kbd "<leader> m b") 'consult-bookmark)
   (evil-define-key 'normal 'global (kbd "<leader> m c") 'consult-mode-command)
 
@@ -893,6 +905,7 @@
   (evil-define-key 'normal 'global (kbd "<leader> v b") 'magit-diff-buffer-file)
   (evil-define-key 'normal 'global (kbd "<leader> v a") 'vc-annotate)
   (evil-define-key 'normal 'global (kbd "<leader> v l") 'magit-log-buffer-file)
+  (evil-define-key 'normal 'global (kbd "<leader> v t") 'git-timemachine-toggle)
 
   (evil-define-key 'normal 'global (kbd "<leader> w w") 'weather-scout-show-forecast)
 
@@ -940,6 +953,7 @@
     (evil-define-key state 'global (kbd "C-k") nil)))
 
 (use-package evil-collection
+  :defer t
   :after evil
   :custom
   (evil-collection-vterm-setup)
@@ -984,18 +998,21 @@
      (?< . ("<" . ">"))
      (?> . ("<" . ">"))))
   :hook (after-init . global-evil-surround-mode))
-
+;;
 (use-package evil-commentary
-  :after evil
+  :ensure t
+  :after (evil prog-mode)
   :init
   (evil-commentary-mode 1))
 
 (use-package evil-visualstar
+  :ensure t
   :after evil
   :hook (after-init . global-evil-visualstar-mode))
 
 (use-package undo-fu
-  :after evil
+  :ensure t
+  :defer t
   :custom
   (setopt undo-limit (* 13 160000))
   (setopt undo-outer-limit (* 13 24000000))
@@ -1010,7 +1027,7 @@
         undo-fu-session-file-limit 10))
 
 (use-package rainbow-delimiters
-  :ensure nil
+  :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package colorful-mode
@@ -1022,48 +1039,67 @@
   (colorful-prefix-alignment 'left)
   (colorful-prefix-string "●"))
 
+(use-package highlight-quoted
+  :hook
+  (emacs-lisp-mode-hook . highlight-quoted-mode))
+
+(use-package eros
+  :custom-face
+  (eros-result-overlay-face ((t (:inherit shadow :box t))))
+  :hook
+  (emacs-lisp-mode-hook . eros-mode))
+
+(use-package avy
+  :defer t
+  :bind ("M-g" . avy-goto-word-1)
+  :config
+  (setq avy-single-candidate-jump t))
+
 (use-package expand-region
   :defer t
   :bind ("C-x e" . er/expand-region))
 
 (use-package eldoc-box
-  :commands (eldoc-box-help-at-point)
+  :after eldoc
   :bind
   ("C-c K" . eldoc-box-help-at-point)
   :config
-  (setq eldoc-box-only-multi-line nil
+  (setq eldoc-box-border-width 1
+        eldoc-box-border-color "systemGrayColor"
+        eldoc-box-max-pixel-height 200
         eldoc-box-max-pixel-width 600
-        eldoc-box-clear-with-C-g t)
-  ;; (setq eldoc-box-buffer-hook
-  ;;       (remove 'eldoc-box--fontify-html eldoc-box-buffer-hook))
-  ;; ;; Prettify `eldoc-box' frame
-  (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 10
-        (alist-get 'internal-border-width eldoc-box-frame-parameters) 1
-        (alist-get 'right-fringe eldoc-box-frame-parameters) 10))
-
-(use-package focus
-  :defer t
-  :custom
-  (focus-echo-keystrokes 0.1)
-  (focus-echo-keystrokes-delay 0.1)
-  (focus-echo-keystrokes-timeout 0.1)
-  (focus-echo-keystrokes-timeout-delay 0.1))
-
-(use-package ediff
-  :defer t
-  :after prog-mode
-  :ensure nil
-  :init
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-merge-split-window-function 'split-window-horizontally)
-  :custom
-  (setq ediff-keep-variants nil)
-  :config
-  (winner-mode)
-  (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
+        eldoc-box-clear-with-C-g t
+        eldoc-box-use-multiline-p t
+        eldoc-box-scrollbar-width 8
+        eldoc-box-scrollbar-color "systemGrayColor"
+        eldoc-box-scrollbar-background-color "systemGrayColor"
+        eldoc-box-scrollbar-border-color "systemGrayColor"))
+;;
+;; (use-package focus
+;;   :defer t
+;;   :custom
+;;   (focus-echo-keystrokes 0.1)
+;;   (focus-echo-keystrokes-delay 0.1)
+;;   (focus-echo-keystrokes-timeout 0.1)
+;;   (focus-echo-keystrokes-timeout-delay 0.1))
+;;
+;; (use-package ediff
+;;   :defer t
+;;   :after prog-mode
+;;   :ensure nil
+;;   :init
+;;   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+;;   (setq ediff-split-window-function 'split-window-horizontally)
+;;   (setq ediff-merge-split-window-function 'split-window-horizontally)
+;;   :custom
+;;   (setq ediff-keep-variants nil)
+;;   :config
+;;   (winner-mode)
+;;   (add-hook 'ediff-after-quit-hook-internal 'winner-undo))
+;;
 
 (use-package corfu
+  :ensure t
   :hook (prog-mode . global-corfu-mode)
   :bind
   (:map corfu-map
@@ -1098,23 +1134,25 @@
   (corfu-history-mode)
   (corfu-popupinfo-mode))
 
-(use-package corfu-terminal
-  :if (< emacs-major-version 31)
-  :unless (featurep 'tty-child-frames)
-  :unless (display-graphic-p)
-  :hook
-  (corfu-mode-hook . corfu-terminal-mode))
+;; (use-package corfu-terminal
+;;   :defer t
+;;   :if (< emacs-major-version 31)
+;;   :unless (featurep 'tty-child-frames)
+;;   :unless (display-graphic-p)
+;;   :hook
+;;   (corfu-mode-hook . corfu-terminal-mode))
 
 (use-package kind-icon
+  :ensure t
   :after corfu
   :custom
-  (setq kind-icon-default-face 'corfu-default)
-  (setq kind-icon-blend-background t)
-  (setq kind-icon-blend-frac 0.15)
-  (setq kind-icon-use-icons t)
-  (setq kind-icon-extra-space t)
+  (kind-icon-extra-space t)
+  (kind-icon-use-icons t)
+  (kind-icon-blend-background t)
+  (kind-icon-default-face 'corfu-default) ; only needed with blend-background
+  (kind-icon-blend-frac 0.15)        ; only needed with blend-background)
   (kind-icon-default-style
-   '(:padding -0.5 :stroke 0 :margin 0 :radius 0 :height 0.8 :scale 1.0))
+   '(:padding -0.2 :stroke 0 :margin 0 :radius 0 :height 0.9 :scale 1.0))
   ;; (kind-icon-formatted 'variable)
   :config
   (setq kind-icon-mapping
@@ -1162,14 +1200,16 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package savehist
+  :ensure t
   :defer 2
   :hook (after-init . savehist-mode)
   :config
   (setq history-delete-duplicates t)
   (setq savehist-save-minibuffer-history t))
 
-;; ;; Add extensions
+;; ;; ;; Add extensions
 (use-package cape
+  :ensure t
   :after evil
   :init
   ;; Add more Elisp specific backends
@@ -1207,15 +1247,10 @@
   :hook (after-init . darken-buffer-mode)
   :config
   (setq darken-buffer-percentage 0
-        darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*iOS Simulator*" "*Android Emulator*")
+        darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
+        darken-buffer-always-darken-buffers-regexp '("\\*.*\\*")
         darken-buffer-always-darken-percentage 10
-        lighten-inactive-buffer-percentage 3))
-
-(use-package avy
-  :defer t
-  :bind ("M-g" . avy-goto-word-1)
-  :config
-  (setq avy-single-candidate-jump t))
+        lighten-inactive-buffer-percentage 8))
 
 (use-package dape
   :commands (dape-info dape-repl dape)
@@ -1225,8 +1260,9 @@
    (dape-stopped . dape-info) ; To display info and/or repl buffers on stopped
    (dape-stopped . dape-repl))
   :custom
-  (dape-buffer-window-arrangement 'left) ;; Info buffers to the left
-  (dape-breakpoint-margin-string "●") ;; ◯
+  (dape-buffer-window-arrangement 'right) ;; Info buffers to the left
+  (dape-breakpoint-margin-string
+   (propertize "●" :face 'dape-breakpoint-face))
   (dape-inlay-hints t)
   :config
   (dape-breakpoint-global-mode)
@@ -1245,8 +1281,7 @@
 (use-package treemacs
   :defer t
   :commands (treemacs treemacs-select-window)
-  :hook ((treemacs-mode . treemacs-project-follow-mode)
-         (treemacs-mode . (lambda () (set-window-fringes (treemacs-get-local-window) 0 0 nil))))
+  :hook ((treemacs-mode . treemacs-project-follow-mode))
   :bind (("M-J" . #'treemacs-find-file)
          ("M-0" . #'treemacs))
   :config
@@ -1271,6 +1306,7 @@
      `(treemacs-tags-face ((t (:family ,font-family :height ,font-height))))))
   (setq treemacs-follow-after-init t
         treemacs-hide-gitignored-files-mode t
+        treemacs-hide-dot-git-directory t
         treemacs-space-between-root-nodes 10
         treemacs-project-follow-cleanup t
         treemacs-width-is-initially-locked nil
@@ -1287,6 +1323,7 @@
         treemacs-file-event-delay 0
         treemacs-deferred-git-apply-delay 0
         treemacs-git-commit-diff-mode 1
+        treemacs-show-hidden-files nil
         treemacs-sorting 'treemacs--sort-alphabetic-case-insensitive-asc
         treemacs-width 40))
 
@@ -1313,6 +1350,7 @@
   :hook (emacs-lisp-mode . flycheck-package-setup))
 
 (use-package flycheck
+  :ensure t
   :defer t
   :hook (prog-mode . flycheck-mode)
   :diminish t
@@ -1334,33 +1372,25 @@
         flycheck-indication-mode nil)
   (flycheck-checker-error-threshold 100))
 
-(use-package flycheck-overlay
+(use-package flyover
   :ensure nil
-  :hook (flycheck-mode . flycheck-overlay-mode)
-  :bind ("C-c f l" . flycheck-overlay-toggle)
-  :config (add-hook 'flycheck-mode-hook #'flycheck-overlay-mode)
-  (setq flycheck-overlay-virtual-line-type 'curved-arrow
-        flycheck-overlay-percent-darker 60
-        flycheck-overlay-text-tint-percent 70
-        flycheck-overlay-text-tint 'lighter
-        flycheck-overlay-show-at-eol nil
-        flycheck-overlay-wrap-messages t
-        flycheck-overlay-max-lines 110
-        flycheck-overlay-background-lightness 25
-        flycheck-overlay-virtual-line-icon nil))
+  :hook (flycheck-mode . flyover-mode)
+  ;; :bind ("C-c f l" . flyover-toggle)
+  :config (add-hook 'flycheck-mode-hook #'flyover-mode)
+  (setq flyover-virtual-line-type 'curved-arrow
+        flyover-percent-darker 60
+        flyover-text-tint-percent 70
+        flyover-text-tint 'lighter
+        flyover-show-at-eol nil
+        flyover-wrap-messages t
+        flyover-max-lines 110
+        flyover-background-lightness 25
+        flyover-virtual-line-icon nil))
 
 (use-package flycheck-eglot
   :ensure nil
   :hook (eglot-managed-mode . flycheck-eglot-mode)
   :custom (flycheck-eglot-exclusive nil))
-
-(use-package consult-flycheck
-  :defer t
-  :bind ("M-+" . consult-flycheck))
-
-(use-package emojify
-  :defer t
-  :hook (org-mode . global-emojify-mode))
 
 (add-hook 'comint-mode-hook
           (lambda ()
@@ -1409,27 +1439,28 @@
   :defer t
   :bind ("C-x C-d" . darkroom-tentative-mode)
   :config
-  (setq darkroom-text-scale-increase 1.5
-        darkroom-margins '(12 . 0)))
-
-(use-package blamer
-  :commands blamer-mode
-  :config
-  (setq blamer-tooltip-function 'blamer-tooltip-author-info)
-  (setq blamer-view 'overlay
-        blamer-type 'overlay-popup
-        blamer-max-commit-message-length 270
-        blamer-force-truncate-long-line nil
-        blamer-show-avatar-p t
-        blamer-author-formatter " ✎ %s "
-        blamer-commit-formatter "● \'%s\' ● ")
-  :custom
-  (blamer-idle-time 1.0)
-  :custom-face
-  (blamer-face ((t :foreground "#E46876"
-                   :height 130
-                   :bold t
-                   :italic t))))
+  (setq darkroom-text-scale-increase 1.4
+        darkroom-margins '(5 . 0)))
+;;
+;; (use-package blamer
+;;   :commands blamer-mode
+;;   :config
+;;   (setq blamer-tooltip-function 'blamer-tooltip-author-info)
+;;   (setq blamer-view 'overlay
+;;         blamer-type 'overlay-popup
+;;         blamer-max-commit-message-length 270
+;;         blamer-force-truncate-long-line nil
+;;         blamer-show-avatar-p t
+;;         blamer-author-formatter " ✎ %s "
+;;         blamer-commit-formatter "● \'%s\' ● ")
+;;   :custom
+;;   (blamer-idle-time 1.0)
+;;   :custom-face
+;;   (blamer-face ((t :foreground "#E46876"
+;;                    :height 130
+;;                    :bold t
+;;                    :italic t))))
+;;
 
 (use-package git-gutter
   :defer 2
@@ -1439,8 +1470,8 @@
   (setq git-gutter:modified-sign "┃"
         git-gutter:added-sign "┃"
         git-gutter:deleted-sign "┃")
-  (setq git-gutter:window-width 3)  ;; Set to minimum width
-  (setq git-gutter:update-interval 2))
+  (setq git-gutter:window-width 1)  ;; Set to minimum width
+  (setq git-gutter:update-interval 3))
 
 (use-package vterm
   :defer t
@@ -1451,42 +1482,46 @@
         vterm-kill-buffer-on-exit t
 	vterm-clipboard-warning-max-lines 20
 	vterm-clipboard-warning-max-chars 256))
-
-(use-package dall-e-shell
-  :defer t
-  :config
-  (setq dall-e-shell-openai-key (shell-command-to-string "echo $OPENAI_API_KEY")))
-
-(use-package chatgpt-shell
-  :defer t
-  :bind
-  ("C-x C-v" . chatgpt-shell-quick-insert)
-  ("C-x C-p" . chatgpt-shell-prompt-compose)
-  ("C-x c g s" . chatgpt-shell-send-and-review-region)
-  ("C-x c g r" . chatgpt-shell-refactor-code)
-  ("C-x C-s" . (lambda ()
-                 (interactive)
-                 (split-window-right)
-                 (other-window 1)
-                 (chatgpt-shell)))
-  :config
-  (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
-  (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
-  (setf chatgpt-shell-deepseek-key (getenv "DEEPSEEK_API_KEY"))
-  (setq chatgpt-shell-model-version "claude-3-5-sonnet-latest"))
-
-(use-package ob-chatgpt-shell
-  :ensure nil
-  :commands (org-babel-execute:chatgpt-shell)
-  :config
-  (ob-chatgpt-shell-setup))
-
+;;
+;; (use-package dall-e-shell
+;;   :defer t
+;;   :config
+;;   (setq dall-e-shell-openai-key (shell-command-to-string "echo $OPENAI_API_KEY")))
+;;
+;; (use-package chatgpt-shell
+;;   :defer t
+;;   :bind
+;;   ("C-x C-v" . chatgpt-shell-quick-insert)
+;;   ("C-x C-p" . chatgpt-shell-prompt-compose)
+;;   ("C-x c g s" . chatgpt-shell-send-and-review-region)
+;;   ("C-x c g r" . chatgpt-shell-refactor-code)
+;;   ("C-x C-s" . (lambda ()
+;;                  (interactive)
+;;                  (split-window-right)
+;;                  (other-window 1)
+;;                  (chatgpt-shell)))
+;;   :config
+;;   (setf chatgpt-shell-anthropic-key (getenv "ANTHROPIC_API_KEY"))
+;;   (setf chatgpt-shell-openai-key (getenv "OPENAI_API_KEY"))
+;;   (setf chatgpt-shell-deepseek-key (getenv "DEEPSEEK_API_KEY"))
+;;   (setq chatgpt-shell-model-version "claude-3-5-sonnet-latest"))
+;;
+;; (use-package ob-chatgpt-shell
+;;   :ensure nil
+;;   :commands (org-babel-execute:chatgpt-shell)
+;;   :config
+;;   (ob-chatgpt-shell-setup))
+;;
+;;
 
 (use-package project
-  :bind ("M-O" . project-find-file)
+  :bind (
+         ("M-O" . project-find-file)
+         ("M-f" . project-find-regexp))
   :defer t
   :ensure nil
   :config
+  (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
   (defun project-root-override (dir)
     "Find DIR's project root by searching for a '.project.el' file."
     (let ((root (or (locate-dominating-file dir ".xcodeproj")
@@ -1497,22 +1532,16 @@
                      (cons 'vc root)
                    (list 'vc backend root)))))
   (add-hook 'project-find-functions #'project-root-override))
-
-(use-package paren
-  :defer 2
-  :config
-  (show-paren-mode 1)
-  (setq show-paren-delay 0.1
-        show-paren-highlight-openparen t
-        show-paren-when-point-inside-paren t
-        show-paren-when-point-in-periphery t))
-
-(setq org-custom-todo-faces '
-      (("TODO" :background "#FF5D62" :distant-foreground "#FF5D62" :foreground "#FFFFFF" :weight 'bold)
-       ("NEXT" :background "#7FB4CA" :distant-foreground "#7FB4CA" :foreground "#1c1c24" :weight 'bold)
-       ("STARTED" :background "#957FB8" :foreground "#FFFFFF" :weight 'bold)
-       ("DELEGATED" :background "#7AA89F" :foreground "#1c1c24" :weight 'bold)
-       ("QA" :background "#54536D" :weight 'bold)))
+;;
+;; (use-package paren
+;;   :defer 2
+;;   :config
+;;   (show-paren-mode 1)
+;;   (setq show-paren-delay 0.1
+;;         show-paren-highlight-openparen t
+;;         show-paren-when-point-inside-paren t
+;;         show-paren-when-point-in-periphery t))
+;;
 
 (use-package org
   :hook ((org-mode . org-display-inline-images)
@@ -1538,7 +1567,18 @@
 		    )))
     (setq prettify-symbols-unprettify-at-point t)
     (prettify-symbols-mode 1))
-  
+
+  (setq org-lowest-priority ?F)  ;; Gives us priorities A through F
+  (setq org-default-priority ?E) ;; If an item has no priority, it is considered [#E].
+
+  (setq org-priority-faces
+        '((65 . "#BF616A")
+          (66 . "#EBCB8B")
+          (67 . "#B48EAD")
+          (68 . "#81A1C1")
+          (69 . "#5E81AC")
+          (70 . "#4C566A")))
+
   (setq org-ellipsis "…"
         ;; org-agenda-files '("work.org" "projekt.org")
         org-agenda-block-separator ?─
@@ -1575,6 +1615,7 @@
         org-fontify-emphasized-text t
         org-fontify-whole-heading-line t
         org-hide-emphasis-markers t
+        org-adapt-indentation t
         org-hide-leading-stars t
         org-log-done 'time
         org-log-into-drawer t
@@ -1582,6 +1623,7 @@
         org-return-follows-link t
         org-src-edit-src-content-indentation 0
         org-src-fontify-natively t
+        org-src-tab-acts-natively t
         org-fontify-whole-heading-line t
         org-src-preserve-indentation t
         font-lock-maximum-decoration t
@@ -1590,10 +1632,24 @@
         org-startup-folded nil
         org-startup-with-inline-images t
         org-tags-column 0
-        org-todo-keyword-faces org-custom-todo-faces
-        org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "STARTED(s)" "DELEGATED(d)" "QA(q)" "|" "DONE(d)" "CANCELLED(c)"))
         org-agenda-current-time-string
-        "◀── now ─────────────────────────────────────────────────"))
+        "◀── now ─────────────────────────────────────────────────")
+
+  (setq org-todo-keywords
+        '((sequence
+	   "TODO" "PROJ" "READ" "CHECK" "IDEA" ; Needs further action
+	   "|"
+	   "DONE")))                           ; Needs no action currently
+
+  (setq org-todo-keyword-faces
+        '(("TODO"      :inherit (org-todo region) :foreground "#A3BE8C" :weight bold)
+	  ("PROJ"      :inherit (org-todo region) :foreground "#88C0D0" :weight bold)
+          ("READ"      :inherit (org-todo region) :foreground "#8FBCBB" :weight bold)
+	  ("CHECK"     :inherit (org-todo region) :foreground "#81A1C1" :weight bold)
+	  ("IDEA"      :inherit (org-todo region) :foreground "#EBCB8B" :weight bold)
+	  ("DONE"      :inherit (org-todo region) :foreground "#30343d" :weight bold)))
+
+  )
 
 (defun mk/play-sound (origin-fn sound)
   "Play a sound when a task is marked as done.
@@ -1618,7 +1674,7 @@ SOUND is the sound specification to play."
   (setq-local org-confirm-babel-evaluate t)
 
   (custom-set-faces
-   '(org-level-1 ((t (:inherit outline-1 :height 1.2 :weight bold))))
+   '(org-level-1 ((t (:inherit outline-1 :height 1.3 :weight bold))))
    '(org-level-2 ((t (:inherit outline-2 :height 1.18 :weight bold))))
    '(org-level-3 ((t (:inherit outline-3 :height 1.16 :weight bold))))
    '(org-level-4 ((t (:inherit outline-4 :height 1.15 :weight bold))))
@@ -1628,6 +1684,12 @@ SOUND is the sound specification to play."
    '(org-block-begin-line ((t (:foreground "#678" :underline t :background nil))))
    '(org-block-end-line ((t (:foreground "#678" :overline t :background nil )))))
 
+  (setq org-custom-todo-faces '
+        (("TODO" :background "#FF5D62" :distant-foreground "#FF5D62" :foreground "#FFFFFF" :weight 'bold)
+         ("NEXT" :background "#7FB4CA" :distant-foreground "#7FB4CA" :foreground "#1c1c24" :weight 'bold)
+         ("STARTED" :background "#957FB8" :foreground "#FFFFFF" :weight 'bold)
+         ("DELEGATED" :background "#7AA89F" :foreground "#1c1c24" :weight 'bold)
+         ("QA" :background "#54536D" :weight 'bold)))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp . t)
@@ -1669,119 +1731,156 @@ SOUND is the sound specification to play."
                '("swiftui" . swift))
   (ob-swiftui-setup))
 
-(use-package org-modern
-  :hook ((org-mode . org-modern-mode)
-         (org-agenda-finalize-hook . org-modern-agenda))
+(use-package ob-kotlin
+  :defer t
+  :after org-mode
   :config
-  (setq org-modern-todo-faces org-custom-todo-faces
-        org-modern-block t
-        org-modern-block-name nil
-        org-modern-star '("❶" "❷" "❸" "❹" "❺" "❻" "❼")))
+  (add-to-list 'org-babel-tangle-lang-exts
+               '("kotlin" . "kt"))
+  (add-to-list 'org-src-lang-modes
+               '("kotlin" . kotlin))
+  (ob-kotlin-setup))
+
+(use-package org-superstar
+  :after org
+  :config
+  (setq org-superstar-leading-bullet ?\s)
+  (setq org-superstar-leading-bullet " ")
+  (setq org-superstar-special-todo-items t) ;; Makes TODO header bullets into boxes
+  (setq org-superstar-todo-bullet-alist '(("TODO" . 9744)
+                                          ("DONE" . 9744)
+                                          ("READ" . 9744)
+                                          ("IDEA" . 9744)
+                                          ("WAITING" . 9744)
+                                          ("CANCELLED" . 9744)
+                                          ("PROJECT" . 9744)
+                                          ("POSTPONED" . 9744))))
+
+(use-package org-modern
+  :hook ((org-mode . global-org-modern-mode))
+  :config
+  (setq
+   org-auto-align-tags t
+   org-tags-column 0
+   org-fold-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+   org-modern-block t
+   org-modern-block-name nil
+   org-modern-star '("❶" "❷" "❸" "❹" "❺" "❻" "❼")
+
+   ;; Don't style the following
+   org-modern-tag nil
+   org-modern-priority nil
+   org-modern-todo nil
+   org-modern-table nil
+
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today require-timed)
+     (800 1000 1200 1400 1600 1800 2000)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   "⭠ now ─────────────────────────────────────────────────"))
 
 (use-package olivetti
   :hook ((org-mode . olivetti-mode))
   :custom
   (olivetti-style 'fancy)
   (setq olivetti-style t
-        olivetti-body-width 80
+        olivetti-body-width 140
         olivetti-hide-mode-line t))
+;;
+;; (use-package elfeed
+;;   :commands elfeed
+;;   :config
+;;
+;;   (defun add-icon-to-title (icon tag all-tags title)
+;;     "Add ICON if TAG is present in ALL-TAGS to the TITLE string."
+;;     (if (member tag all-tags)
+;;         (concat icon " ")
+;;       ""))
+;
+;;   (defun my/elfeed-search-print-entry (entry)
+;;     "Print ENTRY to the buffer."
+;;     (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
+;;            (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
+;;            (title-faces (if (member 'unread (elfeed-entry-tags entry))
+;;                             (elfeed-search--faces (elfeed-entry-tags entry))
+;;                           '(:weight thin :inherit font-lock-comment-face)))
+;;            (feed (elfeed-entry-feed entry))
+;;            (feed-title (when feed
+;;                          (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
+;;            (tags (seq-filter
+;;                   (lambda (tag) (not (string-equal feed-title tag)))
+;;                   (mapcar #'symbol-name (elfeed-entry-tags entry))))
+;;            (icons '(("swift" . "")
+;;                     ("swiftui" . "")
+;;                     ("emacs" . "")
+;;                     ("neovim" . "")
+;;                     ("artificialInteligence" . "")
+;;                     ("singularity" . "")
+;;                     ("kotlin" . "")
+;;                     ("techcrunch" . "")))
+;;            (title-with-icons (concat
+;;                               (mapconcat
+;;                                (lambda (icon-pair)
+;;                                  (add-icon-to-title (cdr icon-pair) (car icon-pair) tags " "))
+;;                                icons "")
+;;                               " "
+;;                               title))
+;;            (tags-str (mapconcat
+;;                       (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
+;;                       tags ","))
+;;            (title-width (- (window-width) 10 elfeed-search-trailing-width))
+;;            (title-column (elfeed-format-column
+;;                           title-with-icons (elfeed-clamp
+;;                                             elfeed-search-title-min-width
+;;                                             title-width
+;;                                             elfeed-search-title-max-width)
+;;                           :left)))
+;;       (insert (propertize date 'face 'elfeed-search-date-face) " ")
+;;       (insert (propertize title-column 'face title-faces 'kbd-help title) " ")
+;;       ;; (when feed-title
+;;       ;;   (insert (propertize feed-title 'face 'elfeed-search-feed-face) " "))
+;;       (when tags
+;;         (insert tags-str))))
+;;
+;;   (setq elfeed-search-print-entry-function #'my/elfeed-search-print-entry)
+;;   (setq elfeed-feeds '(
+;;                        ("https://www.reddit.com/r/emacs.rss" emacs)
+;;                        ("https://www.reddit.com/r/neovim.rss" neovim)
+;;                        ("https://www.reddit.com/r/kotlin.rss" kotlin)
+;;                        ("https://www.reddit.com/r/swift.rss" swift)
+;;                        ("https://www.reddit.com/r/swiftui.rss" swiftui)
+;;                        ("https://www.reddit.com/r/artificialInteligence.rss" artificialInteligence)
+;;                        ;; ("https://techcrunch.com/rss" techcrunch)
+;;                        ))
+;;
+;;   (setq elfeed-search-face-alist
+;;         '((emacs font-lock-function-name-face)
+;;           (neovim font-lock-type-face)
+;;           (kotlin font-lock-keyword-face)
+;;           (swift font-lock-constant-face)
+;;           (techcrunch font-lock-variable-name-face)
+;;           (ai font-lock-number-face)
+;;           (singularity font-lock-number-face)
+;;           (read font-lock-comment-face)))
+;;   (setq elfeed-search-filter "@4-days-ago +unread"
+;;         elfeed-search-title-max-width 140
+;;         elfeed-search-title-min-width 140))
+;;
+;;
 
-(use-package elfeed
-  :commands elfeed
-  :config
-
-  (defun add-icon-to-title (icon tag all-tags title)
-    "Add ICON if TAG is present in ALL-TAGS to the TITLE string."
-    (if (member tag all-tags)
-        (concat icon " ")
-      ""))
-
-  (defun my/elfeed-search-print-entry (entry)
-    "Print ENTRY to the buffer."
-    (let* ((date (elfeed-search-format-date (elfeed-entry-date entry)))
-           (title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
-           (title-faces (if (member 'unread (elfeed-entry-tags entry))
-                            (elfeed-search--faces (elfeed-entry-tags entry))
-                          '(:weight thin :inherit font-lock-comment-face)))
-           (feed (elfeed-entry-feed entry))
-           (feed-title (when feed
-                         (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
-           (tags (seq-filter
-                  (lambda (tag) (not (string-equal feed-title tag)))
-                  (mapcar #'symbol-name (elfeed-entry-tags entry))))
-           (icons '(("swift" . "")
-                    ("swiftui" . "")
-                    ("emacs" . "")
-                    ("neovim" . "")
-                    ("artificialInteligence" . "")
-                    ("singularity" . "")
-                    ("kotlin" . "")
-                    ("techcrunch" . "")))
-           (title-with-icons (concat
-                              (mapconcat
-                               (lambda (icon-pair)
-                                 (add-icon-to-title (cdr icon-pair) (car icon-pair) tags " "))
-                               icons "")
-                              " "
-                              title))
-           (tags-str (mapconcat
-                      (lambda (s) (propertize s 'face 'elfeed-search-tag-face))
-                      tags ","))
-           (title-width (- (window-width) 10 elfeed-search-trailing-width))
-           (title-column (elfeed-format-column
-                          title-with-icons (elfeed-clamp
-                                            elfeed-search-title-min-width
-                                            title-width
-                                            elfeed-search-title-max-width)
-                          :left)))
-      (insert (propertize date 'face 'elfeed-search-date-face) " ")
-      (insert (propertize title-column 'face title-faces 'kbd-help title) " ")
-      ;; (when feed-title
-      ;;   (insert (propertize feed-title 'face 'elfeed-search-feed-face) " "))
-      (when tags
-        (insert tags-str))))
-
-  (setq elfeed-search-print-entry-function #'my/elfeed-search-print-entry)
-  (setq elfeed-feeds '(
-                       ("https://www.reddit.com/r/emacs.rss" emacs)
-                       ("https://www.reddit.com/r/neovim.rss" neovim)
-                       ("https://www.reddit.com/r/kotlin.rss" kotlin)
-                       ("https://www.reddit.com/r/swift.rss" swift)
-                       ("https://www.reddit.com/r/swiftui.rss" swiftui)
-                       ("https://www.reddit.com/r/artificialInteligence.rss" artificialInteligence)
-                       ;; ("https://techcrunch.com/rss" techcrunch)
-                       ))
-
-  (setq elfeed-search-face-alist
-        '((emacs font-lock-function-name-face)
-          (neovim font-lock-type-face)
-          (kotlin font-lock-keyword-face)
-          (swift font-lock-constant-face)
-          (techcrunch font-lock-variable-name-face)
-          (ai font-lock-number-face)
-          (singularity font-lock-number-face)
-          (read font-lock-comment-face)))
-  (setq elfeed-search-filter "@4-days-ago +unread"
-        elfeed-search-title-max-width 140
-        elfeed-search-title-min-width 140))
-
-
-(use-package highlight-quoted
-  :hook
-  (emacs-lisp-mode-hook . highlight-quoted-mode))
-
-(use-package eros
-  :custom-face
-  (eros-result-overlay-face ((t (:inherit shadow :box t))))
-  :hook
-  (emacs-lisp-mode-hook . eros-mode))
-
-(use-package highlight-symbol
-  :defer t
-  ;; :hook (prog-mode . highlight-symbol-mode)
-  :config
-  (setq highlight-symbol-idle-delay 0.8
-        highlight-symbol-highlight-single-occurrence nil))
+;;
+;; (use-package highlight-symbol
+;;   :defer t
+;;   ;; :hook (prog-mode . highlight-symbol-mode)
+;;   :config
+;;   (setq highlight-symbol-idle-delay 0.8
+;;         highlight-symbol-highlight-single-occurrence nil))
 
 ;; Drag lines and regions around
 (use-package drag-stuff
@@ -1828,6 +1927,8 @@ SOUND is the sound specification to play."
 (use-package swift-additions
   :ensure nil
   :after swift-ts-mode
+  :custom
+  (swift-additions:use-periphery t)
   :bind
   (:map swift-ts-mode-map
 	("M-r" . #'swift-additions:run)
@@ -1892,41 +1993,41 @@ SOUND is the sound specification to play."
         ("M-K" .  #'xcode-additions:clean-build-folder)
         ("C-c C-d" . #'xcode-additions:start-debugging)
         ("C-c C-x" . #'swift-additions:reset)))
-
-(use-package swift-refactor
-  :ensure nil
-  :after (swift-ts-mode kotlin-ts-mode)
-  :bind
-  (:map kotlin-ts-mode-map
-        ("C-c r s" . #'code-refactor:split-function-list)
-        ("M-t" . #'swift-refactor:insert-todo)
-        ("M-m" . #'swift-refactor:insert-mark))
-  (:map swift-ts-mode-map
-        ("M-t" . #'swift-refactor:insert-todo)
-        ("M-m" . #'swift-refactor:insert-mark)
-        ("C-c x t" . #'xcode-additions:toggle-device-choice)
-        ("C-c x c" . #'xcode-additions:show-current-configuration)
-        ("C-c r a" . #'swift-refactor:wrap-selection)
-        ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
-        ("C-c r i" . #'swift-refactor:tidy-up-constructor)
-        ("C-c r r" . #'swift-refactor:extract-function)
-        ("M-P" .  #'swift-refactor:print-thing-at-point)
-        ("C-c r t" . #'swift-refactor:add-try-catch)))
-
-(use-package apple-docs-query
-  :ensure nil
-  :defer t
-  :bind
-  ("C-c C-a" . #'apple-docs/query)
-  ("C-c C-A" . #'apple-docs/query-thing-at-point))
-
-(use-package hacking-with-swift
-  :ensure nil
-  :defer t
-  :bind
-  ("C-c C-h" . #'hacking-ws/query)
-  ("C-c C-H" . #'hacking-ws/query-thing-at-point))
-
+;;
+;; (use-package swift-refactor
+;;   :ensure nil
+;;   :after (swift-ts-mode kotlin-ts-mode)
+;;   :bind
+;;   (:map kotlin-ts-mode-map
+;;         ("C-c r s" . #'code-refactor:split-function-list)
+;;         ("M-t" . #'swift-refactor:insert-todo)
+;;         ("M-m" . #'swift-refactor:insert-mark))
+;;   (:map swift-ts-mode-map
+;;         ("M-t" . #'swift-refactor:insert-todo)
+;;         ("M-m" . #'swift-refactor:insert-mark)
+;;         ("C-c x t" . #'xcode-additions:toggle-device-choice)
+;;         ("C-c x c" . #'xcode-additions:show-current-configuration)
+;;         ("C-c r a" . #'swift-refactor:wrap-selection)
+;;         ("C-c r d" . #'swift-refactor:delete-current-line-with-matching-brace)
+;;         ("C-c r i" . #'swift-refactor:tidy-up-constructor)
+;;         ("C-c r r" . #'swift-refactor:extract-function)
+;;         ("M-P" .  #'swift-refactor:print-thing-at-point)
+;;         ("C-c r t" . #'swift-refactor:add-try-catch)))
+;;
+;; (use-package apple-docs-query
+;;   :ensure nil
+;;   :defer t
+;;   :bind
+;;   ("C-c C-a" . #'apple-docs/query)
+;;   ("C-c C-A" . #'apple-docs/query-thing-at-point))
+;;
+;; (use-package hacking-with-swift
+;;   :ensure nil
+;;   :defer t
+;;   :bind
+;;   ("C-c C-h" . #'hacking-ws/query)
+;;   ("C-c C-H" . #'hacking-ws/query-thing-at-point))
+;;
 (use-package periphery-quick
   :defer 2
   :ensure nil
@@ -1945,7 +2046,7 @@ SOUND is the sound specification to play."
               ("C-x C-t" . #'periphery-query-todos-and-fixmes)
               ("C-x C-m" . #'periphery-query-marks)
               ("M-?" . #'periphery-toggle-buffer)))
-
+;;
 (use-package periphery-swiftformat
   :ensure nil
   :after swift-ts-mode
@@ -1954,36 +2055,37 @@ SOUND is the sound specification to play."
         ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
         ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
         ("C-c C-p" . #'periphery-run-swiftformat-for-project)))
-
-(use-package periphery-ktlint
-  :ensure nil
-  :after kotlin-ts-mode
-  :bind
-  (:map kotlin-ts-mode-map
-        ("M-o" . #'periphery-ktlint-autocorrect-buffer)))
-
-;; (use-package periphery-loco
+;;
+;; (use-package periphery-ktlint
+;;   :ensure nil
+;;   :after kotlin-ts-mode
+;;   :bind
+;;   (:map kotlin-ts-mode-map
+;;         ("M-o" . #'periphery-ktlint-autocorrect-buffer)))
+;;
+;; ;; (use-package periphery-loco
+;; ;;   :ensure nil
+;; ;;   :after swift-ts-mode
+;; ;;   :bind
+;; ;;   ("C-c C-k" . #'periphery-run-loco))
+;;
+;; (use-package periphery-swiftlint
 ;;   :ensure nil
 ;;   :after swift-ts-mode
 ;;   :bind
-;;   ("C-c C-k" . #'periphery-run-loco))
-
-(use-package periphery-swiftlint
-  :ensure nil
-  :after swift-ts-mode
-  :bind
-  ("C-c C-l" . #'periphery-run-swiftlint))
-
-;; (use-package svg-tag-mode
-;;   :defer 3
-;;   :hook ((swift-ts-mode . svg-tag-mode)
-;;          (localizeable-mode . svg-tag-mode)
-;;          (kotlin-ts-mode . svg-tag-mode))
-;;   :config
-;;   (plist-put svg-lib-style-default :font-family "Jetbrains Mono")
-;;   (plist-put svg-lib-style-default :font-size 15)
-;;   :init
-;;   (setq svg-tag-tags (periphery-svg-tags)))
+;;   ("C-c C-l" . #'periphery-run-swiftlint))
+;;
+;; ;; (use-package svg-tag-mode
+;; ;;   :defer 3
+;; ;;   :hook ((swift-ts-mode . svg-tag-mode)
+;; ;;          (localizeable-mode . svg-tag-mode)
+;; ;;          (kotlin-ts-mode . svg-tag-mode))
+;; ;;   :config
+;; ;;   (plist-put svg-lib-style-default :font-family "Jetbrains Mono")
+;; ;;   (plist-put svg-lib-style-default :font-size 15)
+;; ;;   :init
+;; ;;   (setq svg-tag-tags (periphery-svg-tags)))
+;;
 
 (use-package indent-bars
   :defer t
@@ -2026,41 +2128,110 @@ SOUND is the sound specification to play."
         (switch-to-buffer-other-window "*vterm*"))
     (progn
       (vterm-other-window))))
+;;
+;; (defun xref-eglot+dumb-backend ()
+;;   "Return the xref backend for eglot+dumb."
+;;   'eglot+dumb)
+;;
+;; (advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
+;;
+;; (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot+dumb)))
+;;   "Return the identifier at point for eglot+dumb."
+;;   (cons (xref-backend-identifier-at-point 'eglot)
+;;         (xref-backend-identifier-at-point 'dumb-jump)))
+;;
+;; (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot+dumb)))
+;;   "Return the completion table for eglot+dumb."
+;;   (xref-backend-identifier-completion-table 'eglot))
+;;
+;; (cl-defmethod xref-backend-definitions ((_backend (eql eglot+dumb)) identifier)
+;;   "Return the definitions for eglot+dumb."
+;;   (or (xref-backend-definitions 'eglot (car identifier))
+;;       (xref-backend-definitions 'dumb-jump (cdr identifier))))
+;;
+;; (cl-defmethod xref-backend-references ((_backend (eql eglot+dumb)) identifier)
+;;   (or (xref-backend-references 'eglot (car identifier))
+;;       (xref-backend-references 'dumb-jump (cdr identifier))))
+;;
+;; (cl-defmethod xref-backend-apropos ((_backend (eql eglot+dumb)) pattern)
+;;   (xref-backend-apropos 'eglot pattern))
+;;
+;; (put 'narrow-to-region 'disabled nil)
+;;
 
-(defun xref-eglot+dumb-backend ()
-  "Return the xref backend for eglot+dumb."
-  'eglot+dumb)
+(use-package typescript-ts-mode
+  :hook (typescript-ts-base-mode . (lambda ()
+                                     (setq-local typescript-ts-indent-level 4
+                                                 typescript-ts-mode-indent-offset 4
+                                                 js-indent-level 4)))
+  :mode (("\\.tsx\\'" . tsx-ts-mode)
+         ("\\.js\\'"  . typescript-ts-mode)
+         ("\\.mjs\\'" . typescript-ts-mode)
+         ("\\.mts\\'" . typescript-ts-mode)
+         ("\\.cjs\\'" . typescript-ts-mode)
+         ("\\.ts\\'"  . typescript-ts-mode)
+         ("\\.jsx\\'" . tsx-ts-mode)))
 
-(advice-add 'eglot-xref-backend :override 'xref-eglot+dumb-backend)
-
-(cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot+dumb)))
-  "Return the identifier at point for eglot+dumb."
-  (cons (xref-backend-identifier-at-point 'eglot)
-        (xref-backend-identifier-at-point 'dumb-jump)))
-
-(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot+dumb)))
-  "Return the completion table for eglot+dumb."
-  (xref-backend-identifier-completion-table 'eglot))
-
-(cl-defmethod xref-backend-definitions ((_backend (eql eglot+dumb)) identifier)
-  "Return the definitions for eglot+dumb."
-  (or (xref-backend-definitions 'eglot (car identifier))
-      (xref-backend-definitions 'dumb-jump (cdr identifier))))
-
-(cl-defmethod xref-backend-references ((_backend (eql eglot+dumb)) identifier)
-  (or (xref-backend-references 'eglot (car identifier))
-      (xref-backend-references 'dumb-jump (cdr identifier))))
-
-(cl-defmethod xref-backend-apropos ((_backend (eql eglot+dumb)) pattern)
-  (xref-backend-apropos 'eglot pattern))
-
-(put 'narrow-to-region 'disabled nil)
-
-(use-package treesit
-  :defer t
-  :ensure nil
-  :config
-  (setq treesit-font-lock-level 4))
+;; (use-package treesit
+;;   :defer t
+;;   :mode (("\\.tsx\\'" . tsx-ts-mode)
+;;          ("\\.js\\'"  . typescript-ts-mode)
+;;          ("\\.mjs\\'" . typescript-ts-mode)
+;;          ("\\.mts\\'" . typescript-ts-mode)
+;;          ("\\.cjs\\'" . typescript-ts-mode)
+;;          ("\\.ts\\'"  . typescript-ts-mode)
+;;          ("\\.jsx\\'" . tsx-ts-mode)
+;;          ("\\.json\\'" .  json-ts-mode)
+;;          ("\\.Dockerfile\\'" . dockerfile-ts-mode)
+;;          ("\\.prisma\\'" . prisma-ts-mode))
+;;   :preface
+;;   (defun os/setup-install-grammars ()
+;;     "Install Tree-sitter grammars if they are absent."
+;;     (interactive)
+;;     (dolist (grammar
+;;              '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+;;                (bash "https://github.com/tree-sitter/tree-sitter-bash")
+;;                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+;;                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.21.2" "src"))
+;;                (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+;;                (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+;;                (go "https://github.com/tree-sitter/tree-sitter-go" "v0.20.0")
+;;                (kotlin  "https://github.com/fwcd/tree-sitter-kotlin")
+;;                (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+;;                (make "https://github.com/alemuller/tree-sitter-make")
+;;                (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+;;                (cmake "https://github.com/uyha/tree-sitter-cmake")
+;;                (c "https://github.com/tree-sitter/tree-sitter-c")
+;;                (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+;;                (toml "https://github.com/tree-sitter/tree-sitter-toml")
+;;                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2" "tsx/src"))
+;;                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+;;                (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+;;                (prisma "https://github.com/victorhqc/tree-sitter-prisma")))
+;;       (add-to-list 'treesit-language-source-alist grammar)
+;;       ;; Only install `grammar' if we don't already have it
+;;       ;; installed. However, if you want to *update* a grammar then
+;;       ;; this obviously prevents that from happening.
+;;       (unless (treesit-language-available-p (car grammar))
+;;         (treesit-install-language-grammar (car grammar)))))
+;;   (dolist (mapping
+;;            '((python-mode . python-ts-mode)
+;;              (css-mode . css-ts-mode)
+;;              (typescript-mode . typescript-ts-mode)
+;;              (js-mode . typescript-ts-mode)
+;;              (js2-mode . typescript-ts-mode)
+;;              (c-mode . c-ts-mode)
+;;              (c++-mode . c++-ts-mode)
+;;              (c-or-c++-mode . c-or-c++-ts-mode)
+;;              (bash-mode . bash-ts-mode)
+;;              (css-mode . css-ts-mode)
+;;              (json-mode . json-ts-mode)
+;;              (js-json-mode . json-ts-mode)
+;;              (sh-mode . bash-ts-mode)
+;;              (sh-base-mode . bash-ts-mode)))
+;;     (add-to-list 'major-mode-remap-alist mapping))
+;;   :config
+;;   (os/setup-install-grammars))
 
 (use-package nxml-mode
   :ensure nil
@@ -2102,6 +2273,7 @@ SOUND is the sound specification to play."
   :hook ((kotlin-mode kotlin-ts-mode) . flycheck-kotlin-setup))
 
 (use-package kotlin-ts-mode
+  :ensure t
   :defer 3
   :mode ("\\.kt\\'" "\\.kts\\'"))
 
@@ -2125,10 +2297,11 @@ SOUND is the sound specification to play."
   (setenv "JAVA_OPTS" "-Xmx8g")
   (setq kotlin-development-emulator-name "Medium_Phone_API_35"))
 
+
 (use-package copilot
+  :ensure nil
   :defer 3
   :vc (copilot :url "https://github.com/copilot-emacs/copilot.el" :branch "main" :rev :newest)
-  :ensure nil
   :hook ((prog-mode localizeable-mode) . copilot-mode)
   :bind
   (:map copilot-completion-map
@@ -2141,56 +2314,64 @@ SOUND is the sound specification to play."
   (setq copilot-max-char 1000000))
 
 (use-package copilot-chat
+  :defer t
   :vc (copilot-chat :url "https://github.com/chep/copilot-chat.el.git" :branch "main" :rev :newest)
   :hook ((copilot-chat . visual-line-mode)
          (git-commit-setup . copilot-chat-insert-commit-message))
   :config
-  (setq copilot-chat-frontend 'org)
-  (setq copilot-chat-follow nil))
+  (setq copilot-chat-backend 'curl
+        copilot-chat-frontend 'org
+        setq copilot-chat-follow nil))
 
-(use-package jinx
-  :hook ((text-mode-hook . jinx-mode)
-         (org-mode-hook . jinx-mode)
-         (git-commit-mode-hook . jinx-mode))
-  :bind (("C-x j c" . jinx-correct)      ; Traditional Emacs spell-check binding
-         ("C-x j l" . jinx-languages))   ; Quick language switching
-  :config
-  (setq jinx-languages "en")
-  (setq jinx-exclude-modes
-        '(minibuffer-mode          ; Mini buffer
-          dired-mode               ; Directory editor
-          fundamental-mode))       ; Fundamental mode
-  (custom-set-faces
-   '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
+;;
+;; (use-package jinx
+;;   :hook ((text-mode-hook . jinx-mode)
+;;          (org-mode-hook . jinx-mode)
+;;          (git-commit-mode-hook . jinx-mode))
+;;   :bind (("C-x j c" . jinx-correct)      ; Traditional Emacs spell-check binding
+;;          ("C-x j l" . jinx-languages))   ; Quick language switching
+;;   :config
+;;   (setq jinx-languages "en")
+;;   (setq jinx-exclude-modes
+;;         '(minibuffer-mode          ; Mini buffer
+;;           dired-mode               ; Directory editor
+;;           fundamental-mode))       ; Fundamental mode
+;;   (custom-set-faces
+;;    '(jinx-misspelled ((t (:underline (:style wave :color "red")))))))
+;;
 
-(use-package eglot-booster
-  :hook (eglot-managed-mode . eglot-booster-mode)
-  :config
-  (setq eglot-booster-io-only t))
+;; (use-package eglot-booster
+;;   :defer 5
+;;   :ensure t
+;;   :hook (eglot-managed-mode . eglot-booster-mode)
+;;   :config
+;;   (setq eglot-booster-io-only t))
 
-(use-package music-control
-  :ensure nil
-  :hook (after-init . music-control-mode))
+;;
+;; (use-package music-control
+;;   :ensure nil
+;;   :hook (after-init . music-control-mode))
+;;
+;; (use-package aider
+;;   :defer t)
+;;
 
-(use-package aider
-  :defer t)
-
-(use-package aidermacs
-  :defer t
-  :commands aidermacs-transient-menu
-  :vc (aidermacs
-       :url "https://github.com/MatthewZMD/aidermacs"
-       :branch "main"
-       :rev :newest)
-  :config
-  (setq aidermacs-auto-commits nil
-        aidermacs-use-architect-mode nil
-        aidermacs-show-diff-after-change t)
-  ;; (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
-  ;; (setq aidermacs-args '("--model" "deepseek/deepseek-reasoner"))
-  (setq aidermacs-args '("--model" "deepseek/deepseek-chat"))
-  :bind (:map global-map
-              ("C-c a" . aidermacs-transient-menu)))
+;; (use-package aidermacs
+;;   :ensure t
+;;   :commands aidermacs-transient-menu
+;;   :vc (aidermacs
+;;        :url "https://github.com/MatthewZMD/aidermacs"
+;;        :branch "main"
+;;        :rev :newest)
+;;   :config
+;;   (setq aidermacs-auto-commits nil
+;;         aidermacs-use-architect-mode nil
+;;         aidermacs-show-diff-after-change t)
+;;   ;; (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+;;   ;; (setq aidermacs-args '("--model" "deepseek/deepseek-reasoner"))
+;;   (setq aidermacs-args '("--model" "deepseek/deepseek-chat"))
+;;   :bind (:map global-map
+;;               ("C-c a" . aidermacs-transient-menu)))
 
 (use-package breadcrumb
   :defer t
@@ -2214,7 +2395,6 @@ SOUND is the sound specification to play."
                              :face 'breadcrumb-project-crumbs-face)
                             " "
                             string)))))
-
   (advice-add #'breadcrumb--project-crumbs-1 :filter-return
               (lambda (return)
                 "Icon for Parent Node"
@@ -2228,7 +2408,6 @@ SOUND is the sound specification to play."
                            " "
                            (car return))))
                 return))
-
   (advice-add #'breadcrumb--format-ipath-node :around
               (lambda (og p more &rest r)
                 "Icon for items"
@@ -2257,35 +2436,74 @@ SOUND is the sound specification to play."
        :rev :newest)
   :init
   (setq jira-username "mikael.konradsson@mobileinteraction.se"
-        jira-base-url "https://mobileinteraction.atlassian.net" ;; Jira instance URL
         jira-token (getenv "JIRA_TOKEN")
+        jira-base-url "https://mobileinteraction.atlassian.net" ;; Jira instance URL
         jira-statuses-done '("Klart" "Done" "Closed" "Resolved" "Waiting for QA")
         jira-statuses-todo '("Att göra" "Todo")
         jira-statuses-error'("Error" "Rejected" "In Progress - Error" "Under granskning")
         jira-statuses-progress '("Pågående" "QA staging" "In test" "In Progress" "In progress" "In Progress - Development" "In Progress - Design" "In Progress - Review" "In Progress - Testing")))
+;;
+;;
+;;
+;; (defun consult-list-all-project-files ()
+;;   "Show all project files immediately with live preview."
+;;   (interactive)
+;;   (consult--read (project-files (project-current t))
+;;                  :prompt "Project file: "
+;;                  :category 'file
+;;                  :state (consult--file-state)
+;;                  :require-match t))
 
+(use-package markdown-ts-mode
+  :mode ("\\.md\\'" . markdown-ts-mode)
+  :defer 't)
 
-(use-package markdown-mode
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
+(use-package punch-line
+  :ensure nil
+  :defer t
+  :bind(("C-x t n" . punch-line-what-am-i-doing-next)
+        ("C-x t N" . punch-line-what-am-i-doing-next-task)
+        ("C-x t d" . punch-line-what-am-i-doing-done)
+        ("C-x t a" . punch-line-what-am-i-doing-show-all)
+        (:repeat-map punch-line-repeat-map
+                     ("n" . punch-line-what-am-i-doing-next)
+                     ("N" . punch-line-what-am-i-doing-next-task)
+                     ("d" . punch-line-what-am-i-doing-done)
+                     ("a" . punch-line-what-am-i-doing-show-all)))
+  :hook ((after-init . punch-line-mode)
+         (after-init . punch-weather-update)
+         (after-init . punch-load-tasks))
   :config
-  (setq markdown-fontify-code-blocks-natively t)
-  ;; Add Swift and SwiftUI to markdown code languages
-  (add-to-list 'markdown-code-lang-modes '("swift" . swift-mode))
-  (add-to-list 'markdown-code-lang-modes '("swiftui" . swift-mode))
-  ;; Enable Eldoc in Markdown buffers
-  (add-hook 'markdown-mode-hook #'eldoc-mode))
+  (setq punch-show-project-info nil
+        punch-line-modal-use-fancy-icon t
+        punch-line-modal-divider-style 'ice
+        punch-line-modal-size 'small
+        punch-line-left-separator "  "
+        punch-line-right-separator "  "
+        punch-show-git-info t
+        punch-show-lsp-info t
+        punch-show-copilot-info nil
+        punch-show-battery-info t
+        punch-show-flycheck-info t
+        punch-show-weather-info t
+        punch-weather-latitude "56.7365"
+        punch-weather-longitude "16.2981"
+        punch-line-music-max-length 80
+        punch-line-music-info '(:service apple)))
 
-(defun consult-list-all-project-files ()
-  "Show all project files immediately with live preview."
-  (interactive)
-  (consult--read (project-files (project-current t))
-                 :prompt "Project file: "
-                 :category 'file
-                 :state (consult--file-state)
-                 :require-match t))
+(use-package claude-code-ide
+  :defer t
+  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+  :config
+  (setopt claude-code-ide-vterm-anti-flicker t
+          claude-code-ide-vterm-render-delay 0.1)
+  (claude-code-ide-emacs-tools-setup))
 
-(provide 'init)i
+(use-package semel
+  :vc (semel
+       :url "https://github.com/eshelyaron/semel" :rev :newest)
+  :hook (emacs-lisp-mode . semel-mode))
+
+
+(provide 'init)
 ;;; init.el ends here

@@ -12,7 +12,7 @@
 
 
 (autothemer-deftheme
-	catppuccin-latte "A theme based on catppuccin's amazing color scheme"
+ catppuccin-latte "A theme based on catppuccin's amazing color scheme"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -47,7 +47,8 @@
   (crust      "#dce0e8" "#ffffff"))
 
  ;; Customize faces
-((default                              (:background base :foreground text))
+
+ ((default                              (:background base :foreground text))
   (border                               (:foreground crust))
   (bookmark-face                        (:foreground red))
   (button                               (:foreground blue))
@@ -61,12 +62,12 @@
   (glyph-face                           (:background red :foreground overlay0))
   (glyphless-char                       (:foreground overlay2))
   (header-line                          (:background mantle :height 0.8 :box (:line-width 6 :color mantle)))
-  (highlight                            (:background mantle :foreground blue :distant-foreground crust))
+  (highlight                            (:foreground yellow))
   (hl-line                              (:background surface0))
   (homoglyph                            (:foreground teal))
-  (line-number                          (:foreground surface1))
-  (line-number-current-line             (:background surface0 :foreground mauve :bold t))
-  (match                                (:background yellow :foreground crust))
+  (line-number                          (:foreground surface2))
+  (line-number-current-line             (:background surface0 :foreground flamingo :bold t))
+  (match                                (:background dark-red :foreground peach))
   (menu                                 (:foreground rosewater))
   (fill-column-indicator                (:foreground surface0))
 
@@ -282,9 +283,9 @@
   (ivy-confirm-face                             (:foreground green))
 
   (vertico-multiline                            (:background crust))
-  (vertico-group-title                          (:foreground blue :weight 'semi-bold :height 180))
-  (vertico-group-separator                      (:foreground blue :strike-through t))
-  (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground base))
+  (vertico-group-title                          (:background surface0 :bold t))
+  (vertico-group-separator                      (:foreground subtext1 :background surface0 :strike-through t))
+  (vertico-current                              (:background surface0 :distant-foreground text :bold t :foreground text))
 
   (vertico-posframe-border                      (:background crust))
   (vertico-posframe                             (:background crust :foreground text))
@@ -294,7 +295,7 @@
   (corfu-border                                 (:background crust :height 3))
   (corfu-bar                                    (:background yellow))
   (corfu-default                                (:background crust :foreground text))
-  (corfu-popupinfo                              (:background surface0 :foreground blue :italic t :bold t))
+  (corfu-popupinfo                              (:background surface0 :foreground text))
 
   ;; posframe's
   (ivy-posframe                                 (:background surface2))
@@ -305,12 +306,13 @@
   (orderless-match-face-2                       (:foreground yellow :background surface0 :weight 'semi-bold))
   (orderless-match-face-3                       (:foreground mauve :background surface0 :weight 'semi-bold))
 
-  (comint-highlight-prompt                      (:background dark-red :foreground red))
+  (comint-highlight-prompt                      (:background dark-red :foreground red :bold t))
 
   (completions-annotations                      (:foreground subtext0 :italic t))
   (completions-highlight                        (:foreground blue :italic t))
   (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
   (completions-first-difference                 (:foreground red))
+
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))
   (consult-preview-line                         (:background crust))
 
@@ -348,18 +350,18 @@
   (lsp-headerline-breadcrumb-project-prefix-face	(:background peach))
   (lsp-headerline-breadcrumb-symbols-error-face     (:foreground red))
 
-  (lsp-ui-doc-background							(:background crust :foreground red))
-  (lsp-ui-doc-header								(:background crust :foreground red))
-  (lsp-ui-peek-filename								(:foreground teal))
+  (lsp-ui-doc-background						(:background crust :foreground red))
+  (lsp-ui-doc-header							(:background crust :foreground red))
+  (lsp-ui-peek-filename							(:foreground teal))
   (lsp-ui-sideline-code-action			   			(:foreground yellow))
   (lsp-ui-sideline-current-symbol					(:foreground sky))
-  (lsp-ui-sideline-symbol							(:foreground overlay1))
+  (lsp-ui-sideline-symbol						(:foreground overlay1))
 
   ;; dashboard
-  (dashboard-items-face								(:weight 'light :height 150))
+  (dashboard-items-face							(:weight 'light :height 150))
   (dashboard-banner-logo-title						(:weight 'thin :height 320))
-  (dashboard-heading								(:foreground subtext1 :weight 'thin :height 170))
-  (dashboard-no-items-face							(:foreground overlay2))
+  (dashboard-heading							(:foreground subtext1 :weight 'thin :height 170))
+  (dashboard-no-items-face						(:foreground overlay2))
 
   ;; all-the-icons
   (all-the-icons-dgreen							(:foreground green))
@@ -368,9 +370,11 @@
   (all-the-icons-purple							(:foreground mauve))
 
   ;; evil
-  (evil-ex-lazy-highlight           (:foreground crust :background yellow :bold t))
-  (evil-ex-substitute-matches       (:foreground red :strike-through t))
-  (evil-ex-substitute-replacement   (:foreground blue :bold t))
+  (lazy-highlight                   (:inherit 'info-index-match))
+  (evil-ex-lazy-highlight           (:inherit 'lazy-highlight))
+  (evil-ex-substitute-matches       (:foreground red :background dark-red :bold t :strike-through t))
+  (evil-ex-substitute-replacement   (:foreground teal :bold t))
+
   (evil-search-highlight-persist-highlight-face (:background yellow))
   (evil-quickscope-first-face       (:foreground yellow :underline t))
   (evil-quickscope-second-face      (:foreground peach :underline t))
@@ -462,31 +466,31 @@
   (goggles-removed (:background red))
 
   ;; ;; Font lock
-  (font-lock-bracket-face               (:foreground pink))
+  (font-lock-bracket-face               (:foreground overlay2))
   (font-lock-builtin-face               (:foreground red))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
-  (font-lock-constant-face              (:foreground yellow :bold t))
-  (font-lock-delimiter-face             (:foreground red))
+  (font-lock-constant-face              (:foreground teal :bold t))
+  (font-lock-delimiter-face             (:foreground overlay2))
   (font-lock-doc-face                   (:foreground overlay2))
   (font-lock-doc-markup-face            (:foreground overlay2))
-  (font-lock-escape-face                (:foreground surface0))
+  (font-lock-escape-face                (:foreground pink))
   (font-lock-function-call-face         (:foreground blue :weight 'normal))
   (font-lock-function-name-face         (:foreground blue))
   (font-lock-keyword-face               (:foreground mauve :weight 'semi-bold))
   (font-lock-misc-punctuation-face      (:foreground yellow))
-  (font-lock-negation-char-face         (:foreground red))
-  (font-lock-number-face                (:foreground red))
-  (font-lock-operator-face              (:foreground yellow))
-  (font-lock-preprocessor-face	   	(:foreground overlay2))
+  (font-lock-negation-char-face         (:foreground sky))
+  (font-lock-number-face                (:foreground peach))
+  (font-lock-operator-face              (:foreground sky))
+  (font-lock-preprocessor-face	   	(:foreground yellow))
   (font-lock-property-name-face	        (:foreground peach :weight 'semi-bold))
   (font-lock-property-use-face	        (:foreground sky :weight 'thin))
   (font-lock-punctuation-face           (:foreground peach :weight 'normal))
   (font-lock-reference-face		(:foreground sky))
   (font-lock-regexp-grouping-backslash  (:foreground blue :weight 'semi-bold))
   (font-lock-string-face                (:foreground green :italic t))
-  (font-lock-type-face                  (:foreground red))
-  (font-lock-variable-name-face         (:foreground flamingo :weight 'light))
+  (font-lock-type-face                  (:foreground yellow :bold t))
+  (font-lock-variable-name-face         (:foreground text :weight 'light))
   (font-lock-variable-use-face          (:foreground rosewater :weight 'light))
   (font-lock-warning-face               (:inherit 'warning))
 
@@ -495,7 +499,9 @@
   (highlight-operators-face             (:foreground red))
   (highlight-quoted-symbol              (:foreground yellow))
   (highlight-numbers-face               (:foreground pink))
-  (highlight-symbol-face                (:background surface2 :foreground text))
+
+  (highlight-symbol-face                (:foreground peach :box (:line-width -1 :color peach)))
+  (help-key-binding                     (:foreground yellow :bold t))
   (info-xref                            (:foreground yellow))
 
   ;; Tree sitter highlightning
@@ -601,20 +607,20 @@
   (diff-indicator-removed (:foreground subtext1 :background dark-red))
   (diff-nonexistent (:foreground subtext1))
 
-  ;; (flycheck-overlay-error       (:foreground crust :background red :height 150 ))
-  ;; (flycheck-overlay-info        (:foreground crust :background yellow :height 150))
-  ;; (flycheck-overlay-warning     (:foreground crust :background teal :height 150))
-  (flycheck-overlay-marker      (:foreground mauve :height 150 :italic t :weight 'semi-bold))
-
   (punch-line-evil-normal-face  (:foreground crust :background teal :weight 'bold))
   (punch-line-evil-visual-face  (:foreground crust :background mauve :weight 'bold))
   (punch-line-evil-replace-face (:foreground crust :background maroon :weight 'bold))
   (punch-line-evil-insert-face  (:foreground crust :background red :weight 'bold))
   (punch-line-project-face      (:foreground pink :weight 'bold))
   (punch-line-buffer-name-face  (:foreground text :weight 'bold))
-  ;; (punch-line-time-face         (:foreground background3))
-  ;; (punch-line-major-mode-face   (:foreground pink))
   (punch-line-separator-face    (:foreground surface0 :weight 'thin))
+
+  (jira-face-time (:foreground yellow))
+  (jira-face-tag (:foreground mauve))
+
+  ;; (eglot-params-highlight-symbol-face (:foreground blue :background crust :bold t))
+  ;; (eglot-parameter-hint-face (:foreground red :background crust :bold t))
+  ;; (eglot-inlay-hint-face (:foreground peach :background mantle :height 0.8))
   ))
 
 ;;;###autoload

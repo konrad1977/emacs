@@ -75,19 +75,11 @@
 
     (pop-to-buffer buffer)))
 
-(defun ios-device:fetch-device-id ()
-  "Fetch the identifier of a connected iPhone device using awk.
-Returns the UUID identifier string if found, nil otherwise."
-  (let ((result (string-trim
-                 (shell-command-to-string
-                  "xcrun devicectl list devices | awk '/iPhone/ && /connected/ {for(i=1;i<=NF;i++) if($i ~ /^[[:xdigit:]]{8}-([[:xdigit:]]{4}-){3}[[:xdigit:]]{12}$/) {print $i; exit}}'"))))
-    (if (string= result "") nil result)))
-
 (defun ios-device:identifier ()
   "Get iOS device identifier."
   (if ios-device-current-device-id
       ios-device-current-device-id
-    (setq ios-device-current-device-id (ios-device:fetch-device-id))
+    (setq ios-device-current-device-id (ios-device:choose-device))
     ios-device-current-device-id))
 
 (defun ios-device:connected-device-id ()
@@ -162,6 +154,82 @@ Returns the UUID identifier string if found, nil otherwise."
       (let ((binary-name (directory-files buildfolder nil "\\.app$")))
         (file-name-sans-extension (car binary-name)))
     nil))
+
+;; Debug function to see raw output
+(defun ios-device:debug-output ()
+  "Debug function to see what devicectl actually return."
+  (shell-command-to-string "xcrun devicectl list devices"))
+
+;; Parse all devices from devicectl output
+(defun ios-device:parse-devices ()
+  "Parse devicectl output and return a list of all devices.
+Each device is represented as a plist with :name, :hostname, :identifier, :state, and :model."
+  (let ((output (shell-command-to-string "xcrun devicectl list devices"))
+        (devices '()))
+    (dolist (line (split-string output "\n"))
+      (when (and (not (string-match "^Name\\|^-" line))
+                 (not (string= (string-trim line) ""))
+                 (string-match "[0-9A-F-]\\{36\\}" line)) ; Contains UUID
+        ;; Split on multiple spaces (2 or more)
+        (let ((parts (split-string line "[ ]\\{2,\\}" t)))
+          (when (>= (length parts) 5)
+            (push (list :name (string-trim (nth 0 parts))
+                        :hostname (string-trim (nth 1 parts))
+                        :identifier (string-trim (nth 2 parts))
+                        :state (string-trim (nth 3 parts))
+                        :model (string-trim (nth 4 parts)))
+                  devices)))))
+    (reverse devices)))
+
+;; Interactive device selection by name only
+(defun ios-device:choose-device ()
+  "Select a device by name and return its UUID identifier."
+  (let ((devices (ios-device:parse-devices)))
+    (cond
+     ((null devices)
+      (message "No devices found")
+      nil)
+     ((= (length devices) 1)
+      ;; Only one device, return its UUID directly
+      (plist-get (car devices) :identifier))
+     (t
+      ;; Multiple devices, let user choose by name only
+      (let* ((device-names (mapcar (lambda (device)
+                                       (plist-get device :name))
+                                     devices))
+             (selected-name (completing-read "Select device: " device-names nil t)))
+        (when selected-name
+          (let ((selected-device (seq-find (lambda (device)
+                                             (string= (plist-get device :name) selected-name))
+                                           devices)))
+            (when selected-device
+              (plist-get selected-device :identifier)))))))))
+
+;; Get first iPhone UUID
+(defun ios-device:get-iphone-id ()
+  "Get the UUID of the first iPhone device found."
+  (let ((devices (ios-device:parse-devices)))
+    (let ((iphone (seq-find (lambda (device)
+                              (string-match "iPhone" (plist-get device :model)))
+                            devices)))
+      (when iphone
+        (plist-get iphone :identifier)))))
+
+;; Alternative awk approach for debugging
+(defun ios-device:awk-test ()
+  "Test different awk approaches to see what works."
+  (let ((cmd1 "xcrun devicectl list devices | awk '/iPhone/ {print NF, $0}'")
+        (cmd2 "xcrun devicectl list devices | awk '/iPhone/ {for(i=1;i<=NF;i++) print i, $i}'"))
+    (list :field-count (shell-command-to-string cmd1)
+          :all-fields (shell-command-to-string cmd2))))
+
+;; Simple function using sed instead of awk
+(defun ios-device:get-iphone-uuid-sed ()
+  "Get iPhone UUID using sed instead of awk."
+  (let ((result (string-trim
+                 (shell-command-to-string
+                  "xcrun devicectl list devices | grep iPhone | sed -E 's/.*([0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}).*/\\1/'"))))
+    (if (string= result "") nil result)))
 
 (provide 'ios-device)
 ;;; ios-device.el ends here

@@ -8,7 +8,7 @@
 (defconst periphery-buffer-name "*Periphery*")
 
 (defcustom periphery-debug nil
-  "Enable debug mode for swift additions."
+  "Enable debug mode periphery."
   :type 'boolean
   :group 'periphery)
 
@@ -452,6 +452,12 @@
           (delete-window (get-buffer-window buffer))
         (display-buffer buffer))
     (message "Buffer %s does not exist" periphery-buffer-name)))
+
+(defun periphery-toggle-debug ()
+  "Toggle the periphery debug mode on or off."
+  (interactive)
+  (setq periphery-debug (not periphery-debug))
+  (message "Periphery debug mode %s" (if periphery-debug "enabled" "disabled")))
 
 (cl-defun periphery-run-test-parser (input succesCallback)
   (setq periphery-errorList nil)

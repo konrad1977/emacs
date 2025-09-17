@@ -1,139 +1,176 @@
-;;; early-init.el --- Early Init File -*- lexical-binding: t -*-
+;;; early-init.el --- Early Init File -*- lexical-binding: t; no-byte-compile: t -*-
 ;;; Commentary:
 ;; Emacs early initialization file loaded before package system and UI.
-;; Optimized for performance and minimal startup time.
+;; Optimized for maximum performance and minimal startup time.
 
 ;;; Code:
 
-;; ------------------------------------------------------------
-;; Performance Optimizations
-;; ------------------------------------------------------------
+;; =====================
+;; Critical Performance
+;; =====================
 
-;; Save original file handlers to restore later
+;; Disable file handlers and garbage collection during startup
 (defvar file-name-handler-alist-original file-name-handler-alist)
+(setq file-name-handler-alist nil
+      gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
 
-;; Disable bidirectional text support for faster display
-(setq-default bidi-display-reordering 'left-to-right
-              bidi-inhibit-bpa t)
+;; Prevent unwanted runtime compilation
+(setq native-comp-deferred-compilation nil
+      comp-deferred-compilation nil)
 
-;; Disable unnecessary UI elements and features for faster startup
+;; Inhibit resizing frame during startup
+(setq frame-inhibit-implied-resize t)
+
+;; Disable unnecessary UI elements
 (setq-default inhibit-startup-screen t
               inhibit-startup-message t
-              inhibit-startup-echo-area-message user-login-name
+              inhibit-startup-echo-area-message t
               inhibit-startup-buffer-menu t
               initial-scratch-message nil
               initial-buffer-choice nil
               initial-major-mode 'fundamental-mode)
 
-;; Memory and GC settings for faster startup
-(setq gc-cons-threshold (* 128 1024 1024)  ; 128MB during startup
-      gc-cons-percentage 0.6
-      inhibit-compacting-font-caches t
-      message-log-max 10000
-      kill-ring-max 100000
-      load-prefer-newer t
-      file-name-handler-alist nil
-      vc-handled-backends '(Git))
+;; Disable site-start processing for faster startup
+(setq site-run-file nil)
 
-;; Process and I/O optimizations
-(setq read-process-output-max (* 64 1024)  ; 64k
-      process-adaptive-read-buffering nil
-      warning-suppress-types '((comp) (lexical-binding)))
+;; ;; =====================
+;; ;; Package System
+;; ;; =====================
 
-;; Package system optimizations
+;; ;; Defer package system initialization
 (setq package-enable-at-startup nil
+      package-quickstart t
       package-native-compile t
-      package-quickstart t)
+      load-prefer-newer t
+      byte-compile-warnings '(not obsolete))
 
-;; ------------------------------------------------------------
-;; Frame and UI Configuration
-;; ------------------------------------------------------------
+;; =====================
+;; UI/Frame Configuration
+;; =====================
 
-;; Frame appearance settings
+;; ;; Prevent mode-line updates during init
+(setq-default mode-line-format nil)
+
+;; Basic frame settings
+(setq-default frame-title-format '("%b - Emacs")
+              bidi-display-reordering 'left-to-right
+              bidi-inhibit-bpa t
+              bidi-paragraph-direction 'left-to-right
+              cursor-type 'box
+              cursor-in-non-selected-windows nil
+              use-dialog-box nil
+              use-file-dialog nil
+              inhibit-compacting-font-caches t
+              redisplay-skip-fontification-on-input t)
+
+;; Minimal frame appearance
 (setq default-frame-alist
       '((background-color . "#13131a")
         (foreground-color . "#a0a0ae")
-        (cursor-type . (box . 4))
-        (fullscreen . maximized)
-        (inhibit-double-buffering . t)
-        (undecorated-round . t)
         (vertical-scroll-bars . nil)
         (horizontal-scroll-bars . nil)
         (tool-bar-lines . 0)
         (menu-bar-lines . 0)
-        (scroll-bar-width . 0)
-        (internal-border-width . 0)
-        (left-fringe . 0)
-        (right-fringe . 0)
-        (bottom-divider-width . 0)
-        (right-divider-width . 0)
-        (child-frame-border-width . 0)))
+        (ns-transparent-titlebar . t)
+        (fullscreen . maximized)
+        (undecorated-round . t)
+        (left-fringe . 12)
+        (right-fringe . 12)))
 
+;; Disable these modes early
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(menu-bar-mode -1)
+(tooltip-mode -1)
 
-;; ------------------------------------------------------------
-;; Platform-Specific Configuration
-;; ------------------------------------------------------------
+;; ;; =====================
+;; ;; Platform Specific
+;; ;; =====================
 
 (when (eq system-type 'darwin)
-  ;; macOS-specific settings
-  (push '(ns-use-native-fullscreen . nil) default-frame-alist)
-  (push '(ns-transparent-titlebar . t) default-frame-alist)
-  (push '(ns-appearance . dark) default-frame-alist)
-  (push '(ns-use-srgb-colorspace . t) default-frame-alist)
+  ;; macOS optimizations
   (setq ns-use-proxy-icon nil
         mac-command-modifier 'meta
-        mac-option-modifier 'none))
+        mac-option-modifier 'none
+        ns-use-native-fullscreen t
+        ns-use-srgb-colorspace t
+        ns-pop-up-frames nil
+        mac-redisplay-dont-reset-vscroll t
+        mac-mouse-wheel-smooth-scroll nil)
 
-;; Font settings
-(setq use-default-font-for-symbols nil)
-(let (
-      ;; (mono-font "JetBrainsMono Nerd Font Mono")
-      (mono-font "Iosevka Fixed Curly")
-      (variable-font "Iosevka Aile"))
-  (set-face-attribute 'default nil :family mono-font :height 170 :weight 'ultra-light)
-  (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0)
-  (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
-(set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'append)
+  ;; Font settings with error handling
+  (condition-case nil
+      (let ((mono-font "Iosevka Curly")
+            (variable-font "Iosevka Aile"))
+        (set-face-attribute 'default nil :family mono-font :height 170 :weight 'light)
+        (set-face-attribute 'fixed-pitch nil :family mono-font :weight 'light)
+        (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
+    (error nil))
+  
+  ;; Emoji font fallback
+  (set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'append))
 
-                                        ; Native compilation settings
+;; ;; =====================
+;; ;; Native Compilation
+;; ;; =====================
+
 (when (and (fboundp 'native-comp-available-p)
            (native-comp-available-p))
   (setq native-comp-async-report-warnings-errors nil
         native-comp-async-query-on-exit t
-        native-comp-jit-compilation t))
+        native-comp-jit-compilation t
+        comp-async-report-warnings-errors nil
+        comp-deferred-compilation t))
 
-;; UTF-8 everywhere
-(set-language-environment "UTF-8")
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
+;; ;; Silence compiler warnings
+(setq warning-suppress-types '((comp) (bytecomp)))
 
-;; Use setq for buffer-independent variables
+;; ;; =====================
+;; ;; Additional Optimizations
+;; ;; =====================
 
-;; Use setq-default for buffer-local variables
-(setq-default mode-line-format nil
-              lexical-binding t)
+;; Reduce rendering/line scan work
+(setq auto-mode-case-fold nil
+      auto-window-vscroll nil
+      fast-but-imprecise-scrolling t
+      ffap-machine-p-known 'reject
+      inhibit-default-init t
+      read-process-output-max (* 1024 1024)
+      process-adaptive-read-buffering t)
 
-;; Only enable archives after startup
-(add-hook 'after-init-hook
-          (lambda ()
-            (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                                     ("gnu" . "https://elpa.gnu.org/packages/")
-                                     ("nongnu" . "https://elpa.nongnu.org/nongnu/"))
-                  package-archive-priorities '(("gnu" . 99)
-                                               ("nongnu" . 80)
-                                               ("melpa" . 0)))))
+;; ;; =====================
+;; ;; Post-Startup Hooks
+;; ;; =====================
 
-;; Restore file-name-handler-alist after startup
+;; ;; Restore settings after startup
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (when (file-exists-p custom-file)
-              (load custom-file 'noerror 'nomessage))
-            (setq gc-cons-threshold (* 16 1024 1024)  ; Reset to 16 MB
-                  gc-cons-percentage 0.2)  ; Reset percentage for GC
-            (setq file-name-handler-alist file-name-handler-alist-original)
-            (run-with-idle-timer 1.2 t 'garbage-collect)))
+            ;; Restore file handlers and GC settings
+            (setq file-name-handler-alist file-name-handler-alist-original
+                  gc-cons-threshold (* 128 1024 1024)  ; 128MB - better for modern systems
+                  gc-cons-percentage 0.1)  ; Lower percentage for more frequent but smaller GCs
+            
+            ;; Initialize package system with all archives
+            (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                                     ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+                                     ("gnu" . "https://elpa.gnu.org/packages/")
+                                     ("org" . "https://orgmode.org/elpa/"))
+                  package-archive-priorities '(("gnu" . 99)
+                                               ("nongnu" . 85)
+                                               ("org" . 75)
+                                               ("melpa" . 0)))
+            
+            ;; Schedule periodic GC during idle time
+            (run-with-idle-timer 5 t (lambda () (garbage-collect)))
+            
+            ;; Log startup time
+            (message "Emacs started in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                           (float-time
+                            (time-subtract after-init-time before-init-time)))
+                     gcs-done))
+          100)  ; Run with high priority
 
 (provide 'early-init)
 ;;; early-init.el ends here

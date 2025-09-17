@@ -2,7 +2,9 @@
 ;;; Commentary: This package provides some support for iOS Simulator
 ;;; Code:
 
-(require 'nerd-icons)
+(require 'nerd-icons nil t)
+(require 'json)
+(require 'cl-lib)
 
 (with-eval-after-load 'periphery-helper
  (require 'periphery-helper))
@@ -156,7 +158,7 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
   (let* ((default-directory rootfolder)
          (simulator-id (or simulatorId (ios-simulator:simulator-identifier)))
          (buffer (get-buffer-create ios-simulator-buffer-name))
-         (applicationName (xcode-additions:product-name))
+         (applicationName (ios-simulator:get-app-name-fast build-folder))
          (simulatorName (ios-simulator:simulator-name-from :id simulator-id)))
 
     (when ios-simulator:debug
@@ -211,7 +213,10 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
 (cl-defun ios-simulator:install-app (&key simulatorID &key build-folder &key appname &key callback)
   "Install app (as SIMULATORID and BUILD-FOLDER APPNAME) and call CALLBACK when done."
   (let* ((folder build-folder)
-         (install-path folder)
+         ;; Remove shell quotes if present to get clean path for file operations
+         (install-path (if (and folder (string-match "^['\"]\\(.*\\)['\"]$" folder))
+                          (match-string 1 folder)
+                        folder))
          (app-path (format "%s%s.app" install-path appname))
          (command (list "xcrun" "simctl" "install" simulatorID app-path)))
     (when ios-simulator:debug
@@ -233,6 +238,16 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
                            (message "App installation failed with exit code: %d" 
                                     (process-exit-status process)))))))))
 
+
+(defun ios-simulator:get-app-name-fast (build-folder)
+  "Get app name quickly by looking for .app files in BUILD-FOLDER."
+  (when build-folder
+    (let* ((folder (if (string-match "^['\"]\\(.*\\)['\"]$" build-folder)
+                      (match-string 1 build-folder)
+                    build-folder))
+           (app-files (directory-files folder nil "\\.app$")))
+      (when app-files
+        (file-name-sans-extension (car app-files))))))
 
 (defun ios-simulator:kill-buffer ()
   "Kill the ios-simulator buffer."
@@ -291,13 +306,79 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
    (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))))
 
 (defun ios-simulator:available-simulators ()
-  "List available simulators."
+  "List available simulators with iOS version displayed."
   (let* ((devices (ios-simulator:fetch-available-simulators))
          (items (seq-map
                  (lambda (device)
-                   (cons (cdr (assoc 'name device))
-                         (cdr (assoc 'udid device)))) devices)))
+                   (let* ((name (cdr (assoc 'name device)))
+                          (ios-version (cdr (assoc 'iosVersion device)))
+                          ;; Add iOS version only if name doesn't already contain version info
+                          (display-name 
+                           (cond
+                            ;; If name already contains version info, keep it as is
+                            ((string-match-p "([0-9]+\\.[0-9]+)" name) name)
+                            ((string-match-p "(iOS [0-9]+\\.[0-9]+)" name) name)
+                            ;; If we have ios-version and name doesn't show it, add it
+                            ((and ios-version)
+                             (format "%s (iOS %s)" name ios-version))
+                            ;; Default: use name as is
+                            (t name))))
+                     (cons display-name
+                           (cdr (assoc 'udid device))))) devices)))
     items))
+
+(defun ios-simulator:available-ios-versions ()
+  "Get list of available iOS versions."
+  (let* ((json (if (fboundp 'call-process-to-json)
+                   (call-process-to-json list-simulators-command)
+                 (ios-simulator:run-command-and-get-json list-simulators-command)))
+         (devices (cdr (assoc 'devices json)))
+         (versions '()))
+    (dolist (runtime-entry devices)
+      (let* ((runtime-key (car runtime-entry))
+             (runtime-devices (cdr runtime-entry))
+             (runtime-string (if (symbolp runtime-key)
+                                 (symbol-name runtime-key)
+                               runtime-key))
+             (ios-version (when (and runtime-string
+                                     (string-match "iOS-\\([0-9]+\\)-\\([0-9]+\\)" runtime-string))
+                           (format "%s.%s" 
+                                   (match-string 1 runtime-string)
+                                   (match-string 2 runtime-string)))))
+        ;; Only add version if there are available devices
+        (when (and ios-version
+                   (seq-some (lambda (device) (cdr (assoc 'isAvailable device))) 
+                            runtime-devices))
+          (unless (member ios-version versions)
+            (push ios-version versions)))))
+    (sort versions 'version<)))
+
+(defun ios-simulator:devices-for-ios-version (ios-version)
+  "Get available devices for a specific iOS version."
+  (let* ((json (if (fboundp 'call-process-to-json)
+                   (call-process-to-json list-simulators-command)
+                 (ios-simulator:run-command-and-get-json list-simulators-command)))
+         (devices (cdr (assoc 'devices json)))
+         (matching-devices '()))
+    (dolist (runtime-entry devices)
+      (let* ((runtime-key (car runtime-entry))
+             (runtime-devices (cdr runtime-entry))
+             (runtime-string (if (symbolp runtime-key)
+                                 (symbol-name runtime-key)
+                               runtime-key))
+             (runtime-ios-version (when (and runtime-string
+                                            (string-match "iOS-\\([0-9]+\\)-\\([0-9]+\\)" runtime-string))
+                                   (format "%s.%s" 
+                                           (match-string 1 runtime-string)
+                                           (match-string 2 runtime-string)))))
+        (when (string= runtime-ios-version ios-version)
+          (dolist (device (append runtime-devices nil))
+            (when (and device
+                       (listp device)
+                       (cdr (assoc 'isAvailable device)))
+              (push (cons (cdr (assoc 'name device))
+                         (cdr (assoc 'udid device))) matching-devices))))))
+    (nreverse matching-devices)))
 
 (cl-defun ios-simulator:build-language-menu (&key title)
   "Build language menu (as TITLE)."
@@ -371,16 +452,23 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
         (ios-simulator:choose-simulator)))))
 
 (defun ios-simulator:choose-simulator ()
-  "Choose a simulator."
-  (let* ((available-simulators (ios-simulator:fetch-available-simulators))
-         (choices (mapcar (lambda (device)
-                            (cons (cdr (assoc 'name device))
-                                  (cdr (assoc 'udid device))))
-                          available-simulators))
-         (choice (completing-read "Choose a simulator:" choices nil t))
-         (device-id (cdr (assoc choice choices))))
+  "Choose a simulator using two-step process: iOS version first, then device."
+  (let* ((ios-versions (ios-simulator:available-ios-versions))
+         (chosen-ios-version (completing-read "Choose iOS version: " ios-versions nil t))
+         (devices-for-version (ios-simulator:devices-for-ios-version chosen-ios-version))
+         (device-choice (if (= (length devices-for-version) 1)
+                           ;; If only one device, use it automatically
+                           (car devices-for-version)
+                         ;; If multiple devices, let user choose
+                         (let* ((choices devices-for-version)
+                                (choice (completing-read 
+                                        (format "Choose device for iOS %s: " chosen-ios-version) 
+                                        choices nil t)))
+                           (assoc choice choices))))
+         (device-id (cdr device-choice)))
     (when ios-simulator:debug
-      (message "Available simulators: %d" (length available-simulators)))
+      (message "Selected iOS %s with device: %s (ID: %s)" 
+               chosen-ios-version (car device-choice) device-id))
     (setq current-simulator-id device-id)
     (ios-simulator:setup-language)
     (ios-simulator:setup-simulator-dwim device-id)
@@ -529,12 +617,37 @@ If TERMINATE-RUNNING is non-nil, terminate any running instance before launching
               (> (- now ios-simulator--cache-timestamp) ios-simulator--cache-ttl))
       (when ios-simulator:debug
         (message "Refreshing simulator device cache..."))
-      (let* ((json (call-process-to-json list-simulators-command))
+      (let* ((json (if (fboundp 'call-process-to-json)
+                       (call-process-to-json list-simulators-command)
+                     (ios-simulator:run-command-and-get-json list-simulators-command)))
              (devices (cdr (assoc 'devices json)))
-             (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
-             (available-devices
-              (seq-filter (lambda (device) (cdr (assoc 'isAvailable device))) flattened)))
-        (setq ios-simulator--cached-devices available-devices
+             (flattened-devices '()))
+        ;; Process each runtime and its devices
+        (dolist (runtime-entry devices)
+          (let* ((runtime-key (car runtime-entry))
+                 (runtime-devices (cdr runtime-entry))
+                 ;; Extract iOS version from runtime key
+                 (runtime-string (if (symbolp runtime-key)
+                                     (symbol-name runtime-key)
+                                   runtime-key))
+                 (ios-version (when (and runtime-string
+                                         (string-match "iOS-\\([0-9]+\\)-\\([0-9]+\\)" runtime-string))
+                               (format "%s.%s" 
+                                       (match-string 1 runtime-string)
+                                       (match-string 2 runtime-string)))))
+            ;; Process each device in this runtime
+            (dolist (device (append runtime-devices nil))
+              (when (and device
+                         (listp device)
+                         (cdr (assoc 'isAvailable device)))
+                ;; Create a new device entry with iOS version
+                (let ((device-with-version (copy-alist device)))
+                  (when ios-version
+                    (setcdr device-with-version
+                            (cons (cons 'iosVersion ios-version)
+                                  (cdr device-with-version))))
+                  (push device-with-version flattened-devices))))))
+        (setq ios-simulator--cached-devices (nreverse flattened-devices)
               ios-simulator--cache-timestamp now)))
     (when ios-simulator:debug
       (message "Using %s cached simulators" (length ios-simulator--cached-devices)))
@@ -550,6 +663,18 @@ If TERMINATE-RUNNING is non-nil, terminate any running instance before launching
 (defun ios-simulator:remove-control-m (string)
   "Remove ^M characters from STRING."
   (replace-regexp-in-string "\r" "" string))
+
+;;;###autoload
+(defun ios-simulator:test-two-step-selection ()
+  "Test the new two-step selection process."
+  (interactive)
+  (let ((ios-simulator:debug t))
+    (message "Testing two-step simulator selection:")
+    (message "Available iOS versions: %s" (string-join (ios-simulator:available-ios-versions) ", "))
+    (message "Example: Devices for iOS 17.2:")
+    (let ((devices (ios-simulator:devices-for-ios-version "17.2")))
+      (dolist (device devices)
+        (message "  - %s" (car device))))))
 
 (provide 'ios-simulator)
 

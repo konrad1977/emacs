@@ -3,7 +3,19 @@
 ;;; commentary:
 
 ;;; code:
-(require 'mode-line-hud)
+;; Optional dependency
+(defvar mode-line-hud-available-p (require 'mode-line-hud nil t)
+  "Whether mode-line-hud is available.")
+
+(defun xcodebuildserver:safe-mode-line-update (&rest args)
+  "Safely call mode-line-hud:update if available."
+  (when mode-line-hud-available-p
+    (apply #'mode-line-hud:update args)))
+
+(defun xcodebuildserver:safe-mode-line-notification (&rest args)
+  "Safely call mode-line-hud:notification if available."
+  (when mode-line-hud-available-p
+    (apply #'mode-line-hud:notification args)))
 
 (defgroup xcodebuildserver nil
   "Xcodebuildserver."
@@ -19,7 +31,7 @@
     (message "Checking configuration for: %s|%s" workspace scheme))
 
   (when (not (xcodebuildserver:does-configuration-file-exist root))
-    (mode-line-hud:notification
+    (xcodebuildserver:safe-mode-line-notification
      :message (format "Generating BSP configuration for: %s|%s"
                            (propertize workspace 'face 'font-lock-builtin-face)
                            (propertize scheme 'face 'font-lock-negation-char-face))
