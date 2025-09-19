@@ -245,7 +245,11 @@
 (defun periphery--propertize-severity (severity)
   "Colorize TEXT using SEVERITY."
   (if-let* ((type (upcase (string-trim-left severity))))
-    (propertize (format " %s " (periphery--center-text type)) 'face (periphery--full-color-from-keyword severity))))
+    (let ((display-type (if (> (string-width type) 8)
+                            "ERROR"
+                          type)))
+      (propertize (format " %s " (periphery--center-text display-type)) 
+                  'face (periphery--full-color-from-keyword severity)))))
 
 (defun periphery--center-text (word)
   "Center WORD to default length."

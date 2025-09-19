@@ -625,16 +625,99 @@ Returns a list of folder names, excluding hidden folders."
 
 
 (defun xcode-additions:clean-build-folder ()
-  "Clean app build folder."
+  "Clean app build folder, Swift package caches, and optionally Xcode derived data."
   (interactive)
   (let ((root (xcode-additions:project-root)))
     (unless root
       (error "Not in an Xcode project"))
+    
+    ;; Clean .build folder
     (xcode-additions:clean-build-folder-with
      :root root
      :build-folder (expand-file-name ".build" root)
      :project-name (xcode-additions:product-name)
-     :ignore-list xcode-additions:clean-build-ignore-list)))
+     :ignore-list xcode-additions:clean-build-ignore-list)
+    
+    ;; Clean Swift package caches
+    (xcode-additions:clean-swift-package-caches)
+    
+    ;; Optionally clean derived data for this project
+    (when (yes-or-no-p "Also clean Xcode derived data for this project?")
+      (xcode-additions:clean-project-derived-data))))
+
+(defun xcode-additions:clean-swift-package-caches ()
+  "Clean Swift package manager caches."
+  (let ((package-cache-dir (expand-file-name "~/Library/Caches/org.swift.packages"))
+        (cloned-sources-dir (expand-file-name "~/Library/Caches/org.swift.cloned-sources")))
+    
+    (when (file-exists-p package-cache-dir)
+      (message "Cleaning Swift package cache...")
+      (async-start
+       `(lambda ()
+          (delete-directory ,package-cache-dir t)
+          "Swift package cache cleaned")
+       (lambda (result)
+         (message "%s" result))))
+    
+    (when (file-exists-p cloned-sources-dir)
+      (message "Cleaning Swift cloned sources...")
+      (async-start
+       `(lambda ()
+          (delete-directory ,cloned-sources-dir t)
+          "Swift cloned sources cleaned")
+       (lambda (result)
+         (message "%s" result))))))
+
+(defun xcode-additions:clean-project-derived-data ()
+  "Clean Xcode derived data for the current project."
+  (let* ((project-name (xcode-additions:product-name))
+         (derived-data-dir (expand-file-name "~/Library/Developer/Xcode/DerivedData"))
+         (project-pattern (concat "^" (regexp-quote project-name) "-")))
+    
+    (when (file-exists-p derived-data-dir)
+      (message "Cleaning derived data for %s..." project-name)
+      (async-start
+       `(lambda ()
+          (let ((cleaned-count 0))
+            (dolist (dir (directory-files ,derived-data-dir t ,project-pattern))
+              (when (file-directory-p dir)
+                (delete-directory dir t)
+                (setq cleaned-count (1+ cleaned-count))))
+            (format "Cleaned %d derived data folder(s) for %s" cleaned-count ,project-name)))
+       (lambda (result)
+         (message "%s" result))))))
+
+(defun xcode-additions:deep-clean ()
+  "Perform a deep clean: build folder, Swift package caches, and all derived data."
+  (interactive)
+  (let ((root (xcode-additions:project-root)))
+    (unless root
+      (error "Not in an Xcode project"))
+    
+    (when (yes-or-no-p "Perform deep clean? This will delete .build, Swift caches, and ALL derived data.")
+      ;; Clean .build folder
+      (xcode-additions:clean-build-folder-with
+       :root root
+       :build-folder (expand-file-name ".build" root)
+       :project-name (xcode-additions:product-name)
+       :ignore-list xcode-additions:clean-build-ignore-list)
+      
+      ;; Clean Swift package caches
+      (xcode-additions:clean-swift-package-caches)
+      
+      ;; Clean ALL derived data (not just project-specific)
+      (let ((derived-data-dir (expand-file-name "~/Library/Developer/Xcode/DerivedData")))
+        (when (file-exists-p derived-data-dir)
+          (message "Cleaning all derived data...")
+          (async-start
+           `(lambda ()
+              (dolist (dir (directory-files ,derived-data-dir t "^[^.]"))
+                (when (and (file-directory-p dir)
+                           (not (string-match-p "ModuleCache" dir)))
+                  (delete-directory dir t)))
+              "All derived data cleaned")
+           (lambda (result)
+             (message "%s" result))))))))
 
 (cl-defun xcode-additions:clean-build-folder-with (&key root build-folder project-name ignore-list)
   "Clean build folder with ROOT, BUILD-FOLDER, PROJECT-NAME asynchronously.

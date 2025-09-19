@@ -419,12 +419,41 @@ If FOR-DEVICE is non-nil, setup for device build (with signing), otherwise for s
    :appIdentifier (xcode-additions:fetch-or-load-app-identifier)))
 
 (defun swift-additions:check-if-build-was-successful (input-text)
-  "Check if INPUT-TEXT does not contain build failure indicators."
-  (when swift-additions:debug (message "Checking build success with output length: %d" (length input-text)))
-  (let ((has-success (string-match-p "BUILD SUCCEEDED" input-text))
-        (has-failure (string-match-p "\\(BUILD FAILED\\|BUILD INTERRUPTED\\|xcodebuild: error\\|error:\\|invalid option\\|Unknown build action\\|failed with exit code\\|The following build commands failed\\)" input-text)))
+  "Check if INPUT-TEXT indicates a successful build.
+  
+  Optimized to check only the last part of the output where xcodebuild
+  writes its final status, avoiding false positives from build output."
+  (when swift-additions:debug 
+    (message "Checking build success with output length: %d" (length input-text)))
+  
+  ;; xcodebuild always puts "BUILD SUCCEEDED" or "BUILD FAILED" near the end
+  ;; Check only the last 5000 characters for performance and accuracy
+  (let* ((text-length (length input-text))
+         (check-region (if (> text-length 5000)
+                          (substring input-text (- text-length 5000))
+                        input-text))
+         ;; Look for explicit build status markers
+         (has-success nil)
+         (has-failure nil))
+    
+    ;; Check for BUILD SUCCEEDED - this is the definitive success marker
+    (when (string-match-p "\\*\\* BUILD SUCCEEDED \\*\\*" check-region)
+      (setq has-success t))
+    
+    ;; Check for explicit failure markers
+    (when (or (string-match-p "\\*\\* BUILD FAILED \\*\\*" check-region)
+              (string-match-p "\\*\\* BUILD INTERRUPTED \\*\\*" check-region)
+              ;; Only check for xcodebuild-specific errors
+              (string-match-p "^xcodebuild: error:" check-region)
+              (string-match-p "^Command failed with exit code" check-region)
+              (string-match-p "^The following build commands failed:" check-region))
+      (setq has-failure t))
+    
     (when swift-additions:debug 
-      (message "Build check - Success: %s, Failure: %s" has-success has-failure))
+      (message "Build check - Success: %s, Failure: %s (checked last %d chars)" 
+               has-success has-failure (length check-region)))
+    
+    ;; Build is successful only if we found BUILD SUCCEEDED and no failures
     (and has-success (not has-failure))))
 
 (defun swift-additions:check-for-errors (output callback)
@@ -876,6 +905,27 @@ Returns the configuration name or 'Debug' as fallback."
   "Detects the root directory of the Swift package based on the current buffer."
   (let ((buffer-dir (file-name-directory (or (buffer-file-name) default-directory))))
     (locate-dominating-file buffer-dir "Package.swift")))
+
+;;;###autoload
+(defun swift-additions:toggle-periphery-mode ()
+  "Toggle between periphery mode and compilation mode for error display."
+  (interactive)
+  (setq swift-additions:use-periphery (not swift-additions:use-periphery))
+  (message "Swift error display mode: %s" 
+           (if swift-additions:use-periphery 
+               "Periphery (tabulated list)" 
+               "Compilation mode"))
+  ;; Kill existing buffers to ensure fresh start with new mode
+  (when swift-additions:use-periphery
+    (when-let ((buf (get-buffer "*Swift Build*")))
+      (kill-buffer buf))
+    (when-let ((buf (get-buffer "*Swift Test*")))
+      (kill-buffer buf))
+    (when-let ((buf (get-buffer "*Swift Package Build*")))
+      (kill-buffer buf)))
+  (when (not swift-additions:use-periphery)
+    (when (fboundp 'periphery-kill-buffer)
+      (periphery-kill-buffer))))
 
 ;;;###autoload
 (defun swift-additions:compile-and-run ()
