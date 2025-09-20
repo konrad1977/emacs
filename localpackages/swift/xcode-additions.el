@@ -7,6 +7,7 @@
 (require 'swift-project)
 (require 'periphery)
 (require 'periphery-helper)
+(require 'swift-cache nil t)  ; Optional - graceful fallback if not available
 
 ;; Optional dependencies
 (defvar mode-line-hud-available-p (require 'mode-line-hud nil t)
@@ -25,7 +26,7 @@
 (defvar current-project-root nil)
 (defvar previous-project-root nil)
 (defvar current-xcode-scheme nil)
-(defvar current-build-settings-json nil)
+;; Removed: current-build-settings-json - now using swift-cache
 (defvar current-buildconfiguration-json-data nil)
 (defvar current-build-configuration nil)
 (defvar current-app-identifier nil)
@@ -65,7 +66,7 @@
   :type '(repeat string)
   :group 'xcode-additions)
 
-(defun xcode-get-app-path ()
+(defun xcode-additions:get-app-path ()
   "Get the path to Xcode.app/ (with trailing slash) using xcode-select."
   (let ((developer-path (string-trim (shell-command-to-string "xcode-select -p"))))
     (cond
@@ -80,30 +81,30 @@
      ;; Return nil if not found
      (t nil))))
 
-(defun xcode-additions-accessability-inspector ()
+(defun xcode-additions:accessibility-inspector ()
   "Launch the Accessibility Inspector."
   (interactive)
-  (let ((accessibility-inspector-path (concat (xcode-get-app-path) "Contents/Applications/Accessibility Inspector.app")))
+  (let ((accessibility-inspector-path (concat (xcode-additions:get-app-path) "Contents/Applications/Accessibility Inspector.app")))
     (if (file-exists-p accessibility-inspector-path)
         (start-process "Accessibility Inspector" nil "open" accessibility-inspector-path)
       (message "Accessibility Inspector not found at %s" accessibility-inspector-path))))
 
-(defun xcode-additions-instruments ()
+(defun xcode-additions:instruments ()
   "Launch the Instruments application."
   (interactive)
-  (let ((instruments-file-path (concat (xcode-get-app-path) "Contents/Applications/Instruments.app")))
+  (let ((instruments-file-path (concat (xcode-additions:get-app-path) "Contents/Applications/Instruments.app")))
     (if (file-exists-p instruments-file-path)
         (start-process "Instruments" nil "open" instruments-file-path)
-      (message "Istruments not found at %s" instruments-file-path))))
+      (message "Instruments not found at %s" instruments-file-path))))
 
-(defun xcode-additions-get-extension (type)
+(defun xcode-additions:get-extension (type)
   "Get file extension for TYPE (:project or :workspace)."
   (plist-get xcode-additions-extensions type))
 
-(defconst xcodeproject-extension (xcode-additions-get-extension :project)
+(defconst xcodeproject-extension (xcode-additions:get-extension :project)
   "Xcode project extensions.")
 
-(defconst workspace-extension (xcode-additions-get-extension :workspace)
+(defconst workspace-extension (xcode-additions:get-extension :workspace)
   "Xcode workspace extensions.")
 
 (defun xcode-additions:filename-by-extension (extension directory)
@@ -198,39 +199,64 @@ If DIRECTORY is nil, use `default-directory'."
 (defun xcode-additions:list-scheme-files ()
   "List the names of '.xcscheme' files in the xcshareddata/xcschemes subfolder of the current Xcode project or workspace directory."
   (let* ((project-root (xcode-additions:project-root))
-         (default-directory (or project-root default-directory))
-         (workspace-directory (xcode-additions:find-workspace-directory))
-         (workspace-name (xcode-additions:workspace-name))
-         (project-directory (xcode-additions:find-xcode-project-directory))
-         (project-name (xcode-additions:project-name))
-         (workspace-path (when workspace-directory
-                          (concat (file-name-as-directory workspace-directory)
-                                workspace-name
-                                ".xcworkspace/")))
-         (project-path (when project-directory
-                        (concat (file-name-as-directory project-directory)
-                              project-name
-                              ".xcodeproj/"))))
+         (cache-key (when (fboundp 'swift-cache-project-key)
+                      (swift-cache-project-key project-root "scheme-files"))))
+    ;; Use cache for scheme files if available
+    (if (and cache-key (fboundp 'swift-cache-with))
+        (swift-cache-with cache-key 600  ; Cache for 10 minutes
+      (let* ((default-directory (or project-root default-directory))
+             (workspace-directory (xcode-additions:find-workspace-directory))
+             (workspace-name (xcode-additions:workspace-name))
+             (project-directory (xcode-additions:find-xcode-project-directory))
+             (project-name (xcode-additions:project-name))
+             (workspace-path (when workspace-directory
+                              (concat (file-name-as-directory workspace-directory)
+                                    workspace-name
+                                    ".xcworkspace/")))
+             (project-path (when project-directory
+                            (concat (file-name-as-directory project-directory)
+                                  project-name
+                                  ".xcodeproj/"))))
 
-    (when xcode-additions:debug
-      (message "xcode-additions:list-scheme-files:
+        (when xcode-additions:debug
+          (message "xcode-additions:list-scheme-files:
 Workspace directory: %s
 Workspace name: %s
 Workspace path: %s
 Project directory: %s
 Project name: %s
 Project path: %s"
-               workspace-directory workspace-name workspace-path
-               project-directory project-name project-path))
+                   workspace-directory workspace-name workspace-path
+                   project-directory project-name project-path))
 
-    ;; Try workspace first (preferred for CocoaPods projects), then project
-    (let ((schemes (or (when workspace-path
-                         (xcode-additions:list-xcscheme-files workspace-path))
-                       (when project-path
-                         (xcode-additions:list-xcscheme-files project-path)))))
-      ;; If file-based detection fails, fall back to xcodebuild -list
-      (or schemes
-          (xcode-additions:get-schemes-from-xcodebuild)))))
+        ;; Try workspace first (preferred for CocoaPods projects), then project
+        (let ((schemes (or (when workspace-path
+                             (xcode-additions:list-xcscheme-files workspace-path))
+                           (when project-path
+                             (xcode-additions:list-xcscheme-files project-path)))))
+          ;; If file-based detection fails, fall back to xcodebuild -list
+          (or schemes
+              (xcode-additions:get-schemes-from-xcodebuild))))
+      ;; Fallback when swift-cache not available - use original logic
+      (let* ((default-directory (or project-root default-directory))
+             (workspace-directory (xcode-additions:find-workspace-directory))
+             (workspace-name (xcode-additions:workspace-name))
+             (project-directory (xcode-additions:find-xcode-project-directory))
+             (project-name (xcode-additions:project-name))
+             (workspace-path (when workspace-directory
+                              (concat (file-name-as-directory workspace-directory)
+                                    workspace-name
+                                    ".xcworkspace/")))
+             (project-path (when project-directory
+                            (concat (file-name-as-directory project-directory)
+                                  project-name
+                                  ".xcodeproj/"))))
+        (let ((schemes (or (when workspace-path
+                             (xcode-additions:list-xcscheme-files workspace-path))
+                           (when project-path
+                             (xcode-additions:list-xcscheme-files project-path)))))
+          (or schemes
+              (xcode-additions:get-schemes-from-xcodebuild))))))))
 
 (defun xcode-additions:run-command-and-get-json (command)
   "Run a shell COMMAND and return the JSON output."
@@ -279,16 +305,31 @@ Project path: %s"
 
 (cl-defun xcode-additions:get-build-settings-json (&key (config "Debug"))
   "Get build settings from xcodebuild."
-  (unless current-build-settings-json
-    (let ((project-dir (or (xcode-additions:project-root) default-directory)))
-      (setq current-build-settings-json
+  (let* ((project-root (xcode-additions:project-root))
+         (cache-key (when (fboundp 'swift-cache-project-key)
+                      (swift-cache-project-key project-root 
+                                              (format "build-settings-%s-%s" 
+                                                      (or current-xcode-scheme "default")
+                                                      config)))))
+    (if (and cache-key (fboundp 'swift-cache-with))
+        (swift-cache-with cache-key 1800  ; Cache for 30 minutes
+          (let ((project-dir (or project-root default-directory)))
             (let ((default-directory project-dir)
                   (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme)))
-              (xcode-additions:run-command-and-get-json (format "xcrun xcodebuild %s -scheme %s -showBuildSettings -configuration %s -json 2>/dev/null" 
-                                                                (xcode-additions:get-workspace-or-project)
-                                                                (shell-quote-argument scheme-name)
-                                                                (shell-quote-argument config)))))))
-  current-build-settings-json)
+              (xcode-additions:run-command-and-get-json 
+               (format "xcrun xcodebuild %s -scheme %s -showBuildSettings -configuration %s -json 2>/dev/null" 
+                       (xcode-additions:get-workspace-or-project)
+                       (shell-quote-argument scheme-name)
+                       (shell-quote-argument config))))))
+      ;; Fallback when swift-cache not available
+      (let ((project-dir (or project-root default-directory)))
+        (let ((default-directory project-dir)
+              (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme)))
+          (xcode-additions:run-command-and-get-json 
+           (format "xcrun xcodebuild %s -scheme %s -showBuildSettings -configuration %s -json 2>/dev/null" 
+                   (xcode-additions:get-workspace-or-project)
+                   (shell-quote-argument scheme-name)
+                   (shell-quote-argument config))))))))
 
 (defun xcode-additions:product-name ()
   "Get product name."
@@ -416,53 +457,173 @@ Returns a list of folder names, excluding hidden folders."
   (xcode-additions:list-scheme-files))
 
 (cl-defun xcode-additions:build-folder (&key (device-type :device))
-  "Get build folder. Automatically choose based on device type (iphoneos or iphonesimulator), or let the user choose if there are multiple options."
+  "Get build folder. Auto-detect based on scheme, configuration, and device type."
   (when (or (not current-build-folder)
             (not (eq device-type xcode-additions:last-device-type)))
-    (let* ((build-products-dir 
-            ;; Check if we're using project-local .build directory (from swift-additions)
-            (let* ((project-root (file-name-as-directory (xcode-additions:project-root)))
-                   (local-build-dir (concat project-root ".build/Build/Products/")))
-              (if (file-exists-p local-build-dir)
-                  local-build-dir
-                ;; Fallback to derived data path  
-                (let ((derived-path (xcode-additions:derived-data-path)))
-                  (cond
-                   ;; If derived path ends with .build, append Build/Products
-                   ((string-suffix-p ".build" derived-path)
-                    (concat derived-path "/Build/Products/"))
-                   ;; Otherwise use the path as-is with Build/Products
-                   (t (concat (file-name-as-directory derived-path) "Build/Products/")))))))
-           (default-directory build-products-dir)
-           (all-folders (xcode-additions:parse-build-folder default-directory))
+    (let* ((scheme (replace-regexp-in-string "^['\"]\\|['\"]$" "" (or current-xcode-scheme "")))
+           (config (xcode-additions:fetch-or-load-build-configuration))
+           (build-products-dir (xcode-additions:get-build-products-directory))
            (target-suffix (if (eq device-type :simulator) "iphonesimulator" "iphoneos"))
-           (matching-folders (seq-filter (lambda (folder) (string-match-p target-suffix folder)) all-folders)))
+           (cache-key (when (fboundp 'swift-cache-project-key)
+                       (swift-cache-project-key 
+                        (xcode-additions:project-root)
+                        (format "build-folder-%s-%s-%s" scheme config target-suffix)))))
 
+      ;; Try cached result first
+      (let ((cached-folder (when (and cache-key (fboundp 'swift-cache-get))
+                            (swift-cache-get cache-key))))
+        (if (and cached-folder (file-exists-p cached-folder))
+            (setq current-build-folder cached-folder)
+          ;; Auto-detect build folder
+          (setq current-build-folder 
+                (xcode-additions:auto-detect-build-folder 
+                 :build-products-dir build-products-dir
+                 :scheme scheme
+                 :config config
+                 :device-type device-type
+                 :target-suffix target-suffix))
+          
+          ;; Format the full path
+          (when current-build-folder
+            (setq current-build-folder 
+                  (if (file-name-absolute-p current-build-folder)
+                      current-build-folder
+                    (concat build-products-dir current-build-folder "/"))))
+          
+          ;; Cache the result
+          (when (and cache-key (fboundp 'swift-cache-set) current-build-folder)
+            (swift-cache-set cache-key current-build-folder 1800))))  ; Cache for 30 minutes
+
+      (setq xcode-additions:last-device-type device-type)
+      
       (when xcode-additions:debug
-        (message "xcode-additions:build-folder:\nUsing build products dir: %s" build-products-dir)
-        (message "All folders: %s" all-folders)
-        (message "Matching folders: %s" matching-folders))
-
-      ;; Cache the build folder for this device type
-      (setq current-build-folder
-            (cond
-             ;; Only one matching folder, use it automatically
-             ((= (length matching-folders) 1)
-              (car matching-folders))
-             ;; Multiple matching folders, let user choose once
-             ((> (length matching-folders) 1)
-              (xcode-additions:build-menu
-               :title "Choose build folder"
-               :list matching-folders))
-             ;; No matching folders, show all options
-             (t
-              (xcode-additions:build-menu
-               :title "Choose build folder"
-               :list all-folders))))
-      (when current-build-folder
-        (setq current-build-folder (concat default-directory current-build-folder "/")))
-      (setq xcode-additions:last-device-type device-type)))
+        (message "xcode-additions:build-folder: scheme=%s config=%s device=%s folder=%s" 
+                 scheme config device-type current-build-folder))))
   current-build-folder)
+
+(defun xcode-additions:get-build-products-directory ()
+  "Get the base build products directory path."
+  (let* ((project-root (file-name-as-directory (xcode-additions:project-root)))
+         (local-build-dir (concat project-root ".build/Build/Products/")))
+    (if (file-exists-p local-build-dir)
+        local-build-dir
+      ;; Fallback to derived data path  
+      (let ((derived-path (xcode-additions:derived-data-path)))
+        (cond
+         ;; If derived path ends with .build, append Build/Products
+         ((string-suffix-p ".build" derived-path)
+          (concat derived-path "/Build/Products/"))
+         ;; Otherwise use the path as-is with Build/Products
+         (t (concat (file-name-as-directory derived-path) "Build/Products/")))))))
+
+(cl-defun xcode-additions:auto-detect-build-folder (&key build-products-dir scheme config device-type target-suffix)
+  "Intelligently auto-detect the correct build folder."
+  (let* ((default-directory build-products-dir)
+         (all-folders (xcode-additions:parse-build-folder default-directory)))
+    
+    (when xcode-additions:debug
+      (message "Auto-detecting build folder: scheme=%s config=%s target=%s" scheme config target-suffix)
+      (message "Available folders: %s" all-folders))
+    
+    (or 
+     ;; Strategy 1: Look for exact match with scheme-config-platform
+     (xcode-additions:find-exact-build-folder all-folders scheme config target-suffix)
+     
+     ;; Strategy 2: Look for config-platform match
+     (xcode-additions:find-config-platform-folder all-folders config target-suffix)
+     
+     ;; Strategy 3: Look for platform-only match
+     (xcode-additions:find-platform-folder all-folders target-suffix)
+     
+     ;; Strategy 4: Look for any folder containing the scheme name
+     (xcode-additions:find-scheme-folder all-folders scheme)
+     
+     ;; Strategy 5: Interactive fallback
+     (xcode-additions:interactive-build-folder-selection all-folders target-suffix))))
+
+(defun xcode-additions:find-exact-build-folder (folders scheme config target-suffix)
+  "Find build folder matching scheme-config-platform pattern."
+  (let ((patterns (list
+                   ;; Pattern: Debug-iphonesimulator, Release-iphoneos, etc.
+                   (format "%s-%s" config target-suffix)
+                   ;; Pattern: MyApp_Debug-iphonesimulator
+                   (format "%s_%s-%s" scheme config target-suffix)
+                   ;; Pattern: MyApp-Debug-iphonesimulator  
+                   (format "%s-%s-%s" scheme config target-suffix))))
+    (cl-some (lambda (pattern)
+              (cl-find-if (lambda (folder) 
+                           (string-match-p (regexp-quote pattern) folder))
+                         folders))
+            patterns)))
+
+(defun xcode-additions:find-config-platform-folder (folders config target-suffix)
+  "Find build folder matching config-platform pattern."
+  (let ((pattern (format "%s.*%s" config target-suffix)))
+    (cl-find-if (lambda (folder) 
+                 (string-match-p pattern folder))
+               folders)))
+
+(defun xcode-additions:find-platform-folder (folders target-suffix)
+  "Find any build folder matching the platform."
+  (cl-find-if (lambda (folder) 
+               (string-match-p target-suffix folder))
+             folders))
+
+(defun xcode-additions:find-scheme-folder (folders scheme)
+  "Find build folder containing the scheme name."
+  (when (and scheme (not (string-empty-p scheme)))
+    (cl-find-if (lambda (folder) 
+                 (string-match-p (regexp-quote scheme) folder))
+               folders)))
+
+(defun xcode-additions:interactive-build-folder-selection (folders target-suffix)
+  "Let user interactively select build folder with smart defaults."
+  (let ((platform-folders (seq-filter (lambda (folder) 
+                                        (string-match-p target-suffix folder)) 
+                                      folders)))
+    (cond
+     ;; Only one platform match - use it
+     ((= (length platform-folders) 1)
+      (car platform-folders))
+     ;; Multiple platform matches - let user choose
+     ((> (length platform-folders) 1)
+      (xcode-additions:build-menu
+       :title (format "Choose %s build folder" 
+                     (if (string= target-suffix "iphonesimulator") "Simulator" "Device"))
+       :list platform-folders))
+     ;; No platform matches - show all folders
+     (t
+      (xcode-additions:build-menu
+       :title "Choose build folder"
+       :list folders)))))
+
+;;;###autoload
+(defun xcode-additions:debug-build-folder-detection ()
+  "Debug build folder detection process."
+  (interactive)
+  (let ((xcode-additions:debug t))
+    (message "=== Build Folder Detection Debug ===")
+    (message "Project root: %s" (xcode-additions:project-root))
+    (message "Current scheme: %s" current-xcode-scheme)
+    (message "Build configuration: %s" (xcode-additions:fetch-or-load-build-configuration))
+    (message "Build products dir: %s" (xcode-additions:get-build-products-directory))
+    (let ((build-products-dir (xcode-additions:get-build-products-directory)))
+      (when (file-exists-p build-products-dir)
+        (message "Available build folders:")
+        (dolist (folder (xcode-additions:parse-build-folder build-products-dir))
+          (message "  - %s" folder))))
+    (message "Simulator folder: %s" (xcode-additions:build-folder :device-type :simulator))
+    (message "Device folder: %s" (xcode-additions:build-folder :device-type :device))))
+
+;;;###autoload  
+(defun xcode-additions:clear-build-folder-cache ()
+  "Clear cached build folder selections."
+  (interactive)
+  (setq current-build-folder nil
+        xcode-additions:last-device-type nil)
+  (when (fboundp 'swift-cache-invalidate-pattern)
+    (swift-cache-invalidate-pattern "build-folder-"))
+  (message "Build folder cache cleared"))
 
 (defun xcode-additions:setup-xcodebuildserver ()
   "Setup xcodebuild server."
@@ -609,7 +770,6 @@ Returns a list of folder names, excluding hidden folders."
         previous-project-root current-project-root ; Store before resetting
         current-project-root nil
         current-xcode-scheme nil
-        current-build-settings-json nil
         current-buildconfiguration-json-data nil
         current-errors-or-warnings nil
         xcode-additions:device-choice nil
@@ -903,6 +1063,164 @@ Debug Mode: %s"
   (message "Xcode Additions debug mode %s" 
            (if xcode-additions:debug "enabled" "disabled")))
 
+;; Build Process Interrupt Functions
+
+;;;###autoload
+(defun xcode-additions:interrupt-build ()
+  "Interrupt the currently active xcodebuild process.
+Also checks for and handles compile.lock errors that can halt builds."
+  (interactive)
+  (require 'swift-additions)
+  
+  ;; First check for compile.lock errors
+  (let ((has-lock-error nil))
+    (dolist (buffer-name '("*Swift Build*" "*compilation*" "*xcodebuild*"))
+      (when (get-buffer buffer-name)
+        (with-current-buffer buffer-name
+          (save-excursion
+            (goto-char (point-min))
+            (when (search-forward ".compile.lock exists! parse already run" nil t)
+              (setq has-lock-error t)
+              (message "Detected compile.lock error in %s - this can cause hanging builds" buffer-name))))))
+    
+    (when has-lock-error
+      (message "Compile.lock error detected - will clean derived data after interrupting build")))
+  
+  (cond
+   ;; Check for active swift-additions build process
+   ((and (boundp 'swift-additions:active-build-process)
+         swift-additions:active-build-process
+         (process-live-p swift-additions:active-build-process))
+    (message "Interrupting active build process...")
+    (interrupt-process swift-additions:active-build-process)
+    ;; Give it a moment, then kill if still alive
+    (run-with-timer 2 nil
+                    (lambda ()
+                      (when (and swift-additions:active-build-process
+                                 (process-live-p swift-additions:active-build-process))
+                        (kill-process swift-additions:active-build-process)
+                        (message "Build process killed"))))
+    (setq swift-additions:active-build-process nil)
+    (when (boundp 'swift-additions:active-build-buffer)
+      (setq swift-additions:active-build-buffer nil))
+    (when (and (boundp 'swift-additions:build-progress-spinner)
+               swift-additions:build-progress-spinner)
+      (spinner-stop swift-additions:build-progress-spinner)))
+   
+   ;; Check for compilation buffer with active process
+   ((get-buffer "*Swift Build*")
+    (let ((proc (get-buffer-process (get-buffer "*Swift Build*"))))
+      (if (and proc (process-live-p proc))
+          (progn
+            (message "Interrupting build in *Swift Build* buffer...")
+            (interrupt-process proc)
+            (run-with-timer 2 nil
+                            (lambda ()
+                              (when (and proc (process-live-p proc))
+                                (kill-process proc)
+                                (message "Build process killed")))))
+        (message "No active build process found in *Swift Build* buffer"))))
+   
+   ;; Fall back to killing any xcodebuild processes
+   (t
+    (let ((killed-count (xcode-additions:kill-all-xcodebuild-processes)))
+      (if (> killed-count 0)
+          (message "Killed %d xcodebuild process(es)" killed-count)
+        (message "No active build processes found"))))))
+
+;;;###autoload
+(defun xcode-additions:kill-all-xcodebuild-processes ()
+  "Kill all xcodebuild processes system-wide.
+Returns the number of processes killed."
+  (interactive)
+  (let ((killed-count 0))
+    ;; Kill all xcodebuild processes
+    (dolist (pid (split-string 
+                  (shell-command-to-string "pgrep -f xcodebuild") "\n" t))
+      (when (string-match-p "^[0-9]+$" pid)
+        (condition-case nil
+            (progn
+              (call-process "kill" nil nil nil "-TERM" pid)
+              (cl-incf killed-count)
+              (message "Sent TERM signal to xcodebuild process %s" pid))
+          (error nil))))
+    
+    ;; If we killed any, wait a bit then force kill any survivors
+    (when (> killed-count 0)
+      (run-with-timer 3 nil
+                      (lambda ()
+                        (dolist (pid (split-string 
+                                      (shell-command-to-string "pgrep -f xcodebuild") "\n" t))
+                          (when (string-match-p "^[0-9]+$" pid)
+                            (condition-case nil
+                                (progn
+                                  (call-process "kill" nil nil nil "-KILL" pid)
+                                  (message "Force killed stubborn xcodebuild process %s" pid))
+                              (error nil)))))))
+    
+    (when (called-interactively-p 'interactive)
+      (if (> killed-count 0)
+          (message "Killed %d xcodebuild process(es)" killed-count)
+        (message "No xcodebuild processes found")))
+    killed-count))
+
+;;;###autoload
+(defun xcode-additions:check-compile-lock-error ()
+  "Check if build output contains the compile.lock error that can halt builds."
+  (interactive)
+  (let ((found-error nil)
+        (buffers-to-check '("*Swift Build*" "*compilation*" "*xcodebuild*")))
+    (dolist (buffer-name buffers-to-check)
+      (when (get-buffer buffer-name)
+        (with-current-buffer buffer-name
+          (save-excursion
+            (goto-char (point-min))
+            (when (search-forward ".compile.lock exists! parse already run" nil t)
+              (setq found-error t)
+              (message "Found compile.lock error in %s buffer - this can halt builds!" buffer-name))))))
+    (if found-error
+        (when (yes-or-no-p "Compile.lock error detected. Kill build processes and clean derived data?")
+          (xcode-additions:interrupt-build)
+          (message "Interrupted build. Consider running clean derived data."))
+      (message "No compile.lock errors found in build buffers"))))
+
+;;;###autoload
+(defun xcode-additions:build-status ()
+  "Show status of current build process."
+  (interactive)
+  (require 'swift-additions)
+  ;; First check for compile.lock errors
+  (let ((has-lock-error nil))
+    (dolist (buffer-name '("*Swift Build*" "*compilation*" "*xcodebuild*"))
+      (when (get-buffer buffer-name)
+        (with-current-buffer buffer-name
+          (save-excursion
+            (goto-char (point-min))
+            (when (search-forward ".compile.lock exists! parse already run" nil t)
+              (setq has-lock-error t))))))
+    
+    (cond
+     ;; Show lock error warning if found
+     (has-lock-error
+      (message "⚠️  Build may be stuck due to compile.lock error - use `xcode-additions:interrupt-build` to fix"))
+     
+     ((and (boundp 'swift-additions:active-build-process)
+           swift-additions:active-build-process
+           (process-live-p swift-additions:active-build-process))
+      (message "Build active: %s (PID: %s) Buffer: %s"
+               (process-name swift-additions:active-build-process)
+               (process-id swift-additions:active-build-process)
+               (or (and (boundp 'swift-additions:active-build-buffer)
+                        swift-additions:active-build-buffer) 
+                   "Unknown")))
+     
+     ((get-buffer "*Swift Build*")
+      (let ((proc (get-buffer-process (get-buffer "*Swift Build*"))))
+        (if (and proc (process-live-p proc))
+            (message "Build active in *Swift Build* buffer (PID: %s)" (process-id proc))
+          (message "No active build process (buffer exists but no process)"))))
+     
+     (t (message "No active build process")))))
 
 (provide 'xcode-additions)
 ;;; xcode-additions.el ends here

@@ -6,10 +6,23 @@
 ;;; Code:
 
 (require 'project)
+(require 'cl-lib)
 
 (defgroup swift-project nil
   "Swift project management utilities."
   :group 'swift)
+
+(defcustom swift-project-ignore-folders
+  '("Pods" "Packages" ".build" "Carthage" "DerivedData" ".swiftpm" "node_modules")
+  "Folders to ignore when searching for project root."
+  :type '(repeat string)
+  :group 'swift-project)
+
+(defcustom swift-project-marker-files
+  '(".projectile" ".project")
+  "Files that mark the project root (highest priority)."
+  :type '(repeat string)
+  :group 'swift-project)
 
 (defvar swift-project--current-root nil
   "Cached value of current project root.")
@@ -28,13 +41,110 @@ When NO-ERROR is non-nil, return nil instead of erroring when no project found."
      (no-error nil)
      (t (error "No Swift project found")))))
 
+(defun swift-project--should-ignore-folder-p (dir)
+  "Return t if DIR should be ignored when searching for project root."
+  (let ((basename (file-name-nondirectory (directory-file-name dir))))
+    (member basename swift-project-ignore-folders)))
+
+(defun swift-project--check-marker-files (parent)
+  "Check if PARENT directory contains any marker files."
+  (cl-some (lambda (marker)
+             (file-exists-p (expand-file-name marker parent)))
+           swift-project-marker-files))
+
 (defun swift-project--find-project-root (dir)
-  "Find project root by looking for .projectile or .project files starting from DIR."
-  (let ((root (locate-dominating-file dir (lambda (parent)
-                                            (or (file-exists-p (expand-file-name ".projectile" parent))
-                                                (file-exists-p (expand-file-name ".project" parent)))))))
-    (when root
-      (directory-file-name (file-name-as-directory (expand-file-name root))))))
+  "Find project root using the following priority order from DIR:
+1. Marker files from swift-project-marker-files (highest priority)
+2. .xcworkspace directory
+3. .xcodeproj directory  
+4. Emacs project.el root (vc-root or project-root)
+
+Ignores folders listed in swift-project-ignore-folders."
+  ;; Priority 1: Look for marker files (configurable)
+  (let ((marker-root (locate-dominating-file 
+                      dir 
+                      (lambda (parent)
+                        (and (not (swift-project--should-ignore-folder-p parent))
+                             (swift-project--check-marker-files parent))))))
+    (if marker-root
+        (directory-file-name (file-name-as-directory (expand-file-name marker-root)))
+      ;; Priority 2: Look for .xcworkspace
+      (let ((workspace-root (locate-dominating-file 
+                            dir
+                            (lambda (parent)
+                              (and (not (swift-project--should-ignore-folder-p parent))
+                                   (directory-files parent nil "\\.xcworkspace$" t 1))))))
+        (if workspace-root
+            (directory-file-name (file-name-as-directory (expand-file-name workspace-root)))
+          ;; Priority 3: Look for .xcodeproj  
+          (let ((xcodeproj-root (locate-dominating-file
+                                dir
+                                (lambda (parent)
+                                  (and (not (swift-project--should-ignore-folder-p parent))
+                                       (directory-files parent nil "\\.xcodeproj$" t 1))))))
+            (if xcodeproj-root
+                (directory-file-name (file-name-as-directory (expand-file-name xcodeproj-root)))
+              ;; Priority 4: Use Emacs project.el
+              (when (fboundp 'project-current)
+                (let ((proj (project-current nil dir)))
+                  (when proj
+                    (let ((root (if (fboundp 'project-root)
+                                   (project-root proj)  ; Emacs 29+
+                                 (car (project-roots proj))))) ; Emacs 28
+                      (when (and root (not (swift-project--should-ignore-folder-p root)))
+                        (directory-file-name (file-name-as-directory (expand-file-name root)))))))))))))))
+
+;;;###autoload
+(defun swift-project-debug-root-detection ()
+  "Debug the project root detection process."
+  (interactive)
+  (let ((dir (or default-directory (read-directory-name "Check from directory: "))))
+    (message "=== Swift Project Root Detection Debug ===")
+    (message "Starting from: %s" dir)
+    (message "Ignore folders: %s" swift-project-ignore-folders)
+    (message "Marker files: %s" swift-project-marker-files)
+    (message "")
+    
+    ;; Check each priority level
+    (let ((marker-root (locate-dominating-file 
+                       dir 
+                       (lambda (parent)
+                         (and (not (swift-project--should-ignore-folder-p parent))
+                              (swift-project--check-marker-files parent))))))
+      (if marker-root
+          (message "✓ Priority 1: Found marker files %s at: %s" swift-project-marker-files marker-root)
+        (message "✗ Priority 1: No marker files found (%s)" swift-project-marker-files)))
+    
+    (let ((workspace-root (locate-dominating-file 
+                          dir
+                          (lambda (parent)
+                            (and (not (swift-project--should-ignore-folder-p parent))
+                                 (directory-files parent nil "\\.xcworkspace$" t 1))))))
+      (if workspace-root
+          (message "✓ Priority 2: Found .xcworkspace at: %s" workspace-root)
+        (message "✗ Priority 2: No .xcworkspace found")))
+    
+    (let ((xcodeproj-root (locate-dominating-file
+                          dir
+                          (lambda (parent)
+                            (and (not (swift-project--should-ignore-folder-p parent))
+                                 (directory-files parent nil "\\.xcodeproj$" t 1))))))
+      (if xcodeproj-root
+          (message "✓ Priority 3: Found .xcodeproj at: %s" xcodeproj-root)
+        (message "✗ Priority 3: No .xcodeproj found")))
+    
+    (when (fboundp 'project-current)
+      (let ((proj (project-current nil dir)))
+        (if proj
+            (message "✓ Priority 4: Emacs project.el root: %s"
+                    (if (fboundp 'project-root)
+                        (project-root proj)
+                      (car (project-roots proj))))
+          (message "✗ Priority 4: No Emacs project found"))))
+    
+    (message "")
+    (message "Final detected root: %s" (swift-project--find-project-root dir))
+    (message "=== End Debug ==")))
 
 (defun swift-project-reset-root ()
   "Clear cached project root."

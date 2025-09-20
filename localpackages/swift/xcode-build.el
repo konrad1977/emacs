@@ -5,6 +5,8 @@
 
 ;;; code:
 
+(require 'cl-lib)
+
 (defcustom xcode-build:use-optimized-settings t
   "Whether to use optimized build settings when building with Xcode."
   :type 'boolean

@@ -9,6 +9,8 @@
 (require 'ios-device)
 (require 'ios-simulator)
 (require 'compile) ;; For compilation-mode when not using periphery
+(require 'swift-cache nil t) ;; Unified caching system
+(require 'swift-error-handler nil t) ;; Enhanced error handling
 
 ;; Provide fallback for message-with-color when periphery is not available
 (unless (fboundp 'message-with-color)
@@ -68,6 +70,18 @@ When nil, use standard compilation-mode."
   :type 'boolean
   :group 'swift-additions)
 
+(defcustom swift-additions:analysis-mode 'fast
+  "Level of post-build analysis to perform.
+- 'fast: Quick analysis, async periphery with truncation (recommended)
+- 'full: Complete analysis, may be slower for large builds
+- 'minimal: Basic success check only, fastest option
+- 'disabled: Skip all analysis except build success detection"
+  :type '(choice (const :tag "Fast (async with truncation)" fast)
+                 (const :tag "Full (complete analysis)" full)
+                 (const :tag "Minimal (basic check only)" minimal)
+                 (const :tag "Disabled (success check only)" disabled))
+  :group 'swift-additions)
+
 (defvar swift-additions:optimization-level 'fast
   "Build optimization level.")
 
@@ -75,6 +89,10 @@ When nil, use standard compilation-mode."
 (defvar swift-additions:current-environment-x86 nil)
 (defvar swift-additions:current-build-command nil)
 (defvar swift-additions:build-progress-spinner nil)
+(defvar swift-additions:active-build-process nil
+  "Currently active build process, if any.")
+(defvar swift-additions:active-build-buffer nil
+  "Buffer name for the active build process.")
 (defvar swift-additions:compilation-time nil)
 
 (defun swift-additions:log-debug (format-string &rest args)
@@ -457,15 +475,94 @@ If FOR-DEVICE is non-nil, setup for device build (with signing), otherwise for s
     (and has-success (not has-failure))))
 
 (defun swift-additions:check-for-errors (output callback)
-  "Run periphery parser on TEXT (optional as OUTPUT CALLBACK)."
-  (swift-additions:log-debug "Checking for errors in output: %s" output)
+  "Run error checking on OUTPUT, then call CALLBACK if build successful.
+Analysis level controlled by `swift-additions:analysis-mode`."
+  (swift-additions:log-debug "Checking for errors in output length: %d chars" (length output))
+  
+  ;; Always check if build was successful
   (condition-case err
       (when (swift-additions:check-if-build-was-successful output)
         (funcall callback))
     (error
      (swift-additions:handle-build-error (error-message-string err))))
+  
+  ;; Run analysis based on configured mode
   (when swift-additions:use-periphery
-    (periphery-run-parser output)))
+    (pcase swift-additions:analysis-mode
+      ('disabled 
+       ;; Skip all analysis
+       nil)
+      ('minimal 
+       ;; Only basic error detection, no UI updates
+       (swift-additions:run-minimal-analysis output))
+      ('fast 
+       ;; Async analysis with truncation (default)
+       (swift-additions:run-periphery-async output))
+      ('full 
+       ;; Full synchronous analysis (may be slow)
+       (periphery-run-parser output)))))
+
+(defun swift-additions:run-minimal-analysis (output)
+  "Run minimal error analysis on OUTPUT for fastest performance.
+Only counts errors/warnings without full parsing or UI updates."
+  (let ((error-count 0)
+        (warning-count 0))
+    (with-temp-buffer
+      (insert output)
+      (goto-char (point-min))
+      ;; Quick count of errors and warnings
+      (while (re-search-forward "\\berror:" nil t)
+        (cl-incf error-count))
+      (goto-char (point-min))
+      (while (re-search-forward "\\bwarning:" nil t)
+        (cl-incf warning-count)))
+    
+    ;; Only update mode line if there are issues
+    (when (or (> error-count 0) (> warning-count 0))
+      (xcode-additions:safe-mode-line-notification 
+       :message (format "%d error(s), %d warning(s)" error-count warning-count)
+       :urgency 'normal))))
+
+(defun swift-additions:run-periphery-async (output)
+  "Run periphery analysis on OUTPUT asynchronously to avoid blocking UI.
+Uses intelligent truncation and caching for large outputs."
+  (when (fboundp 'periphery-run-parser)
+    ;; For very large outputs (>100KB), only analyze the last portion with errors
+    (let* ((output-size (length output))
+           (truncated-output 
+            (if (> output-size 100000)
+                (swift-additions:truncate-output-intelligently output)
+              output)))
+      
+      ;; Run periphery in a timer to avoid blocking
+      (run-with-idle-timer 0.1 nil 
+                          (lambda (text)
+                            (condition-case err
+                                (periphery-run-parser text)
+                              (error 
+                               (message "Periphery analysis failed: %s" (error-message-string err)))))
+                          truncated-output))))
+
+(defun swift-additions:truncate-output-intelligently (output)
+  "Truncate large OUTPUT intelligently, keeping error-relevant portions.
+Keeps the end of the output where errors typically appear, and any lines with 'error' or 'warning'."
+  (let* ((lines (split-string output "\n"))
+         (total-lines (length lines))
+         (keep-last-n 500)  ; Keep last 500 lines
+         (error-lines '()))
+    
+    ;; Collect lines containing errors/warnings from earlier in the output
+    (when (> total-lines keep-last-n)
+      (dolist (line (seq-take lines (- total-lines keep-last-n)))
+        (when (string-match-p "\\(error\\|warning\\|failed\\):" line)
+          (push line error-lines))))
+    
+    ;; Combine error lines with the last portion of output
+    (string-join
+     (append (nreverse error-lines)
+             '("... [truncated for performance] ...")
+             (seq-drop lines (max 0 (- total-lines keep-last-n))))
+     "\n")))
 
 (defun swift-additions:cleanup ()
   "Cleanup resources and state."
@@ -493,10 +590,16 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
           ;; Set up a sentinel to handle completion
           (let ((proc (get-buffer-process (get-buffer "*Swift Build*"))))
             (when proc
+              ;; Track active build process
+              (setq swift-additions:active-build-process proc)
+              (setq swift-additions:active-build-buffer "*Swift Build*")
               (set-process-sentinel 
                proc 
                (lambda (process event)
                  (when (memq (process-status process) '(exit signal))
+                   ;; Clear active process tracking
+                   (setq swift-additions:active-build-process nil)
+                   (setq swift-additions:active-build-buffer nil)
                    (let ((exit-status (process-exit-status process)))
                      (if (= exit-status 0)
                          (progn
@@ -523,6 +626,9 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                       :noquery t   ; Detach from Emacs process list
                       :sentinel (lambda (proc event)
                                  (when (memq (process-status proc) '(exit signal))
+                                   ;; Clear active process tracking
+                                   (setq swift-additions:active-build-process nil)
+                                   (setq swift-additions:active-build-buffer nil)
                                    (spinner-stop swift-additions:build-progress-spinner)
                                    (let ((output (with-current-buffer log-buffer
                                                   (buffer-string))))
@@ -535,6 +641,10 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
         
         ;; Configure process handling
         (set-process-query-on-exit-flag process nil)
+        
+        ;; Track active build process
+        (setq swift-additions:active-build-process process)
+        (setq swift-additions:active-build-buffer (buffer-name log-buffer))
         
         ;; Start async output processing
         (when update-callback
@@ -571,33 +681,48 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
 (defun swift-additions:warm-build-cache ()
   "Warm up build caches and precompile common modules."
   (interactive)
-  (let ((default-directory (xcode-additions:project-root))
-        (cache-dir (expand-file-name "~/Library/Caches/org.swift.swiftpm/ModuleCache")))
+  (cl-block swift-additions:warm-build-cache
+    (let* ((project-root (xcode-additions:project-root))
+           (cache-key (if (fboundp 'swift-cache-project-key)
+                         (swift-cache-project-key project-root "build-cache-warmed")
+                       nil)))
+      ;; Check if already warmed for this project
+      (when (and cache-key (fboundp 'swift-cache-get))
+        (when (swift-cache-get cache-key)
+          (message "Build caches already warmed for this project")
+          (cl-return-from swift-additions:warm-build-cache)))
     
-    ;; Ensure cache directories exist
-    (dolist (dir (list cache-dir
-                       (expand-file-name "~/Library/Caches/org.swift.packages")
-                       (expand-file-name "~/Library/Caches/org.swift.cloned-sources")
-                       (expand-file-name "~/Library/Developer/Xcode/DerivedData/ModuleCache")))
-      (unless (file-exists-p dir)
-        (make-directory dir t)))
-    
-    ;; Precompile common system frameworks asynchronously
-    (message "Warming build caches...")
-    (dolist (framework '("Foundation" "UIKit" "SwiftUI" "Combine" "CoreData" "CoreGraphics"))
-      (start-process-shell-command 
-       (format "cache-%s" framework) 
-       nil
-       (format "xcrun swiftc -emit-module -module-name %s -sdk $(xcrun --sdk iphonesimulator --show-sdk-path) -target arm64-apple-ios15.0-simulator -O -whole-module-optimization /dev/null 2>/dev/null || true" framework)))
-    
-    ;; Precompile bridging headers if they exist
-    (when-let ((bridging-header (car (directory-files-recursively default-directory ".*-Bridging-Header\\.h$" t))))
-      (start-process-shell-command 
-       "cache-bridging" 
-       nil
-       (format "xcrun clang -x objective-c-header -arch arm64 -isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) -c %s -o /tmp/bridging.pch 2>/dev/null || true" bridging-header)))
-    
-    (message "Build cache warming initiated in background")))
+    (let ((default-directory project-root)
+          (cache-dir (expand-file-name "~/Library/Caches/org.swift.swiftpm/ModuleCache")))
+      
+      ;; Ensure cache directories exist
+      (dolist (dir (list cache-dir
+                         (expand-file-name "~/Library/Caches/org.swift.packages")
+                         (expand-file-name "~/Library/Caches/org.swift.cloned-sources")
+                         (expand-file-name "~/Library/Developer/Xcode/DerivedData/ModuleCache")))
+        (unless (file-exists-p dir)
+          (make-directory dir t)))
+      
+      ;; Precompile common system frameworks asynchronously
+      (message "Warming build caches...")
+      (dolist (framework '("Foundation" "UIKit" "SwiftUI" "Combine" "CoreData" "CoreGraphics"))
+        (start-process-shell-command 
+         (format "cache-%s" framework) 
+         nil
+         (format "xcrun swiftc -emit-module -module-name %s -sdk $(xcrun --sdk iphonesimulator --show-sdk-path) -target arm64-apple-ios15.0-simulator -O -whole-module-optimization /dev/null 2>/dev/null || true" framework)))
+      
+      ;; Precompile bridging headers if they exist
+      (when-let ((bridging-header (car (directory-files-recursively default-directory ".*-Bridging-Header\\.h$" t))))
+        (start-process-shell-command 
+         "cache-bridging" 
+         nil
+         (format "xcrun clang -x objective-c-header -arch arm64 -isysroot $(xcrun --sdk iphonesimulator --show-sdk-path) -c %s -o /tmp/bridging.pch 2>/dev/null || true" bridging-header)))
+      
+      ;; Mark as warmed in cache
+      (when (and cache-key (fboundp 'swift-cache-set))
+        (swift-cache-set cache-key t 7200))  ; Cache for 2 hours
+      
+      (message "Build cache warming initiated in background")))))
 
 (defun swift-additions:precompile-common-headers ()
   "Precompile common headers to speed up subsequent builds."
@@ -637,9 +762,11 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
         (default-directory (xcode-additions:project-root)))
 
     (mode-line-hud:update
-     :message (format "Building %s|%s"
-                      (propertize (xcode-additions:scheme) 'face 'font-lock-builtin-face)
-                      (propertize (ios-simulator:simulator-name) 'face 'font-lock-negation-char-face)))
+     :message (format "Building: %s|%s"
+                      (propertize (swift-additions:format-scheme-name (xcode-additions:scheme)) 
+                                 'face 'font-lock-builtin-face)
+                      (propertize (swift-additions:format-simulator-name (ios-simulator:simulator-name)) 
+                                 'face 'font-lock-negation-char-face)))
 
     (xcode-additions:setup-xcodebuildserver)
 
@@ -773,19 +900,43 @@ Returns the configuration name or 'Debug' as fallback."
 
 (defun swift-additions:uses-cocoapods-p ()
   "Check if the current project uses CocoaPods."
-  (let ((default-directory (swift-additions:get-project-root)))
-    (or (file-exists-p "Podfile")
-        (file-exists-p "Podfile.lock")
-        (file-exists-p "Pods/Pods.xcodeproj"))))
+  (let* ((project-root (swift-additions:get-project-root))
+         (cache-key (if (fboundp 'swift-cache-project-key)
+                       (swift-cache-project-key project-root "uses-cocoapods")
+                     nil)))
+    (if (and cache-key (fboundp 'swift-cache-with))
+        (swift-cache-with cache-key 1800  ; Cache for 30 minutes
+          (let ((default-directory project-root))
+            (or (file-exists-p "Podfile")
+                (file-exists-p "Podfile.lock")
+                (file-exists-p "Pods/Pods.xcodeproj"))))
+      ;; Fallback without caching
+      (let ((default-directory project-root))
+        (or (file-exists-p "Podfile")
+            (file-exists-p "Podfile.lock")
+            (file-exists-p "Pods/Pods.xcodeproj"))))))
 
 (defun swift-additions:uses-swift-packages-p ()
   "Check if the current project uses Swift Package Manager."
-  (let ((default-directory (swift-additions:get-project-root)))
-    (or (file-exists-p "Package.swift")
-        (file-exists-p "Package.resolved")
-        ;; Check if Xcode project has package dependencies
-        (and (xcode-additions:is-xcodeproject)
-             (swift-additions:project-has-package-dependencies-p)))))
+  (let* ((project-root (swift-additions:get-project-root))
+         (cache-key (if (fboundp 'swift-cache-project-key)
+                       (swift-cache-project-key project-root "uses-swift-packages")
+                     nil)))
+    (if (and cache-key (fboundp 'swift-cache-with))
+        (swift-cache-with cache-key 1800  ; Cache for 30 minutes
+          (let ((default-directory project-root))
+            (or (file-exists-p "Package.swift")
+                (file-exists-p "Package.resolved")
+                ;; Check if Xcode project has package dependencies
+                (and (xcode-additions:is-xcodeproject)
+                     (swift-additions:project-has-package-dependencies-p)))))
+      ;; Fallback without caching
+      (let ((default-directory project-root))
+        (or (file-exists-p "Package.swift")
+            (file-exists-p "Package.resolved")
+            ;; Check if Xcode project has package dependencies
+            (and (xcode-additions:is-xcodeproject)
+                 (swift-additions:project-has-package-dependencies-p)))))))
 
 (defun swift-additions:project-has-package-dependencies-p ()
   "Check if the Xcode project has Swift Package dependencies."
@@ -932,6 +1083,69 @@ Returns the configuration name or 'Debug' as fallback."
   "Compile and run app."
   (interactive)
   (swift-additions:compile :run t))
+
+(defun swift-additions:format-scheme-name (scheme-name)
+  "Format SCHEME-NAME for display in mode-line.
+  Removes all backslashes and formats nicely."
+  (when scheme-name
+    ;; Simply remove ALL backslashes from the name
+    (let ((cleaned (replace-regexp-in-string "\\\\" "" scheme-name)))
+      
+      ;; Now try to extract the parts and format nicely
+      (cond
+       ;; Pattern 1: "Name (Config)" - parentheses without dash
+       ((string-match "^\\([^(]+\\)[[:space:]]*(\\([^)]+\\))" cleaned)
+        (format "%s-%s" 
+                (string-trim (match-string 1 cleaned))
+                (string-trim (match-string 2 cleaned))))
+       ;; Pattern 2: "Name - (Config)" - with dash and parentheses
+       ((string-match "^\\([^-]+\\)[[:space:]]*-[[:space:]]*(\\([^)]+\\))" cleaned)
+        (format "%s-%s" 
+                (string-trim (match-string 1 cleaned))
+                (string-trim (match-string 2 cleaned))))
+       ;; Pattern 3: Just return cleaned version without backslashes
+       (t (string-trim cleaned))))))
+
+;;;###autoload
+(defun swift-additions:test-scheme-formatting ()
+  "Test the scheme name formatting with various inputs."
+  (interactive)
+  (let ((test-cases '("Bruce - (Development)"
+                      "Bruce - \\(Development)"
+                      "Bruce - \\(Development\\)"
+                      "MyApp - (Release)"
+                      "MyApp - \\(Release\\)")))
+    (dolist (test test-cases)
+      (message "Input: '%s' → Output: '%s'" 
+               test 
+               (swift-additions:format-scheme-name test)))))
+
+;;;###autoload
+(defun swift-additions:debug-current-scheme ()
+  "Debug the current scheme name to see exactly what we're dealing with."
+  (interactive)
+  (let* ((scheme (xcode-additions:scheme))
+         (swift-additions:debug t))
+    (message "=== Debugging Current Scheme ===")
+    (message "Raw scheme from xcode-additions: %S" scheme)
+    (message "Length: %d characters" (length scheme))
+    (message "Character breakdown:")
+    (dotimes (i (length scheme))
+      (let ((char (aref scheme i)))
+        (message "  Position %d: '%c' (code: %d, hex: %x)" 
+                 i char char char)))
+    (message "Formatted result: %s" (swift-additions:format-scheme-name scheme))
+    (message "=== End Debug ==")))
+
+(defun swift-additions:format-simulator-name (simulator-name)
+  "Format SIMULATOR-NAME for better display.
+  Ensures proper capitalization for iPhone/iPad."
+  (if simulator-name
+      ;; Fix common simulator name issues
+      (replace-regexp-in-string "iphone" "iPhone"
+                               (replace-regexp-in-string "ipad" "iPad" 
+                                                        simulator-name t) t)
+    ""))
 
 ;;;###autoload
 (defun swift-additions:compile-app ()
@@ -1312,6 +1526,36 @@ Returns the configuration name or 'Debug' as fallback."
                            (xcode-additions:is-xcodeproject))
                   (message "Auto-warming cache for %s..." (file-name-nondirectory project-root))
                   (xcode-additions:setup-current-project project-root))))))
+
+;; Performance and Analysis Mode Controls
+
+;;;###autoload
+(defun swift-additions:toggle-analysis-mode ()
+  "Cycle through analysis modes for performance tuning.
+Modes: fast -> minimal -> disabled -> full -> fast"
+  (interactive)
+  (setq swift-additions:analysis-mode
+        (pcase swift-additions:analysis-mode
+          ('fast 'minimal)
+          ('minimal 'disabled) 
+          ('disabled 'full)
+          ('full 'fast)
+          (_ 'fast)))  ; fallback
+  (message "Swift analysis mode: %s" swift-additions:analysis-mode))
+
+;;;###autoload
+(defun swift-additions:set-fast-mode ()
+  "Set analysis to fast mode for optimal performance/features balance."
+  (interactive)
+  (setq swift-additions:analysis-mode 'fast)
+  (message "Swift analysis set to fast mode (recommended)"))
+
+;;;###autoload
+(defun swift-additions:set-minimal-mode ()
+  "Set analysis to minimal mode for fastest builds."
+  (interactive)
+  (setq swift-additions:analysis-mode 'minimal)
+  (message "Swift analysis set to minimal mode (fastest)"))
 
 (provide 'swift-additions)
 ;;; swift-additions.el ends here

@@ -5,6 +5,7 @@
 (require 'nerd-icons nil t)
 (require 'json)
 (require 'cl-lib)
+(require 'swift-cache nil t)
 
 (with-eval-after-load 'periphery-helper
  (require 'periphery-helper))
@@ -80,14 +81,15 @@
 (defvar-local current-simulator-id nil)
 (defvar-local current-app-identifier nil)
 (defvar-local current-app-name nil)
-(defvar-local use-rosetta nil)
+;; Removed unused variable: use-rosetta (was always nil)
 
+;; Legacy cache variables - kept for compatibility but now use swift-cache
 (defvar ios-simulator--cached-devices nil
-  "Cached list of available simulator devices.")
+  "Deprecated: Now using swift-cache. Cached list of available simulator devices.")
 (defvar ios-simulator--cache-timestamp nil
-  "Timestamp when devices were last cached.")
+  "Deprecated: Now using swift-cache. Timestamp when devices were last cached.")
 (defconst ios-simulator--cache-ttl 300
-  "Cache TTL in seconds (5 minutes).")
+  "Deprecated: Now using swift-cache. Cache TTL in seconds (5 minutes).")
 
 (defvar ios-simulator-ready-hook nil
   "Hook run when the simulator is ready for app installation.")
@@ -260,7 +262,7 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
     (message "Setting up simulator with id %s" id))
   (if (not (ios-simulator:is-simulator-app-running))
       (ios-simulator:start-simulator-with-id id)
-    (ios-simulator:boot-simuator-with-id id)))
+    (ios-simulator:boot-simulator-with-id id)))
 
 (defun ios-simulator:simulator-name ()
   "Fetches simulator name."
@@ -271,13 +273,13 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
         (setq ios-simulator--current-simulator-name "Simulator (unknown)"))))
   ios-simulator--current-simulator-name)
 
-(defun ios-simulator:boot-simuator-with-id (id)
+(defun ios-simulator:boot-simulator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
   (when ios-simulator:debug
     (message "Booting simulator with id %s" id))
   (make-process
    :name "boot-simulator"
-   :command (list "sh" "-c" (ios-simulator:boot-command :id id :rosetta use-rosetta))
+   :command (list "sh" "-c" (ios-simulator:boot-command :id id))
    :sentinel nil))
 
 (defun ios-simulator:start-simulator-with-id (id)
@@ -289,11 +291,9 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
    :command (list "sh" "-c" (format "open --background -a simulator --args -CurrentDeviceUDID %s" id))
    :sentinel nil))
 
-(cl-defun ios-simulator:boot-command (&key id &key rosetta)
-  "Boot simulator with or without support for x86 (as ID and ROSETTA)."
-  (if rosetta
-      (format "xcrun simctl boot %s --arch=x86_64" id)
-      (format "xcrun simctl boot %s " id)))
+(cl-defun ios-simulator:boot-command (&key id)
+  "Boot simulator (as ID)."
+  (format "xcrun simctl boot %s" id))
 
 (defun ios-simulator:is-simulator-app-running ()
   "Check if simulator is running."
@@ -392,7 +392,6 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
                            ("🇨🇳 Chinese (Simplified)" "zh-CN")
                            ("🇩🇪 German (Germany)" "de-DE")
                            ("🇪🇸 Spanish (Spain)" "es-ES")
-                           ("🇫🇷 French (France)" "fr-FR")
                            ("🇫🇷 French (France)" "fr-FR")
                            ("🇬🇧 English (UK)" "en-UK")
                            ("🇮🇳 Hindi (India)" "hi-IN")
@@ -611,53 +610,93 @@ If TERMINATE-RUNNING is non-nil, terminate any running instance before launching
 
 (defun ios-simulator:fetch-available-simulators ()
   "List available simulators, using cached results if valid."
-  (let ((now (float-time)))
-    (when (or (null ios-simulator--cached-devices)
-              (null ios-simulator--cache-timestamp)
-              (> (- now ios-simulator--cache-timestamp) ios-simulator--cache-ttl))
+  (if (fboundp 'swift-cache-with)
+      ;; Use unified cache system if available
+      (swift-cache-with "ios-simulator:available-devices" 300  ; 5 minute cache
+        (when ios-simulator:debug
+          (message "Refreshing simulator device cache..."))
+        (let* ((json (if (fboundp 'call-process-to-json)
+                         (call-process-to-json list-simulators-command)
+                       (ios-simulator:run-command-and-get-json list-simulators-command)))
+               (devices (cdr (assoc 'devices json)))
+               (flattened-devices '()))
+          ;; Process each runtime and its devices
+          (dolist (runtime-entry devices)
+            (let* ((runtime-key (car runtime-entry))
+                   (runtime-devices (cdr runtime-entry))
+                   ;; Extract iOS version from runtime key
+                   (runtime-string (if (symbolp runtime-key)
+                                       (symbol-name runtime-key)
+                                     runtime-key))
+                   (ios-version (when (and runtime-string
+                                           (string-match "iOS-\\([0-9]+\\)-\\([0-9]+\\)" runtime-string))
+                                 (format "%s.%s" 
+                                         (match-string 1 runtime-string)
+                                         (match-string 2 runtime-string)))))
+              ;; Process each device in this runtime
+              (dolist (device (append runtime-devices nil))
+                (when (and device
+                           (listp device)
+                           (cdr (assoc 'isAvailable device)))
+                  ;; Create a new device entry with iOS version
+                  (let ((device-with-version (copy-alist device)))
+                    (when ios-version
+                      (setcdr device-with-version
+                              (cons (cons 'iosVersion ios-version)
+                                    (cdr device-with-version))))
+                    (push device-with-version flattened-devices))))))
+          (nreverse flattened-devices)))
+    ;; Fallback to legacy caching if swift-cache not available
+    (let ((now (float-time)))
+      (when (or (null ios-simulator--cached-devices)
+                (null ios-simulator--cache-timestamp)
+                (> (- now ios-simulator--cache-timestamp) ios-simulator--cache-ttl))
+        (when ios-simulator:debug
+          (message "Refreshing simulator device cache..."))
+        (let* ((json (if (fboundp 'call-process-to-json)
+                         (call-process-to-json list-simulators-command)
+                       (ios-simulator:run-command-and-get-json list-simulators-command)))
+               (devices (cdr (assoc 'devices json)))
+               (flattened-devices '()))
+          ;; Process each runtime and its devices
+          (dolist (runtime-entry devices)
+            (let* ((runtime-key (car runtime-entry))
+                   (runtime-devices (cdr runtime-entry))
+                   ;; Extract iOS version from runtime key
+                   (runtime-string (if (symbolp runtime-key)
+                                       (symbol-name runtime-key)
+                                     runtime-key))
+                   (ios-version (when (and runtime-string
+                                           (string-match "iOS-\\([0-9]+\\)-\\([0-9]+\\)" runtime-string))
+                                 (format "%s.%s" 
+                                         (match-string 1 runtime-string)
+                                         (match-string 2 runtime-string)))))
+              ;; Process each device in this runtime
+              (dolist (device (append runtime-devices nil))
+                (when (and device
+                           (listp device)
+                           (cdr (assoc 'isAvailable device)))
+                  ;; Create a new device entry with iOS version
+                  (let ((device-with-version (copy-alist device)))
+                    (when ios-version
+                      (setcdr device-with-version
+                              (cons (cons 'iosVersion ios-version)
+                                    (cdr device-with-version))))
+                    (push device-with-version flattened-devices))))))
+          (setq ios-simulator--cached-devices (nreverse flattened-devices)
+                ios-simulator--cache-timestamp now)))
       (when ios-simulator:debug
-        (message "Refreshing simulator device cache..."))
-      (let* ((json (if (fboundp 'call-process-to-json)
-                       (call-process-to-json list-simulators-command)
-                     (ios-simulator:run-command-and-get-json list-simulators-command)))
-             (devices (cdr (assoc 'devices json)))
-             (flattened-devices '()))
-        ;; Process each runtime and its devices
-        (dolist (runtime-entry devices)
-          (let* ((runtime-key (car runtime-entry))
-                 (runtime-devices (cdr runtime-entry))
-                 ;; Extract iOS version from runtime key
-                 (runtime-string (if (symbolp runtime-key)
-                                     (symbol-name runtime-key)
-                                   runtime-key))
-                 (ios-version (when (and runtime-string
-                                         (string-match "iOS-\\([0-9]+\\)-\\([0-9]+\\)" runtime-string))
-                               (format "%s.%s" 
-                                       (match-string 1 runtime-string)
-                                       (match-string 2 runtime-string)))))
-            ;; Process each device in this runtime
-            (dolist (device (append runtime-devices nil))
-              (when (and device
-                         (listp device)
-                         (cdr (assoc 'isAvailable device)))
-                ;; Create a new device entry with iOS version
-                (let ((device-with-version (copy-alist device)))
-                  (when ios-version
-                    (setcdr device-with-version
-                            (cons (cons 'iosVersion ios-version)
-                                  (cdr device-with-version))))
-                  (push device-with-version flattened-devices))))))
-        (setq ios-simulator--cached-devices (nreverse flattened-devices)
-              ios-simulator--cache-timestamp now)))
-    (when ios-simulator:debug
-      (message "Using %s cached simulators" (length ios-simulator--cached-devices)))
-    ios-simulator--cached-devices))
+        (message "Using %s cached simulators" (length ios-simulator--cached-devices)))
+      ios-simulator--cached-devices)))
 
 (defun ios-simulator:invalidate-cache ()
   "Force refresh of simulator device cache."
   (interactive)
-  (setq ios-simulator--cached-devices nil
-        ios-simulator--cache-timestamp nil)
+  (if (fboundp 'swift-cache-invalidate)
+      (swift-cache-invalidate "ios-simulator:available-devices")
+    ;; Fallback to legacy cache invalidation
+    (setq ios-simulator--cached-devices nil
+          ios-simulator--cache-timestamp nil))
   (message "Simulator cache invalidated"))
 
 (defun ios-simulator:remove-control-m (string)
