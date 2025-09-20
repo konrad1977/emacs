@@ -282,11 +282,12 @@ Project path: %s"
   (unless current-build-settings-json
     (let ((project-dir (or (xcode-additions:project-root) default-directory)))
       (setq current-build-settings-json
-            (let ((default-directory project-dir))
+            (let ((default-directory project-dir)
+                  (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme)))
               (xcode-additions:run-command-and-get-json (format "xcrun xcodebuild %s -scheme %s -showBuildSettings -configuration %s -json 2>/dev/null" 
                                                                 (xcode-additions:get-workspace-or-project)
-                                                                (xcode-additions:scheme)
-                                                                config))))))
+                                                                (shell-quote-argument scheme-name)
+                                                                (shell-quote-argument config)))))))
   current-build-settings-json)
 
 (defun xcode-additions:product-name ()
@@ -297,9 +298,28 @@ Project path: %s"
 
 (defun xcode-additions:get-bundle-identifier (config)
   "Get bundle identifier (as CONFIG)."
-  (let ((json (xcode-additions:get-build-settings-json :config config)))
-    (let-alist (seq-elt json 0)
-      .buildSettings.PRODUCT_BUNDLE_IDENTIFIER)))
+  (condition-case err
+      (let ((json (xcode-additions:get-build-settings-json :config config)))
+        (let-alist (seq-elt json 0)
+          .buildSettings.PRODUCT_BUNDLE_IDENTIFIER))
+    (error
+     ;; Fallback: use xcodebuild directly without JSON
+     (let* ((scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme))
+            (workspace-or-project (xcode-additions:get-workspace-or-project))
+            (cmd (format "xcodebuild -showBuildSettings %s -scheme %s -configuration %s 2>/dev/null | grep '^    PRODUCT_BUNDLE_IDENTIFIER' | head -1 | sed 's/.*= //' | tr -d ' '"
+                        workspace-or-project
+                        (shell-quote-argument scheme-name)
+                        (shell-quote-argument config)))
+            (output (string-trim (shell-command-to-string cmd))))
+       (when xcode-additions:debug
+         (message "Fallback command: %s" cmd)
+         (message "Fallback output: %s" output))
+       (if (string-empty-p output)
+           (progn
+             (when xcode-additions:debug
+               (message "No bundle identifier found, using generic fallback"))
+             "com.example.app")  ; Generic fallback
+         output)))))
 
 (cl-defun xcode-additions:build-menu (&key title list)
   "Builds a widget menu from (as TITLE as LIST)."
@@ -355,14 +375,40 @@ Returns a list of folder names, excluding hidden folders."
     (shell-quote-argument current-xcode-scheme)))
 
 (defun xcode-additions:fetch-or-load-build-configuration ()
-  "Get the build configuration or promp user."
-  (setq current-build-configuration "Debug")
+  "Get the build configuration from the scheme file."
+  (unless current-build-configuration
+    (let* ((scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme))
+           (project-root (xcode-additions:project-root))
+           (xcodeproj-dirs (directory-files project-root t "\\.xcodeproj$"))
+           (xcodeproj-dir (car xcodeproj-dirs))
+           (scheme-file (when xcodeproj-dir
+                         (format "%s/xcshareddata/xcschemes/%s.xcscheme" 
+                                xcodeproj-dir scheme-name))))
+      (if (and scheme-file (file-exists-p scheme-file))
+          (with-temp-buffer
+            (insert-file-contents scheme-file)
+            (goto-char (point-min))
+            ;; Look for LaunchAction buildConfiguration first, then fallback to TestAction
+            (if (re-search-forward "<LaunchAction[^>]*buildConfiguration\\s-*=\\s-*\"\\([^\"]+\\)\"" nil t)
+                (setq current-build-configuration (match-string 1))
+              (goto-char (point-min))
+              (if (re-search-forward "<TestAction[^>]*buildConfiguration\\s-*=\\s-*\"\\([^\"]+\\)\"" nil t)
+                  (setq current-build-configuration (match-string 1))
+                (setq current-build-configuration "Debug"))))
+        (setq current-build-configuration "Debug"))))
   current-build-configuration)
 
 (defun xcode-additions:fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."
   (unless current-app-identifier
-    (setq current-app-identifier (xcode-additions:get-bundle-identifier (xcode-additions:fetch-or-load-build-configuration))))
+    (let ((config (xcode-additions:fetch-or-load-build-configuration)))
+      (when xcode-additions:debug
+        (message "xcode-additions:fetch-or-load-app-identifier - scheme: %s, config: %s" 
+                 current-xcode-scheme config))
+      (setq current-app-identifier (xcode-additions:get-bundle-identifier config))
+      (when xcode-additions:debug
+        (message "xcode-additions:fetch-or-load-app-identifier - bundle ID: %s" 
+                 current-app-identifier))))
   current-app-identifier)
 
 (defun xcode-additions:get-scheme-list ()
