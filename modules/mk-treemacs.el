@@ -66,5 +66,8 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
+(use-package project-treemacs
+  :after treemacs)
+
 (provide 'mk-treemacs)
 ;;; mk-treemacs.el ends here

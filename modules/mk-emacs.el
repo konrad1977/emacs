@@ -1,4 +1,6 @@
-;;; -*- lexical-binding: t; -*-
+;;; mk-emacs.el --- General Emacs settings -*- lexical-binding: t; -*-
+;;; Commentary:
+;; General Emacs settings for improved usability and performance.
 ;;; Code:
 
 ;; Predefine variables to avoid void-variable errors during macro expansion
@@ -210,6 +212,17 @@
   (which-key-idle-delay 0.8)       ;; Set the time delay (in seconds) for the which-key popup to appear
   (which-key-max-description-length 45)
   (which-key-allow-imprecise-window-fit nil))
+
+(defun mk/browser-split-window (url &optional new-window)
+  "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."
+  (interactive)
+  (let ((ignore-window-parameters t)
+        (dedicated-p (window-dedicated-p)))
+    (delete-other-windows)
+    (split-window-horizontally)
+    (other-window 1)
+    (xwidget-webkit-browse-url url)))
+
 
 (provide 'mk-emacs)
 ;;; mk-emacs.el ends here
