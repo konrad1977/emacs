@@ -118,10 +118,103 @@
     "h" 'dired-up-directory
     "l" 'dired-find-file))
 
+(use-package which-key
+  :defer 3
+  :ensure nil
+  :hook (after-init . which-key-mode)
+  :custom
+  (which-key-separator " → ")
+  (which-key-side-window-location 'bottom)
+  (which-key-sort-order #'which-key-key-order-alpha)
+  (which-key-sort-uppercase-first nil)
+  (which-key-add-column-padding 2)
+  (which-key-min-display-lines 6)
+  (which-key-idle-delay 0.8)
+  (which-key-max-description-length 45)
+  (which-key-allow-imprecise-window-fit nil))
+
 (use-package mode-line-hud
   :ensure nil
   :config
   (setq show-in-echo-area nil))
+
+;; Window management configuration
+(use-package window
+  :ensure nil
+  :bind (("C-x C-f" . #'toggle-frame-fullscreen)
+         ("C-x C-w" . #'toggle-frame-maximized)
+         ("C-x C-s" . #'window-toggle-side-windows)
+         ("C-x C-x" . #'mk/safe-kill-buffer-and-window))
+  :custom
+  (transient-display-buffer-action
+   '(display-buffer-below-selected
+     (window-height . fit-window-to-buffer)))
+  (window-resize-pixelwise nil)
+  (window-divider-default-places t)
+  (window-divider-default-bottom-width 1)
+  (window-divider-default-right-width 1)
+  (display-buffer-alist
+   '(("\\*Async Shell Command\\*" (display-buffer-no-window))
+     ("\\*xwidget\\*\\|\\*xref\\*"
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
+      (body-function . select-window)
+      (window-width . 0.4)
+      (side . left))
+     ("evil-marks\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
+      (window-width . 0.10)
+      (side . right)
+      (slot . 0))
+     ("\\*iOS Simulator\\|\\*swift package\\|\\*ios-device"
+      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+      (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
+      (window-parameters . ((mode-line-format . none)))
+      (slot . 4))
+     ("\\*Embark*"
+      (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-at-bottom)
+      (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
+      (window-parameters . ((select-window . t)))
+      (slot . 5))
+     ("\\*Copilot Chat*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-width . 0.45)
+      (side . right)
+      (slot . 2)
+      (window-parameters . ((mode-line-format . none))))
+     ("\\*Periphery\\*\\|\\*compilation\\*"
+      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+      (body-function . select-window)
+      (window-height . 0.2)
+      (window-width . 0.30)
+      (slot . 1))
+     ("\\*Android Emulator\\*\\|\\*Android Logcat\\*\\|\\*Android Emulator Error\\*"
+      (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
+      (body-function . select-window)
+      (window-height . 0.2)
+      (window-width . 0.70)
+      (slot . 2))
+     ("\\*Faces\\|[Hh]elp\\*\\|\\*Copilot*\\|\\*Occur\\*"
+      (display-buffer-in-side-window)
+      (body-function . select-window)
+      (window-width . 0.4)
+      (side . right)
+      (slot . 1))
+     ("\\*e?shell\\|*ellama\\|\\*vterm\\*"
+      (display-buffer-at-bottom display-buffer-reuse-window)
+      (body-function . select-window)
+      (window-height . 0.13)
+      (window-parameters . ((mode-line-format . none)))
+      (side . bottom)
+      (slot . 10))
+     ("\\*\\(Flycheck\\|Package-Lint\\).*"
+      (display-buffer-reuse-window display-buffer-below-selected)
+      (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
+      (dedicated . t)
+      (window-parameters . ((no-other-window . t)
+                            (mode-line-format . none)))))))
 
 
 ;;; Provide

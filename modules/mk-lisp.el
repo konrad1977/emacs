@@ -58,5 +58,5 @@
   (emacs-lisp-mode-hook . eros-mode))
 
 ;;; Provide
-(provide 'mk-lispediting)
+(provide 'mk-lisp)
 ;;; mk-lispediting.el ends here.

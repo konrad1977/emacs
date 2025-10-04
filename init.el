@@ -22,7 +22,7 @@
 (require 'mk-core)
 (require 'mk-emacs)
 (require 'mk-editing)
-(require 'mk-lispediting)
+(require 'mk-lisp)
 (require 'mk-treemacs)
 (require 'mk-ios-development)
 (require 'mk-org)
@@ -36,6 +36,7 @@
 (require 'mk-ai)
 (require 'mk-term)
 (require 'mk-kotlin-development)
+(require 'mk-web)
 (require 'mk-misc)
 ;; (require 'mk-elfeed)
 
