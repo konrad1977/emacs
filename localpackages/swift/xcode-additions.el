@@ -175,7 +175,7 @@ If DIRECTORY is nil, use `default-directory'."
   "List the names of '.xcscheme' files in the xcshareddata/xcshemes subfolder of FOLDER."
   (let ((xcscheme-names '()))
     (setq folder (file-name-as-directory (expand-file-name folder)))
-    ;; Set the schemes folder path  
+    ;; Set the schemes folder path
     (setq xcschemes-folder (concat folder "xcshareddata/xcschemes/"))
 
     (when xcode-additions:debug
@@ -267,7 +267,7 @@ Project path: %s"
       (message "JSON output preview: %s" (substring json-output 0 (min 200 (length json-output)))))
     (condition-case err
         (json-read-from-string json-output)
-      (error 
+      (error
        (when xcode-additions:debug
          (message "JSON parsing error: %s" (error-message-string err))
          (message "Full JSON output: %s" json-output))
@@ -280,12 +280,12 @@ Project path: %s"
   (condition-case err
       (let* ((project-dir (or (xcode-additions:project-root) default-directory))
              (json-data (let ((default-directory project-dir))
-                           (xcode-additions:run-command-and-get-json "xcrun xcodebuild -list -json 2>/dev/null"))))
+                          (xcode-additions:run-command-and-get-json "xcrun xcodebuild -list -json 2>/dev/null"))))
         (when json-data
           (let-alist json-data
             (cond
              ;; Workspace case
-             (.workspace.schemes 
+             (.workspace.schemes
               (when xcode-additions:debug
                 (message "Found schemes via xcodebuild (workspace): %s" .workspace.schemes))
               .workspace.schemes)
@@ -304,7 +304,7 @@ Project path: %s"
      nil)))
 
 (cl-defun xcode-additions:get-build-settings-json (&key (config "Debug"))
-  "Get build settings from xcodebuild."
+  "Get build settings from xcodebuild CONFIG."
   (let* ((project-root (xcode-additions:project-root))
          (cache-key (when (fboundp 'swift-cache-project-key)
                       (swift-cache-project-key project-root 
@@ -315,7 +315,7 @@ Project path: %s"
         (swift-cache-with cache-key 1800  ; Cache for 30 minutes
           (let ((project-dir (or project-root default-directory)))
             (let ((default-directory project-dir)
-                  (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme)))
+                  (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" (or current-xcode-scheme ""))))
               (xcode-additions:run-command-and-get-json 
                (format "xcrun xcodebuild %s -scheme %s -showBuildSettings -configuration %s -json 2>/dev/null" 
                        (xcode-additions:get-workspace-or-project)
@@ -324,7 +324,7 @@ Project path: %s"
       ;; Fallback when swift-cache not available
       (let ((project-dir (or project-root default-directory)))
         (let ((default-directory project-dir)
-              (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme)))
+              (scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" (or current-xcode-scheme ""))))
           (xcode-additions:run-command-and-get-json 
            (format "xcrun xcodebuild %s -scheme %s -showBuildSettings -configuration %s -json 2>/dev/null" 
                    (xcode-additions:get-workspace-or-project)
@@ -345,7 +345,7 @@ Project path: %s"
           .buildSettings.PRODUCT_BUNDLE_IDENTIFIER))
     (error
      ;; Fallback: use xcodebuild directly without JSON
-     (let* ((scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme))
+     (let* ((scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" (or current-xcode-scheme "")))
             (workspace-or-project (xcode-additions:get-workspace-or-project))
             (cmd (format "xcodebuild -showBuildSettings %s -scheme %s -configuration %s 2>/dev/null | grep '^    PRODUCT_BUNDLE_IDENTIFIER' | head -1 | sed 's/.*= //' | tr -d ' '"
                         workspace-or-project
@@ -418,7 +418,9 @@ Returns a list of folder names, excluding hidden folders."
 (defun xcode-additions:fetch-or-load-build-configuration ()
   "Get the build configuration from the scheme file."
   (unless current-build-configuration
-    (let* ((scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" current-xcode-scheme))
+    ;; Ensure scheme is loaded first
+    (xcode-additions:scheme)
+    (let* ((scheme-name (replace-regexp-in-string "^['\"]\\|['\"]$" "" (or current-xcode-scheme "")))
            (project-root (xcode-additions:project-root))
            (xcodeproj-dirs (directory-files project-root t "\\.xcodeproj$"))
            (xcodeproj-dir (car xcodeproj-dirs))
@@ -442,6 +444,8 @@ Returns a list of folder names, excluding hidden folders."
 (defun xcode-additions:fetch-or-load-app-identifier ()
   "Get the app identifier for the current configiration."
   (unless current-app-identifier
+    ;; Ensure scheme is loaded first
+    (xcode-additions:scheme)
     (let ((config (xcode-additions:fetch-or-load-build-configuration)))
       (when xcode-additions:debug
         (message "xcode-additions:fetch-or-load-app-identifier - scheme: %s, config: %s" 
@@ -782,14 +786,25 @@ Returns a list of folder names, excluding hidden folders."
 (defun xcode-additions:start-debugging ()
   "Start debugging immediately without confirmation."
   (interactive)
-  (xcode-additions:setup-dape)
-  (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
-    (dape config)))
+  (condition-case err
+      (progn
+        (xcode-additions:setup-dape)
+        (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
+          (if config
+              (dape config)
+            (error "Failed to setup dape configuration"))))
+    (error
+     (message "Error starting debugger: %s" (error-message-string err))
+     (message "Please ensure a scheme is selected and the project is properly configured")
+     (signal (car err) (cdr err)))))
 
 (defun xcode-additions:setup-dape()
   "Setup dape."
   (interactive)
   (require 'dape)
+  ;; Ensure scheme and project root are loaded first
+  (xcode-additions:scheme)
+  (xcode-additions:project-root)
   (add-to-list 'dape-configs
                `(ios
                  modes (swift-mode)
@@ -804,8 +819,10 @@ Returns a list of folder names, excluding hidden folders."
                                "--settings" "{\"sourceLanguages\":[\"swift\"]}"
                                "--liblldb" "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB")
                  port :autoport
-                 simulator-id ,(ios-simulator:simulator-identifier)
-                 app-bundle-id ,(xcode-additions:fetch-or-load-app-identifier)
+                 simulator-id ,(or (ignore-errors (ios-simulator:simulator-identifier))
+                                   (error "Failed to get simulator ID"))
+                 app-bundle-id ,(or (xcode-additions:fetch-or-load-app-identifier)
+                                    (error "Failed to get app bundle identifier"))
                  fn (dape-config-autoport
                      ,(lambda (config)
                         (with-temp-buffer
@@ -827,7 +844,8 @@ Returns a list of folder names, excluding hidden folders."
                         config))
                  :type "lldb"
                  :request "attach"
-                 :cwd ".")))
+                 :cwd "."))
+  (call-interactively #'dape))
 
 
 (defun xcode-additions:clean-build-folder ()
@@ -985,13 +1003,13 @@ IGNORE-LIST is a list of folder names to ignore during cleaning."
         (let ((msg (match-string 2 line)))
           (unless (gethash msg seen-messages)
             (xcode-additions:safe-mode-line-update :message
-                                  (format "Compiling %s" (propertize msg 'face 'warning)))
+                                                   (format "  %s" (propertize msg 'face 'warning)))
             (puthash msg t seen-messages))))
        ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
         (let ((msg (match-string 1 line)))
           (unless (gethash msg seen-messages)
             (xcode-additions:safe-mode-line-update :message
-                                  (format "Compiling module %s" (propertize msg 'face 'warning)))
+                                                   (format "  %s" (propertize msg 'face 'warning)))
             (puthash msg t seen-messages))))
        ((string-match error-regex line)
         (setq current-errors-or-warnings (concat line "\n" current-errors-or-warnings))
@@ -1179,7 +1197,7 @@ Returns the number of processes killed."
               (setq found-error t)
               (message "Found compile.lock error in %s buffer - this can halt builds!" buffer-name))))))
     (if found-error
-        (when (yes-or-no-p "Compile.lock error detected. Kill build processes and clean derived data?")
+        (when (yes-or-no-p "Compile.lock error detected.  Kill build processes and clean derived data?")
           (xcode-additions:interrupt-build)
           (message "Interrupted build. Consider running clean derived data."))
       (message "No compile.lock errors found in build buffers"))))

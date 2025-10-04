@@ -103,7 +103,9 @@ MAX-RETRIES specifies maximum retry attempts."
 (defun swift-error-handler-show-log ()
   "Display the error log buffer."
   (interactive)
-  (pop-to-buffer swift-error-handler--log-buffer))
+  (let ((buffer (get-buffer-create swift-error-handler--log-buffer)))
+    (when (buffer-live-p buffer)
+      (pop-to-buffer buffer))))
 
 (defun swift-error-handler-clear-log ()
   "Clear the error log."

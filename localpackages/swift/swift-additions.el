@@ -1,4 +1,4 @@
-;;; Swift-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
+;;; Swift-additions.el --- package for;;; Swift-additions.el --- package for compiling and running swift apps in emacs -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 
@@ -63,6 +63,22 @@
   :type 'boolean
   :group 'swift-additions)
 
+(defcustom swift-additions:skip-package-resolution 'auto
+  "Control Swift package dependency resolution during builds.
+- 'auto: Automatically detect if packages need resolution (recommended)
+- 'always: Always skip package resolution (faster but may fail if packages missing)
+- 'never: Never skip, always resolve packages (slower but safer)"
+  :type '(choice (const :tag "Auto-detect" auto)
+                 (const :tag "Always skip" always)
+                 (const :tag "Never skip" never))
+  :group 'swift-additions)
+
+(defcustom swift-additions:force-package-resolution nil
+  "Force package resolution even if packages appear to exist.
+Useful when you suspect package corruption or version conflicts."
+  :type 'boolean
+  :group 'swift-additions)
+
 (defcustom swift-additions:use-periphery t
   "Whether to use periphery for error parsing.
 When non-nil, use periphery's custom error display.
@@ -115,13 +131,14 @@ When nil, use standard compilation-mode."
 (defun swift-additions:show-errors-in-compilation-mode (output)
   "Display build OUTPUT in compilation-mode buffer."
   (let ((buf (get-buffer-create "*Swift Build*")))
-    (with-current-buffer buf
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (insert output)
-        (compilation-mode)
-        (goto-char (point-min))))
-    (display-buffer buf)))
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert output)
+          (compilation-mode)
+          (goto-char (point-min))))
+      (display-buffer buf))))
 
 (defun swift-additions:reset ()
   "Reset build settings and clear all cached state."
@@ -175,6 +192,67 @@ When nil, use standard compilation-mode."
   (if swift-additions:current-environment-x86
       "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
     "xcrun xcodebuild build \\"))
+
+(defun swift-additions:swift-packages-exist-p ()
+  "Check if Swift packages are already downloaded.
+Looks for packages in both the local .build folder and global caches."
+  (let* ((project-root (xcode-additions:project-root))
+         (local-packages (expand-file-name ".build/checkouts" project-root))
+         (global-packages (expand-file-name "~/Library/Developer/Xcode/DerivedData"))
+         (cache-packages (expand-file-name "~/Library/Caches/org.swift.packages"))
+         (cloned-sources (expand-file-name "~/Library/Caches/org.swift.cloned-sources")))
+    (or
+     ;; Check local .build/checkouts
+     (and (file-exists-p local-packages)
+          (> (length (directory-files local-packages nil "^[^.]" t)) 0))
+     ;; Check global package caches
+     (and (file-exists-p cache-packages)
+          (> (length (directory-files cache-packages nil "^[^.]" t)) 0))
+     ;; Check cloned sources
+     (and (file-exists-p cloned-sources)
+          (> (length (directory-files cloned-sources nil "^[^.]" t)) 0)))))
+
+(defun swift-additions:should-resolve-packages-p ()
+  "Determine if package resolution should be performed.
+Based on swift-additions:skip-package-resolution setting."
+  (cond
+   ;; Force resolution if explicitly requested
+   (swift-additions:force-package-resolution t)
+   ;; Check skip setting
+   ((eq swift-additions:skip-package-resolution 'never) t)
+   ((eq swift-additions:skip-package-resolution 'always) nil)
+   ;; Auto mode: only resolve if packages don't exist
+   ((eq swift-additions:skip-package-resolution 'auto)
+    (not (swift-additions:swift-packages-exist-p)))
+   ;; Default to resolving
+   (t t)))
+
+(defun swift-additions:resolve-package-dependencies ()
+  "Resolve Swift package dependencies if needed.
+Returns the command string to include in the build command or empty string."
+  (if (swift-additions:should-resolve-packages-p)
+      (progn
+        (when swift-additions:debug
+          (message "Resolving Swift package dependencies..."))
+        "-resolvePackageDependencies \\")
+    (progn
+      (when swift-additions:debug
+        (message "Skipping package resolution (packages exist or skip enabled)"))
+      "")))
+
+(defun swift-additions:get-package-optimization-flags ()
+  "Get package management optimization flags based on current settings.
+Returns flags to optimize or skip package resolution."
+  (if (not (swift-additions:should-resolve-packages-p))
+      ;; When skipping resolution, use these flags to prevent automatic updates
+      (concat
+       "-skipPackageUpdates \\"  ; Skip updating packages
+       ;; Note: -skipPackagePluginValidation is available in Xcode 14+
+       ;; We'll try to use it and let xcodebuild ignore it if not supported
+       "-skipPackagePluginValidation \\"  ; Skip plugin validation (Xcode 14+)
+       "")
+    ;; When resolving, don't add these flags
+    ""))
 
 (defun swift-additions:get-optimal-jobs ()
   "Get get number of CPUs."
@@ -288,13 +366,14 @@ If FOR-DEVICE is non-nil, setup for device build (with signing), otherwise for s
        (swift-additions:xcodebuild-command)
        (format "%s \\" workspace-or-project)
        (format "-scheme %s \\" (xcode-additions:scheme))
+       (swift-additions:resolve-package-dependencies)
        ;; Package management optimizations (works for both CocoaPods + SPM projects)
-       "-skipPackageUpdates \\" ; Skip automatic package updates
+       (swift-additions:get-package-optimization-flags)
        "-packageCachePath ~/Library/Caches/org.swift.packages \\" ; Shared package cache
        "-clonedSourcePackagesDirPath ~/Library/Caches/org.swift.cloned-sources \\" ; Cache cloned packages
        (format "-parallelizeTargets -jobs %d \\" (* (num-processors) 2)) ; Use double CPU cores
        (if sim-id
-           (format "-destination 'generic/platform=iOS Simulator,id=%s' -sdk %s \\" sim-id "iphonesimulator")
+           (format "-destination 'generic/platform=iOS Simulator,id=%s' SDKROOT=$(xcrun --sdk iphonesimulator --show-sdk-path) \\" sim-id)
          (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
        ;; Only specify configuration if explicitly overridden
        (if swift-additions:default-configuration
@@ -569,7 +648,8 @@ Keeps the end of the output where errors typically appear, and any lines with 'e
   (when swift-additions:build-progress-spinner
     (spinner-stop swift-additions:build-progress-spinner))
   (setq swift-additions:current-build-command nil
-        swift-additions:compilation-time nil))
+        swift-additions:compilation-time nil
+        swift-additions:force-package-resolution nil))  ; Reset force flag after build
 
 (defun swift-additions:successful-build ()
   "Show that the build was successful."
@@ -1341,11 +1421,12 @@ Returns the configuration name or 'Debug' as fallback."
         (message "Cleaning .build folder...")
         (async-shell-command "rm -rf .build"))
       
-      ;; Reset package dependencies
-      (async-shell-command-to-string 
-       :command "xcodebuild -resolvePackageDependencies"
-       :callback (lambda (output)
-                   (message "Swift Package dependencies resolved."))))
+      ;; Reset package dependencies (force resolution)
+      (let ((swift-additions:force-package-resolution t))
+        (async-shell-command-to-string 
+         :command "xcodebuild -resolvePackageDependencies"
+         :callback (lambda (output)
+                     (message "Swift Package dependencies resolved.")))))
     
     ;; Always clean derived data regardless of dependency manager
     (let* ((project-name (or (xcode-additions:workspace-name) (xcode-additions:project-name)))
@@ -1366,6 +1447,48 @@ Returns the configuration name or 'Debug' as fallback."
       (message "No package managers detected, but cleaned derived data.")))
     
     (message "Ready to build.")))
+
+;;;###autoload
+(defun swift-additions:toggle-package-resolution ()
+  "Toggle Swift package resolution mode between auto/always/never."
+  (interactive)
+  (setq swift-additions:skip-package-resolution
+        (cond
+         ((eq swift-additions:skip-package-resolution 'auto) 'always)
+         ((eq swift-additions:skip-package-resolution 'always) 'never)
+         ((eq swift-additions:skip-package-resolution 'never) 'auto)
+         (t 'auto)))
+  (message "Swift package resolution mode: %s" swift-additions:skip-package-resolution))
+
+;;;###autoload
+(defun swift-additions:force-resolve-packages ()
+  "Force Swift package dependency resolution on next build."
+  (interactive)
+  (setq swift-additions:force-package-resolution t)
+  (message "Will force package resolution on next build"))
+
+;;;###autoload
+(defun swift-additions:check-package-status ()
+  "Check and display Swift package status."
+  (interactive)
+  (let* ((packages-exist (swift-additions:swift-packages-exist-p))
+         (project-root (xcode-additions:project-root))
+         (local-packages (expand-file-name ".build/checkouts" project-root))
+         (cache-packages (expand-file-name "~/Library/Caches/org.swift.packages"))
+         (cloned-sources (expand-file-name "~/Library/Caches/org.swift.cloned-sources")))
+    (message "Swift Package Status:
+- Packages exist: %s
+- Resolution mode: %s
+- Force resolution: %s
+- Local packages (.build): %s
+- Package cache: %s
+- Cloned sources: %s"
+             (if packages-exist "Yes" "No")
+             swift-additions:skip-package-resolution
+             (if swift-additions:force-package-resolution "Yes" "No")
+             (if (file-exists-p local-packages) "Exists" "Missing")
+             (if (file-exists-p cache-packages) "Exists" "Missing")
+             (if (file-exists-p cloned-sources) "Exists" "Missing"))))
 
 (defun swift-additions:diagnose ()
   "Display diagnostic information about the current Swift development environment."

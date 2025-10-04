@@ -73,7 +73,8 @@
                                                 run-command
                                                 buffer)))))
 
-    (pop-to-buffer buffer)))
+    (when (buffer-live-p buffer)
+      (pop-to-buffer buffer))))
 
 (defun ios-device:identifier ()
   "Get iOS device identifier."
@@ -122,6 +123,21 @@
   (setq ios-device-current-install-command nil)
   (setq ios-device-current-app-identifier nil)
   (setq ios-device-current-buffer nil))
+
+(defun ios-device:reset-privacy ()
+  "Reset all privacy settings for the booted iOS simulator."
+  (interactive)
+  (let ((command "xcrun simctl privacy booted reset all"))
+    (message "Resetting privacy settings for booted simulator...")
+    (shell-command command)
+    (message "Privacy settings reset successfully")))
+
+(defun ios-device:clear-cache ()
+  "Clear cache and data for the booted iOS simulator."
+  (interactive)
+  (message "Clearing simulator cache...")
+  (shell-command "xcrun simctl erase booted")
+  (message "Simulator cache cleared - device has been erased"))
 
 (defun ios-device:cleanup ()
   "Cleanup function to terminate the app when the buffer is closed."

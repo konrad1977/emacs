@@ -5,15 +5,48 @@
 
 ;;; Code:
 
+;; Fix for custom-declare-variable errors in Emacs 30.2.50
+;; This must be done very early before any packages load
+(defun mk/custom-declare-variable-safe (orig-fun symbol value &rest args)
+  "Safely declare custom variables, creating them if they don't exist."
+  (condition-case err
+      (apply orig-fun symbol value args)
+    (void-variable
+     ;; If we get a void-variable error, define the variable first
+     (unless (boundp symbol)
+       (set symbol (if (functionp value) 
+                      (ignore-errors (funcall value))
+                    value)))
+     symbol)
+    (error
+     ;; For any other error, just define the variable with a safe default
+     (unless (boundp symbol)
+       (set symbol nil))
+     symbol)))
+
+(advice-add 'custom-declare-variable :around #'mk/custom-declare-variable-safe)
+
+;; =====================
+;; Suppress All Warnings
+;; =====================
+
+;; Must be set very early to suppress all warnings
+(setq warning-minimum-level :error)
+(setq byte-compile-warnings nil)
+(setq native-comp-async-report-warnings-errors nil)
+(setq warning-suppress-types '((comp) (bytecomp) (obsolete)))
+(setq warning-suppress-log-types '((comp) (bytecomp) (obsolete)))
+
 ;; =====================
 ;; Critical Performance
 ;; =====================
 
+(setenv "LSP_USE_PLISTS" "true")
+
 ;; Disable file handlers and garbage collection during startup
 (defvar file-name-handler-alist-original file-name-handler-alist)
 (setq file-name-handler-alist nil
-      gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6)
+      gc-cons-threshold most-positive-fixnum)
 
 ;; Prevent unwanted runtime compilation
 (setq native-comp-deferred-compilation nil
@@ -73,6 +106,7 @@
         (tool-bar-lines . 0)
         (menu-bar-lines . 0)
         (ns-transparent-titlebar . t)
+        (mac-transparent-titlebar . t)
         (fullscreen . maximized)
         (undecorated-round . t)
         (left-fringe . 12)
@@ -103,7 +137,7 @@
   (condition-case nil
       (let ((mono-font "Iosevka Curly")
             (variable-font "Iosevka Aile"))
-        (set-face-attribute 'default nil :family mono-font :height 170 :weight 'light)
+        (set-face-attribute 'default nil :family mono-font :height 160 :weight 'light)
         (set-face-attribute 'fixed-pitch nil :family mono-font :weight 'light)
         (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
     (error nil))
@@ -117,14 +151,11 @@
 
 (when (and (fboundp 'native-comp-available-p)
            (native-comp-available-p))
-  (setq native-comp-async-report-warnings-errors nil
+  (setq native-comp-jit-compilation t
+        native-comp-async-report-warnings-errors 'silent
         native-comp-async-query-on-exit t
-        native-comp-jit-compilation t
-        comp-async-report-warnings-errors nil
-        comp-deferred-compilation t))
+        native-comp-async-jobs-number (- (string-to-number (string-trim-right (shell-command-to-string "nproc"))) 1)))
 
-;; ;; Silence compiler warnings
-(setq warning-suppress-types '((comp) (bytecomp)))
 
 ;; ;; =====================
 ;; ;; Additional Optimizations
@@ -136,6 +167,7 @@
       fast-but-imprecise-scrolling t
       ffap-machine-p-known 'reject
       inhibit-default-init t
+      idle-update-delay 1.0
       read-process-output-max (* 1024 1024)
       process-adaptive-read-buffering t)
 
@@ -162,7 +194,9 @@
                                                ("melpa" . 0)))
             
             ;; Schedule periodic GC during idle time
-            (run-with-idle-timer 5 t (lambda () (garbage-collect)))
+            (run-with-idle-timer 5 t (lambda () 
+                                       (let ((inhibit-message t))
+                                         (garbage-collect))))
             
             ;; Log startup time
             (message "Emacs started in %s with %d garbage collections."

@@ -42,7 +42,7 @@
            :buffer output-buffer
            :command (list shell-file-name shell-command-switch command)
            :filter (lambda (proc string)
-                     (when debug (message "Received output (length %d): %s" (length string) string))
+                     (when debug (message "Received output chunk (length %d): %s" (length string) string))
                      (when (functionp update-callback)
                        (condition-case err
                            (funcall update-callback string)
@@ -114,24 +114,37 @@
 (defun open-current-line-with (data)
   "Open current line with DATA."
   (when data
-  (save-match-data
-    (and (string-match periphery-parse-line-regex data)
-         (when-let* ((file (match-string 1 data))
-                    (linenumber (string-to-number (match-string 2 data)))
-                    (column (match-string 3 data))
-                    (project-root (periphery-helper:project-root-dir))
-                    (full-file-path (if (file-name-absolute-p file)
-                                        file
-                                      (expand-file-name file project-root))))
-           (if (file-exists-p full-file-path)
-               (with-current-buffer (find-file full-file-path)
-                 (when (> linenumber 0)
-                   (goto-char (point-min))
-                   (forward-line (1- linenumber))
-                   (if-let* ((columnnumber (string-to-number column)))
-                       (when (> columnnumber 0)
-                         (forward-char (1- columnnumber))))))
-             (message "File not found: %s" full-file-path)))))))
+    ;; Handle build failures and other non-file paths
+    (cond
+     ;; Skip if data looks like a build command or contains build failure info
+     ((or (string-match-p "^/Applications/Xcode.app" data)
+          (string-match-p "swift-frontend" data)
+          (string= data "_Build Failure"))
+      (message "Cannot open file for build failure or command: %s" 
+               (if (> (length data) 100) 
+                   (concat (substring data 0 100) "...")
+                 data)))
+     ;; Normal file path handling
+     (t
+      (save-match-data
+        (and (string-match periphery-parse-line-regex data)
+             (when-let* ((file (match-string 1 data))
+                        (linenumber (string-to-number (match-string 2 data)))
+                        (column (match-string 3 data))
+                        (project-root (periphery-helper:project-root-dir))
+                        (full-file-path (if (file-name-absolute-p file)
+                                            file
+                                          (expand-file-name file project-root))))
+               (if (file-exists-p full-file-path)
+                   (with-current-buffer (find-file full-file-path)
+                     (when (> linenumber 0)
+                       (goto-char (point-min))
+                       (when (> linenumber 1)
+                         (forward-line (1- linenumber)))
+                       (if-let* ((columnnumber (string-to-number column)))
+                           (when (> columnnumber 0)
+                             (forward-char (1- columnnumber))))))
+                 (message "File not found: %s" full-file-path)))))))))
 
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
   "Execute shell command COMMAND asynchronously in the background.

@@ -5,6 +5,13 @@
 
 ;;; Code:
 
+(require 'periphery-core)
+(require 'periphery-config)
+(require 'periphery-parsers)
+
+;; Initialize parsers when loading periphery
+(periphery-parsers-initialize)
+
 (defconst periphery-buffer-name "*Periphery*")
 
 (defcustom periphery-debug nil
@@ -13,123 +20,6 @@
   :group 'periphery)
 
 (defvar default-length 8)
-
-(defconst periphery-regex-patterns
-  '((parser . "\\(^\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\s+\\([^:]+\\):\\(.*\\)\\([^^|\/]*\\)")
-    (parentheses . "\\(\(.+?\)\\)")
-    (strings . "\\(\"[^\"]+\"\\)")
-    (quotes . "\\('[^']+'\\)")
-    (xctest . "^\\([^:]+\\):\\([0-9]+\\):\\w?\\([^:]*\\)[^.]+\\.\\([^:|]*\\)\s?:\\(.*\\)")
-    (todos . "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)\s?:?\s?\\(.*\\)")
-    (search . "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
-    (missing-product . ": error: Missing package product '\\([^']+\\)' (in target '\\([^']+\\)' from project '\\([^']+\\)')")
-    (package-error . "^xcodebuild: error: Could not resolve package dependencies:")
-    (build-failure . "^The following build commands failed:")))
-
-(defface periphery-filename-face
-  '((t (:inherit link)))
-  "Filename face."
-  :group 'periphery)
-
-(defface periphery-linenumber-face
-  '((t (:inherit line-number)))
-  "Line number face."
-  :group 'periphery)
-
-(defface periphery-warning-face
-  '((t (:foreground "#f9e2af")))
-  "Warning face."
-  :group 'periphery)
-
-(defface periphery-warning-face-full
-  '((t (:foreground "#f9e2af" :bold t :background "#2E2A1E" :distant-foreground "#f9e2af")))
-  "Warning face."
-  :group 'periphery)
-
-(defface periphery-error-face
-  '((t (:foreground "#f38ba8")))
-  "Error face."
-  :group 'periphery)
-
-(defface periphery-error-face-full
-  '((t (:foreground "#f38ba8" :bold t :background "#2D1E28" :distant-foreground "#f38ba8")))
-  "Error face."
-  :group 'periphery)
-
-(defface periphery-identifier-face
-  '((t (:inherit periphery-error-face :background "#2D1E28")))
-  "Identifier face."
-  :group 'periphery)
-
-(defface periphery-message-face
-  '((t (:foreground "#fbfafb" :weight thin)))
-  "Message face."
-  :group 'periphery)
-
-(defface periphery-fix-face
-  '((t (:foreground "#89b4fa")))
-  "FIX|FIXME face."
-  :group 'periphery)
-
-(defface periphery-fix-face-full
-  '((t (:foreground "#1B2431" :background "#89b4fa" :distant-foreground "#89b4fa")))
-  "FIX with background."
-  :group 'periphery)
-
-(defface periphery-note-face
-  '((t (:inherit compilation-info)))
-  "Info face."
-  :group 'periphery)
-
-(defface periphery-note-face-full
-  '((t (:foreground "#1E2B2E" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
-  "Info face."
-  :group 'periphery)
-
-(defface periphery-info-face
-  '((t (:inherit periphery-note-face)))
-  "Note face."
-  :group 'periphery)
-
-(defface periphery-info-face-full
-  '((t (:inherit periphery-note-face-full)))
-  "Note face full."
-  :group 'periphery)
-
-(defface periphery-performance-face
-  '((t (:foreground "#cba6f7")))
-  "Performance face."
-  :group 'periphery)
-
-(defface periphery-performance-face-full
-  '((t (:foreground "#2B1E2E" :bold t :background "#cba6f7" :distant-foreground "#cba6f7" )))
-  "Performance face."
-  :group 'periphery)
-
-(defface periphery-hack-face-full
-  '((t (:foreground "#28181C" :bold t :background "#f38ba8" :distant-foreground  "#f38ba8")))
-  "Performance face."
-  :group 'periphery)
-
-(defface periphery-todo-face
-  '((t (:foreground "#74c7ec" :weight normal)))
-  "Performance face."
-  :group 'periphery)
-
-(defface periphery-todo-face-full
-  '((t (:foreground "#182A32" :background "#74c7ec" :distant-foreground  "#74c7ec" :weight normal)))
-  "Performance face."
-  :group 'periphery)
-
-(defface periphery-mark-face-full
-  '((t (:foreground "#313244" :background "#9399b2" :distant-foreground "#9399b2" :weight light)))
-  "Performance face."
-  :group 'periphery)
-
-(defface periphery-first-sentence-face
-  '((t (:foreground "#9399b2" :weight normal)))
-  "Face for the first sentence of the message (up to the first colon)."
-  :group 'periphery)
 
 (defvar periphery-mode-map nil
   "Keymap for periphery.")
@@ -144,13 +34,7 @@
 (define-key periphery-mode-map (kbd "<return>") 'periphery--open-current-line)
 (define-key periphery-mode-map (kbd "o") 'periphery--open-current-line)
 
-
 (defvar periphery-mode-map nil "Keymap for periphery.")
-
-(defconst periphery-regex-parser "\\(\\/[^:]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\)\\s?\\(\\w+\\):\\(.*\\)\n\\s+\\(.*\\(?:\n\\s+.*\\)*\\)"
-  "Parse vimgrep like strings (compilation).")
-
-(defconst periphery-parse-search "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
 
 (defvar-local periphery-errorList '())
 
@@ -184,63 +68,26 @@
                                    (string< file-a file-b)
                                  (string-prefix-p "error" severity-b)))))))
 
-  (save-selected-window
-    (let* ((buffer (get-buffer-create periphery-buffer-name))
-           (window (get-buffer-window buffer)))
-      (pop-to-buffer buffer nil)
-      (periphery-mode)
+    (save-selected-window
+      (let* ((buffer (get-buffer-create periphery-buffer-name))
+             (window (get-buffer-window buffer)))
+        (pop-to-buffer buffer nil)
+        (periphery-mode)
 
-      (unless (equal (current-buffer) buffer)
-        (select-window window))
+        (unless (equal (current-buffer) buffer)
+          (select-window window))
 
-      (setq tabulated-list-entries (-non-nil sorted-list))
+        (setq tabulated-list-entries (-non-nil sorted-list))
 
-      (tabulated-list-print t)
+        (tabulated-list-print t)
 
-      (if (proper-list-p tabulated-list-entries)
-          (periphery-message-with-count
-           :tag ""
-           :text "Errors or warnings"
-           :count (format "%d" (length tabulated-list-entries))
-           :attributes 'periphery-todo-face))))))
+        (if (proper-list-p tabulated-list-entries)
+            (periphery-message-with-count
+             :tag ""
+             :text "Errors or warnings"
+             :count (format "%d" (length tabulated-list-entries))
+             :attributes 'periphery-todo-face))))))
 
-(defun periphery--parse-xctest-putput (line)
-  "Run regex for xctest case."
-  (save-match-data
-    (and (string-match (alist-get 'xctest periphery-regex-patterns) line)
-         (let* ((file (match-string 1 line))
-                (linenumber (match-string 2 line))
-                (result (match-string 4 line))
-                (message (match-string 5 line))
-                (fileWithLine (format "%s:%s" file linenumber)))
-
-           (periphery--build-list
-            :path fileWithLine
-            :file result
-            :line linenumber
-            :keyword "Failed"
-            :result message
-            :regex (alist-get 'strings periphery-regex-patterns))))))
-
-(defun periphery--parse-output-line (line)
-  "Run regex over curent LINE."
-  (save-match-data
-    (and (string-match periphery-regex-parser line)
-         (let* ((file (match-string 1 line))
-                (linenumber (match-string 2 line))
-                (column (match-string 3 line))
-                (type (match-string 4 line))
-                (result (match-string 5 line))
-                (fileWithLine (format "%s:%s:%s" file linenumber column)))
-
-           (periphery--build-list
-            :path fileWithLine
-            :file file
-            :line linenumber
-            :keyword type
-            :result result
-            :regex (alist-get 'quotes periphery-regex-patterns))
-           ))))
 
 (defun periphery--propertize-severity (severity)
   "Colorize TEXT using SEVERITY."
@@ -354,7 +201,7 @@
         (forward-line)
         (while (and (not (eobp)) (looking-at "\t"))
           (setq failure-msg (concat failure-msg "\n"
-                                  (buffer-substring-no-properties (point) (pos-eol))))
+                                    (buffer-substring-no-properties (point) (pos-eol))))
           (forward-line))
         ;; Shorten the path in the failure message
         (setq failure-msg
@@ -372,46 +219,60 @@
               errors)))
     errors))
 
-(defun parse-compiler-errors (text)
-  "Parse compiler errors from TEXT."
-  (let ((errors '()))
-    (with-temp-buffer
-      (insert text)
-      (goto-char (point-min))
-      (while (re-search-forward (alist-get 'parser periphery-regex-patterns) nil t)
-        (let* ((path (or (match-string 1) ""))
-               (line (or (match-string 2) ""))
-               (column (or (match-string 3) ""))
-               (error-type (or (match-string 4) ""))
-               (msg (string-trim (format "%s: %s"
-                                       (string-trim-left (or (match-string 5) ""))
-                                       (string-trim-left (or (match-string 6) ""))))))
-          (when (and (not (string-empty-p path))
-                     (not (string-empty-p line))
-                     (not (string-empty-p error-type)))
-            (push (periphery--build-list
-                   :path (format "%s:%s:%s" path line column)
-                   :file path
-                   :line line
-                   :keyword error-type
-                   :result msg
-                   :regex (alist-get 'quotes periphery-regex-patterns))
-                  errors))))
-      (setq errors (append errors
-                          (parse-missing-package-product (current-buffer))
-                          (parse-package-dependency-errors (current-buffer))
-                          (parse-build-failures (current-buffer)))))
-    (periphery-sort-error errors)))
-
-(cl-defun periphery-run-parser (input)
-  "Run parser on INPUT more efficiently. Return t if errors found."
+(cl-defun periphery-run-parser (input &rest config)
+  "Run parser on INPUT with dynamic CONFIG. Return t if errors found.
+CONFIG can be:
+- :config PARSERS - Use specific parser list (e.g., '(compiler ktlint))
+- :todo - Parse for TODO/FIXME/HACK comments  
+- :ktlint - Parse ktlint output
+- :compiler - Parse compiler output (default)
+- :search QUERY - Parse search results with optional query highlighting
+- :linter - Parse generic linter output
+- :test - Parse test output"
   (when periphery-debug
-    (message "periphery-run-parser %s" input))
-  (let ((errors (parse-compiler-errors input)))
-    (setq periphery-errorList (delete-dups errors))
-    (when (or (periphery--is-buffer-visible) periphery-errorList)
-      (periphery--listing-command periphery-errorList))
-    (not (null periphery-errorList)))) ; Return t if any errors found
+    (message "periphery-run-parser called with %d chars of input and config: %S" 
+             (length input) config))
+  
+  (let ((type :compiler)
+        (parsers nil)
+        (query nil))
+    
+    ;; Process configuration parameters
+    (while config
+      (let ((key (pop config)))
+        (cond
+         ((eq key :config)
+          (setq parsers (pop config)))
+         ((eq key :todo)
+          (setq type :search)  ; TODOs are found via search
+          (setq parsers '(search))) ; Use search parser to detect TODO patterns
+         ((eq key :ktlint)
+          (setq type :linter)
+          (setq parsers '(ktlint)))
+         ((eq key :compiler)
+          (setq type :compiler)
+          (setq parsers '(compiler)))
+         ((eq key :search)
+          (setq type :search)
+          (setq parsers '(search))
+          (when config (setq query (pop config))))
+         ((eq key :linter)
+          (setq type :linter))
+         ((eq key :test)
+          (setq type :test)
+          (setq parsers '(xctest)))
+         (t
+          (message "Unknown periphery-run-parser config: %s" key)))))
+    
+    ;; Use the core parsing system with dynamic configuration
+    (let ((errors (periphery-core-parse 
+                   :input input 
+                   :type type
+                   :parsers parsers)))
+      (setq periphery-errorList errors)
+      (when (or (periphery--is-buffer-visible) periphery-errorList)
+        (periphery--listing-command periphery-errorList))
+      (not (null periphery-errorList))))) ; Return t if any errors found
 
 (defun periphery-sort-error (errors)
   "Sort ERRORS."
@@ -464,15 +325,8 @@
   (message "Periphery debug mode %s" (if periphery-debug "enabled" "disabled")))
 
 (cl-defun periphery-run-test-parser (input succesCallback)
-  (setq periphery-errorList nil)
-  (dolist (line (split-string input "\n"))
-    (let* ((compilation-entry (periphery--parse-output-line (string-trim-left line)))
-           (test-entry (periphery--parse-xctest-putput (string-trim-left line))))
-      (when compilation-entry
-        (push compilation-entry periphery-errorList))
-      (when test-entry
-        (push test-entry periphery-errorList))))
-  (if periphery-errorList
+  "Parse test input using dynamic parser system."
+  (if (periphery-run-parser input :test)
       (periphery--listing-command (delete-dups periphery-errorList))
     (funcall succesCallback)))
 
@@ -520,22 +374,25 @@
               :result message
               :regex (format "\\(%s\\)" query)))))))
 
+;; Delegate to new core building function
 (cl-defun periphery--build-list (&key path file line keyword result regex)
   "Build list from (as PATH FILE LINE KEYWORD RESULT REGEX)."
-  (list path (vector
-              (periphery--propertize-severity keyword)
-              (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'periphery-filename-face)
-              (propertize line 'face 'periphery-linenumber-face)
-              (periphery--mark-all-symbols
-               :input (periphery--mark-all-symbols
-                       :input (periphery--mark-all-symbols
-                               :input (periphery--process-message result)
-                               :regex (alist-get 'strings periphery-regex-patterns)
-                               :property '(face highlight))
-                       :regex (alist-get 'parentheses periphery-regex-patterns)
-                       :property '(face periphery-warning-face))
-               :regex regex
-               :property '(face periphery-identifier-face)))))
+  (periphery-core-build-entry
+   :path path
+   :file file
+   :line line
+   :severity keyword
+   :message (periphery--mark-all-symbols
+             :input (periphery--mark-all-symbols
+                     :input (periphery--mark-all-symbols
+                             :input (periphery--process-message result)
+                             :regex (alist-get 'strings periphery-highlight-patterns)
+                             :property '(face highlight))
+                     :regex (alist-get 'parentheses periphery-highlight-patterns)
+                     :property '(face periphery-warning-face))
+             :regex regex
+             :property '(face periphery-identifier-face))
+   :face-fn #'periphery--full-color-from-keyword))
 
 (defun periphery--process-message (message)
   "Process MESSAGE, optionally trimming the prefix and applying face properties."
@@ -589,62 +446,28 @@
 (cl-defun periphery-parse-search-result (&key text query)
   "Parse search result (as TITLE TEXT QUERY)."
   (setq default-length 8)
-  (setq periphery-errorList '())
   (if (string-empty-p text)
       (periphery-message-with-count
        :tag "No matches found"
        :text ""
        :count "0"
        :attributes 'periphery-error-face)
-    (dolist (line (split-string text "\n"))
-      (when-let* ((entry (parse--search-query (string-trim-left line) query)))
-        (push entry periphery-errorList)))
-
-    (when periphery-errorList
-      (progn
-        (periphery--listing-command periphery-errorList)
-        (if (proper-list-p tabulated-list-entries)
-            (periphery-message-with-count
-             :tag "Found"
-             :text ""
-             :count (format "%d" (length periphery-errorList))
-             :attributes 'success))
-        (switch-to-buffer-other-window periphery-buffer-name)))))
-
-(defun periphery--parse-ktlint (text)
-  "Parse Ktlint error messages from TEXT."
-  (let ((regex "\\(^[^:]+\\):\\([0-9]+\\):\\([0-9]+\\): \\([^(]+\\) (\\(standard:[^)]+\\))")
-        (errors '()))
-    (with-temp-buffer
-      (insert text)
-      (goto-char (point-min))
-      (while (re-search-forward regex nil t)
-        (let* ((path (or (match-string 1) ""))
-               (line (or (match-string 2) ""))
-               (column (or (match-string 3) ""))
-               (message (string-trim (or (match-string 4) "")))
-               (rule (or (match-string 5) "")))
-          (when (and (not (string-empty-p path))
-                     (not (string-empty-p line)))
-            (push (periphery--build-list
-                   :path (format "%s:%s:%s" path line column)
-                   :file path
-                   :line line
-                   :keyword "warning"
-                   :result (format "%s (%s)" message rule)
-                   :regex (alist-get 'quotes periphery-regex-patterns))
-                  errors))))
-      errors)))
+    ;; Use new dynamic parser system
+    (let ((found-errors (periphery-run-parser text :search query)))
+      (when found-errors
+        (progn
+          (if (proper-list-p tabulated-list-entries)
+              (periphery-message-with-count
+               :tag "Found"
+               :text ""
+               :count (format "%d" (length periphery-errorList))
+               :attributes 'success))
+          (switch-to-buffer-other-window periphery-buffer-name))))))
 
 ;;;###autoload
 (defun periphery-parse-ktlint-result (input)
   "Parse Klint result."
-  (when periphery-debug
-    (message input))
-  (let ((errors (periphery--parse-ktlint input)))
-    (setq periphery-errorList (delete-dups errors))
-    (when (or (periphery--is-buffer-visible) periphery-errorList)
-      (periphery--listing-command periphery-errorList))))
+  (periphery-run-parser input :ktlint))
 
 ;;;###autoload
 (defun svg-color-from-tag (tag)
