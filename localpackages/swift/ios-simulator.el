@@ -264,14 +264,26 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
       (ios-simulator:start-simulator-with-id id)
     (ios-simulator:boot-simulator-with-id id)))
 
-(defun ios-simulator:simulator-name ()
-  "Fetches simulator name."
-  (unless ios-simulator--current-simulator-name
-    (let ((simulator-name (ios-simulator:simulator-name-from :id current-simulator-id)))
-      (if simulator-name
-          (setq ios-simulator--current-simulator-name simulator-name)
-        (setq ios-simulator--current-simulator-name "Simulator (unknown)"))))
-  ios-simulator--current-simulator-name)
+(cl-defun ios-simulator:simulator-name (&key callback)
+  "Fetches simulator name. If CALLBACK provided, run asynchronously."
+  (if callback
+      ;; Asynchronous version
+      (if ios-simulator--current-simulator-name
+          (funcall callback ios-simulator--current-simulator-name)
+        (ios-simulator:simulator-name-from 
+         :id current-simulator-id
+         :callback (lambda (simulator-name)
+                     (if simulator-name
+                         (setq ios-simulator--current-simulator-name simulator-name)
+                       (setq ios-simulator--current-simulator-name "Simulator (unknown)"))
+                     (funcall callback ios-simulator--current-simulator-name))))
+    ;; Synchronous version (fallback)
+    (unless ios-simulator--current-simulator-name
+      (let ((simulator-name (ios-simulator:simulator-name-from :id current-simulator-id)))
+        (if simulator-name
+            (setq ios-simulator--current-simulator-name simulator-name)
+          (setq ios-simulator--current-simulator-name "Simulator (unknown)"))))
+    ios-simulator--current-simulator-name))
 
 (defun ios-simulator:boot-simulator-with-id (id)
   "Simulator app is running.  Boot simulator (as ID)."
@@ -295,15 +307,41 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
   "Boot simulator (as ID)."
   (format "xcrun simctl boot %s" id))
 
-(defun ios-simulator:is-simulator-app-running ()
-  "Check if simulator is running."
-  (let ((output (shell-command-to-string "ps ax | grep -v grep | grep Simulator.app")))
-    (not (string= "" output))))
+(cl-defun ios-simulator:is-simulator-app-running (&key callback)
+  "Check if simulator is running. If CALLBACK provided, run asynchronously."
+  (if callback
+      (make-process
+       :name "check-simulator"
+       :command (list "sh" "-c" "ps ax | grep -v grep | grep Simulator.app")
+       :noquery t
+       :buffer " *check-simulator-temp*"
+       :sentinel (lambda (proc event)
+                   (when (string= event "finished\n")
+                     (with-current-buffer (process-buffer proc)
+                       (let ((output (buffer-string)))
+                         (kill-buffer)
+                         (funcall callback (not (string= "" output))))))))
+    ;; Synchronous fallback
+    (let ((output (shell-command-to-string "ps ax | grep -v grep | grep Simulator.app")))
+      (not (string= "" output)))))
 
-(cl-defun ios-simulator:simulator-name-from (&key id)
-  "Get simulator name (as ID)."
-  (string-trim
-   (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))))
+(cl-defun ios-simulator:simulator-name-from (&key id &key callback)
+  "Get simulator name (as ID). If CALLBACK provided, run asynchronously."
+  (if callback
+      (make-process
+       :name "simulator-name"
+       :command (list "sh" "-c" (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id))
+       :noquery t
+       :buffer " *simulator-name-temp*"
+       :sentinel (lambda (proc event)
+                   (when (string= event "finished\n")
+                     (with-current-buffer (process-buffer proc)
+                       (let ((result (string-trim (buffer-string))))
+                         (kill-buffer)
+                         (funcall callback result))))))
+    ;; Synchronous fallback
+    (string-trim
+     (shell-command-to-string (format "xcrun simctl list devices | grep %s | awk -F \"(\" '{ print $1 }'" id)))))
 
 (defun ios-simulator:available-simulators ()
   "List available simulators with iOS version displayed."
@@ -422,17 +460,28 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
              (choice (completing-read title choices)))
         (cdr (assoc choice choices))))))
 
-(defun ios-simulator:simulator-identifier ()
-  "Get the booted simulator id or fetch a suitable one."
-  (if current-simulator-id
+(cl-defun ios-simulator:simulator-identifier (&key callback)
+  "Get the booted simulator id or fetch a suitable one. If CALLBACK provided, run asynchronously."
+  (if callback
+      ;; Asynchronous version
+      (if current-simulator-id
+          (progn
+            (ios-simulator:setup-simulator-dwim current-simulator-id)
+            (funcall callback current-simulator-id))
+        (let ((device-id (ios-simulator:get-or-choose-simulator)))
+          (when ios-simulator:debug
+            (message "Selected simulator ID: %s" device-id))
+          (funcall callback device-id)))
+    ;; Synchronous version (fallback)
+    (if current-simulator-id
+        (progn
+          (ios-simulator:setup-simulator-dwim current-simulator-id)
+          current-simulator-id)
       (progn
-        (ios-simulator:setup-simulator-dwim current-simulator-id)
-        current-simulator-id)
-    (progn
-      (let ((device-id (ios-simulator:get-or-choose-simulator)))
-        (when ios-simulator:debug
-          (message "Selected simulator ID: %s" device-id))
-        device-id))))
+        (let ((device-id (ios-simulator:get-or-choose-simulator)))
+          (when ios-simulator:debug
+            (message "Selected simulator ID: %s" device-id))
+          device-id)))))
 
 (defun ios-simulator:get-or-choose-simulator ()
   "Get booted simulator or let user choose one."
@@ -473,12 +522,25 @@ If TERMINATE-FIRST is non-nil, terminate existing app instance before installing
     (ios-simulator:setup-simulator-dwim device-id)
     device-id))
 
-(defun ios-simulator:booted-simulator ()
-  "Get booted simulator if any."
-  (let ((device-id (shell-command-to-string ios-simulator:get-booted-simulator-command)))
-    (if (not (string= "" device-id))
-        (string-trim device-id)
-      nil)))
+(cl-defun ios-simulator:booted-simulator (&key callback)
+  "Get booted simulator if any. If CALLBACK provided, run asynchronously."
+  (if callback
+      (make-process
+       :name "booted-simulator"
+       :command (list "sh" "-c" ios-simulator:get-booted-simulator-command)
+       :noquery t
+       :buffer " *booted-simulator-temp*"
+       :sentinel (lambda (proc event)
+                   (when (string= event "finished\n")
+                     (with-current-buffer (process-buffer proc)
+                       (let ((device-id (string-trim (buffer-string))))
+                         (kill-buffer)
+                         (funcall callback (if (string= "" device-id) nil device-id)))))))
+    ;; Synchronous fallback
+    (let ((device-id (shell-command-to-string ios-simulator:get-booted-simulator-command)))
+      (if (not (string= "" device-id))
+          (string-trim device-id)
+        nil))))
 
 (defun ios-simulator:terminate-current-app ()
   "Terminate the current app running in simulator."

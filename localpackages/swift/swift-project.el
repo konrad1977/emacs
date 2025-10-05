@@ -12,6 +12,11 @@
   "Swift project management utilities."
   :group 'swift)
 
+(defcustom swift-project-debug nil
+  "Enable debug messages for Swift project detection."
+  :type 'boolean
+  :group 'swift-project)
+
 (defcustom swift-project-ignore-folders
   '("Pods" "Packages" ".build" "Carthage" "DerivedData" ".swiftpm" "node_modules")
   "Folders to ignore when searching for project root."
@@ -27,19 +32,55 @@
 (defvar swift-project--current-root nil
   "Cached value of current project root.")
 
+(defvar swift-project--root-cache (make-hash-table :test 'equal)
+  "Hash table to cache project roots by directory path.")
+
 (defun swift-project-root (&optional dir no-error)
   "Find Swift project root starting from DIR (default: current directory).
 Looks for .projectile or .project files to determine the project root.
 When NO-ERROR is non-nil, return nil instead of erroring when no project found."
-  (let ((found-root
-         (or swift-project--current-root
-             (swift-project--find-project-root (or dir default-directory)))))
+  (let* ((search-dir (expand-file-name (or dir default-directory)))
+         (cached-root (gethash search-dir swift-project--root-cache))
+         (found-root (or cached-root
+                        (swift-project--find-project-root search-dir))))
     (cond
      (found-root
+      ;; Cache the result for this directory
+      (unless cached-root
+        (puthash search-dir found-root swift-project--root-cache))
+      ;; Update the global current root if this is the most recent lookup
       (setq swift-project--current-root found-root)
       found-root)
      (no-error nil)
-     (t (error "No Swift project found")))))
+     (t (error "No Swift project found starting from %s" search-dir)))))
+
+;;;###autoload
+(defun swift-project-clear-cache ()
+  "Clear the project root cache."
+  (interactive)
+  (clrhash swift-project--root-cache)
+  (setq swift-project--current-root nil)
+  (message "Swift project root cache cleared"))
+
+;;;###autoload
+(defun swift-project-setup-working-directory ()
+  "Ensure working directory is set to project root when opening Swift files.
+This prevents .compile and buildServer.json from being created in wrong locations."
+  (when (and buffer-file-name
+             (string-match-p "\\.swift$" buffer-file-name))
+    (let ((project-root (swift-project-root (file-name-directory buffer-file-name) t)))
+      (when (and project-root 
+                 (not (string= (expand-file-name default-directory) 
+                              (expand-file-name project-root))))
+        (setq default-directory project-root)
+        (when (bound-and-true-p swift-project-debug)
+          (message "Swift project: Set working directory to %s" project-root))
+        
+        ))))
+
+;; Automatically setup working directory when opening Swift files
+;;;###autoload
+(add-hook 'swift-mode-hook #'swift-project-setup-working-directory)
 
 (defun swift-project--should-ignore-folder-p (dir)
   "Return t if DIR should be ignored when searching for project root."

@@ -999,18 +999,87 @@ IGNORE-LIST is a list of folder names to ignore during cleaning."
         (error-regex "^\\(.+\\):\\([0-9]+\\):\\([0-9]+\\): \\(error\\|warning\\|note\\): .+$"))
     (dolist (line (split-string input "\n"))
       (cond
+       ;; Check for .compile.lock error and clear it
+       ((string-match "\\.compile\\.lock.*locked so long" line)
+        (let ((msg "Clearing compile lock..."))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'warning)))
+            (puthash msg t seen-messages)
+            ;; Clear the lock file
+            (let ((lock-file (concat (xcode-additions:project-root) "/.compile.lock")))
+              (when (file-exists-p lock-file)
+                (delete-file lock-file)
+                (message "Cleared .compile.lock file"))))))
+       ;; Resolving packages
+       ((string-match "Resolve Package Graph" line)
+        (let ((msg "Resolving packages..."))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'success)))
+            (puthash msg t seen-messages))))
+       ;; Fetching packages
+       ((string-match "Fetching from \\(https://github.com/[^/]+/\\([^/ ]+\\)\\)" line)
+        (let* ((url (match-string 1 line))
+               (package-name (match-string 2 line))
+               ;; Clean up package name (remove .git suffix if present)
+               (clean-name (if (string-suffix-p ".git" package-name)
+                              (substring package-name 0 -4)
+                            package-name))
+               (msg (format "Fetching package: %s" clean-name)))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'font-lock-string-face)))
+            (puthash msg t seen-messages))))
+       ;; Package resolution details
+       ((string-match "Resolved source packages:" line)
+        (let ((msg "Package resolution complete"))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'success)))
+            (puthash msg t seen-messages))))
+       ;; Building specific targets
+       ((string-match "Build target \\([^ ]+\\)" line)
+        (let ((msg (format "Building target: %s" (match-string 1 line))))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'font-lock-builtin-face)))
+            (puthash msg t seen-messages))))
+       ;; Linking
+       ((string-match "Ld \\(.+\\)/\\([^/]+\\)$" line)
+        (let ((msg (format "Linking: %s" (match-string 2 line))))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'font-lock-keyword-face)))
+            (puthash msg t seen-messages))))
+       ;; Code signing
+       ((string-match "CodeSign \\(.+\\)/\\([^/]+\\)$" line)
+        (let ((msg (format "Signing: %s" (match-string 2 line))))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'font-lock-constant-face)))
+            (puthash msg t seen-messages))))
+       ;; C compilation
        ((string-match "CompileC \\(.+\\)/\\([^/]+\\)$" line)
-        (let ((msg (match-string 2 line)))
+        (let ((msg (format "Compiling C: %s" (match-string 2 line))))
           (unless (gethash msg seen-messages)
             (xcode-additions:safe-mode-line-update :message
                                                    (format "  %s" (propertize msg 'face 'warning)))
             (puthash msg t seen-messages))))
        ((string-match "CompileSwiftModule \\([^ ]+\\)" line)
-        (let ((msg (match-string 1 line)))
+        (let ((msg (format "Compiling Swift: %s" (match-string 1 line))))
           (unless (gethash msg seen-messages)
             (xcode-additions:safe-mode-line-update :message
                                                    (format "  %s" (propertize msg 'face 'warning)))
             (puthash msg t seen-messages))))
+       ;; Swift files
+       ((string-match "CompileSwift.*\\([^/]+\\.swift\\)" line)
+        (let ((msg (format "Swift: %s" (match-string 1 line))))
+          (unless (gethash msg seen-messages)
+            (xcode-additions:safe-mode-line-update :message
+                                                   (format "  %s" (propertize msg 'face 'font-lock-type-face)))
+            (puthash msg t seen-messages))))
+       ;; Errors, warnings, notes
        ((string-match error-regex line)
         (setq current-errors-or-warnings (concat line "\n" current-errors-or-warnings))
         (periphery-run-parser current-errors-or-warnings))))))

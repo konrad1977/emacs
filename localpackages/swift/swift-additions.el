@@ -190,8 +190,8 @@ When nil, use standard compilation-mode."
 (defun swift-additions:xcodebuild-command ()
   "Use x86 environement."
   (if swift-additions:current-environment-x86
-      "env /usr/bin/arch -x86_64 xcrun xcodebuild build \\"
-    "xcrun xcodebuild build \\"))
+      "env /usr/bin/arch -x86_64 xcrun xcodebuild build"
+    "xcrun xcodebuild build"))
 
 (defun swift-additions:swift-packages-exist-p ()
   "Check if Swift packages are already downloaded.
@@ -257,6 +257,84 @@ Returns flags to optimize or skip package resolution."
 (defun swift-additions:get-optimal-jobs ()
   "Get get number of CPUs."
   (number-to-string (max 1 (num-processors))))
+
+;; Swift Package Management Functions
+
+(defun swift-additions:check-swift-packages-in-build ()
+  "Check if Swift packages are being used/compiled in the build.
+Checks both local .build and Xcode's DerivedData locations."
+  (let* ((project-root (xcode-additions:project-root))
+         (local-source-packages (expand-file-name ".build/SourcePackages" project-root))
+         (local-checkouts (expand-file-name ".build/checkouts" project-root))
+         (build-intermediates (expand-file-name ".build/Build/Intermediates.noindex" project-root))
+         ;; Find DerivedData for this project
+         (derived-data-glob (format "~/Library/Developer/Xcode/DerivedData/*%s*/SourcePackages" 
+                                   (file-name-nondirectory (directory-file-name project-root))))
+         (xcode-source-packages (car (file-expand-wildcards derived-data-glob))))
+    (or 
+     ;; Check local .build/SourcePackages/repositories (where packages actually are)
+     (let ((local-repos (expand-file-name "repositories" local-source-packages)))
+       (and (file-exists-p local-repos)
+            (> (length (directory-files local-repos nil "^[^.]" t)) 0)))
+     ;; Check local .build/checkouts (SPM command line)
+     (and (file-exists-p local-checkouts)
+          (> (length (directory-files local-checkouts nil "^[^.]" t)) 0))
+     ;; Check Xcode's DerivedData SourcePackages/repositories
+     (let ((xcode-repos (when xcode-source-packages 
+                          (expand-file-name "repositories" xcode-source-packages))))
+       (and xcode-repos
+            (file-exists-p xcode-repos)
+            (> (length (directory-files xcode-repos nil "^[^.]" t)) 0)))
+     ;; Check build intermediates for package compilation
+     (and (file-exists-p build-intermediates)
+          (> (length (directory-files build-intermediates nil "\\.build$" t)) 0)))))
+
+(defun swift-additions:should-resolve-packages-for-build ()
+  "Determine if package resolution should be performed for .build-based builds.
+For .build-based builds, we should resolve if packages aren't available locally in .build."
+  (cond
+   ;; Force resolution if explicitly requested
+   (swift-additions:force-package-resolution t)
+   ;; Check skip setting
+   ((eq swift-additions:skip-package-resolution 'never) t)
+   ((eq swift-additions:skip-package-resolution 'always) nil)
+   ;; Auto mode: resolve if packages don't exist locally in .build
+   ((eq swift-additions:skip-package-resolution 'auto)
+    (let* ((project-root (xcode-additions:project-root))
+           (local-source-packages (expand-file-name ".build/SourcePackages" project-root))
+           (local-repos (expand-file-name "repositories" local-source-packages))
+           (local-checkouts (expand-file-name ".build/checkouts" project-root)))
+      ;; Only skip resolution if packages exist LOCALLY in .build
+      (not (or (and (file-exists-p local-repos)
+                    (> (length (directory-files local-repos nil "^[^.]" t)) 0))
+               (and (file-exists-p local-checkouts)
+                    (> (length (directory-files local-checkouts nil "^[^.]" t)) 0))))))
+   ;; Default to resolving
+   (t t)))
+
+(defun swift-additions:get-package-resolution-flags ()
+  "Get package resolution flags for .build-based builds."
+  (if (swift-additions:should-resolve-packages-for-build)
+      (progn
+        (when swift-additions:debug
+          (message "Resolving Swift package dependencies for .build..."))
+        "-resolvePackageDependencies \\")
+    (progn
+      (when swift-additions:debug
+        (message "Skipping package resolution (packages exist in .build)"))
+      "")))
+
+(defun swift-additions:get-package-cache-flags ()
+  "Get package caching flags to ensure packages are downloaded to .build"
+  (concat
+   "-packageCachePath ~/Library/Caches/org.swift.packages \\" ; Global package cache
+   "-clonedSourcePackagesDirPath ~/Library/Caches/org.swift.cloned-sources \\" ; Cache cloned sources
+   (if (not (swift-additions:should-resolve-packages-for-build))
+       ;; When skipping resolution, add flags to prevent updates
+       (concat
+        "-skipPackageUpdates \\"
+        "-skipPackagePluginValidation \\")
+     "")))
 
 (cl-defun swift-additions:setup-build-environment (&key for-device)
   "Setup optimal environment variables for build with aggressive caching and parallelization.
@@ -362,40 +440,79 @@ If FOR-DEVICE is non-nil, setup for device build (with signing), otherwise for s
       swift-additions:current-build-command
     (let ((workspace-or-project (xcode-additions:get-workspace-or-project))
           (has-pods (swift-additions:uses-cocoapods-p)))
-      (concat
-       (swift-additions:xcodebuild-command)
-       (format "%s \\" workspace-or-project)
-       (format "-scheme %s \\" (xcode-additions:scheme))
-       (swift-additions:resolve-package-dependencies)
-       ;; Package management optimizations (works for both CocoaPods + SPM projects)
-       (swift-additions:get-package-optimization-flags)
-       "-packageCachePath ~/Library/Caches/org.swift.packages \\" ; Shared package cache
-       "-clonedSourcePackagesDirPath ~/Library/Caches/org.swift.cloned-sources \\" ; Cache cloned packages
-       (format "-parallelizeTargets -jobs %d \\" (* (num-processors) 2)) ; Use double CPU cores
-       (if sim-id
-           (format "-destination 'generic/platform=iOS Simulator,id=%s' SDKROOT=$(xcrun --sdk iphonesimulator --show-sdk-path) \\" sim-id)
-         (format "-destination 'generic/platform=%s' -sdk %s \\" "iOS" "iphoneos"))
-       ;; Only specify configuration if explicitly overridden
-       (if swift-additions:default-configuration
-           (format "-configuration %s \\" swift-additions:default-configuration)
-         "")
-       ;; Code signing: disable for simulator, enable for device
-       (if sim-id
-           ;; Simulator: disable all code signing
-           "CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM=\"\" \\"
-         "")
-       ;; Show build timing to identify bottlenecks
-       ;; "-showBuildTimingSummary \\"
-       "-skipUnavailableActions \\"
-       "-useNewBuildSystem=YES \\"
-       (mapconcat (lambda (flag) (concat flag " \\"))
-                  (append
-                   (swift-additions:get-optimization-flags)
-                   swift-additions:additional-build-flags)
-                  "")
-       "-derivedDataPath .build"
-       ;; Always parse with xcode-build-server, use tee to preserve output
-       " 2>&1 | tee /dev/tty | xcode-build-server parse -a"))))
+      (mapconcat 'identity
+                 (delq nil
+                       (list
+                        "xcrun xcodebuild build"
+                        (format "%s" workspace-or-project)
+                        (format "-scheme %s" (xcode-additions:scheme))
+                        ;; NOTE: -resolvePackageDependencies cannot be used with build command!
+                        ;; It makes xcodebuild ONLY resolve packages and then exit
+                        ;; Package cache paths - use Xcode defaults for best compatibility
+                        ;; Xcode will handle package placement automatically
+                        ;; Skip updates if packages exist (only for subsequent builds)
+                        (when (not (swift-additions:should-resolve-packages-for-build))
+                          "-skipPackageUpdates")
+                        ;; Performance optimizations (but allow package downloads when needed)
+                        "-skipMacroValidation"  ; Skip macro validation (Xcode 15+)
+                        ;; Parallelization
+                        "-parallelizeTargets"
+                        (format "-jobs %d" (* (num-processors) 2))
+                        ;; Destination
+                        (if sim-id
+                            (format "-destination 'generic/platform=iOS Simulator,id=%s'" sim-id)
+                          "-destination 'generic/platform=iOS' -sdk iphoneos")
+                        ;; SDK for simulator
+                        (when sim-id
+                          "SDKROOT=$(xcrun --sdk iphonesimulator --show-sdk-path)")
+                        ;; Configuration if specified
+                        (when swift-additions:default-configuration
+                          (format "-configuration %s" swift-additions:default-configuration))
+                        ;; Code signing for simulator
+                        (when sim-id
+                          "CODE_SIGNING_REQUIRED=NO")
+                        (when sim-id
+                          "CODE_SIGN_IDENTITY=\"\"")
+                        (when sim-id
+                          "CODE_SIGNING_ALLOWED=NO")
+                        (when sim-id
+                          "DEVELOPMENT_TEAM=\"\"")
+                        ;; Other build flags
+                        "-skipUnavailableActions"
+                        "-useNewBuildSystem=YES"
+                        ;; Optimization flags as a list (only if they exist)
+                        (when (and swift-additions:other-swift-flags
+                                  (> (length swift-additions:other-swift-flags) 0))
+                          (format "OTHER_SWIFT_FLAGS=\"%s\""
+                                  (mapconcat (lambda (flag) (concat "-Xfrontend " flag))
+                                            swift-additions:other-swift-flags " ")))
+                        "SWIFT_BUILD_CACHE_ENABLED=YES"
+                        (format "SWIFT_PARALLEL_MODULE_JOBS=%d" (num-processors))
+                        "SWIFT_USE_PARALLEL_SOURCEJOB_TASKS=YES"
+                        "SWIFT_COMPILATION_MODE=incremental"
+                        "SWIFT_SERIALIZE_DEBUGGING_OPTIONS=NO"
+                        "SWIFT_ENABLE_BUILD_CACHE=YES"
+                        "ENABLE_PREVIEWS=NO"
+                        "INDEX_ENABLE_DATA_STORE=NO"
+                        "SWIFTPM_ENABLE_BUILD_CACHES=1"
+                        "COMPILER_INDEX_STORE_ENABLE=NO"
+                        "ONLY_ACTIVE_ARCH=YES"
+                        "ENABLE_TESTABILITY=NO"
+                        "ENABLE_BITCODE=NO"
+                        "DEBUG_INFORMATION_FORMAT=dwarf"
+                        "RUN_CLANG_STATIC_ANALYZER=NO"
+                        "CLANG_ENABLE_CODE_COVERAGE=NO"
+                        "GCC_GENERATE_DEBUGGING_SYMBOLS=YES"
+                        "BUILD_LIBRARY_FOR_DISTRIBUTION=NO"
+                        (if swift-additions:use-thin-lto
+                            "LLVM_LTO=Thin"
+                          "LLVM_LTO=NO")
+                        "STRIP_INSTALLED_PRODUCT=NO"
+                        "DEPLOYMENT_POSTPROCESSING=NO"
+                        "COPY_PHASE_STRIP=NO"
+                        ;; Derived data path
+                        "-derivedDataPath .build"))
+                 " "))))
 
 (defun swift-additions:enable-build-caching ()
   "Enable Xcode build system caching for faster incremental builds."
@@ -643,6 +760,30 @@ Keeps the end of the output where errors typically appear, and any lines with 'e
              (seq-drop lines (max 0 (- total-lines keep-last-n))))
      "\n")))
 
+(defun swift-additions:run-xcode-build-server-parse (output)
+  "Run xcode-build-server parse on OUTPUT asynchronously, avoiding .compile conflicts."
+  (when (executable-find "xcode-build-server")
+    (let* ((project-root (xcode-additions:project-root))
+           (compile-file (expand-file-name ".compile" project-root))
+           (compile-lock (expand-file-name ".compile.lock" project-root)))
+      ;; Only clean up lock file if it exists (not the .compile file since we want to append)
+      (when (file-exists-p compile-lock)
+        (delete-file compile-lock))
+      
+      ;; Wait a moment to ensure build processes have finished writing
+      (run-with-timer 1.0 nil
+                      (lambda ()
+                        (let ((temp-file (make-temp-file "xcodebuild-output-" nil ".log")))
+                          ;; Write output to temp file
+                          (with-temp-file temp-file
+                            (insert output))
+                          ;; Run xcode-build-server parse
+                          (start-process-shell-command 
+                           "xcode-build-server-parse"
+                           nil
+                           (format "cd '%s' && cat '%s' | xcode-build-server parse -a && rm -f '%s'" 
+                                   project-root temp-file temp-file))))))))
+
 (defun swift-additions:cleanup ()
   "Cleanup resources and state."
   (when swift-additions:build-progress-spinner
@@ -692,52 +833,97 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                          ;; Reset run-once-compiled to prevent installation
                          (setq run-once-compiled nil)))))))))
           nil))
-    ;; Original async implementation for periphery
+    ;; Async implementation with make-process
     (progn
       (spinner-start 'progress-bar-filled)
       (setq swift-additions:build-progress-spinner spinner-current
             swift-additions:compilation-time (current-time))
 
-      (let* ((log-buffer (generate-new-buffer " *xcodebuild-log*"))
-             (process (make-process
-                      :name "xcodebuild-background"
-                      :buffer log-buffer
-                      :command (list shell-file-name shell-command-switch command)
-                      :noquery t   ; Detach from Emacs process list
-                      :sentinel (lambda (proc event)
-                                 (when (memq (process-status proc) '(exit signal))
-                                   ;; Clear active process tracking
-                                   (setq swift-additions:active-build-process nil)
-                                   (setq swift-additions:active-build-buffer nil)
-                                   (spinner-stop swift-additions:build-progress-spinner)
-                                   (let ((output (with-current-buffer log-buffer
-                                                  (buffer-string))))
-                                     (if (swift-additions:check-if-build-was-successful output)
-                                         (progn
-                                           (funcall callback output)
-                                           (swift-additions:cleanup))
-                                       (swift-additions:handle-build-error output))
-                                     (kill-buffer log-buffer)))))))
+      ;; Create or get the output buffer for real-time display
+      (let* ((output-buffer-name "*Swift Build Output*")
+             (output-buffer (get-buffer-create output-buffer-name))
+             (log-buffer (generate-new-buffer " *xcodebuild-log*")))
         
-        ;; Configure process handling
-        (set-process-query-on-exit-flag process nil)
+        ;; Clear and prepare output buffer
+        (with-current-buffer output-buffer
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert "Building with xcodebuild...\n")
+            (insert (format "Command: %s\n\n" command))))
         
-        ;; Track active build process
-        (setq swift-additions:active-build-process process)
-        (setq swift-additions:active-build-buffer (buffer-name log-buffer))
+        ;; Don't display buffer automatically - user can switch to it manually if needed
         
-        ;; Start async output processing
-        (when update-callback
+        (let ((process (make-process
+                       :name "xcodebuild-background"
+                       :buffer log-buffer
+                       ;; Use exec to ensure the shell waits for the command to complete
+                       :command (list shell-file-name shell-command-switch (concat "exec " command))
+                       :noquery t   ; Detach from Emacs process list
+                       :sentinel (lambda (proc event)
+                                  (when (memq (process-status proc) '(exit signal))
+                                    ;; Clear active process tracking
+                                    (setq swift-additions:active-build-process nil)
+                                    (setq swift-additions:active-build-buffer nil)
+                                    (spinner-stop swift-additions:build-progress-spinner)
+                                    (let* ((exit-status (process-exit-status proc))
+                                           (output (with-current-buffer log-buffer
+                                                    (buffer-string))))
+                                      (when swift-additions:debug
+                                        (message "Build process exited with status: %d, event: %s" 
+                                                exit-status event))
+                                      ;; Check both exit status and output
+                                      (if (and (= exit-status 0)
+                                              (swift-additions:check-if-build-was-successful output))
+                                          (progn
+                                            (with-current-buffer output-buffer
+                                              (let ((inhibit-read-only t))
+                                                (goto-char (point-max))
+                                                (insert "\n✅ BUILD SUCCEEDED\n")))
+                                            ;; Run xcode-build-server parse asynchronously
+                                            (swift-additions:run-xcode-build-server-parse output)
+                                            (funcall callback output)
+                                            (swift-additions:cleanup))
+                                        (progn
+                                          (with-current-buffer output-buffer
+                                            (let ((inhibit-read-only t))
+                                              (goto-char (point-max))
+                                              (insert (format "\n❌ BUILD FAILED (exit status: %d)\n" exit-status))))
+                                          ;; Run xcode-build-server parse for errors too
+                                          (swift-additions:run-xcode-build-server-parse output)
+                                          (swift-additions:handle-build-error output)))
+                                      (kill-buffer log-buffer)))))))
+          
+          ;; Configure process handling
+          (set-process-query-on-exit-flag process nil)
+          
+          ;; Track active build process
+          (setq swift-additions:active-build-process process)
+          (setq swift-additions:active-build-buffer (buffer-name log-buffer))
+          
+          ;; Start async output processing - show output in real-time
           (set-process-filter process
                              (lambda (proc string)
+                               ;; Save to log buffer
                                (with-current-buffer log-buffer
                                  (goto-char (point-max))
                                  (insert string))
-                               (when (functionp update-callback)
-                                 (funcall update-callback string)))))
+                               ;; Display output to visible buffer in real-time
+                               (with-current-buffer output-buffer
+                                 (let ((inhibit-read-only t))
+                                   (goto-char (point-max))
+                                   (insert string)
+                                   ;; Auto-scroll to bottom
+                                   (let ((windows (get-buffer-window-list output-buffer nil t)))
+                                     (dolist (window windows)
+                                       (with-selected-window window
+                                         (goto-char (point-max))
+                                         (recenter -1))))))
+                               ;; Call update callback if provided
+                               (when (and update-callback (functionp update-callback))
+                                 (funcall update-callback string))))
 
-        (swift-additions:log-debug "Running command: %s" command)
-        (cons process log-buffer)))))
+          (swift-additions:log-debug "Running command: %s" command)
+          (cons process log-buffer))))))
 
 (cl-defun swift-additions:compile (&key run)
   "Build project using xcodebuild (as RUN)."
@@ -1157,6 +1343,80 @@ Returns the configuration name or 'Debug' as fallback."
   (when (not swift-additions:use-periphery)
     (when (fboundp 'periphery-kill-buffer)
       (periphery-kill-buffer))))
+
+;;;###autoload
+(defun swift-additions:toggle-debug ()
+  "Toggle debug mode for swift-additions."
+  (interactive)
+  (setq swift-additions:debug (not swift-additions:debug))
+  (message "Swift-additions debug mode: %s" 
+           (if swift-additions:debug "ENABLED" "DISABLED")))
+
+;;;###autoload
+(defun swift-additions:show-build-output ()
+  "Show the Swift build output buffer."
+  (interactive)
+  (let ((buf (get-buffer "*Swift Build Output*")))
+    (if buf
+        (display-buffer buf '((display-buffer-reuse-window
+                               display-buffer-in-side-window)
+                              (side . bottom)
+                              (window-height . 15)))
+      (message "No build output available yet"))))
+
+;;;###autoload
+(defun swift-additions:hide-build-output ()
+  "Hide the Swift build output buffer."
+  (interactive)
+  (let ((buf (get-buffer "*Swift Build Output*")))
+    (when buf
+      (delete-windows-on buf))))
+
+;;;###autoload
+(defun swift-additions:enable-build-cache-sharing ()
+  "Enable build cache sharing between builds for maximum speed.
+This configures the build to share compiled modules and objects."
+  (interactive)
+  (let* ((project-root (xcode-additions:project-root))
+         (build-cache-dir (expand-file-name ".build/ModuleCache" project-root))
+         (shared-pch-dir (expand-file-name ".build/SharedPrecompiledHeaders" project-root)))
+    ;; Create cache directories
+    (unless (file-exists-p build-cache-dir)
+      (make-directory build-cache-dir t))
+    (unless (file-exists-p shared-pch-dir)
+      (make-directory shared-pch-dir t))
+    
+    ;; Set environment for shared caching
+    (setenv "SWIFT_MODULE_CACHE_PATH" build-cache-dir)
+    (setenv "CLANG_MODULE_CACHE_PATH" build-cache-dir)
+    (setenv "SHARED_PRECOMPS_DIR" shared-pch-dir)
+    
+    ;; Enable all caching mechanisms
+    (setenv "SWIFT_ENABLE_BATCH_MODE" "YES")
+    (setenv "SWIFT_USE_INTEGRATED_DRIVER" "YES")  ; New Swift driver for better caching
+    (setenv "SWIFT_ENABLE_EXPLICIT_MODULES" "YES")  ; Explicit module builds
+    
+    (message "Build cache sharing enabled. Subsequent builds will be much faster!")))
+
+;;;###autoload
+(defun swift-additions:quick-rebuild ()
+  "Perform a quick rebuild using all available optimizations.
+This is the fastest way to rebuild after small changes."
+  (interactive)
+  ;; Set to maximum speed mode but respect periphery setting
+  (let ((swift-additions:skip-package-resolution 'always)
+        (swift-additions:analysis-mode 'minimal))  ; Use minimal instead of disabled
+    (swift-additions:enable-build-cache-sharing)
+    (swift-additions:compile :run t)))
+
+;;;###autoload  
+(defun swift-additions:toggle-build-output ()
+  "Toggle visibility of Swift build output buffer."
+  (interactive)
+  (let ((buf (get-buffer "*Swift Build Output*")))
+    (if (and buf (get-buffer-window buf))
+        (swift-additions:hide-build-output)
+      (swift-additions:show-build-output))))
 
 ;;;###autoload
 (defun swift-additions:compile-and-run ()
@@ -1631,6 +1891,198 @@ Returns the configuration name or 'Debug' as fallback."
           (message "Testing cache warming for project: %s" project-root)
           (xcode-additions:setup-current-project project-root))
       (message "No Xcode project found in current directory"))))
+
+;; Swift Package Status and Management Functions
+
+;;;###autoload
+(defun swift-additions:watch-package-download ()
+  "Watch the package download progress in real-time."
+  (interactive)
+  (let* ((project-root (xcode-additions:project-root))
+         (source-packages (expand-file-name ".build/SourcePackages" project-root))
+         (global-cache (expand-file-name "~/Library/Caches/org.swift.packages")))
+    ;; Get package names from directories
+    (let ((source-pkg-names (when (file-exists-p source-packages)
+                              (mapcar (lambda (dir)
+                                       (file-name-nondirectory dir))
+                                     (directory-files source-packages t "^[^.]" t))))
+          (cache-pkg-names (when (file-exists-p global-cache)
+                            (mapcar (lambda (dir)
+                                     (file-name-nondirectory dir))
+                                   (directory-files global-cache t "^[^.]" t)))))
+      
+      (message "📦 Package Status:")
+      (message "  Global cache: %s" 
+               (if cache-pkg-names
+                   (format "%d packages [%s...]" 
+                           (length cache-pkg-names)
+                           (string-join (seq-take cache-pkg-names 3) ", "))
+                 "Empty"))
+      (message "  .build/SourcePackages: %s" 
+               (if source-pkg-names
+                   (format "%d packages [%s...]" 
+                           (length source-pkg-names)
+                           (string-join (seq-take source-pkg-names 3) ", "))
+                 "Not yet created"))
+      
+      ;; Check current activity in build output and update mode-line HUD
+      (when (get-buffer "*Swift Build Output*")
+        (with-current-buffer "*Swift Build Output*"
+          (goto-char (point-max))
+          (cond
+           ;; Check for package operations and update mode-line HUD
+           ((re-search-backward "Fetching \\(.*\\)" nil t)
+            (let ((pkg-name (swift-additions:extract-package-name (match-string 1))))
+              (mode-line-hud:update :message (format "⬇️ Fetching %s" 
+                                                     (propertize pkg-name 'face 'font-lock-function-name-face)))))
+           ((re-search-backward "Cloning \\(.*\\)" nil t)
+            (let ((pkg-name (swift-additions:extract-package-name (match-string 1))))
+              (mode-line-hud:update :message (format "📥 Cloning %s" 
+                                                     (propertize pkg-name 'face 'font-lock-function-name-face)))))
+           ((re-search-backward "Computing version for \\(.*\\)" nil t)
+            (let ((pkg-name (swift-additions:extract-package-name (match-string 1))))
+              (mode-line-hud:update :message (format "🔍 Computing %s" 
+                                                     (propertize pkg-name 'face 'font-lock-variable-name-face)))))
+           ((re-search-backward "Resolving \\(.*\\)" nil t)
+            (let ((pkg-name (swift-additions:extract-package-name (match-string 1))))
+              (mode-line-hud:update :message (format "🔄 Resolving %s" 
+                                                     (propertize pkg-name 'face 'font-lock-keyword-face)))))
+           ((re-search-backward "Creating working copy for \\(.*\\)" nil t)
+            (let ((pkg-name (swift-additions:extract-package-name (match-string 1))))
+              (mode-line-hud:update :message (format "📝 Creating %s" 
+                                                     (propertize pkg-name 'face 'font-lock-type-face)))))
+           ;; Check for compilation of packages
+           ((re-search-backward "Building \\(.*\\)\\.o" nil t)
+            (let ((module-name (file-name-nondirectory (match-string 1))))
+              (mode-line-hud:update :message (format "🔨 Building %s" 
+                                                     (propertize module-name 'face 'font-lock-builtin-face)))))
+           ((re-search-backward "Compiling \\(.*\\)\\.swift" nil t)
+            (let ((file-name (file-name-nondirectory (match-string 1))))
+              (mode-line-hud:update :message (format "⚡ Compiling %s" 
+                                                     (propertize file-name 'face 'warning)))))))))))
+
+(defun swift-additions:extract-package-name (url-or-path)
+  "Extract package name from URL-OR-PATH.
+Examples:
+  https://github.com/user/MyPackage.git -> MyPackage
+  https://github.com/user/my-package -> my-package
+  /path/to/LocalPackage -> LocalPackage"
+  (let ((cleaned (replace-regexp-in-string "\\.git$" "" url-or-path)))
+    (if (string-match "\\([^/]+\\)$" cleaned)
+        (match-string 1 cleaned)
+      url-or-path)))
+
+;;;###autoload
+(defun swift-additions:monitor-build-progress ()
+  "Monitor build progress with package status updates."
+  (interactive)
+  (run-with-timer 0 2 'swift-additions:watch-package-download))
+
+;;;###autoload
+(defun swift-additions:check-package-status ()
+  "Check and display Swift package status for .build-based builds."
+  (interactive)
+  (let* ((project-root (xcode-additions:project-root))
+         (local-source-packages (expand-file-name ".build/SourcePackages" project-root))
+         (local-checkouts (expand-file-name ".build/checkouts" project-root))
+         (build-intermediates (expand-file-name ".build/Build/Intermediates.noindex" project-root))
+         (build-dir (expand-file-name ".build" project-root))
+         ;; Find DerivedData for this project
+         (derived-data-glob (format "~/Library/Developer/Xcode/DerivedData/*%s*/SourcePackages" 
+                                   (file-name-nondirectory (directory-file-name project-root))))
+         (xcode-source-packages (car (file-expand-wildcards derived-data-glob)))
+         (packages-exist (swift-additions:check-swift-packages-in-build))
+         ;; Count packages in various locations
+         (local-pkg-count (if (file-exists-p local-source-packages)
+                             (length (directory-files local-source-packages nil "^[^.]" t)) 0))
+         (xcode-pkg-count (if (and xcode-source-packages (file-exists-p xcode-source-packages))
+                             (length (directory-files xcode-source-packages nil "^[^.]" t)) 0))
+         (compiled-packages (when (file-exists-p build-intermediates)
+                             (length (directory-files build-intermediates nil "\\.build$" t)))))
+    (message "Swift Package Status:
+📦 Packages available: %s
+🏗️  Compiled in build: %s packages
+📁 Local .build/SourcePackages: %d packages
+🎯 Xcode DerivedData packages: %d packages  
+📁 .build/checkouts: %s
+📁 .build directory: %s
+⚙️  Resolution mode: %s
+🔄 Force resolution: %s
+📍 Xcode SourcePackages location: %s"
+             (if packages-exist "Yes" "No")
+             (or compiled-packages 0)
+             local-pkg-count
+             xcode-pkg-count
+             (if (file-exists-p local-checkouts) "Exists" "Missing")
+             (if (file-exists-p build-dir) "Exists" "Missing")
+             swift-additions:skip-package-resolution
+             (if swift-additions:force-package-resolution "Yes" "No")
+             (or xcode-source-packages "Not found"))))
+
+;;;###autoload
+(defun swift-additions:force-resolve-packages ()
+  "Force Swift package dependency resolution on next build."
+  (interactive)
+  (setq swift-additions:force-package-resolution t)
+  (message "Will force package resolution on next build"))
+
+;;;###autoload
+(defun swift-additions:toggle-package-resolution ()
+  "Toggle Swift package resolution mode between auto/always/never."
+  (interactive)
+  (setq swift-additions:skip-package-resolution
+        (cond
+         ((eq swift-additions:skip-package-resolution 'auto) 'always)
+         ((eq swift-additions:skip-package-resolution 'always) 'never)
+         ((eq swift-additions:skip-package-resolution 'never) 'auto)
+         (t 'auto)))
+  (message "Swift package resolution mode: %s" swift-additions:skip-package-resolution))
+
+;;;###autoload
+(defun swift-additions:prebuild-packages ()
+  "Pre-build Swift packages to speed up subsequent builds.
+This builds all package dependencies once so they're cached for future builds."
+  (interactive)
+  (let* ((project-root (xcode-additions:project-root))
+         (workspace-or-project (xcode-additions:get-workspace-or-project))
+         (scheme (xcode-additions:scheme)))
+    (message "Pre-building Swift packages for maximum performance...")
+    (async-shell-command
+     (format "cd '%s' && xcrun xcodebuild build %s -scheme %s -destination 'generic/platform=iOS Simulator' -derivedDataPath .build -onlyUsePackageVersionsFromResolvedFile -skipPackageUpdates -configuration Debug SWIFT_COMPILATION_MODE=wholemodule BUILD_LIBRARIES_FOR_DISTRIBUTION=YES | head -100"
+             project-root workspace-or-project scheme)
+     "*Swift Package Prebuild*")
+    (message "Pre-building packages in background. This will make future builds much faster!")))
+
+;;;###autoload
+(defun swift-additions:optimize-for-incremental-builds ()
+  "Configure project for fastest possible incremental builds.
+Respects the periphery setting - use toggle-periphery-mode to control error display."
+  (interactive)
+  (setq swift-additions:skip-package-resolution 'auto  ; Smart package checking
+        swift-additions:analysis-mode 'fast  ; Keep fast analysis (respects periphery setting)
+        swift-additions:use-thin-lto nil  ; No LTO for debug builds
+        swift-additions:other-swift-flags nil)  ; No extra Swift flags for max compatibility
+  (swift-additions:setup-build-environment :for-device nil)
+  (message "Optimized for incremental builds. Periphery: %s. Builds should be much faster now!" 
+           (if swift-additions:use-periphery "ON" "OFF")))
+
+;;;###autoload
+(defun swift-additions:clean-build-packages ()
+  "Clean .build directory to force fresh package download."
+  (interactive)
+  (let* ((project-root (xcode-additions:project-root))
+         (build-dir (expand-file-name ".build" project-root)))
+    (when (file-exists-p build-dir)
+      (when (yes-or-no-p "Clean .build directory? This will force re-download of all packages.")
+        (message "Cleaning .build directory...")
+        (async-start
+         `(lambda ()
+            (delete-directory ,build-dir t)
+            "completed")
+         (lambda (result)
+           (message ".build directory cleaned: %s" result)))))
+    (unless (file-exists-p build-dir)
+      (message ".build directory doesn't exist"))))
 
 ;; Add hooks to automatically warm cache when opening Swift files
 ;;;###autoload

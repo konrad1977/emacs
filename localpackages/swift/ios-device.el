@@ -6,7 +6,7 @@
 
 ;;; Code:
 
-(require 'periphery-helper)
+(require 'periphery-helper nil t)
 (require 'cl-lib)
 
 (defgroup ios-device nil
