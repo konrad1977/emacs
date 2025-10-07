@@ -761,6 +761,15 @@ If TERMINATE-RUNNING is non-nil, terminate any running instance before launching
           ios-simulator--cache-timestamp nil))
   (message "Simulator cache invalidated"))
 
+(defun ios-simulator:toggle-buffer ()
+  "Toggle visibility of the iOS Simulator buffer window."
+  (interactive)
+  (if-let* ((buffer (get-buffer ios-simulator-buffer-name)))
+      (if (get-buffer-window buffer)
+          (delete-window (get-buffer-window buffer))
+        (display-buffer buffer))
+    (message "Buffer %s does not exist" ios-simulator-buffer-name)))
+
 (defun ios-simulator:remove-control-m (string)
   "Remove ^M characters from STRING."
   (replace-regexp-in-string "\r" "" string))

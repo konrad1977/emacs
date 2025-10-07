@@ -3,6 +3,8 @@
 ;; This file contains configurations related to Emacs themes.
 ;;; Code:
 
+(add-to-list 'custom-theme-load-path (expand-file-name "themes" user-emacs-directory))
+
 (use-package autothemer
   :ensure t
   :init

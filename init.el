@@ -15,8 +15,7 @@
 (load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
 
 (dolist (path (list
-               (expand-file-name "modules" user-emacs-directory)
-               (expand-file-name "themes" user-emacs-directory)))
+               (expand-file-name "modules" user-emacs-directory)))
   (add-to-list 'load-path path))
 
 (require 'mk-core)

@@ -19,58 +19,62 @@
   "Cache of last processed input for debugging.")
 
 ;;;###autoload
-(cl-defun periphery-core-parse (&key input type parsers callback)
+(cl-defun periphery-core-parse (&key input type parsers callback query)
   "Parse INPUT using parsers of given TYPE or specific PARSERS list.
 TYPE can be :compiler, :search, :linter, or :test.
 PARSERS can be a list of parser IDs to use.
-CALLBACK is called with the parsed results."
+CALLBACK is called with the parsed results.
+QUERY is an optional search query for highlighting in search results."
   (when periphery-debug
-    (message "periphery-core-parse called with type: %s" type))
-  
+    (message "periphery-core-parse called with type: %s, query: %s" type query))
+
   (setq periphery-core-last-input input)
   (setq periphery-core-error-list '())
-  
-  (let ((parsers-to-use (or parsers 
+
+  (let ((parsers-to-use (or parsers
                              (mapcar #'car (periphery-get-parsers-by-type type)))))
-    
+
     (when periphery-debug
       (message "Parsers to use: %S" parsers-to-use))
-    
+
     ;; Process input through each parser
     (dolist (parser-id parsers-to-use)
       (when-let ((config (periphery-get-parser parser-id)))
         (when periphery-debug
           (message "Applying parser: %s" parser-id))
-        (periphery-core--apply-parser input config)))
-    
+        (periphery-core--apply-parser input config query)))
+
     ;; Remove duplicates and sort
-    (setq periphery-core-error-list 
-          (periphery-core--sort-results 
+    (setq periphery-core-error-list
+          (periphery-core--sort-results
            (delete-dups periphery-core-error-list)))
-    
+
     (when periphery-debug
       (message "Found %d errors" (length periphery-core-error-list)))
-    
+
     ;; Call callback if provided
     (when callback
       (funcall callback periphery-core-error-list))
-    
+
     periphery-core-error-list))
 
-(defun periphery-core--apply-parser (input config)
-  "Apply parser CONFIG to INPUT and collect results."
+(defun periphery-core--apply-parser (input config &optional query)
+  "Apply parser CONFIG to INPUT and collect results.
+Optional QUERY is passed to the parser function if it accepts it."
   (when-let ((parse-fn (plist-get config :parse-fn)))
     ;; Apply filter if provided
     (let ((filter-fn (plist-get config :filter-fn)))
       (when filter-fn
         (setq input (funcall filter-fn input))))
-    
+
     ;; Parse each line
     (dolist (line (split-string input "\n"))
       (when (and line (not (string-empty-p line)))
         (when periphery-debug
           (message "  Parsing line (%d chars): %s" (length line) line))
-        (let ((result (funcall parse-fn line)))
+        (let ((result (if query
+                          (funcall parse-fn line query)
+                        (funcall parse-fn line))))
           (when result
             (when periphery-debug
               (message "    -> Got result!"))

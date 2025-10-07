@@ -282,7 +282,7 @@ FACE is the face to apply (defaults to periphery-identifier-face)."
   '((compiler . "\\(/[^:]+\\):\\([0-9]+\\):\\([0-9]+\\): \\(\\w+\\): \\(.*\\)")
     (xctest . "^\\([^:]+\\):\\([0-9]+\\):\\w?\\([^:]*\\)[^.]+\\.\\([^:|]*\\)\\s?:\\(.*\\)")
     (search . "\\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\).\\(.*\\)")
-    (todos . "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)\\s?:?\\s?\\(.*\\)")
+    (todos . "\\(TODO\\|PERF\\|NOTE\\|FIXME\\|FIX\\|HACK\\|MARK\\)[[:space:]]*:?[[:space:]]*\\(.*\\)")
     (ktlint . "\\(^[^:]+\\):\\([0-9]+\\):\\([0-9]+\\): \\([^(]+\\) (\\(standard:[^)]+\\))")
     (package-error . "^xcodebuild: error: Could not resolve package dependencies:")
     (build-failure . "^The following build commands failed:"))

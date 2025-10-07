@@ -16,15 +16,15 @@
         ("C-g" . abort-recursive-edit))
   :config
   (advice-add #'vertico--format-candidate :around
-              (lambda (orig cand prefix suffix index _start)
-                (setq cand (funcall orig cand prefix suffix index _start))
+              (lambda (orig cand prefix suffix index _)
+                (setq cand (funcall orig cand prefix suffix index _))
                 (concat
                  (if (= vertico--index index)
                      (propertize "» " 'face '(:inherit font-lock-operator-face :weight black))
                    "  ")
                  cand)))
   (setq vertico-resize t
-        vertico-count 12
+        vertico-count 13
         vertico-cycle t))
 
 (use-package vertico-posframe
@@ -34,12 +34,12 @@
   (setq vertico-posframe-parameters
         '((internal-border-width . 2)
           (undecorated . t)
-          (alpha . 95))
+          (alpha . 90))
         vertico-posframe-poshandler #'posframe-poshandler-frame-center
         vertico-posframe-min-height 1
         vertico-posframe-truncate-lines t
-        vertico-posframe-min-width 120
-        vertico-posframe-border-width 20)
+        vertico-posframe-min-width 140
+        vertico-posframe-border-width 10)
   (setq vertico-multiform-commands
         '((consult-line (:not posframe))
           (xref-find-references (:not posframe))
@@ -47,7 +47,6 @@
           (consult-ripgrep (:not posframe))
           (consult-org-heading (:not posframe))
           (consult-xref (:not posframe))
-          ;; (consult-imenu (:not posframe))
           (t posframe)))
   (vertico-multiform-mode)
   (vertico-posframe-cleanup))
@@ -136,17 +135,6 @@
   :after (:all embark consult)
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
-
-
-(defun consult-all-project-files ()
-  "Show all project files immediately with live preview."
-  (interactive)
-  (consult--read (project-files (project-current t))
-                 :prompt "Project file: "
-                 :category 'file
-                 :state (consult--file-state)
-                 :require-match t))
-
 
 (provide 'mk-completion)
 ;;; mk-completion.el ends here

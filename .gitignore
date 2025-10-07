@@ -1,3 +1,6 @@
 /elpa/
 /eln-cache/
 /.cache/
+/.DS_Store
+*DS_Store*
+/localpackages/welcome-dashboard/

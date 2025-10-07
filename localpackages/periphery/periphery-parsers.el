@@ -70,42 +70,67 @@
              (column (match-string 3 line))
              (content (string-trim-left (match-string 4 line)))
              (path (format "%s:%s:%s" file line-num column)))
-        
-        ;; Check if it's a TODO/FIXME
-        (if (string-match (alist-get 'todos periphery-builtin-patterns) content)
-            (periphery-parser-todo-from-content content path file line-num)
-          ;; Regular search match
-          (periphery-core-build-entry
-           :path path
-           :file file
-           :line line-num
-           :column column
-           :severity "Match"
-           :message (if query 
-                        (periphery-parser--highlight-match content query)
-                      content)
-           :face-fn #'periphery-parser--match-face))))))
+
+        (when periphery-debug
+          (message "periphery-parser-search: content='%s'" content))
+
+        ;; Check if it's a TODO/FIXME by trimming comment chars and other noise first
+        (let* ((trimmed-content (string-trim content))
+               ;; Remove leading //, /*, #, ;, etc and whitespace
+               (clean-content (replace-regexp-in-string "^\\(//+\\|/\\*+\\|#+\\|;+\\)[[:space:]]*" "" trimmed-content)))
+          (when periphery-debug
+            (message "  clean-content='%s'" clean-content)
+            (message "  checking TODO match against: %s" (alist-get 'todos periphery-builtin-patterns))
+            (message "  match result: %s"
+                     (string-match (alist-get 'todos periphery-builtin-patterns) clean-content)))
+
+          (if (string-match (alist-get 'todos periphery-builtin-patterns) clean-content)
+              (progn
+                (when periphery-debug
+                  (message "  -> Matched TODO! Calling todo-from-content"))
+                (periphery-parser-todo-from-content clean-content path file line-num))
+            ;; Regular search match
+            (when periphery-debug
+              (message "  -> No TODO match, using regular Match"))
+            (periphery-core-build-entry
+             :path path
+             :file file
+             :line line-num
+             :column column
+             :severity "Match"
+             :message (if query
+                          (periphery-parser--highlight-match content query)
+                        content)
+             :face-fn #'periphery-parser--match-face)))))))
 
 ;; TODO/FIXME Parser
 ;;;###autoload
-(defun periphery-parser-todo (line)
-  "Parse TODO/FIXME from LINE."
+(defun periphery-parser-todo (content)
+  "Parse TODO/FIXME from CONTENT."
   (save-match-data
-    (when (string-match (alist-get 'todos periphery-builtin-patterns) line)
-      (let* ((keyword (match-string 1 line))
-             (comment (string-trim (match-string 2 line))))
-        (list keyword comment)))))
+    ;; First trim any leading comment characters and whitespace
+    (let ((trimmed-content (replace-regexp-in-string "^[/;#]+\\s*" "" (string-trim content))))
+      (when (string-match (alist-get 'todos periphery-builtin-patterns) trimmed-content)
+        (let* ((keyword (match-string 1 trimmed-content))
+               (comment (string-trim (match-string 2 trimmed-content))))
+          (list keyword comment))))))
 
 (defun periphery-parser-todo-from-content (content path file line-num)
   "Parse TODO from CONTENT with PATH FILE and LINE-NUM."
   (when-let ((todo-data (periphery-parser-todo content)))
-    (periphery-core-build-entry
-     :path path
-     :file file
-     :line line-num
-     :severity (car todo-data)
-     :message (cadr todo-data)
-     :face-fn #'periphery-parser--todo-face)))
+    (let* ((keyword (car todo-data))
+           (comment (cadr todo-data))
+           ;; Get the non-full face (without background) for the message
+           (message-face (periphery-parser--todo-message-face keyword))
+           ;; Apply face to the message
+           (styled-message (propertize comment 'face message-face)))
+      (periphery-core-build-entry
+       :path path
+       :file file
+       :line line-num
+       :severity keyword
+       :message styled-message
+       :face-fn #'periphery-parser--todo-face))))
 
 ;; Ktlint Parser
 ;;;###autoload
@@ -171,7 +196,7 @@
      (t 'periphery-info-face-full))))
 
 (defun periphery-parser--todo-face (keyword)
-  "Get face for TODO KEYWORD."
+  "Get face for TODO KEYWORD (full face with background)."
   (let ((type (upcase keyword)))
     (cond
      ((string= type "TODO") 'periphery-todo-face-full)
@@ -181,6 +206,18 @@
      ((string= type "PERF") 'periphery-performance-face-full)
      ((string= type "MARK") 'periphery-mark-face-full)
      (t 'periphery-info-face-full))))
+
+(defun periphery-parser--todo-message-face (keyword)
+  "Get face for TODO KEYWORD message (no background, just foreground)."
+  (let ((type (upcase keyword)))
+    (cond
+     ((string= type "TODO") 'periphery-todo-face)
+     ((string-match-p "FIX\\|FIXME" type) 'periphery-fix-face)
+     ((string= type "HACK") 'periphery-error-face)  ; HACK uses error color
+     ((string= type "NOTE") 'periphery-note-face)
+     ((string= type "PERF") 'periphery-performance-face)
+     ((string= type "MARK") 'periphery-info-face)
+     (t 'periphery-info-face))))
 
 (defun periphery-parser--match-face (_)
   "Get face for search match."
@@ -280,7 +317,16 @@
    :type :linter
    :priority 65
    :parse-fn #'periphery-parser-swiftlint
-   :face-fn #'periphery-parser--severity-face))
+   :face-fn #'periphery-parser--severity-face)
+
+  (periphery-register-parser
+   'search
+   :name "Search Results"
+   :regex (alist-get 'search periphery-builtin-patterns)
+   :type :search
+   :priority 80
+   :parse-fn #'periphery-parser-search
+   :face-fn #'periphery-parser--match-face))
 
 ;; Package/Build Error Parsers
 ;;;###autoload  

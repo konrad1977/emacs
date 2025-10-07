@@ -331,6 +331,8 @@
         flyover-show-at-eol nil
         flyover-wrap-messages t
         flyover-max-lines 110
+        flyover-debounce-interval 1.0
+
         flyover-background-lightness 25
         flyover-virtual-line-icon nil))
 
@@ -358,6 +360,60 @@
                    (list 'vc backend root)))))
   (add-hook 'project-find-functions #'project-root-override))
 
+(defun my/multi-occur-in-project-buffers (&optional nlines)
+  "Show all lines in current project buffers matching a regexp.
+A prefix argument will not filter project buffers."
+  (interactive "P")
+  (when-let* ((project (project-current)))
+    (multi-occur (my/project-buffers-filtered project)
+                 (car (occur-read-primary-args))
+                 nlines)))
+
+(defvar my:project-buffer-regexp-filter
+  '("\\` "
+    "\\`*")
+  "Filter regexps for `my/project-buffers-filtered'.")
+
+(defun my/project-buffers-filtered (project &optional all-buffers)
+  "Use a prefix argument to include all PROJECT buffers."
+  (setq all-buffers (or all-buffers
+                        current-prefix-arg))
+  (if all-buffers
+      (project-buffers project)
+    (seq-remove (lambda (buffer)
+                  (cl-loop for regexp in my:project-buffer-regexp-filter
+                           thereis (string-match-p regexp (buffer-name buffer))))
+                (project-buffers project))))
+
+(use-package hl-todo
+  :ensure t
+  :defer t
+  :hook (prog-mode . hl-todo-mode)
+  :config
+  (setq hl-todo-highlight-punctuation ":"
+        hl-todo-keyword-faces
+        '(("TODO"   . "#1E90FF")
+          ("FIXME"  . "#FF4500")
+          ("DEBUG"  . "#A020F0")
+          ("GOTCHA" . "#FF8C00")
+          ("STUB"   . "#1E90FF")
+          ("NOTE"   . "#00CED1")
+          ("HACK"   . "#FF0000")
+          ("REVIEW" . "#ADFF2F"))))
+
+
+(use-package periphery-quick
+  :ensure nil
+  :after (periphery-helper async)
+  :bind (("C-c p f" . periphery-quick:find)
+         ("C-c p F" . periphery-quick:find-ask)
+         ("C-c p t" . periphery-quick:todos)
+         ("C-c p l" . periphery-quick:find-in-file)))
+
+(use-package periphery-search
+  :ensure nil
+  :after (periphery-helper async)
+  :bind (("C-x t t" . periphery-query-todos-and-fixmes)))
 
 ;;; Provide
 (provide 'mk-development)

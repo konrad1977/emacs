@@ -31,6 +31,7 @@
   :config
   (setq isearch-allow-scroll t
         isearch-lazy-count t)
+
   (defun mk/project-search-from-isearch ()
     (interactive)
     (let ((query (if isearch-regexp
@@ -115,7 +116,10 @@
 
 (use-package avy
   :defer t
-  :bind ("M-g" . avy-goto-word-1)
+  :bind
+  ("M-g" . avy-goto-word-1)
+  (:map isearch-mode-map
+        ("C-a" . avy-isearch))
   :config
   (setq avy-single-candidate-jump t))
 

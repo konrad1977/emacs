@@ -67,9 +67,10 @@
         punch-line-modal-size 'small
         punch-line-left-separator ""
         punch-line-right-separator ""
-        punch-line-section-padding 2
+        punch-line-section-padding 1
         punch-show-git-info t
         punch-show-lsp-info t
+        punch-line-vc-use-github-icon nil
         punch-show-copilot-info nil
         punch-show-battery-info t
         punch-show-flycheck-info t
@@ -159,6 +160,7 @@
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-reuse-window)
       (body-function . select-window)
       (window-width . 0.4)
+      (slot . 1)
       (side . left))
      ("evil-marks\\*"
       (display-buffer-in-side-window)
@@ -171,7 +173,7 @@
       (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
       (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
       (window-parameters . ((mode-line-format . none)))
-      (slot . 4))
+      (slot . 100))
      ("\\*Embark*"
       (display-buffer-in-side-window display-buffer-reuse-mode-window display-buffer-at-bottom)
       (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
@@ -189,7 +191,7 @@
       (body-function . select-window)
       (window-height . 0.2)
       (window-width . 0.30)
-      (slot . 1))
+      (slot . 10))
      ("\\*Android Emulator\\*\\|\\*Android Logcat\\*\\|\\*Android Emulator Error\\*"
       (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
       (body-function . select-window)

@@ -71,7 +71,7 @@
   (let ((query (read-string "Query:")))
     (periphery-run-query searcher query)
     (mode-line-hud:update :message
-                          (format "Searching for '%s' with ripgrep"
+                          (format "Searching for '%s' with rg"
                                   (propertize query 'face 'font-lock-string-face)))))
 
 ;;;###autoload

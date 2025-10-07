@@ -265,10 +265,11 @@ CONFIG can be:
           (message "Unknown periphery-run-parser config: %s" key)))))
     
     ;; Use the core parsing system with dynamic configuration
-    (let ((errors (periphery-core-parse 
-                   :input input 
+    (let ((errors (periphery-core-parse
+                   :input input
                    :type type
-                   :parsers parsers)))
+                   :parsers parsers
+                   :query query)))
       (setq periphery-errorList errors)
       (when (or (periphery--is-buffer-visible) periphery-errorList)
         (periphery--listing-command periphery-errorList))
@@ -309,7 +310,7 @@ CONFIG can be:
   (when-let* ((buffer (get-buffer periphery-buffer-name)))
     (kill-buffer buffer)))
 
-(defun periphery-toggle-buffer ()
+(defun periphery:toggle-buffer ()
   "Toggle visibility of the Periphery buffer window."
   (interactive)
   (if-let* ((buffer (get-buffer periphery-buffer-name)))

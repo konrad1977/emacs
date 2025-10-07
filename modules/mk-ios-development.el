@@ -33,6 +33,7 @@
   (:map swift-ts-mode-map
         ("M-s" . #'ios-simulator:terminate-current-app)
         ("C-x s n" . #'ios-simulator:send-notification)
+        ("C-x s t" . #'ios-simulator:toggle-buffer)
         ("C-x s l" . #'ios-simulator:change-language)))
 
 (use-package swift-additions
@@ -48,6 +49,7 @@
 	("C-c C-c" . #'swift-additions:compile-and-run)
 	("C-c C-b" . #'swift-additions:compile-app)
 	("C-c C-x" . #'swift-additions:reset)
+        ("C-x p t" . #'periphery-toggle-buffer)
 	("C-c C-f" . #'periphery-search-dwiw-rg)))
 
 (use-package swift-features
@@ -85,6 +87,14 @@
         ("C-c r r" . #'swift-refactor:extract-function)
         ("M-P" .  #'swift-refactor:print-thing-at-point)
         ("C-c r t" . #'swift-refactor:add-try-catch)))
+
+(use-package apple-docs-query
+  :ensure nil
+  :after swift-ts-mode
+  :bind
+  (:map swift-ts-mode-map
+        ("C-x D" . #'apple-docs/query-thing-at-point)
+        ("C-x d" . #'apple-docs/query)))
 
 ;;; Provide
 (provide 'mk-ios-development)
