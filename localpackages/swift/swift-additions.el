@@ -110,6 +110,9 @@ When nil, use standard compilation-mode."
 (defvar swift-additions:active-build-buffer nil
   "Buffer name for the active build process.")
 (defvar swift-additions:compilation-time nil)
+(defvar swift-additions:last-build-succeeded nil
+  "Track if the last build succeeded.
+nil = unknown/never built, t = success, \\='failed = failed.")
 
 (defun swift-additions:log-debug (format-string &rest args)
   "Log debug message using FORMAT-STRING and ARGS when debug is enabled."
@@ -824,12 +827,23 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                    (let ((exit-status (process-exit-status process)))
                      (if (= exit-status 0)
                          (progn
+                           (setq swift-additions:last-build-succeeded t)
                            (when callback
                              (funcall callback "Build succeeded")))
                        ;; Build failed - do NOT call callback to prevent installation
                        (progn
-                         (swift-additions:handle-build-error 
-                          (format "Build failed with exit status %s - see *Swift Build* buffer" exit-status))
+                         (setq swift-additions:last-build-succeeded 'failed)
+                         ;; Extract actual error from build buffer
+                         (let ((error-msg (with-current-buffer (get-buffer "*Swift Build*")
+                                            (save-excursion
+                                              (goto-char (point-max))
+                                              ;; Look for actual xcodebuild errors
+                                              (if (re-search-backward "^\\(error\\|\\*\\* BUILD FAILED \\*\\*\\|xcodebuild: error:\\)" nil t)
+                                                  (buffer-substring-no-properties
+                                                   (line-beginning-position)
+                                                   (min (+ (point) 500) (point-max)))
+                                                (format "Build failed with exit status %s" exit-status))))))
+                           (swift-additions:handle-build-error error-msg))
                          ;; Reset run-once-compiled to prevent installation
                          (setq run-once-compiled nil)))))))))
           nil))
@@ -875,6 +889,7 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                                       (if (and (= exit-status 0)
                                               (swift-additions:check-if-build-was-successful output))
                                           (progn
+                                            (setq swift-additions:last-build-succeeded t)
                                             (with-current-buffer output-buffer
                                               (let ((inhibit-read-only t))
                                                 (goto-char (point-max))
@@ -884,6 +899,7 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                                             (funcall callback output)
                                             (swift-additions:cleanup))
                                         (progn
+                                          (setq swift-additions:last-build-succeeded 'failed)
                                           (with-current-buffer output-buffer
                                             (let ((inhibit-read-only t))
                                               (goto-char (point-max))
@@ -925,21 +941,30 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
           (swift-additions:log-debug "Running command: %s" command)
           (cons process log-buffer))))))
 
-(cl-defun swift-additions:compile (&key run)
-  "Build project using xcodebuild (as RUN)."
+(cl-defun swift-additions:compile (&key run force)
+  "Build project using xcodebuild (as RUN).
+If FORCE is nil, skip compilation if sources are unchanged."
   (save-some-buffers t)
 
   (if (xcode-additions:is-xcodeproject)
       (progn
-        (when swift-additions:use-periphery
-          (periphery-kill-buffer))
-        (ios-simulator:kill-buffer)
-        ;; Only ask for device/simulator if not already set
-        (unless xcode-additions:device-choice
-          (xcode-addition:ask-for-device-or-simulator))
-        (if (not (xcode-additions:run-in-simulator))
-            (swift-additions:compile-for-device :run run)
-          (swift-additions:compile-for-simulator :run run)))
+        ;; Check if rebuild is needed (unless forced)
+        (if (and (not force) (not (swift-additions:needs-rebuild-p)))
+            (progn
+              (message "Build up-to-date, skipping compilation")
+              ;; If run was requested and app is up-to-date, just run it
+              (when run
+                (swift-additions:run)))
+          ;; Proceed with normal build
+          (when swift-additions:use-periphery
+            (periphery-kill-buffer))
+          (ios-simulator:kill-buffer)
+          ;; Only ask for device/simulator if not already set
+          (unless xcode-additions:device-choice
+            (xcode-addition:ask-for-device-or-simulator))
+          (if (not (xcode-additions:run-in-simulator))
+              (swift-additions:compile-for-device :run run)
+            (swift-additions:compile-for-simulator :run run))))
     (if (swift-additions:is-a-swift-package-base-project)
         (swift-additions:build-swift-package)
       (message "Not xcodeproject nor swift package"))))
@@ -1097,6 +1122,243 @@ Returns a cons cell (PROCESS . LOG-BUFFER) where LOG-BUFFER accumulates the buil
                      (swift-additions:successful-build)))
        :update-callback nil))))
 
+;; ============================================================================
+;; Smart Build Detection - Skip compilation if sources unchanged
+;; ============================================================================
+
+(defun swift-additions:file-mtime (file)
+  "Get modification time as float for FILE.
+Returns nil if file doesn't exist."
+  (when (file-exists-p file)
+    (float-time (file-attribute-modification-time
+                 (file-attributes file)))))
+
+(defun swift-additions:find-all-source-files ()
+  "Find all .swift files in project (cached for 60 seconds)."
+  (let* ((project-root (xcode-additions:project-root))
+         (cache-key (when (fboundp 'swift-cache-project-key)
+                      (swift-cache-project-key project-root "source-files"))))
+    (if (and cache-key (fboundp 'swift-cache-with))
+        (swift-cache-with cache-key 60  ; Cache for 1 minute
+          (let ((default-directory project-root))
+            (split-string
+             (shell-command-to-string
+              "find . -name '*.swift' -not -path '*/.*' -not -path '*/DerivedData/*' -type f")
+             "\n" t)))
+      ;; Fallback without cache
+      (let ((default-directory (xcode-additions:project-root)))
+        (split-string
+         (shell-command-to-string
+          "find . -name '*.swift' -not -path '*/.*' -not -path '*/DerivedData/*' -type f")
+         "\n" t)))))
+
+(defun swift-additions:find-newest-source-mtime ()
+  "Find the newest modification time among all Swift source files."
+  (let* ((source-files (swift-additions:find-all-source-files))
+         (project-root (xcode-additions:project-root))
+         (mtimes (mapcar (lambda (file)
+                          (swift-additions:file-mtime
+                           (expand-file-name file project-root)))
+                        source-files)))
+    (when mtimes
+      (apply #'max (delq nil mtimes)))))
+
+(defun swift-additions:get-important-files-mtime ()
+  "Get the newest mtime of important project files (project.pbxproj, Podfile.lock, etc)."
+  (let* ((project-root (xcode-additions:project-root))
+         (important-files (list
+                          ;; Find project.pbxproj
+                          (car (directory-files-recursively
+                                project-root "project\\.pbxproj$" nil
+                                (lambda (dir) (not (string-match-p "/\\." dir)))
+                                1))
+                          ;; CocoaPods
+                          (expand-file-name "Podfile.lock" project-root)
+                          ;; Swift Package Manager
+                          (expand-file-name "Package.resolved" project-root)))
+         (mtimes (mapcar #'swift-additions:file-mtime
+                        (delq nil important-files))))
+    (when mtimes
+      (apply #'max (delq nil mtimes)))))
+
+(defun swift-additions:get-built-app-path ()
+  "Get path to the built .app bundle."
+  (let* ((build-folder (xcode-additions:build-folder
+                       :device-type (if (xcode-additions:run-in-simulator)
+                                        :simulator
+                                      :device)))
+         (product-name (xcode-additions:product-name))
+         (app-path (when (and build-folder product-name)
+                    (expand-file-name (format "%s.app" product-name) build-folder))))
+    (when (and app-path (file-exists-p app-path))
+      app-path)))
+
+(defun swift-additions:needs-rebuild-p ()
+  "Return t if rebuild is needed, nil if app is up-to-date.
+Compares modification times of:
+- All .swift source files
+- Project configuration files (project.pbxproj, Podfile.lock, etc)
+Against the built .app bundle."
+  (let* ((app-path (swift-additions:get-built-app-path))
+         (app-mtime (when app-path
+                     (swift-additions:file-mtime app-path)))
+         (newest-source-mtime (swift-additions:find-newest-source-mtime))
+         (newest-project-mtime (swift-additions:get-important-files-mtime)))
+
+    (when swift-additions:debug
+      (message "Build check - App: %s (mtime: %s), Newest source: %s, Newest project file: %s, Last build: %s"
+               app-path
+               (when app-mtime (format-time-string "%Y-%m-%d %H:%M:%S" app-mtime))
+               (when newest-source-mtime (format-time-string "%Y-%m-%d %H:%M:%S" newest-source-mtime))
+               (when newest-project-mtime (format-time-string "%Y-%m-%d %H:%M:%S" newest-project-mtime))
+               (cond ((eq swift-additions:last-build-succeeded t) "succeeded")
+                     ((eq swift-additions:last-build-succeeded 'failed) "FAILED")
+                     (t "unknown"))))
+
+    (or (not app-path)                           ; No app exists
+        (not app-mtime)                          ; Can't read app mtime
+        (eq swift-additions:last-build-succeeded 'failed)  ; Last build failed
+        (and newest-source-mtime
+             (> newest-source-mtime app-mtime))  ; Source newer than app
+        (and newest-project-mtime
+             (> newest-project-mtime app-mtime)))))  ; Project files newer than app
+
+(defun swift-additions:ensure-built (&optional force)
+  "Ensure app is built. Build only if needed unless FORCE is non-nil.
+Returns t if build was performed, nil if skipped."
+  (interactive "P")
+  (if (or force (swift-additions:needs-rebuild-p))
+      (progn
+        (when force
+          (message "Forcing rebuild..."))
+        (when (and (not force) swift-additions:debug)
+          (message "Changes detected, building..."))
+        (swift-additions:compile-and-run)
+        t)
+    (progn
+      (message "Build up-to-date, skipping compilation")
+      nil)))
+
+;;;###autoload
+(defun swift-additions:reset-build-status ()
+  "Reset the build status tracking.
+This forces the next build to run regardless of file timestamps."
+  (interactive)
+  (setq swift-additions:last-build-succeeded nil)
+  (message "Build status reset - next build will run unconditionally"))
+
+;;;###autoload
+(defun swift-additions:build-status ()
+  "Show current build status and whether rebuild is needed."
+  (interactive)
+  (let* ((app-path (swift-additions:get-built-app-path))
+         (app-mtime (when app-path
+                     (swift-additions:file-mtime app-path)))
+         (newest-source-mtime (swift-additions:find-newest-source-mtime))
+         (newest-project-mtime (swift-additions:get-important-files-mtime))
+         (needs-rebuild (swift-additions:needs-rebuild-p)))
+
+    (with-current-buffer (get-buffer-create "*Swift Build Status*")
+      (erase-buffer)
+      (insert "Swift Build Status\n")
+      (insert "==================\n\n")
+
+      (insert (format "Project: %s\n" (xcode-additions:project-root)))
+      (insert (format "Scheme: %s\n" (or current-xcode-scheme "Not set")))
+      (insert (format "Target: %s\n\n"
+                     (if (xcode-additions:run-in-simulator) "Simulator" "Device")))
+
+      (if app-path
+          (progn
+            (insert (format "Built App: %s\n" app-path))
+            (insert (format "Last Built: %s\n\n"
+                           (if app-mtime
+                               (format-time-string "%Y-%m-%d %H:%M:%S" app-mtime)
+                             "Unknown"))))
+        (insert "Built App: Not found\n\n"))
+
+      (when newest-source-mtime
+        (insert (format "Newest Source File: %s\n"
+                       (format-time-string "%Y-%m-%d %H:%M:%S" newest-source-mtime))))
+
+      (when newest-project-mtime
+        (insert (format "Newest Project File: %s\n\n"
+                       (format-time-string "%Y-%m-%d %H:%M:%S" newest-project-mtime))))
+
+      (insert (format "Last Build Result: %s\n"
+                     (cond ((eq swift-additions:last-build-succeeded t)
+                            (propertize "Success" 'face 'success))
+                           ((eq swift-additions:last-build-succeeded 'failed)
+                            (propertize "Failed" 'face 'error))
+                           (t "Unknown"))))
+
+      (insert (format "Status: %s\n"
+                     (if needs-rebuild
+                         (propertize "Rebuild Needed" 'face 'warning)
+                       (propertize "Up-to-date" 'face 'success))))
+
+      (when needs-rebuild
+        (insert "\nReason: ")
+        (cond
+         ((not app-path)
+          (insert "No built app found"))
+         ((eq swift-additions:last-build-succeeded 'failed)
+          (insert (propertize "Last build failed" 'face 'error)))
+         ((and newest-source-mtime (> newest-source-mtime app-mtime))
+          (insert "Source files modified"))
+         ((and newest-project-mtime (> newest-project-mtime app-mtime))
+          (insert "Project configuration modified"))
+         (t
+          (insert "Unknown"))))
+
+      (display-buffer (current-buffer)))))
+
+;;;###autoload
+(defun swift-additions:show-last-build-errors ()
+  "Show the last 50 lines of the build output, focusing on errors."
+  (interactive)
+  (if-let ((build-buffer (get-buffer "*Swift Build*")))
+      (with-current-buffer (get-buffer-create "*Swift Build Errors*")
+        (erase-buffer)
+        (insert "Last Build Errors\n")
+        (insert "=================\n\n")
+        (insert (format "Build Status: %s\n\n"
+                       (cond ((eq swift-additions:last-build-succeeded t)
+                              (propertize "Success" 'face 'success))
+                             ((eq swift-additions:last-build-succeeded 'failed)
+                              (propertize "Failed" 'face 'error))
+                             (t "Unknown"))))
+
+        ;; Extract and show actual errors first
+        (let ((errors (with-current-buffer build-buffer
+                        (save-excursion
+                          (goto-char (point-min))
+                          (let ((error-lines '()))
+                            (while (re-search-forward "^\\(.+:\\([0-9]+\\):\\([0-9]+\\): error:\\|\\*\\* BUILD FAILED \\*\\*\\|xcodebuild: error:\\|The following build commands failed:\\)" nil t)
+                              (push (buffer-substring-no-properties
+                                    (line-beginning-position)
+                                    (min (+ (line-end-position) 200) (point-max)))
+                                   error-lines))
+                            (nreverse error-lines))))))
+          (when errors
+            (insert "=== ERRORS FOUND ===\n")
+            (dolist (err errors)
+              (insert (propertize err 'face 'error))
+              (insert "\n\n"))))
+
+        (insert "\n\nLast 50 lines of build output:\n")
+        (insert "-------------------------------\n")
+        (insert (with-current-buffer build-buffer
+                  (save-excursion
+                    (goto-char (point-max))
+                    (forward-line -50)
+                    (buffer-substring-no-properties (point) (point-max)))))
+        (compilation-mode)
+        (goto-char (point-min))
+        (display-buffer (current-buffer)))
+    (message "No *Swift Build* buffer found. Run a build first.")))
+
+;; ============================================================================
 
 (defun swift-additions:is-a-swift-package-base-project ()
   "Check if project is a swift package based."
@@ -2131,6 +2393,13 @@ Modes: fast -> minimal -> disabled -> full -> fast"
   (interactive)
   (setq swift-additions:analysis-mode 'minimal)
   (message "Swift analysis set to minimal mode (fastest)"))
+
+;;;###autoload
+(defun swift-additions:run-on-additional-simulator ()
+  "Run current app on an additional simulator (e.g., iOS 18 and iOS 26 simultaneously)."
+  (interactive)
+  (require 'ios-simulator)
+  (ios-simulator:run-on-additional-simulator))
 
 (provide 'swift-additions)
 ;;; swift-additions.el ends here

@@ -199,7 +199,7 @@ ENABLED determines if parser is active (default t)."
   "Select a parser interactively with PROMPT."
   (let (parsers)
     (maphash (lambda (id config)
-               (push (cons (format "%s [%s]" 
+               (push (cons (format "%s [%s]"
                                    (plist-get config :name)
                                    (if (plist-get config :enabled) "ON" "OFF"))
                            id)
@@ -227,9 +227,9 @@ and PATTERN is the regex to match it."
   '((parentheses . periphery-error-face)
     (strings . highlight)
     (quotes . highlight)
-    (quote-content . highlight)
+    (quote-content . periphery-identifier-face)
     (quote-marks . periphery-identifier-face)
-    (string-content . highlight)
+    (string-content . periphery-identifier-face)
     (string-marks . periphery-identifier-face))
   "Face configuration for syntax highlighting in error messages.
 Each entry is (ELEMENT . FACE) where ELEMENT is the syntax element
@@ -254,7 +254,7 @@ FACE is the face to apply (defaults to periphery-identifier-face)."
 ;;;###autoload
 (defun periphery-remove-highlight-pattern (element)
   "Remove highlight pattern for ELEMENT."
-  (interactive 
+  (interactive
    (list (intern (completing-read "Remove pattern: " 
                                   (mapcar #'symbol-name 
                                           (mapcar #'car periphery-highlight-patterns))
@@ -365,7 +365,7 @@ FACE is the face to apply (defaults to periphery-identifier-face)."
 
 (defun periphery--face-from-severity (severity)
   "Get face for given SEVERITY level."
-  (intern (format "periphery-%s-face" (downcase severity))))
+  (intern (format "periphery-%s-face-full" (downcase severity))))
 
 (defun periphery--face-from-match-type (type)
   "Get face for given match TYPE."

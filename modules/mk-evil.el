@@ -133,14 +133,14 @@
 
   (evil-define-key 'normal 'global (kbd "<leader> p F") 'mk/consult-ripgrep-at-point-project)
 
-  (evil-select-search-module 'evil-search-module 'evil-search)
+  (evil-select-search-module 'evil-search-module 'isearch)
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
   (define-key evil-motion-state-map (kbd "<right>") 'ignore)
 
-  (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 15)))
-  (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 15)))
+  (define-key evil-motion-state-map (kbd "C-+") #'(lambda () (interactive) (enlarge-window-horizontally 10)))
+  (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 10)))
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
   (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
@@ -152,7 +152,6 @@
 
   (evil-define-key 'normal evil-ex-map "q" 'mk/safe-kill-buffer-and-window)
   (evil-mode 1))
-
 
 (with-eval-after-load 'evil
   (dolist (state '(normal insert visual motion emacs))

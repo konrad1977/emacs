@@ -50,7 +50,8 @@
 	("C-c C-b" . #'swift-additions:compile-app)
 	("C-c C-x" . #'swift-additions:reset)
         ("C-x p t" . #'periphery-toggle-buffer)
-	("C-c C-f" . #'periphery-search-dwiw-rg)))
+	("C-c C-f" . #'periphery-search-dwiw-rg)
+	("C-c b s" . #'swift-additions:build-status)))
 
 (use-package swift-features
   :ensure nil

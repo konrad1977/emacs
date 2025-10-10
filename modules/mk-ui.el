@@ -115,9 +115,10 @@
   :custom
   (dired-listing-switches "-aBhl --group-directories-first")
   :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-up-directory
-    "l" 'dired-find-file))
+  (with-eval-after-load 'evil-collection
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-up-directory
+      "l" 'dired-find-file)))
 
 (use-package which-key
   :defer 3

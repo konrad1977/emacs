@@ -8,12 +8,13 @@
 
 (use-package emacs
   :hook (after-init . (lambda ()
-                        (global-hl-line-mode 1)
+                        (global-hl-line-mode 0)
                         (display-battery-mode 1)
                         (global-auto-revert-mode 1)))
   :custom
   (context-menu-mode t)
-  (set-window-margins (selected-window) 5 5)
+  (set-window-margins (selected-window) 10 10)
+  (set-window-fringes (selected-window) 16 10)
   (set-display-table-slot standard-display-table 0 ?\ )
   (column-number-mode nil)
   (line-number-mode nil)
@@ -22,9 +23,8 @@
   (use-dialog-box nil)
   (use-file-dialog nil)
   (visible-bell nil)
+  (indicate-buffer-boundaries .	'left) ; Show buffer top and bottom in the margin
   (window-combination-resize t)
-  (auto-revert-avoid-polling t) ;; Automatically reread from disk if the underlying file changes
-  (auto-revert-check-vc-info t)
   (help-window-select t)
   (grep-command "rg -nS --no-heading ")
   (global-auto-revert-non-file-buf t)
@@ -36,10 +36,11 @@
   (create-lockfiles nil)
   (confirm-kill-processes t)
   (completion-ignore-case t)
+  (read-buffer-completion-ignore-case t)
+  (read-file-name-completion-ignore-case t)
   (backward-delete-char-untabify-method 'hungry)
   (backup-by-copying t)
   (auto-save-no-message t)
-  ;; (window-divider-mode t)
   (auto-save-timeout 20)
   (auto-window-vscroll nil)
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
@@ -49,12 +50,18 @@
   (setq confirm-kill-emacs (lambda (prompt)
                              (y-or-n-p-with-timeout prompt 2 nil)))
   (setopt history-length 300)
+  (setopt auto-revert-interval 5) ;; Check for changes every secondhh
+  (setopt auto-revert-avoid-polling t) ;; Automatically reread from disk if the underlying file changes
+  (setopt auto-revert-check-vc-info t)
+  (setopt completions-detailed 1)
+  (setopt completions-max-height 20)
+  (setopt completions-format 'one-column)
+  (setopt completions-group t)
   (setopt indicate-buffer-boundaries nil)
   (setopt indicate-empty-lines nil)
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
   (setopt kept-new-versions 6)
   (setopt kept-old-versions 2)
-  (setopt display-line-numbers-type 'relative)
   (setopt kill-do-not-save-duplicates t)
   (setopt large-file-warning-threshold (* 15 1024 1024))
   (setopt line-move-visual nil)
@@ -118,8 +125,6 @@
       (when (kill-buffer buf)
         (when (window-live-p win)
           (delete-window win)))))))
-
-
 
 (defun mk/browser-split-window (url &optional new-window)
   "Create a new browser (as URL as NEW-WINDOW) window to the right of the current one."

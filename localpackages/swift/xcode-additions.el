@@ -778,21 +778,31 @@ Returns a list of folder names, excluding hidden folders."
         current-errors-or-warnings nil
         xcode-additions:device-choice nil
         xcode-additions:last-device-type nil)  ; Reset device choice
+  ;; NOTE: We intentionally DO NOT reset swift-additions:last-build-succeeded here
+  ;; to allow each project to maintain its own build status across project switches.
+  ;; Use swift-additions:reset-build-status to manually reset if needed.
   (swift-project-reset-root)
   (xcode-additions:safe-mode-line-update :message "Resetting configuration")
   (message "Xcode configuration reset - scheme cache cleared"))
 
 ;;;###autoload
 (defun xcode-additions:start-debugging ()
-  "Start debugging immediately without confirmation."
+  "Start debugging immediately without confirmation.
+Automatically builds the app if sources have changed."
   (interactive)
   (condition-case err
       (progn
-        (xcode-additions:setup-dape)
-        (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
-          (if config
-              (dape config)
-            (error "Failed to setup dape configuration"))))
+        ;; Ensure app is built before debugging
+        (when (fboundp 'swift-additions:needs-rebuild-p)
+          (if (swift-additions:needs-rebuild-p)
+              (progn
+                (message "Changes detected, building before debugging...")
+                (swift-additions:compile-app)
+                ;; Wait a moment for build to complete
+                ;; TODO: Better synchronization with build completion
+                (sit-for 1))
+            (message "App up-to-date, launching debugger...")))
+        (xcode-additions:setup-dape))
     (error
      (message "Error starting debugger: %s" (error-message-string err))
      (message "Please ensure a scheme is selected and the project is properly configured")
@@ -845,7 +855,11 @@ Returns a list of folder names, excluding hidden folders."
                  :type "lldb"
                  :request "attach"
                  :cwd "."))
-  (call-interactively #'dape))
+  ;; Start dape directly with the ios configuration
+  (let ((config (copy-tree (cdr (assq 'ios dape-configs)))))
+    (if config
+        (dape config)
+      (error "Failed to setup dape configuration"))))
 
 
 (defun xcode-additions:clean-build-folder ()

@@ -169,9 +169,9 @@
   (swift-ts-face-property.declaration            (:foreground cyan_d))
   
 
-  (eglot-inlay-hint-face (:foreground blue0 :background black1 :height 0.8 :weight 'light))
-  (eglot-parameter-hint-face (:inherit 'eglot-inlay-hint-face))
-  (eglot-type-hint-face (:inherit 'eglot-inlay-hint-face))
+  (eglot-inlay-hint-face (:foreground cyan :height 0.8))
+  (eglot-parameter-hint-face (:foreground orange_b :height 0.8))
+  (eglot-type-hint-face (:foreground gray6 :height 0.8 :weight 'light))
 
   ;;; Rainbow-delimiters
   (rainbow-delimiters-mismatched-face            (:foreground red))
@@ -233,7 +233,7 @@
 
   (git-gutter:added (:foreground green_b))
   (git-gutter:deleted (:foreground red_b))
-  (git-gutter:modified (:foreground magenta))
+  (git-gutter:modified (:foreground blue1))
 
   (package-description (:foreground orange :weight 'light))
   (org-code (:foreground cyan))

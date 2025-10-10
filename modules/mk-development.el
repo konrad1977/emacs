@@ -40,6 +40,7 @@
          (prog-mode . global-prettify-symbols-mode))
   :config
   (setopt display-line-numbers-widen t
+          display-line-numbers-type 'relative
           display-line-numbers-width 4))
 
 (use-package ligature
@@ -86,8 +87,8 @@
   :defer t
   :hook (prog-mode . highlight-symbol-mode)
   :config
-  (setq highlight-symbol-idle-delay 0.8
-        highlight-symbol-highlight-single-occurrence nil))
+  (setopt highlight-symbol-idle-delay 0.8
+          highlight-symbol-highlight-single-occurrence nil))
 
 (use-package rainbow-delimiters
   :ensure t

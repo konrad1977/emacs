@@ -326,10 +326,56 @@
    :type :search
    :priority 80
    :parse-fn #'periphery-parser-search
-   :face-fn #'periphery-parser--match-face))
+   :face-fn #'periphery-parser--match-face)
+
+  (periphery-register-parser
+   'cdtool
+   :name "Core Data Tool"
+   :regex "\\(^cdtool:\\|xcdatamodel::\\)"
+   :type :compiler
+   :priority 95
+   :parse-fn #'periphery-parser-cdtool
+   :face-fn #'periphery-parser--severity-face))
 
 ;; Package/Build Error Parsers
-;;;###autoload  
+;;;###autoload
+(defun periphery-parser-cdtool (line)
+  "Parse cdtool (Core Data model) errors from LINE."
+  (save-match-data
+    (cond
+     ;; cdtool: Failed to parse model XML with failure reason ...
+     ((string-match "^cdtool: Failed to parse model XML with failure reason \\(.*\\)$" line)
+      (let ((reason (match-string 1 line)))
+        (periphery-core-build-entry
+         :path "Core Data Model"
+         :file "*.xcdatamodeld"
+         :line "1"
+         :severity "error"
+         :message (format "Core Data model error: %s" reason)
+         :face-fn #'periphery-parser--severity-face)))
+     ;; cdtool hash unarchiving error: ...
+     ((string-match "^cdtool hash unarchiving error: \\(.*\\)$" line)
+      (let ((reason (match-string 1 line)))
+        (periphery-core-build-entry
+         :path "Core Data Model"
+         :file "*.xcdatamodeld"
+         :line "1"
+         :severity "error"
+         :message (format "Core Data unarchiving error: %s" reason)
+         :face-fn #'periphery-parser--severity-face)))
+     ;; .xcdatamodel:: error: cdtool cannot compile
+     ((string-match "\\(/[^:]+\\.xcdatamodel\\):: error: \\(.*\\)$" line)
+      (let ((file (match-string 1 line))
+            (message (match-string 2 line)))
+        (periphery-core-build-entry
+         :path file
+         :file file
+         :line "1"
+         :severity "error"
+         :message message
+         :face-fn #'periphery-parser--severity-face))))))
+
+;;;###autoload
 (defun periphery-parser-package-error (input)
   "Parse package dependency errors from INPUT."
   (when (string-match-p "^xcodebuild: error: Could not resolve package dependencies:" input)

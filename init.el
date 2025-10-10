@@ -20,13 +20,13 @@
 
 (require 'mk-core)
 (require 'mk-emacs)
-(require 'mk-code-completion)
 (require 'mk-completion)
+(require 'mk-code-completion)
 (require 'mk-development)
 (require 'mk-editing)
 (require 'mk-evil)
 (require 'mk-ios-development)
-(require 'mk-kotlin-development)
+;; (require 'mk-kotlin-development)
 (require 'mk-lisp)
 (require 'mk-misc)
 (require 'mk-org)
@@ -36,7 +36,7 @@
 (require 'mk-ui)
 (require 'mk-ai)
 (require 'mk-vc)
-(require 'mk-web)
+;; (require 'mk-web)
 ;; (require 'mk-elfeed)
 
 (use-package welcome-dashboard

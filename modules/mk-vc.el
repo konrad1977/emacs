@@ -1,5 +1,7 @@
+;;; mk-vc.el --- Version Control Configuration -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Configuration for version control systems in Emacs using Magit, Git Gutter,
 
-;; -*- lexical-binding: t; -*-
 ;;; Code:
 
 (use-package magit
@@ -21,22 +23,39 @@
   :defer t
   :commands (git-timemachine git-timemachine-toggle))
 
-(use-package git-gutter
-  :defer 5
-  :hook (prog-mode . git-gutter-mode)
-  :diminish git-gutter-mode
-  :config
-  (setq git-gutter:modified-sign "┃"
-        git-gutter:added-sign "┃"
-        git-gutter:deleted-sign "┃")
-  (setq git-gutter:window-width 1)  ;; Set to minimum width
-  (setq git-gutter:update-interval 3))
+;; (use-package git-gutter
+;;   :defer 5
+;;   :hook (prog-mode . git-gutter-mode)
+;;   :diminish git-gutter-mode
+;;   :config
+;;   (setq git-gutter:modified-sign "┃"
+;;         git-gutter:added-sign "┃"
+;;         git-gutter:deleted-sign "┃")
+;;   (setq git-gutter:window-width 1)  ;; Set to minimum width
+;;   (setq git-gutter:update-interval 3))
 
 (use-package consult-gh
   :after consult
   :defer t
   :config
   (consult-gh-enable-default-keybindings))
+
+(use-package diff-hl
+  :defer t
+  :ensure t
+  :hook
+  (find-file . (lambda ()
+                 (global-diff-hl-mode)           ;; Enable Diff-HL mode for all files.
+                 (diff-hl-flydiff-mode)          ;; Automatically refresh diffs.
+                 (diff-hl-margin-mode)))         ;; Show diff indicators in the margin.
+  :custom
+  (diff-hl-side 'left)                           ;; Set the side for diff indicators.
+  (diff-hl-margin-symbols-alist '((insert . "┃") ;; Customize symbols for each change type.
+                                  (delete . "-")
+                                  (change . "┃")
+                                  (unknown . "┆")
+                                  (ignored . "i"))))
+
 
 ;;
 ;; (use-package blamer
