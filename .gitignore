@@ -4,3 +4,9 @@
 /.DS_Store
 *DS_Store*
 /localpackages/welcome-dashboard/
+/localpackages/swift-development/
+/localpackages/cocaine/
+/localpackages/darken-buffer/
+/localpackages/flycheck-eglot/
+/localpackages/flycheck-overlay/
+/localpackages/mito-laser-emacs/

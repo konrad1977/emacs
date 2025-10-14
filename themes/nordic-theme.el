@@ -153,7 +153,7 @@
   (font-lock-warning-face                        (:foreground yellow_b))
 
   (swift-ts-face-annotation                      (:foreground red_d))
-  (swift-ts-face-annotation.builtin              (:foreground cyan_d))
+  (swift-ts-face-annotation.builtin              (:foreground magenta :weight 'semi-bold))
   (swift-ts-face-annotation.type                 (:foreground green))
 
   (swift-ts-face-punctuation.type                (:inherit 'font-lock-punctuation-face))
@@ -163,7 +163,7 @@
   (swift-ts-face-face-label                      (:foreground green))
   (swift-ts-face-method.call                     (:inherit 'font-lock-function-call-face))
   (swift-ts-face-method.name                     (:inherit 'font-lock-function-name-face))
-  (swift-ts-face-keyword.annotation              (:foreground red_b :background green :weight 'bold))
+  (swift-ts-face-keyword.annotation              (:foreground red :weight 'light :italic t))
   (swift-ts-face-keyword.type                    (:inherit 'font-lock-type-face))
   (swift-ts-face-variable.synthesized            (:foreground cyan))
   (swift-ts-face-property.declaration            (:foreground cyan_d))
@@ -246,6 +246,26 @@
   (semel-non-local-exit         (:foreground blue1 :underline "red"))
   (semel-local-variable         (:inherit 'font-lock-property-use-face))
   (semel-binding-variable       (:inherit 'font-lock-property-name-face))
+
+  (diff-hl-change (:foreground blue1))
+  (diff-hl-delete (:foreground red))
+  (diff-hl-insert (:foreground green))
+
+  (diff-hl-margin-change (:foreground blue1))
+  (diff-hl-margin-delete (:foreground red))
+  (diff-hl-margin-insert (:foreground green))
+
+
+  (periphery-fix-face-full (:foreground gray1 :background magent_b :bold t))
+  (periphery-note-face-full (:foreground gray1  :background green_b :bold t))
+  (periphery-mark-face-full (:foreground gray1 :background gray6 :bold t))
+  (periphery-todo-face-full (:foreground gray1 :bold t))
+  (periphery-hack-face-full (:foreground gray1 :background red_b :bold t))
+  (periphery-performance-face-full (:foreground gray1 :background magent_b :bold t))
+  (periphery-warning-face-full (:foreground gray1 :background orange_b :bold t))
+  (periphery-error-face-full (:foreground gray1 :background red_b :bold t))
+  (periphery-error-face (:foreground red :bold t))
+  (periphery-identifier-face (:foreground gray6 :italic t :weight 'light))
 
   ))
 

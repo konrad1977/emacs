@@ -274,15 +274,16 @@
    (dape-stopped . dape-info) ; To display info and/or repl buffers on stopped
    (dape-stopped . dape-repl))
   :custom
+  (dape-breakpoint-margin-string (propertize "●" :face 'dape-breakpoint-face))
   (dape-buffer-window-arrangement 'right) ;; Info buffers to the left
-  (dape-breakpoint-margin-string
-   (propertize "●" :face 'dape-breakpoint-face))
   (dape-inlay-hints t)
   :config
-  (dape-breakpoint-global-mode)
-  (put 'dape--overlay-arrow-position
-       'overlay-arrow-string   ;; ▶ →
-       (propertize "▶" 'face 'dape-stack-trace-face)))
+  (set-face-attribute 'dape-breakpoint-face nil :stipple nil)
+  ;; (dape-breakpoint-global-mode)
+  ;; (put 'dape--overlay-arrow-position
+  ;;      'overlay-arrow-string   ;; ▶ →
+  ;;      (propertize "▶" 'face 'dape-stack-trace-face))
+  )
 
 (use-package repeat
   :defer t

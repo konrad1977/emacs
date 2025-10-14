@@ -71,7 +71,7 @@
   (eldoc-documentation-strategy 'eldoc-documentation-compose)
   (flymake-fringe-indicator-position nil)
   :config
-  (add-to-list 'eglot-server-programs '(swift-ts-mode . my-swift-mode:eglot-server-contact))
+  (add-to-list 'eglot-server-programs '(swift-ts-mode . swift-lsp-eglot-server-contact))
   (add-to-list 'eglot-server-programs
                '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
   (add-hook 'typescript-mode-hook 'eglot-ensure)

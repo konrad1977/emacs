@@ -11,17 +11,17 @@
         darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
         darken-buffer-always-darken-buffers-regexp '("\\*.*\\*")
         darken-buffer-always-color-buffers '(
-                                             ("*iOS Simulator*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ("*dape-repl*" . (:background "#43242B" :foreground "#D27E99"))
-                                             ("*dape-info*" . (:background "##43242B" :foreground "#D27E99"))
+                                             ;; ("*iOS Simulator*" . (:background "#252535" :foreground "#7e9cd8"))
+                                             ;; ("*dape-repl*" . (:background "#252535" :foreground "#gray100"))
+                                             ("*dape-info*" . (:background "##43242B" :foreground "gray100"))
                                              ("*Help*" . (:background "#252535" :foreground "#7e9cd8"))
                                              ("*Embark Collect*" . (:background "#252535" :foreground "#7e9cd8"))
                                              ("*Embark Export*" . (:background "#252535" :foreground "#7e9cd8"))
                                              ("*Embark Live*" . (:background "#252535" :foreground "#7e9cd8"))
                                              ("*Corfu documentation*" . (:background "#252535" :foreground "#7e9cd8"))
                                              ("*Corfu location*" . (:background "#252535" :foreground "#7e9cd8")))
-        darken-buffer-always-darken-percentage 10
-        lighten-inactive-buffer-percentage 5))
+        darken-buffer-always-darken-percentage 12
+        lighten-inactive-buffer-percentage 7))
 
 (use-package darkroom
   :defer t
@@ -81,7 +81,7 @@
         punch-line-section-backgrounds 'auto
         punch-line-section-background-tint-start -15
         punch-line-section-background-tint-step 50
-        ;; punch-line-music-info '(:service apple)
+        punch-line-music-info '(:service apple)
         ))
 
 
@@ -95,10 +95,10 @@
   (imenu-list-auto-resize t))
 
 (use-package candyshop
+  :hook (emacs-startup . candyshop-init)
   :ensure nil
   :custom
   (candyshop-alpha-values '(100 92))
-  :hook (emacs-startup . candyshop-init)
   :bind ("C-c t c" . candyshop-toggle))
 
 (use-package nerd-icons-ibuffer
@@ -125,6 +125,7 @@
   :ensure nil
   :hook (after-init . which-key-mode)
   :custom
+  (which-key-use-C-h-commands t)
   (which-key-separator " → ")
   (which-key-side-window-location 'bottom)
   (which-key-sort-order #'which-key-key-order-alpha)

@@ -14,9 +14,9 @@
     (void-variable
      ;; If we get a void-variable error, define the variable first
      (unless (boundp symbol)
-       (set symbol (if (functionp value) 
-                      (ignore-errors (funcall value))
-                    value)))
+       (set symbol (if (functionp value)
+                       (ignore-errors (funcall value))
+                     value)))
      symbol)
     (error
      ;; For any other error, just define the variable with a safe default
@@ -137,8 +137,8 @@
   (condition-case nil
       (let ((mono-font "Iosevka Curly")
             (variable-font "Iosevka Aile"))
-        (set-face-attribute 'default nil :family mono-font :height 160 :weight 'light)
-        (set-face-attribute 'fixed-pitch nil :family mono-font :weight 'light)
+        (set-face-attribute 'default nil :family mono-font :height 160 :width 'condensed :weight 'semi-light)
+        (set-face-attribute 'fixed-pitch nil :family mono-font)
         (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
     (error nil))
   
