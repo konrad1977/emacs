@@ -484,7 +484,7 @@
   (font-lock-operator-face              (:foreground sky))
   (font-lock-preprocessor-face	   	(:foreground yellow))
   (font-lock-property-name-face	        (:foreground peach :weight 'semi-bold))
-  (font-lock-property-use-face	        (:foreground sky :weight 'thin))
+  (font-lock-property-use-face	        (:foreground maroon))
   (font-lock-punctuation-face           (:foreground peach :weight 'normal))
   (font-lock-reference-face		(:foreground sky))
   (font-lock-regexp-grouping-backslash  (:foreground blue :weight 'semi-bold))
@@ -583,16 +583,6 @@
   (eldoc-box-body                                (:background mantle :foreground lavender))
   (eldoc-box-border                              (:background crust))
 
-  (with-eval-after-load "swift-mode"
-    (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
-    (swift-mode:property-access-face (:foreground subtext1))
-    (swift-mode:builtin-property-face (:foreground rosewater))
-    (swift-mode:builtin-enum-case-face (:foreground teal))
-    (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
-    (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
-    (swift-mode:function-call-face (:foreground pink)))
-
-
   (diff-file-header (:foreground subtext1 :background overlay0))
   (diff-header (:foreground subtext1 :background overlay0))
   (diff-hunk-header (:foreground subtext1 :background overlay0))
@@ -607,6 +597,14 @@
   (diff-indicator-removed (:foreground subtext1 :background dark-red))
   (diff-nonexistent (:foreground subtext1))
 
+  (diff-hl-change (:foreground teal))
+  (diff-hl-delete (:foreground red))
+  (diff-hl-insert (:foreground lavender))
+
+  (diff-hl-margin-change (:foreground teal))
+  (diff-hl-margin-delete (:foreground red))
+  (diff-hl-margin-insert (:foreground lavender))
+
   (punch-line-evil-normal-face  (:foreground crust :background teal :weight 'bold))
   (punch-line-evil-visual-face  (:foreground crust :background mauve :weight 'bold))
   (punch-line-evil-replace-face (:foreground crust :background maroon :weight 'bold))
@@ -617,6 +615,21 @@
 
   (jira-face-time (:foreground yellow))
   (jira-face-tag (:foreground mauve))
+
+  ;; (periphery-fix-face-full (:foreground gray1 :background magent_b :bold t))
+  (periphery-note-face-full (:foreground crust  :background teal :bold t))
+  (periphery-note-face ( :foreground teal :weight 'normal))
+  ;; (periphery-mark-face-full (:foreground gray1 :background gray6 :bold t))
+  (periphery-todo-face-full (:foreground crust :background blue :bold t))
+  (periphery-todo-face (:foreground blue :weight 'normal))
+  (periphery-hack-face-full (:foreground crust :background maroon :bold t))
+  (periphery-hack-face (:foreground maroon :weight 'normal))
+  ;; (periphery-performance-face-full (:foreground gray1 :background magent_b :bold t))
+  (periphery-warning-face-full (:foreground crust :background rosewater :bold t))
+  (periphery-error-face-full (:foreground crust :background maroon :bold t))
+  (periphery-error-face (:foreground maroon :bold t))
+  (periphery-identifier-face (:foreground flamingo :italic t :weight 'light))
+
 
   ;; (eglot-params-highlight-symbol-face (:foreground blue :background crust :bold t))
   ;; (eglot-parameter-hint-face (:foreground red :background crust :bold t))

@@ -143,7 +143,10 @@
   (define-key evil-motion-state-map (kbd "C--") #'(lambda () (interactive) (shrink-window-horizontally 10)))
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
-  (define-key evil-insert-state-map (kbd "TAB") #'tab-to-tab-stop)
+
+  ;; Smart Tab i insert mode: Corfu > Copilot > indent
+  (define-key evil-insert-state-map (kbd "TAB") #'mk/tab-completion)
+  (define-key evil-insert-state-map (kbd "<tab>") #'mk/tab-completion)
 
   (setq evil-normal-state-cursor '(box "systemBlueColor")
         evil-insert-state-cursor '(bar "systemRedColor")
@@ -218,6 +221,16 @@
   :after evil
   :hook (after-init . global-evil-visualstar-mode))
 
+(use-package evil-snipe
+  :ensure t
+  :config
+  (evil-snipe-mode +1)
+  (evil-snipe-override-mode +1)
+  ;; optionally tweak scopes, etc
+  ;; e.g. (setq evil-snipe-scope 'buffer)
+  )
+
+
 (use-package undo-fu
   :ensure t
   :defer t
@@ -234,34 +247,53 @@
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")
         undo-fu-session-file-limit 10))
 
-(use-package pulsar
-  :hook (after-init . pulsar-global-mode)
+(use-package hardtime
+  :ensure nil
+  :after evil
   :config
-  (setq pulsar-pulse t
-        pulsar-delay 0.035
-        pulsar-iterations 12
-        pulsar-face 'pulsar-cyan
-        pulsar-highlight-face 'evil-ex-lazy-highlight
-        pulsar-pulse-functions '(
-                                 evil-yank
-                                 evil-yank-line
-                                 evil-delete
-                                 evil-delete-line
-                                 evil-jump-item
-                                 evil-scroll-down
-                                 evil-scroll-up
-                                 evil-scroll-page-down
-                                 evil-scroll-page-up
-                                 evil-scroll-line-down
-                                 evil-scroll-line-up
-                                 evil-window-up
-                                 evil-window-rotate-upwards
-                                 evil-window-rotate-downwards
-                                 evil-window-down
-                                 evil-window-left
-                                 evil-window-right
-                                 evil-window-vsplit
-                                 evil-window-split)))
+  (global-hardtime-mode 1))
+
+  (use-package pulsar
+    :hook (after-init . pulsar-global-mode)
+    :config
+    (setq pulsar-pulse t
+          pulsar-delay 0.035
+          pulsar-iterations 12
+          pulsar-face 'pulsar-cyan
+          pulsar-highlight-face 'evil-ex-lazy-highlight
+          pulsar-pulse-functions '(
+                                   evil-yank
+                                   evil-yank-line
+                                   evil-delete
+                                   evil-delete-line
+                                   evil-jump-item
+                                   evil-scroll-down
+                                   evil-scroll-up
+                                   evil-scroll-page-down
+                                   evil-scroll-page-up
+                                   evil-scroll-line-down
+                                   evil-scroll-line-up
+                                   evil-window-up
+                                   evil-window-rotate-upwards
+                                   evil-window-rotate-downwards
+                                   evil-window-down
+                                   evil-window-left
+                                   evil-window-right
+                                   evil-window-vsplit
+                                   evil-window-split)))
+
+(defun my/recenter-after-jump (&rest _)
+  "Centrera fönstret efter hoppkommandon i Evil."
+  (recenter))
+
+(dolist (fn '(evil-jump-backward
+              evil-jump-forward
+              evil-forward-section-begin
+              evil-backward-section-begin
+              evil-forward-sentence-begin
+              evil-backward-sentence-begin
+              evil-goto-definition))
+  (advice-add fn :after #'my/recenter-after-jump))
 
 ;;; Provide
 (provide 'mk-evil)

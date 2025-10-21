@@ -31,15 +31,11 @@
   :ensure t
   :after vertico
   :config
-  (setq vertico-posframe-parameters
-        '((internal-border-width . 2)
-          (undecorated . t)
-          (alpha . 90))
-        vertico-posframe-poshandler #'posframe-poshandler-frame-center
-        vertico-posframe-min-height 1
+  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-center
+        vertico-posframe-min-height 2
         vertico-posframe-truncate-lines t
-        vertico-posframe-min-width 140
-        vertico-posframe-border-width 10)
+        vertico-posframe-min-width 130
+        vertico-posframe-border-width 24)
   (setq vertico-multiform-commands
         '((consult-line (:not posframe))
           (xref-find-references (:not posframe))

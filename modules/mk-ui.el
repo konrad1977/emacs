@@ -21,7 +21,7 @@
                                              ("*Corfu documentation*" . (:background "#252535" :foreground "#7e9cd8"))
                                              ("*Corfu location*" . (:background "#252535" :foreground "#7e9cd8")))
         darken-buffer-always-darken-percentage 12
-        lighten-inactive-buffer-percentage 7))
+        lighten-inactive-buffer-percentage 5))
 
 (use-package darkroom
   :defer t
@@ -95,7 +95,7 @@
   (imenu-list-auto-resize t))
 
 (use-package candyshop
-  :hook (emacs-startup . candyshop-init)
+  ;; :hook (emacs-startup . candyshop-init)
   :ensure nil
   :custom
   (candyshop-alpha-values '(100 92))

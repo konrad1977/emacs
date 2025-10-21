@@ -1,6 +1,25 @@
-
-;; -*- lexical-binding: t; -*-
+;;; mk-ai.el --- AI integrations -*- lexical-binding: t; -*-
+;;; Commentary:
+;; AI integrations for Emacs, including Copilot and Claude Code IDE.
 ;;; Code:
+
+(require 'corfu)
+
+(defun mk/tab-completion ()
+  "Smart tab: prioritera Corfu/Cape, annars Copilot."
+  (interactive)
+  (cond
+   ;; 1. If Corfu is active and in completion-in-region-mode, use Corfu
+   ((and (bound-and-true-p corfu-mode)
+         completion-in-region-mode)
+    (corfu-insert))
+   ;; 2. If copilot-mode is active and has a visible overlay,
+   ((and (bound-and-true-p copilot-mode)
+         (copilot--overlay-visible))
+    (copilot-accept-completion))
+   ;; 3. Fallback to default tab behavior
+   (t
+    (tab-to-tab-stop))))
 
 (use-package copilot
   :ensure nil
@@ -9,13 +28,10 @@
   :hook ((prog-mode localizeable-mode) . copilot-mode)
   :bind
   (:map copilot-completion-map
-        ("<tab>" . copilot-accept-completion)
-        ("TAB" . copilot-accept-completion)
         ("C-c C-n" . copilot-next-completion)
         ("C-c C-p" . copilot-previous-completion))
   :config
-  (setq copilot-indent-offset-warning-disable t)
-  (setq copilot-max-char 1000000))
+  (setq copilot-indent-offset-warning-disable t))
 
 (use-package copilot-chat
   :defer t
@@ -25,14 +41,14 @@
   :config
   (setq copilot-chat-backend 'curl
         copilot-chat-frontend 'org
-        copilot-chat-follow nil))
+        copilot-chat-follow t))
 
 (use-package claude-code-ide
   :defer t
   :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
   :config
   (setopt claude-code-ide-vterm-anti-flicker t
-          claude-code-ide-vterm-render-delay 0.1)
+          claude-code-ide-vterm-render-delay 0.2)
   (claude-code-ide-emacs-tools-setup))
 
 ;;

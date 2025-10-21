@@ -327,15 +327,14 @@
   ;; :bind ("C-c f l" . flyover-toggle)
   :config (add-hook 'flycheck-mode-hook #'flyover-mode)
   (setq flyover-virtual-line-type 'curved-arrow
-        flyover-percent-darker 60
-        flyover-text-tint-percent 70
+        flyover-percent-darker 40
+        flyover-text-tint-percent 50
         flyover-text-tint 'lighter
         flyover-show-at-eol nil
         flyover-wrap-messages t
         flyover-max-lines 110
-        flyover-debounce-interval 1.0
-
-        flyover-background-lightness 25
+        flyover-debounce-interval 2.0
+        flyover-background-lightness 35
         flyover-virtual-line-icon nil))
 
 (use-package flycheck-eglot

@@ -106,16 +106,18 @@
   :hook (prog-mode . global-corfu-mode)
   :bind
   (:map corfu-map
+        ("TAB" . corfu-insert)
+        ("<tab>" . corfu-insert)
         ("SPC" . corfu-insert-separator)
         ("<escape>" . corfu-quit)
         ("C-g" . corfu-quit)
         ("C-n" . corfu-next)
         ("C-p" . corfu-previous)
-        ("C-l" . corfu-complete)
+        ("RET" . corfu-insert)
         ("C-d" . corfu-show-documentation)
         ("C-e" . corfu-show-location)
         ("C-h" . corfu-show-location)
-        ("M-RET" . corfu-insert)
+        ("M-RET" . corfu-complete)
         ("C-j" . corfu-next)
         ("C-k" . corfu-previous))
   :custom
@@ -126,7 +128,7 @@
   :config
   (setq corfu-auto-delay 0.2          ; Reduced from 0.3
         corfu-preselect 'valid
-        corfu-max-width 120
+        corfu-max-width 140
         corfu-preview-current 'insert
         corfu-quit-at-boundary 'separator
         corfu-quit-no-match t)

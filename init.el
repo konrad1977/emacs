@@ -60,3 +60,4 @@
 
 (provide 'init)
 ;;; init.el ends here
+(put 'narrow-to-page 'disabled nil)
