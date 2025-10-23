@@ -29,7 +29,7 @@
 ;; (require 'mk-kotlin-development)
 (require 'mk-lisp)
 (require 'mk-misc)
-(require 'mk-org)
+;; (require 'mk-org)
 (require 'mk-term)
 (require 'mk-theme)
 (require 'mk-treemacs)

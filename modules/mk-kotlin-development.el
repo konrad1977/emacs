@@ -13,7 +13,7 @@
 
 (use-package kotlin-ts-mode
   :ensure t
-  :afwter kotlin-mode
+  :after kotlin-mode
   :mode ("\\.kt\\'" "\\.kts\\'"))
 
 (use-package kotlin-development

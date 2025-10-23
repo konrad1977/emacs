@@ -30,21 +30,6 @@
   (setq darkroom-text-scale-increase 1.4
         darkroom-margins '(5 . 0)))
 
-(use-package indent-bars
-  :defer t
-  :vc (indent-bars
-       :url "https://github.com/jdtsmith/indent-bars"
-       :branch "main"
-       :rev :newest)
-  :hook (prog-mode . indent-bars-mode)
-  :custom
-  (indent-bars-color '(highlight :face-bg t :blend 0.15))
-  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
-  (indent-bars-treesit-support t)
-  (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
-  (indent-bars-width-frac 0.1)
-  (indent-bars-prefer-character t))
-
 (use-package punch-line
   :ensure nil
   :defer t

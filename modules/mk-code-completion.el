@@ -24,8 +24,6 @@
   ;; Add more Elisp specific backends
   (add-hook 'emacs-lisp-mode-hook #'mk/setup-elisp-capf)
   :bind (
-         ("<Tab>" . cape-complete)
-         ("TAB" . cape-complete)
          ("C-c p p" . completion-at-point) ;; capf
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
@@ -106,8 +104,6 @@
   :hook (prog-mode . global-corfu-mode)
   :bind
   (:map corfu-map
-        ("TAB" . corfu-insert)
-        ("<tab>" . corfu-insert)
         ("SPC" . corfu-insert-separator)
         ("<escape>" . corfu-quit)
         ("C-g" . corfu-quit)
@@ -129,7 +125,7 @@
   (setq corfu-auto-delay 0.2          ; Reduced from 0.3
         corfu-preselect 'valid
         corfu-max-width 140
-        corfu-preview-current 'insert
+        corfu-preview-current nil       ; No preview insertion, wait for TAB
         corfu-quit-at-boundary 'separator
         corfu-quit-no-match t)
   :init

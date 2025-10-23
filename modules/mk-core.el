@@ -11,7 +11,8 @@
   (package-install 'use-package))
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure t
+      use-package-compute-statistics t)
 
 ;; Initialize packages to ensure they're available
 (package-initialize)

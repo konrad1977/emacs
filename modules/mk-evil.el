@@ -144,13 +144,10 @@
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
 
-  ;; Smart Tab i insert mode: Corfu > Copilot > indent
-  (define-key evil-insert-state-map (kbd "TAB") #'mk/tab-completion)
-  (define-key evil-insert-state-map (kbd "<tab>") #'mk/tab-completion)
 
-  (setq evil-normal-state-cursor '(box "systemBlueColor")
-        evil-insert-state-cursor '(bar "systemRedColor")
-        evil-visual-state-cursor '(hollow "systemPurpleColor"))
+  (setq evil-normal-state-cursor '(box "DodgerBlue")
+        evil-insert-state-cursor '(bar "DeepPink")
+        evil-visual-state-cursor '(hollow "orchid"))
   ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
 
   (evil-define-key 'normal evil-ex-map "q" 'mk/safe-kill-buffer-and-window)
@@ -223,13 +220,10 @@
 
 (use-package evil-snipe
   :ensure t
+  :after evil
   :config
   (evil-snipe-mode +1)
-  (evil-snipe-override-mode +1)
-  ;; optionally tweak scopes, etc
-  ;; e.g. (setq evil-snipe-scope 'buffer)
-  )
-
+  (evil-snipe-override-mode +1))
 
 (use-package undo-fu
   :ensure t

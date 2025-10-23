@@ -9,7 +9,7 @@
   :ensure t
   :init
   ;; (load-theme 'catppuccin-mocha t)
-  (load-theme 'catppuccin-macchiato t)
+  ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-frappe t)
   ;; (load-theme 'catppuccin-latte t)
   ;; (load-theme 'ef-deuteranopia-dark t)
@@ -23,7 +23,7 @@
   ;; (load-theme 'oxocarbon t)
   ;; (load-theme 'nordic t)
   ;; (load-theme 'poimandres t)
-  ;; (load-theme 'mito-laser t)
+  (load-theme 'mito-laser t)
   ;; (load-theme 'doom-outrun-electric t)
   ;; (load-theme 'doom-laserwave t)
   )

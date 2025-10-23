@@ -16,8 +16,7 @@
   :commands aggressive-indent-mode
   :hook
   (emacs-lisp-mode . aggressive-indent-mode))
-;;
-;; ;; Highlights function and variable definitions in Emacs Lisp mode
+
 (use-package highlight-defined
   :ensure t
   :defer t
@@ -59,4 +58,4 @@
 
 ;;; Provide
 (provide 'mk-lisp)
-;;; mk-lispediting.el ends here.
+;;; mk-lisp.el ends here.

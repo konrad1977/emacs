@@ -27,22 +27,6 @@
         show-trailing-whitespace nil
         truncate-lines t))
 
-(use-package prog-mode
-  :ensure nil
-  :hook ((emacs-lisp-mode . electric-indent-mode)
-         (prog-mode . electric-pair-mode)
-         (prog-mode . drag-stuff-mode)
-         (prog-mode . dumb-jump-mode)
-         ;; (prog-mode . hs-minor-mode)
-         (prog-mode . setup-programming-mode)
-         (prog-mode . display-line-numbers-mode)
-         (prog-mode . global-ligature-mode)
-         (prog-mode . global-prettify-symbols-mode))
-  :config
-  (setopt display-line-numbers-widen t
-          display-line-numbers-type 'relative
-          display-line-numbers-width 4))
-
 (use-package ligature
   :ensure t
   :defer t
@@ -61,43 +45,24 @@
                                        ":?" ":?>" "//" "///" "/*" "*/" "/=" "//=" "/==" "@_" "__" "???"
                                        "<:<" ";;;")))
 
-;; Drag lines and regions around
-(use-package drag-stuff
-  :ensure t
-  :defer t
-  :bind (:map evil-visual-state-map
-	      ("C-j" . drag-stuff-down)
-	      ("C-k" . drag-stuff-up)))
 
-(use-package dumb-jump
-  :ensure t
+(use-package indent-bars
   :defer t
-  :config
-  (put 'dumb-jump-go 'byte-obsolete-info nil)
-  (setq dumb-jump-window 'current
-        dumb-jump-quiet t
-        xref-show-definitions-function #'xref-show-definitions-completing-read)
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+  :vc (indent-bars
+       :url "https://github.com/jdtsmith/indent-bars"
+       :branch "main"
+       :rev :newest)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.15))
+  (indent-bars-highlight-current-depth '(:blend 0.5)) ; pump up the BG blend on current
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("comment")) ; Ignore comments
+  (indent-bars-width-frac 0.1)
+  (indent-bars-prefer-character t))
 
-(use-package expand-region
-  :defer t
-  :bind ("C-x e" . er/expand-region))
-
-(use-package highlight-symbol
-  :defer t
-  :hook (prog-mode . highlight-symbol-mode)
-  :config
-  (setopt highlight-symbol-idle-delay 0.8
-          highlight-symbol-highlight-single-occurrence nil))
-
-(use-package rainbow-delimiters
-  :ensure t
-  :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package breadcrumb
   :defer t
-  :hook
-  (prog-mode . breadcrumb-local-mode)
   :custom
   (breadcrumb-imenu-crumb-separator "::")
   (breadcrumb-project-crumb-separator " ")
@@ -147,6 +112,75 @@
                           ((string= string "Function")
                            (concat (nerd-icons-mdicon "nf-md-function_variant" :face 'breadcrumb-imenu-crumbs-face) " " string))
                           (t string)))))))
+
+(use-package rainbow-delimiters
+  :ensure t)
+
+(use-package highlight-symbol
+  :defer t
+  :config
+  (setopt highlight-symbol-idle-delay 0.8
+          highlight-symbol-highlight-single-occurrence nil))
+
+(use-package flycheck
+  :ensure t
+  :defer t
+  :diminish t
+  :bind
+  ("C-c f n" . flycheck-next-error)
+  ("C-c f p" . flycheck-previous-error)
+  ("C-c f g" . flycheck-mode)
+  :config
+  (add-to-list 'flycheck-checkers 'javascript-eslint)
+  (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
+  ;; (setq-default flycheck-indication-mode 'left-margin)
+  ;; (add-hook 'flycheck-mode-hook #'flycheck-set-indication-mode)
+  :custom
+  (setq flycheck-check-syntax-automatically
+        '(save mode-enabled idle-change)
+        flycheck-idle-change-delay 1.0
+        flycheck-idle-buffer-switch-delay 1.0
+        flycheck-checker-cache "~/.flycheck-cache"
+        flycheck-indication-mode nil)
+  (flycheck-checker-error-threshold 100))
+
+
+;; Drag lines and regions around
+(use-package drag-stuff
+  :ensure t
+  :defer t
+  :bind (:map evil-visual-state-map
+	      ("C-j" . drag-stuff-down)
+	      ("C-k" . drag-stuff-up)))
+
+(use-package dumb-jump
+  :ensure t
+  :defer t
+  :config
+  (put 'dumb-jump-go 'byte-obsolete-info nil)
+  (setq dumb-jump-window 'current
+        dumb-jump-quiet t
+        xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+
+(use-package hl-todo
+  :ensure t
+  :defer t
+  :config
+  (setq hl-todo-highlight-punctuation ":"
+        hl-todo-keyword-faces
+        '(("TODO"   . "#1E90FF")
+          ("FIXME"  . "#FF4500")
+          ("DEBUG"  . "#A020F0")
+          ("GOTCHA" . "#FF8C00")
+          ("STUB"   . "#1E90FF")
+          ("NOTE"   . "#00CED1")
+          ("HACK"   . "#FF0000")
+          ("REVIEW" . "#ADFF2F"))))
+
+(use-package expand-region
+  :defer t
+  :bind ("C-x e" . er/expand-region))
 
 (defun mk/toggle-flycheck-errors ()
   "Function to toggle flycheck errors."
@@ -298,29 +332,6 @@
   :after flycheck
   :hook (emacs-lisp-mode . flycheck-package-setup))
 
-(use-package flycheck
-  :ensure t
-  :defer t
-  :hook (prog-mode . flycheck-mode)
-  :diminish t
-  :bind
-  ("C-c f n" . flycheck-next-error)
-  ("C-c f p" . flycheck-previous-error)
-  ("C-c f g" . flycheck-mode)
-  :config
-  (add-to-list 'flycheck-checkers 'javascript-eslint)
-  (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
-  ;; (setq-default flycheck-indication-mode 'left-margin)
-  ;; (add-hook 'flycheck-mode-hook #'flycheck-set-indication-mode)
-  :custom
-  (setq flycheck-check-syntax-automatically
-        '(save mode-enabled idle-change)
-        flycheck-idle-change-delay 1.0
-        flycheck-idle-buffer-switch-delay 1.0
-        flycheck-checker-cache "~/.flycheck-cache"
-        flycheck-indication-mode nil)
-  (flycheck-checker-error-threshold 100))
-
 (use-package flyover
   :ensure nil
   :hook (flycheck-mode . flyover-mode)
@@ -386,23 +397,6 @@ A prefix argument will not filter project buffers."
                            thereis (string-match-p regexp (buffer-name buffer))))
                 (project-buffers project))))
 
-(use-package hl-todo
-  :ensure t
-  :defer t
-  :hook (prog-mode . hl-todo-mode)
-  :config
-  (setq hl-todo-highlight-punctuation ":"
-        hl-todo-keyword-faces
-        '(("TODO"   . "#1E90FF")
-          ("FIXME"  . "#FF4500")
-          ("DEBUG"  . "#A020F0")
-          ("GOTCHA" . "#FF8C00")
-          ("STUB"   . "#1E90FF")
-          ("NOTE"   . "#00CED1")
-          ("HACK"   . "#FF0000")
-          ("REVIEW" . "#ADFF2F"))))
-
-
 (use-package periphery-quick
   :ensure nil
   :after (periphery-helper async)
@@ -415,6 +409,28 @@ A prefix argument will not filter project buffers."
   :ensure nil
   :after (periphery-helper async)
   :bind (("C-x t t" . periphery-query-todos-and-fixmes)))
+
+(use-package prog-mode
+  :ensure nil
+  :hook ((emacs-lisp-mode . electric-indent-mode)
+         (prog-mode . electric-pair-mode)
+         (prog-mode . highlight-symbol-mode)
+         (prog-mode . drag-stuff-mode)
+         (prog-mode . hl-todo-mode)
+         ;; (prog-mode . dumb-jump-mode)
+         (prog-mode . hs-minor-mode)
+         (prog-mode . rainbow-delimiters-mode)
+         (prog-mode . flycheck-mode)
+         (prog-mode . breadcrumb-mode)
+         (prog-mode . setup-programming-mode)
+         (prog-mode . display-line-numbers-mode)
+         (prog-mode . indent-bars-mode)
+         (prog-mode . global-ligature-mode)
+         (prog-mode . global-prettify-symbols-mode))
+  :config
+  (setopt display-line-numbers-widen t
+          display-line-numbers-type 'relative
+          display-line-numbers-width 4))
 
 ;;; Provide
 (provide 'mk-development)

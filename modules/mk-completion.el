@@ -1,4 +1,5 @@
 ;;; mk-completion.el --- Completion configuration -*- lexical-binding: t; -*-
+
 ;;; Commentary:
 ;; Completion configuration using Vertico, Marginalia, and Nerd Icons.
 ;;; Code:
@@ -131,6 +132,10 @@
   :after (:all embark consult)
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+;; (with-eval-after-load 'vertico
+;;   (define-key evil-insert-state-map (kbd "<tab>") #'vertico-directory-enter)
+;;   (define-key evil-insert-state-map (kbd "DEL") #'vertico-directory-delete-char))
 
 (provide 'mk-completion)
 ;;; mk-completion.el ends here

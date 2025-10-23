@@ -6,20 +6,32 @@
 (require 'corfu)
 
 (defun mk/tab-completion ()
-  "Smart tab: prioritera Corfu/Cape, annars Copilot."
+  "Smart TAB: Corfu > Copilot > Completion → indent.  Vertico endast i minibuffer."
   (interactive)
-  (cond
-   ;; 1. If Corfu is active and in completion-in-region-mode, use Corfu
-   ((and (bound-and-true-p corfu-mode)
-         completion-in-region-mode)
-    (corfu-insert))
-   ;; 2. If copilot-mode is active and has a visible overlay,
-   ((and (bound-and-true-p copilot-mode)
-         (copilot--overlay-visible))
-    (copilot-accept-completion))
-   ;; 3. Fallback to default tab behavior
-   (t
-    (tab-to-tab-stop))))
+  (if (minibuffer-window-active-p (selected-window))
+      (call-interactively
+       (or (lookup-key vertico-map (kbd "<tab>"))
+           #'vertico-exit))
+    (cond
+     ;; 1. Corfu popup visible → accept
+     ((and (bound-and-true-p corfu-mode)
+           (bound-and-true-p completion-in-region-mode))
+      (corfu-insert))
+     ;; 2. Copilot active → accept
+     ((and (bound-and-true-p copilot-mode)
+           (copilot--overlay-visible))
+      (copilot-accept-completion))
+     ((bound-and-true-p corfu-mode)
+      (completion-at-point))
+     ;; 4. Fallback
+     (t
+      (indent-for-tab-command)))))
+
+;; Smart Tab in Evil Insert mode
+(with-eval-after-load 'evil
+  (define-key evil-insert-state-map (kbd "TAB") #'mk/tab-completion)
+  (define-key evil-insert-state-map (kbd "<tab>") #'mk/tab-completion)
+  (define-key evil-insert-state-map (kbd "C-i") #'mk/tab-completion))
 
 (use-package copilot
   :ensure nil
@@ -43,13 +55,13 @@
         copilot-chat-frontend 'org
         copilot-chat-follow t))
 
-(use-package claude-code-ide
-  :defer t
-  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
-  :config
-  (setopt claude-code-ide-vterm-anti-flicker t
-          claude-code-ide-vterm-render-delay 0.2)
-  (claude-code-ide-emacs-tools-setup))
+;; (use-package claude-code-ide
+;;   :defer t
+;;   :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+;;   :config
+;;   (setopt claude-code-ide-vterm-anti-flicker t
+;;           claude-code-ide-vterm-render-delay 0.2)
+;;   (claude-code-ide-emacs-tools-setup))
 
 ;;
 ;; (use-package dall-e-shell
