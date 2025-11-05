@@ -56,17 +56,32 @@
   (interactive)
   (open-current-line-with (tabulated-list-get-id)))
 
+(defun periphery--severity-priority (severity)
+  "Return numeric priority for SEVERITY (lower number = higher priority)."
+  (if (not (stringp severity))
+      4  ; Default priority for non-strings
+    (let ((type (downcase (string-trim severity))))
+      (cond
+       ((string-prefix-p "error" type) 1)
+       ((string-prefix-p "warning" type) 2)
+       ((string-prefix-p "note" type) 3)
+       (t 4)))))
+
 (defun periphery--listing-command (errorList)
   "Create an ERRORLIST for the current mode, prioritizing errors."
   (let ((sorted-list (sort errorList
                            (lambda (a b)
-                             (let ((severity-a (aref (car (cdr a)) 0))
-                                   (severity-b (aref (car (cdr b)) 0))
-                                   (file-a (aref (car (cdr a)) 1))
-                                   (file-b (aref (car (cdr b)) 1)))
-                               (if (string= severity-a severity-b)
+                             (let* ((entry-a (cadr a))
+                                    (entry-b (cadr b))
+                                    (severity-a (aref entry-a 0))
+                                    (severity-b (aref entry-b 0))
+                                    (file-a (aref entry-a 1))
+                                    (file-b (aref entry-b 1))
+                                    (priority-a (periphery--severity-priority severity-a))
+                                    (priority-b (periphery--severity-priority severity-b)))
+                               (if (= priority-a priority-b)
                                    (string< file-a file-b)
-                                 (string-prefix-p "error" severity-b)))))))
+                                 (< priority-a priority-b)))))))
 
     (save-selected-window
       (let* ((buffer (get-buffer-create periphery-buffer-name))
@@ -86,7 +101,18 @@
              :tag ""
              :text "Errors or warnings"
              :count (format "%d" (length tabulated-list-entries))
-             :attributes 'periphery-todo-face))))))
+             :attributes 'periphery-todo-face))
+
+        ;; Auto-open first error (only if it's actually an error, not a warning)
+        (run-at-time 0.2 nil
+                     (lambda ()
+                       (with-current-buffer (get-buffer periphery-buffer-name)
+                         (goto-char (point-min))
+                         (when-let* ((entry (tabulated-list-get-entry))
+                                     (severity (aref entry 0)))
+                           (when (string-match-p "error" (downcase severity))
+                             (periphery--open-current-line))))))))))
+
 
 
 (defun periphery--propertize-severity (severity)
@@ -279,28 +305,19 @@ CONFIG can be:
       (not (null periphery-errorList))))) ; Return t if any errors found
 
 (defun periphery-sort-error (errors)
-  "Sort ERRORS."
- (sort (nreverse errors)
-          (lambda (a b)
-            (let ((a-type (downcase (aref (cadr a) 0)))
-                  (b-type (downcase (aref (cadr b) 0))))
-              (cond
-               ;; If both are errors or both are warnings, sort by path
-               ((and (or (string-prefix-p "error" a-type)
-                         (string= (car a) "Build Failure"))
-                     (or (string-prefix-p "error" b-type)
-                         (string= (car b) "Build Failure")))
-                (string< (car a) (car b)))
-               ;; If a is an error (including build failure) and b is not, a comes first
-               ((or (string-prefix-p "error" a-type)
-                    (string= (car a) "Build Failure"))
-                t)
-               ;; If b is an error (including build failure) and a is not, b comes first
-               ((or (string-prefix-p "error" b-type)
-                    (string= (car b) "Build Failure"))
-                nil)
-               ;; Otherwise, sort by path
-               (t (string< (car a) (car b))))))))
+  "Sort ERRORS by severity (Error, Warning, Note) and then by path."
+  (sort (nreverse errors)
+        (lambda (a b)
+          (let* ((entry-a (cadr a))
+                 (entry-b (cadr b))
+                 (priority-a (periphery--severity-priority (aref entry-a 0)))
+                 (priority-b (periphery--severity-priority (aref entry-b 0))))
+            ;; First compare by severity priority
+            (if (= priority-a priority-b)
+                ;; If same severity, sort by path
+                (string< (car a) (car b))
+              ;; Otherwise sort by severity (lower priority number comes first)
+              (< priority-a priority-b))))))
 
 (defun periphery--is-buffer-visible ()
   "Check if periphery buffer is visible."

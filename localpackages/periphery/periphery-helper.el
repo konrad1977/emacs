@@ -143,7 +143,8 @@
                          (forward-line (1- linenumber)))
                        (if-let* ((columnnumber (string-to-number column)))
                            (when (> columnnumber 0)
-                             (forward-char (1- columnnumber))))))
+                             (forward-char (1- columnnumber)))))
+                     (recenter))
                  (message "File not found: %s" full-file-path)))))))))
 
 (cl-defun async-shell-command-to-string (&key process-name &key command &key callback)
