@@ -272,9 +272,11 @@
                 )))))
 
 (defun mk/compilation-auto-scroll ()
-  "Ensure compilation buffer scrolls to bottom during compilation."
-  (when-let* ((buffer (get-buffer "*compilation*")))
-    (with-selected-window (get-buffer-window buffer t)
+  "Ensure compilation buffer scrolls to bottom during compilation.
+Only scrolls if compilation window is visible."
+  (when-let* ((buffer (get-buffer "*compilation*"))
+              (window (get-buffer-window buffer t)))
+    (with-selected-window window
       (goto-char (point-max)))))
 
 (defun mk/compilation-get-errors ()

@@ -125,8 +125,8 @@ SOUND is the sound specification to play."
                                               (org-redisplay-inline-images))))
 
   (require 'org-tempo)
-  (require 'ob-swiftui)
-  (ob-swiftui-setup)
+  ;; (require 'ob-swiftui)
+  ;; (ob-swiftui-setup)
 
   (setq-local org-confirm-babel-evaluate t)
 
@@ -150,10 +150,11 @@ SOUND is the sound specification to play."
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                '((emacs-lisp . t)
-                                 (swift . t)
-                                 (kotlin . t)
+                                 ;; (swift . t)
+                                 ;; (kotlin . t)
                                  (shell . t)
-                                 (restclient . t)))
+                                 ;; (restclient . t)
+                                 ))
 
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("sw" . "src swift"))
@@ -162,38 +163,38 @@ SOUND is the sound specification to play."
   (add-to-list 'org-structure-template-alist '("elisp" . "src emacs-lisp"))
   (add-to-list 'org-modules 'org-tempo t))
 
-(use-package ob-restclient
-  :defer t)
-
-(use-package ob-swift
-  :defer t
-  :after org-mode
-  :config
-  (org-babel-do-load-languages 'org-babel-load-languages
-                               (append org-babel-load-languages
-                                       '((swift . t)))))
-(use-package ob-swiftui
-  :defer t
-  :after org-mode
-  :config
-  (add-hook 'org-babel-after-execute-hook (lambda ()
-                                            (when org-inline-image-overlays
-                                              (org-redisplay-inline-images))))
-  (add-to-list 'org-babel-tangle-lang-exts
-               '("swiftui" . "swift"))
-  (add-to-list 'org-src-lang-modes
-               '("swiftui" . swift))
-  (ob-swiftui-setup))
-
-(use-package ob-kotlin
-  :defer t
-  :after org-mode
-  :config
-  (add-to-list 'org-babel-tangle-lang-exts
-               '("kotlin" . "kt"))
-  (add-to-list 'org-src-lang-modes
-               '("kotlin" . kotlin))
-  (ob-kotlin-setup))
+;; (use-package ob-restclient
+;;   :defer t)
+;;
+;; (use-package ob-swift
+;;   :defer t
+;;   :after org-mode
+;;   :config
+;;   (org-babel-do-load-languages 'org-babel-load-languages
+;;                                (append org-babel-load-languages
+;;                                        '((swift . t)))))
+;; (use-package ob-swiftui
+;;   :defer t
+;;   :after org-mode
+;;   :config
+;;   (add-hook 'org-babel-after-execute-hook (lambda ()
+;;                                             (when org-inline-image-overlays
+;;                                               (org-redisplay-inline-images))))
+;;   (add-to-list 'org-babel-tangle-lang-exts
+;;                '("swiftui" . "swift"))
+;;   (add-to-list 'org-src-lang-modes
+;;                '("swiftui" . swift))
+;;   (ob-swiftui-setup))
+;;
+;; (use-package ob-kotlin
+;;   :defer t
+;;   :after org-mode
+;;   :config
+;;   (add-to-list 'org-babel-tangle-lang-exts
+;;                '("kotlin" . "kt"))
+;;   (add-to-list 'org-src-lang-modes
+;;                '("kotlin" . kotlin))
+;;   (ob-kotlin-setup))
 
 (use-package org-superstar
   :after org
@@ -239,13 +240,13 @@ SOUND is the sound specification to play."
    org-agenda-current-time-string
    "⭠ now ─────────────────────────────────────────────────"))
 
-(use-package olivetti
-  :hook ((org-mode . olivetti-mode))
-  :custom
-  (olivetti-style 'fancy)
-  (setq olivetti-style t
-        olivetti-body-width 140
-        olivetti-hide-mode-line t))
+;; (use-package olivetti
+;;   :hook ((org-mode . olivetti-mode))
+;;   :custom
+;;   (olivetti-style 'fancy)
+;;   (setq olivetti-style t
+;;         olivetti-body-width 140
+;;         olivetti-hide-mode-line t))
 
 
 ;;; Provide

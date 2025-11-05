@@ -14,7 +14,6 @@
 (setq use-package-always-ensure t
       use-package-compute-statistics t)
 
-;; Initialize packages to ensure they're available
 (package-initialize)
 
 (dolist (path (list
@@ -22,6 +21,8 @@
                (expand-file-name "localpackages/mito-laser-emacs" user-emacs-directory)
                (expand-file-name "localpackages/neofusion-emacs" user-emacs-directory)))
   (add-to-list 'custom-theme-load-path path))
+
+
 
 ;; Add local packages directory to load-path
 (let ((dir (expand-file-name "localpackages" user-emacs-directory)))
@@ -52,7 +53,6 @@
 (global-unset-key [C-wheel-up])
 (global-unset-key [C-wheel-down])
 (global-set-key (kbd "M-w") 'ns-do-hide-emacs)
-
 
 (provide 'mk-core)
 ;;; mk-core.el ends here

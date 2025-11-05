@@ -54,10 +54,6 @@
   (setopt auto-revert-interval 5) ;; Check for changes every secondhh
   (setopt auto-revert-avoid-polling t) ;; Automatically reread from disk if the underlying file changes
   (setopt auto-revert-check-vc-info t)
-  (setopt completions-detailed 1)
-  (setopt completions-max-height 20)
-  (setopt completions-format 'one-column)
-  (setopt completions-group t)
   (setopt indicate-empty-lines nil)
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
   (setopt kept-new-versions 6)
@@ -93,10 +89,10 @@
     (setq
      mac-command-modifier 'meta
      mac-option-modifier 'none
-     mac-command-key-is-meta t
-     ns-use-proxy-icon nil
-     ns-pop-up-frames nil
-     ns-use-thin-smoothing t
+     ;; mac-command-key-is-meta t
+     ;; ns-use-proxy-icon nil
+     ;; ns-pop-up-frames nil
+     ;; ns-use-thin-smoothing t
      dired-use-ls-dired t
      insert-directory-program "/opt/homebrew/bin/gls"
      dired-listing-switches "-aBhl --group-directories-first"

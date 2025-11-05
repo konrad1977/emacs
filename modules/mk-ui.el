@@ -11,16 +11,10 @@
         darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
         darken-buffer-always-darken-buffers-regexp '("\\*.*\\*")
         darken-buffer-always-color-buffers '(
-                                             ;; ("*iOS Simulator*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ;; ("*dape-repl*" . (:background "#252535" :foreground "#gray100"))
-                                             ("*dape-info*" . (:background "##43242B" :foreground "gray100"))
-                                             ("*Help*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ("*Embark Collect*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ("*Embark Export*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ("*Embark Live*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ("*Corfu documentation*" . (:background "#252535" :foreground "#7e9cd8"))
-                                             ("*Corfu location*" . (:background "#252535" :foreground "#7e9cd8")))
-        darken-buffer-always-darken-percentage 12
+                                             ("*iOS Simulator*" . (:background "#181926" :foreground "white"))
+                                             ("*dape-repl*" . (:background "#252535" :foreground "#gray100"))
+                                             ("*dape-info*" . (:background "##43242B" :foreground "gray100")))
+        darken-buffer-always-darken-percentage 25
         lighten-inactive-buffer-percentage 5))
 
 (use-package darkroom
@@ -176,8 +170,7 @@
      ("\\*Periphery\\*\\|\\*compilation\\*"
       (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)
       (body-function . select-window)
-      (window-height . 0.2)
-      (window-width . 0.30)
+      (window-height . (lambda (win) (fit-window-to-buffer win 20 10)))
       (slot . 10))
      ("\\*Android Emulator\\*\\|\\*Android Logcat\\*\\|\\*Android Emulator Error\\*"
       (display-buffer-reuse-window display-buffer-in-side-window display-buffer-at-bottom)

@@ -61,43 +61,37 @@
   :custom
   (eglot-autoshutdown t)
   (eglot-extend-to-xref t)
-  (eglot-sync-connect 1)
+  ;; (eglot-sync-connect 1)
   (eglot-connect-timeout 90)
   (eglot-report-progress nil)
-  (eglot-events-buffer-size 0)
-  (eglot-events-buffer-config '(size: 0 :format full))
-  (eldoc-documentation-strategy 'eldoc-documentation-compose)
+  ;; (eglot-events-buffer-size 0)
+  ;; (eglot-events-buffer-config '(size: 0 :format full))
+  ;; (eldoc-documentation-strategy 'eldoc-documentation-compose)
   (flymake-fringe-indicator-position nil)
   :config
   (add-to-list 'eglot-server-programs '(swift-ts-mode . swift-lsp-eglot-server-contact))
-  (add-to-list 'eglot-server-programs
-               '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
-  (add-hook 'typescript-mode-hook 'eglot-ensure)
-  (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
-  (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
+  ;; (add-to-list 'eglot-server-programs
+  ;;              '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
+  ;; (add-hook 'typescript-mode-hook 'eglot-ensure)
+  ;; (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
+  ;; (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
   ;; (add-to-list 'eglot-server-programs
   ;;              '(kotlin-mode . ("~/kotlin-lsp/kotlin-0.252.16998/kotlin-lsp.sh" "--stdio")))
   ;; (add-to-list 'eglot-server-programs
   ;;              '(kotlin-ts-mode . ("bash" "/Users/mikaelkonradsson/kotlin-lsp/kotlin-lsp.sh" "--stdio")))
-  (setq eglot-stay-out-of '(corfu flycheck)
-        jsonrpc-event-hook nil)
+  ;; (setq eglot-stay-out-of '(corfu flycheck flymake)
+  (setq jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
 (use-package eldoc-box
-  :after eldoc
-  :bind
-  ("C-c K" . eldoc-box-help-at-point)
+  :after (eldoc eglot)
   :config
+  (eldoc-box-hover-mode 1)
+  ;; :bind
+  ;; ("C-c K" . eldoc-box-help-at-point)
+  ;; :config
   (setq eldoc-box-border-width 1
-        eldoc-box-border-color "systemGrayColor"
-        eldoc-box-max-pixel-height 400
-        eldoc-box-max-pixel-width 600
-        eldoc-box-clear-with-C-g t
-        eldoc-box-use-multiline-p t
-        eldoc-box-scrollbar-width 2
-        eldoc-box-scrollbar-color "systemGrayColor"
-        eldoc-box-scrollbar-background-color "systemGrayColor"
-        eldoc-box-scrollbar-border-color "systemGrayColor"))
+        eldoc-box-clear-with-C-g t))
 
 (use-package corfu
   :ensure t
@@ -120,13 +114,13 @@
   (corfu-auto t)
   (corfu-auto-prefix 2)
   (corfu-separator ?\s)
-  ;; (corfu-popupinfo-mode 'dedicated)
+  (corfu-popupinfo-mode 'dedicated)
   :config
-  (setq corfu-auto-delay 0.2          ; Reduced from 0.3
-        corfu-preselect 'valid
+  (setq corfu-preselect 'valid
         corfu-max-width 140
         corfu-preview-current nil       ; No preview insertion, wait for TAB
         corfu-quit-at-boundary 'separator
+        corfu-scroll-margin 4
         corfu-quit-no-match t)
   :init
   (corfu-history-mode))
@@ -136,8 +130,9 @@
   :ensure nil
   :hook (corfu-mode . corfu-popupinfo-mode)
   :custom
-  (corfu-popupinfo-delay '(0.25 . 0.1))
-  (corfu-popupinfo-hide nil)
+  (setq corfu-popupinfo-delay 0.1)
+  ;; (corfu-popupinfo-delay '(0.25 . 0.1))
+  ;; (corfu-popupinfo-hide nil)
   :config
   (corfu-popupinfo-mode))
 

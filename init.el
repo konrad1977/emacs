@@ -7,10 +7,7 @@
 ;;; Code:
 
 ;; Suppress all warnings when loading packages
-(setq warning-minimum-level :error)
-(setq byte-compile-warnings nil)
-(setq native-comp-async-report-warnings-errors nil)
-
+(setq debug-on-error t)
 ;; Load warning suppression
 (load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
 
@@ -29,7 +26,7 @@
 ;; (require 'mk-kotlin-development)
 (require 'mk-lisp)
 (require 'mk-misc)
-;; (require 'mk-org)
+(require 'mk-org)
 (require 'mk-term)
 (require 'mk-theme)
 (require 'mk-treemacs)
@@ -38,6 +35,7 @@
 (require 'mk-vc)
 ;; (require 'mk-web)
 ;; (require 'mk-elfeed)
+
 
 (use-package welcome-dashboard
   :ensure nil

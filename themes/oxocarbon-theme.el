@@ -428,8 +428,6 @@
   (ivy-posframe                                 (:background muted))
   (ivy-posframe-border                          (:inherit 'ivy-posframe))
 
-  (use-short-answers)
-
   (orderless-match-face-0                       (:foreground gold :weight 'semi-bold))
   (orderless-match-face-1                       (:foreground foam :weight 'semi-bold))
   (orderless-match-face-2                       (:foreground love :weight 'semi-bold))
