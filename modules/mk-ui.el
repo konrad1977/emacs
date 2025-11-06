@@ -3,19 +3,18 @@
 ;; UI enhancements and visual improvements for Emacs.
 ;;; Code:
 
-(use-package darken-buffer
+(use-package spotlight-mode
   :ensure nil
-  :hook (after-init . darken-buffer-mode)
+  :hook (after-init . spotlight-mode)
   :config
-  (setq darken-buffer-percentage 0
-        darken-buffer-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
-        darken-buffer-always-darken-buffers-regexp '("\\*.*\\*")
-        darken-buffer-always-color-buffers '(
-                                             ("*iOS Simulator*" . (:background "#181926" :foreground "white"))
-                                             ("*dape-repl*" . (:background "#252535" :foreground "#gray100"))
-                                             ("*dape-info*" . (:background "##43242B" :foreground "gray100")))
-        darken-buffer-always-darken-percentage 25
-        lighten-inactive-buffer-percentage 5))
+  (setopt spotlight-mode-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
+          spotlight-mode-always-color-buffers '(("*iOS Simulator*" . (:background "#181926" :foreground "white"))
+                                                ("*dape-repl*" . (:background "#252535" :foreground "gray100"))
+                                                ("*dape-info*" . (:background "#43242B" :foreground "gray100")))
+          spotlight-mode-always-darken-buffers-regexp '("\\*.*\\*")
+          spotlight-active-dim-percentage 0
+          spotlight-inactive-lighten-percentage 5
+          spotlight-always-darken-percentage 15))
 
 (use-package darkroom
   :defer t
@@ -40,28 +39,27 @@
          (after-init . punch-weather-update)
          (after-init . punch-load-tasks))
   :config
-  (setq punch-show-project-info nil
-        punch-line-modal-use-fancy-icon nil
-        punch-line-modal-divider-style 'none
-        punch-line-modal-size 'small
-        punch-line-left-separator ""
-        punch-line-right-separator ""
-        punch-line-section-padding 1
-        punch-show-git-info t
-        punch-show-lsp-info t
-        punch-line-vc-use-github-icon nil
-        punch-show-copilot-info nil
-        punch-show-battery-info t
-        punch-show-flycheck-info t
-        punch-show-weather-info t
-        punch-weather-latitude "56.7365"
-        punch-weather-longitude "16.2981"
-        punch-line-music-max-length 80
-        punch-line-section-backgrounds 'auto
-        punch-line-section-background-tint-start -15
-        punch-line-section-background-tint-step 50
-        punch-line-music-info '(:service apple)
-        ))
+  (setopt punch-show-project-info nil
+          punch-line-modal-use-fancy-icon nil
+          punch-line-modal-divider-style 'none
+          punch-line-modal-size 'small
+          punch-line-left-separator ""
+          punch-line-right-separator ""
+          punch-line-section-padding 1
+          punch-show-git-info t
+          punch-show-lsp-info t
+          punch-line-vc-use-github-icon nil
+          punch-show-copilot-info nil
+          punch-show-battery-info t
+          punch-show-flycheck-info t
+          punch-show-weather-info t
+          punch-weather-latitude "56.7365"
+          punch-weather-longitude "16.2981"
+          punch-line-music-max-length 80
+          punch-line-section-backgrounds 'auto
+          punch-line-section-background-tint-start -15
+          punch-line-section-background-tint-step 50
+          punch-line-music-info '(:service apple)))
 
 
 (use-package imenu-list

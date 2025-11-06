@@ -173,7 +173,7 @@
   (condition-case nil
       (let ((mono-font "Iosevka Curly")
             (variable-font "Iosevka Aile"))
-        (set-face-attribute 'default nil :family mono-font :height 170 :width 'condensed :weight 'extralight)
+        (set-face-attribute 'default nil :family mono-font :height 180 :width 'condensed :weight 'extralight)
         (set-face-attribute 'fixed-pitch nil :family mono-font)
         (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
     (error nil))
