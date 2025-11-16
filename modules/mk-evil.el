@@ -1,9 +1,12 @@
 ;; -*- lexical-binding: t; -*-
-;;; Code:
+;; Code:;;
+;; Workaround för saknad evil-mode-buffers variabel
+(defvar evil-mode-buffers nil
+  "Lista över buffertar där Evil mode är aktivt.")
 
 (use-package evil
+  :defer 1
   :ensure t
-  :hook (after-init . evil-mode)
   :custom
   (evil-want-Y-yank-to-eol t)
   :init
@@ -116,7 +119,6 @@
 
   (evil-define-key 'normal 'global (kbd "<leader> w w") 'weather-scout-show-forecast)
 
-  (evil-define-key 'normal 'global (kbd "<leader> w w") 'weather-scout-show-forecast)
   (evil-define-key 'normal 'global (kbd "<leader> w t") 'window-transpose-layout)
   (evil-define-key 'normal 'global (kbd "<leader> w r") 'window-layout-rotate-clockwise)
   (evil-define-key 'normal 'global (kbd "<leader> w R") 'window-layout-rotate-anticlockwise)
@@ -125,13 +127,6 @@
 
   (evil-define-key 'normal 'global (kbd "<leader> q r") 'restart-emacs)
   (evil-define-key 'normal 'global (kbd "<leader> q q") 'save-buffers-kill-terminal)
-
-  (defun mk/consult-ripgrep-at-point-project ()
-    "Search for the word at point using consult-ripgrep from project root."
-    (interactive)
-    (consult-ripgrep (project-root (project-current)) (thing-at-point 'symbol)))
-
-  (evil-define-key 'normal 'global (kbd "<leader> p F") 'mk/consult-ripgrep-at-point-project)
 
   (evil-select-search-module 'evil-search-module 'isearch)
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
@@ -161,62 +156,60 @@
 
 (use-package evil-collection
   :defer 3
-  :after (evil)
-  :custom
-  (evil-collection-vterm-setup)
-  :init
+  :after evil
+  :config
   (evil-collection-init))
 
-(use-package evil-mc
-  :hook (evil-mode . global-evil-mc-mode)
-  :bind (
-         ("C-M-e" . evil-mc-make-all-cursors)
-         ("C-M-n" . evil-mc-make-and-goto-next-match)
-         ("C-M-s" . evil-mc-skip-and-goto-next-match)
-         ("C-M-p" . evil-mc-make-and-goto-prev-match)
-         ("C-M-j" . evil-mc-make-cursor-move-next-line)
-         ("C-M-k" . evil-mc-make-cursor-move-prev-line))
-  :custom
-  (evil-mc-mode-line-text-inverse-colors t)
-  (evil-mc-undo-cursors-on-keyboard-quit t)
-  (evil-mc-mode-line-text-cursor-color t)
-  :config
-  (evil-define-key 'visual evil-mc-key-map
-    "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg))
+;; (use-package evil-mc
+;;   :hook (evil-mode . global-evil-mc-mode)
+;;   :bind (
+;;          ("C-M-e" . evil-mc-make-all-cursors)
+;;          ("C-M-n" . evil-mc-make-and-goto-next-match)
+;;          ("C-M-s" . evil-mc-skip-and-goto-next-match)
+;;          ("C-M-p" . evil-mc-make-and-goto-prev-match)
+;;          ("C-M-j" . evil-mc-make-cursor-move-next-line)
+;;          ("C-M-k" . evil-mc-make-cursor-move-prev-line))
+;;   :custom
+;;   (evil-mc-mode-line-text-inverse-colors t)
+;;   (evil-mc-undo-cursors-on-keyboard-quit t)
+;;   (evil-mc-mode-line-text-cursor-color t)
+;;   :config
+;;   (evil-define-key 'visual evil-mc-key-map
+;;     "A" #'evil-mc-make-cursor-in-visual-selection-end
+;;     "I" #'evil-mc-make-cursor-in-visual-selection-beg))
 
 (use-package evil-matchit
   :after evil-collection
   :config
   (global-evil-matchit-mode 1))
 
-(use-package evil-surround
-  :after evil
-  :commands global-evil-surround-mode
-  :custom
-  (evil-surround-pairs-alist
-   '((?\( . ("(" . ")"))
-     (?\[ . ("[" . "]"))
-     (?\{ . ("{" . "}"))
+;; (use-package evil-surround
+;;   :after evil
+;;   :commands global-evil-surround-mode
+;;   :custom
+;;   (evil-surround-pairs-alist
+;;    '((?\( . ("(" . ")"))
+;;      (?\[ . ("[" . "]"))
+;;      (?\{ . ("{" . "}"))
 
-     (?\) . ("(" . ")"))
-     (?\] . ("[" . "]"))
-     (?\} . ("{" . "}"))
+;;      (?\) . ("(" . ")"))
+;;      (?\] . ("[" . "]"))
+;;      (?\} . ("{" . "}"))
 
-     (?< . ("<" . ">"))
-     (?> . ("<" . ">"))))
-  :hook (after-init . global-evil-surround-mode))
-;;
+;;      (?< . ("<" . ">"))
+;;      (?> . ("<" . ">"))))
+;;   :hook (after-init . global-evil-surround-mode))
+
 (use-package evil-commentary
   :ensure t
   :after (evil prog-mode)
   :init
   (evil-commentary-mode 1))
 
-(use-package evil-visualstar
-  :ensure t
-  :after evil
-  :hook (after-init . global-evil-visualstar-mode))
+;; (use-package evil-visualstar
+;;   :ensure t
+;;   :after evil
+;;   :hook (after-init . global-evil-visualstar-mode))
 
 (use-package evil-snipe
   :ensure t
@@ -241,53 +234,53 @@
   (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")
         undo-fu-session-file-limit 10))
 
-(use-package hardtime
-  :ensure nil
-  :after evil
+;; (use-package hardtime
+;;   :ensure nil
+;;   :after evil
+;;   :config
+;;   (global-hardtime-mode 1))
+
+(use-package pulsar
+  :hook (after-init . pulsar-global-mode)
   :config
-  (global-hardtime-mode 1))
+  (setq pulsar-pulse t
+        pulsar-delay 0.035
+        pulsar-iterations 12
+        pulsar-face 'pulsar-cyan
+        pulsar-highlight-face 'evil-ex-lazy-highlight
+        pulsar-pulse-functions '(
+                                 evil-yank
+                                 evil-yank-line
+                                 evil-delete
+                                 evil-delete-line
+                                 evil-jump-item
+                                 evil-scroll-down
+                                 evil-scroll-up
+                                 evil-scroll-page-down
+                                 evil-scroll-page-up
+                                 evil-scroll-line-down
+                                 evil-scroll-line-up
+                                 evil-window-up
+                                 evil-window-rotate-upwards
+                                 evil-window-rotate-downwards
+                                 evil-window-down
+                                 evil-window-left
+                                 evil-window-right
+                                 evil-window-vsplit
+                                 evil-window-split)))
 
-  (use-package pulsar
-    :hook (after-init . pulsar-global-mode)
-    :config
-    (setq pulsar-pulse t
-          pulsar-delay 0.035
-          pulsar-iterations 12
-          pulsar-face 'pulsar-cyan
-          pulsar-highlight-face 'evil-ex-lazy-highlight
-          pulsar-pulse-functions '(
-                                   evil-yank
-                                   evil-yank-line
-                                   evil-delete
-                                   evil-delete-line
-                                   evil-jump-item
-                                   evil-scroll-down
-                                   evil-scroll-up
-                                   evil-scroll-page-down
-                                   evil-scroll-page-up
-                                   evil-scroll-line-down
-                                   evil-scroll-line-up
-                                   evil-window-up
-                                   evil-window-rotate-upwards
-                                   evil-window-rotate-downwards
-                                   evil-window-down
-                                   evil-window-left
-                                   evil-window-right
-                                   evil-window-vsplit
-                                   evil-window-split)))
+;; (defun my/recenter-after-jump (&rest _)
+;;   "Centrera fönstret efter hoppkommandon i Evil."
+;;   (recenter))
 
-(defun my/recenter-after-jump (&rest _)
-  "Centrera fönstret efter hoppkommandon i Evil."
-  (recenter))
-
-(dolist (fn '(evil-jump-backward
-              evil-jump-forward
-              evil-forward-section-begin
-              evil-backward-section-begin
-              evil-forward-sentence-begin
-              evil-backward-sentence-begin
-              evil-goto-definition))
-  (advice-add fn :after #'my/recenter-after-jump))
+;; (dolist (fn '(evil-jump-backward
+;;               evil-jump-forward
+;;               evil-forward-section-begin
+;;               evil-backward-section-begin
+;;               evil-forward-sentence-begin
+;;               evil-backward-sentence-begin
+;;               evil-goto-definition))
+;;   (advice-add fn :after #'my/recenter-after-jump))
 
 ;;; Provide
 (provide 'mk-evil)

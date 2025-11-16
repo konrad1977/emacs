@@ -174,6 +174,7 @@
           ("DEBUG"  . "#A020F0")
           ("GOTCHA" . "#FF8C00")
           ("STUB"   . "#1E90FF")
+          ("MARK"   . "#777777")
           ("NOTE"   . "#00CED1")
           ("HACK"   . "#FF0000")
           ("REVIEW" . "#ADFF2F"))))
@@ -354,25 +355,6 @@ Only scrolls if compilation window is visible."
   :ensure nil
   :hook (eglot-managed-mode . flycheck-eglot-mode)
   :custom (flycheck-eglot-exclusive nil))
-
-(use-package project
-  :bind (
-         ("M-O" . project-find-file)
-         ("M-f" . project-find-regexp))
-  :defer t
-  :ensure nil
-  :config
-  (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
-  (defun project-root-override (dir)
-    "Find DIR's project root by searching for a '.project.el' file."
-    (let ((root (or (locate-dominating-file dir ".xcodeproj")
-                    (locate-dominating-file dir ".envrc")
-                    (locate-dominating-file dir ".projectile")))
-          (backend (ignore-errors (vc-responsible-backend dir))))
-      (when root (if (version<= emacs-version "28")
-                     (cons 'vc root)
-                   (list 'vc backend root)))))
-  (add-hook 'project-find-functions #'project-root-override))
 
 (defun my/multi-occur-in-project-buffers (&optional nlines)
   "Show all lines in current project buffers matching a regexp.

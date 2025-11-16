@@ -7,9 +7,11 @@
 ;;; Code:
 
 ;; Suppress all warnings when loading packages
-(setq debug-on-error t)
 ;; Load warning suppression
-(load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
+
+(setopt debug-on-error t)
+
+;; (load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
 
 (dolist (path (list
                (expand-file-name "modules" user-emacs-directory)))
@@ -17,25 +19,24 @@
 
 (require 'mk-core)
 (require 'mk-emacs)
+(require 'mk-evil)
 (require 'mk-completion)
 (require 'mk-code-completion)
 (require 'mk-development)
 (require 'mk-editing)
-(require 'mk-evil)
 (require 'mk-ios-development)
-;; (require 'mk-kotlin-development)
+;; ;; (require 'mk-kotlin-development)
 (require 'mk-lisp)
 (require 'mk-misc)
 (require 'mk-org)
 (require 'mk-term)
 (require 'mk-theme)
+(require 'mk-vc)
 (require 'mk-treemacs)
 (require 'mk-ui)
 (require 'mk-ai)
-(require 'mk-vc)
 ;; (require 'mk-web)
-;; (require 'mk-elfeed)
-
+;; ;; (require 'mk-elfeed)
 
 (use-package welcome-dashboard
   :ensure nil

@@ -25,7 +25,7 @@
   (context-menu-mode t)
   (create-lockfiles nil)
   (cursor-in-non-selected-windows nil)
-  (debug-on-error nil)
+  ;; (debug-on-error nil)
   (delete-by-moving-to-trash t)
   (display-time-default-load-average nil) ; this information is useless for most
   (find-file-visit-truename nil)
@@ -38,9 +38,6 @@
   (read-buffer-completion-ignore-case t)
   (read-extended-command-predicate #'command-completion-default-include-p)
   (read-file-name-completion-ignore-case t)
-  (set-display-table-slot standard-display-table 0 ?\ )
-  (set-window-fringes (selected-window) 16 10)
-  (set-window-margins (selected-window) 10 10)
   (use-dialog-box nil)
   (use-file-dialog nil)
   (visible-bell nil)
@@ -48,6 +45,9 @@
   (window-sides-vertical t)
   ;; (debug-on-signal t)
   :config
+  (set-display-table-slot standard-display-table 0 ?\ )
+  (set-window-fringes (selected-window) 16 10)
+  (set-window-margins (selected-window) 10 10)
   (setq confirm-kill-emacs (lambda (prompt)
                              (y-or-n-p-with-timeout prompt 2 nil)))
   (setopt history-length 300)
@@ -98,6 +98,7 @@
      dired-listing-switches "-aBhl --group-directories-first"
      browse-url-browser-function #'mk/browser-split-window)))
 
+;;;###autoload
 (defun mk/safe-kill-buffer-and-window ()
   "Safely kill the current buffer and delete its window if possible.
 - If the buffer is shown elsewhere, only delete this window.
@@ -133,5 +134,10 @@
     (xwidget-webkit-browse-url url)))
 
 
+;; (use-package savehist
+;;   :ensure nil
+;;   :config
+;;   (savehist-mode 1))
+;;
 (provide 'mk-emacs)
 ;;; mk-emacs.el ends here

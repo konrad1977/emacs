@@ -4,9 +4,14 @@
 
 ;;; Code:
 
+;; Ensure transient is installed and loaded before magit
+(unless (package-installed-p 'transient)
+  (package-install 'transient))
+(require 'transient)
+
 (use-package magit
-  :defer t
   :ensure t
+  :after transient
   :commands (magit-status magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -16,7 +21,10 @@
   :config
   (require 'magit-section)
   (setq magit-format-file-function #'magit-format-file-nerd-icons
-        magit-diff-refine-hunk 'all))
+        magit-diff-refine-hunk 'all)
+  ;; Setup evil-collection for magit after it's loaded
+  (when (featurep 'evil-collection)
+    (evil-collection-init 'magit)))
 
 (use-package git-timemachine
   :ensure t
@@ -43,8 +51,9 @@
 (use-package diff-hl
   :defer t
   :ensure t
+  :after evil
   :hook
-  (find-file . (lambda ()
+  (prog-mode . (lambda ()
                  (global-diff-hl-mode)           ;; Enable Diff-HL mode for all files.
                  (diff-hl-flydiff-mode)          ;; Automatically refresh diffs.
                  (diff-hl-margin-mode)))         ;; Show diff indicators in the margin.

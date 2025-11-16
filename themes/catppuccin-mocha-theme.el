@@ -1,4 +1,4 @@
-;;; package --- Catppuccin mocha 
+;;; package --- Catppuccin `catppuccin-mocha' theme - based on catppuccin color scheme ;;; -*- lexical-binding: t; no-byte-compile: t; -*-
 ;;; Commentary:
 ;;; catppuccin-mocha based theme
 
@@ -469,7 +469,7 @@
 
   ;; ;; Font lock
   (font-lock-bracket-face               (:foreground overlay2))
-  (font-lock-builtin-face               (:foreground red))
+  (font-lock-builtin-face               (:foreground red :weight 'normal))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
   (font-lock-constant-face              (:foreground teal :bold t))
@@ -484,15 +484,15 @@
   (font-lock-negation-char-face         (:foreground sky))
   (font-lock-number-face                (:foreground peach))
   (font-lock-operator-face              (:foreground sky))
-  (font-lock-preprocessor-face	   	(:foreground yellow))
+  (font-lock-preprocessor-face	   	(:foreground pink :weight 'bold :italic t))
   (font-lock-property-name-face	        (:foreground peach))
-  (font-lock-property-use-face	        (:foreground sky :weight 'thin))
+  (font-lock-property-use-face	        (:foreground maroon))
   (font-lock-punctuation-face           (:foreground peach :weight 'normal))
   (font-lock-reference-face		(:foreground sky))
   (font-lock-regexp-grouping-backslash  (:foreground blue :weight 'semi-bold))
   (font-lock-string-face                (:foreground green :italic t))
   (font-lock-type-face                  (:foreground yellow :bold t))
-  (font-lock-variable-name-face         (:foreground text :weight 'light))
+  (font-lock-variable-name-face         (:foreground text))
   (font-lock-variable-use-face          (:foreground rosewater :weight 'light))
   (font-lock-warning-face               (:inherit 'warning))
 
@@ -630,9 +630,6 @@
   (jira-face-time (:foreground yellow))
   (jira-face-tag (:foreground mauve))
 
-  ;; (eglot-params-highlight-symbol-face (:foreground blue :background crust :bold t))
-  ;; (eglot-parameter-hint-face (:foreground red :background crust :bold t))
-  ;; (eglot-inlay-hint-face (:foreground peach :background mantle :height 0.8))
   ))
 
 ;;;###autoload

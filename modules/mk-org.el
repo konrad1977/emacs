@@ -240,14 +240,12 @@ SOUND is the sound specification to play."
    org-agenda-current-time-string
    "⭠ now ─────────────────────────────────────────────────"))
 
-;; (use-package olivetti
-;;   :hook ((org-mode . olivetti-mode))
-;;   :custom
-;;   (olivetti-style 'fancy)
-;;   (setq olivetti-style t
-;;         olivetti-body-width 140
-;;         olivetti-hide-mode-line t))
-
+(use-package olivetti
+  :hook ((org-mode . olivetti-mode))
+  :custom
+  (olivetti-style 'fancy)
+  (olivetti-body-width 120)
+  (olivetti-hide-mode-line t))
 
 ;;; Provide
 (provide 'mk-org)

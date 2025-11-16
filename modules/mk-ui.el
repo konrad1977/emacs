@@ -8,7 +8,8 @@
   :hook (after-init . spotlight-mode)
   :config
   (setopt spotlight-mode-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
-          spotlight-mode-always-color-buffers '(("*iOS Simulator*" . (:background "#181926" :foreground "white"))
+          spotlight-mode-always-color-buffers '(
+                                                ;; ("*iOS Simulator*" . (:background "SteelBlue4" :foreground "light cyan"))
                                                 ("*dape-repl*" . (:background "#252535" :foreground "gray100"))
                                                 ("*dape-info*" . (:background "#43242B" :foreground "gray100")))
           spotlight-mode-always-darken-buffers-regexp '("\\*.*\\*")

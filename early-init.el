@@ -7,53 +7,15 @@
 
 ;; (setq native-comp-enable-subr-trampolines nil)
 
-;; Fix for custom-declare-variable errors in Emacs 30.2.50
-;; This must be done very early before any packages loa
-(defun mk/custom-declare-variable-safe (orig-fun symbol value &rest args)
-  "Safely declare custom variables, creating them if they don't exist."
-  (condition-case err
-      (apply orig-fun symbol value args)
-    (void-variable
-     ;; If we get a void-variable error, define the variable first
-     (unless (boundp symbol)
-       (set symbol (if (functionp value)
-                       (ignore-errors (funcall value))
-                     value)))
-     symbol)
-    (error
-     ;; For any other error, just define the variable with a safe default
-     (unless (boundp symbol)
-       (set symbol nil))
-     symbol)))
-
-(advice-add 'custom-declare-variable :around #'mk/custom-declare-variable-safe)
-
 (if (and (fboundp 'native-comp-available-p)
          (native-comp-available-p))
     (message "Native compilation is available")
-  (message "Native complation is *not* available"))
+  (message "Native compilation is *not* available"))
 
-(if (functionp 'json-serialize)
-    (message "Native JSON is available")
-  (message "Native JSON is *not* available"))
-
-(defvar my-native-comp-reserved-cpus 2
-  "Number of CPUs to reserve and not use for `native-compile'.")
-
-(defun my-calculate-native-comp-async-jobs ()
-  "Set `native-comp-async-jobs-number' based on the available CPUs."
-  ;; The `num-processors' function is only available in Emacs >= 28.1
-  (max 1 (- (num-processors) my-native-comp-reserved-cpus)))
-
-(if (and (featurep 'native-compile)
-         (fboundp 'native-comp-available-p)
-         (native-comp-available-p))
     ;; Activate `native-compile'
-    (setq native-comp-async-jobs-number (my-calculate-native-comp-async-jobs)
-          native-comp-deferred-compilation t
-          package-native-compile t)
-  ;; Deactivate the `native-compile' feature if it is not available
-  (setq features (delq 'native-compile features)))
+(setq native-comp-async-jobs-number 2
+      native-comp-deferred-compilation t
+      package-native-compile t)
 
 ;; =====================
 ;; Suppress All Warnings
@@ -68,8 +30,6 @@
 ;; =====================
 ;; Critical Performance
 ;; =====================
-
-(setenv "LSP_USE_PLISTS" "true")
 
 ;; Disable file handlers and garbage collection during startup
 (defvar file-name-handler-alist-original file-name-handler-alist)
@@ -110,11 +70,11 @@
 ;; ;; =====================
 
 ;; ;; Defer package system initialization
-(setq package-enable-at-startup t
-      package-quickstart nil
-      package-native-compile nil
-      load-prefer-newer t
-      byte-compile-warnings '(not obsolete))
+;; (setq package-enable-at-startup t
+;;       package-quickstart nil
+;;       package-native-compile t
+;;       load-prefer-newer t
+;;       byte-compile-warnings '(not obsolete))
 
 ;; =====================
 ;; UI/Frame Configuration
@@ -205,16 +165,6 @@
             (setq file-name-handler-alist file-name-handler-alist-original
                   gc-cons-threshold (* 128 1024 1024)
                   gc-cons-percentage 0.1)
-            
-            ;; Initialize package system with all archives
-            (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                                     ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-                                     ("gnu" . "https://elpa.gnu.org/packages/")
-                                     ("org" . "https://orgmode.org/elpa/"))
-                  package-archive-priorities '(("gnu" . 99)
-                                               ("nongnu" . 85)
-                                               ("org" . 75)
-                                               ("melpa" . 0)))
             
             ;; Schedule periodic GC during idle time
             (run-with-idle-timer 5 t (lambda ()

@@ -5,6 +5,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'project)
 
 ;; Override custom-declare-variable temporarily to handle all missing variables
 ;; This is a comprehensive workaround for Emacs 30.2.50 compatibility issues
@@ -16,14 +17,13 @@
                 (void-variable
                  (unless (boundp symbol)
                    (set symbol (if (functionp value)
-                                  (ignore-errors (funcall value))
-                                value)))
+                                   (ignore-errors (funcall value))
+                                 value)))
                  symbol)
                 (error
                  (unless (boundp symbol)
                    (set symbol nil))
-                 symbol)))))
-  (require 'project))
+                 symbol))))))
 
 (use-package isearch
   :ensure nil
@@ -55,15 +55,21 @@
   (defun isearch-with-region-or-thing ()
     "Use region as isearch text if active, otherwise use thing at point."
     (interactive)
-    (setq isearch-case-fold-search nil) ;; Case sensitive search
-    (if (region-active-p)
-        (let ((region (buffer-substring-no-properties
-                       (region-beginning)
-                       (region-end))))
-          (deactivate-mark)
-          (isearch-yank-string region))
-      (when-let* ((thing (thing-at-point 'symbol)))
-        (isearch-yank-string thing))))
+    (let ((search-text
+           (if (region-active-p)
+                   (buffer-substring-no-properties
+              (region-beginning)
+              (region-end))
+                 (let ((bounds (bounds-of-thing-at-point 'symbol)))
+             (when bounds
+               (buffer-substring-no-properties (car bounds) (cdr bounds)))))))
+      (when search-text
+        (when isearch-mode
+          (isearch-done))
+        (deactivate-mark)
+        (isearch-mode t nil nil nil)
+        (setq isearch-case-fold-search nil)
+        (isearch-yank-string search-text))))
   :bind
   (:map isearch-mode-map
         ("C-r" . isearch-repeat-backward)
@@ -124,7 +130,6 @@
         ("C-a" . avy-isearch))
   :config
   (setq avy-single-candidate-jump t))
-
 
 (provide 'mk-editing)
 ;;; mk-editing.el ends here
