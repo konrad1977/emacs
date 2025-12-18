@@ -8,10 +8,7 @@
   :hook (after-init . spotlight-mode)
   :config
   (setopt spotlight-mode-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
-          spotlight-mode-always-color-buffers '(
-                                                ;; ("*iOS Simulator*" . (:background "SteelBlue4" :foreground "light cyan"))
-                                                ("*dape-repl*" . (:background "#252535" :foreground "gray100"))
-                                                ("*dape-info*" . (:background "#43242B" :foreground "gray100")))
+          spotlight-mode-always-color-buffers '()
           spotlight-mode-always-darken-buffers-regexp '("\\*.*\\*")
           spotlight-active-dim-percentage 0
           spotlight-inactive-lighten-percentage 5
@@ -43,10 +40,10 @@
   (setopt punch-show-project-info nil
           punch-line-modal-use-fancy-icon nil
           punch-line-modal-divider-style 'none
-          punch-line-modal-size 'small
-          punch-line-left-separator ""
-          punch-line-right-separator ""
-          punch-line-section-padding 1
+          punch-line-modal-size 'large
+          punch-line-left-separator "  "
+          punch-line-right-separator "  "
+          punch-line-section-padding 10
           punch-show-git-info t
           punch-show-lsp-info t
           punch-line-vc-use-github-icon nil
@@ -57,7 +54,7 @@
           punch-weather-latitude "56.7365"
           punch-weather-longitude "16.2981"
           punch-line-music-max-length 80
-          punch-line-section-backgrounds 'auto
+          punch-line-section-backgrounds nil
           punch-line-section-background-tint-start -15
           punch-line-section-background-tint-step 50
           punch-line-music-info '(:service apple)))
@@ -99,20 +96,23 @@
       "l" 'dired-find-file)))
 
 (use-package which-key
-  :defer 3
   :ensure nil
-  :hook (after-init . which-key-mode)
+  :defer t
+  :init
+  (run-with-idle-timer 1.5 nil #'which-key-mode)
   :custom
   (which-key-use-C-h-commands t)
   (which-key-separator " → ")
   (which-key-side-window-location 'bottom)
-  (which-key-sort-order #'which-key-key-order-alpha)
+  (which-key-sort-order #'which-key-prefix-then-key-order)
   (which-key-sort-uppercase-first nil)
   (which-key-add-column-padding 2)
   (which-key-min-display-lines 6)
-  (which-key-idle-delay 0.8)
+  (which-key-idle-delay 1.0)
   (which-key-max-description-length 45)
-  (which-key-allow-imprecise-window-fit nil))
+  (which-key-allow-imprecise-window-fit t)
+  :config
+  (which-key-setup-minibuffer))
 
 (use-package mode-line-hud
   :ensure nil

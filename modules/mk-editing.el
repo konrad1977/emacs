@@ -53,7 +53,8 @@
       (consult-line query)))
 
   (defun isearch-with-region-or-thing ()
-    "Use region as isearch text if active, otherwise use thing at point."
+    "Use region as isearch text if active, otherwise use thing at point.
+Uses regexp search with word boundaries."
     (interactive)
     (let ((search-text
            (if (region-active-p)
@@ -67,9 +68,11 @@
         (when isearch-mode
           (isearch-done))
         (deactivate-mark)
-        (isearch-mode t nil nil nil)
+        (isearch-forward-regexp nil t)
         (setq isearch-case-fold-search nil)
-        (isearch-yank-string search-text))))
+        (setq isearch-string (format "\\<%s\\>" (regexp-quote search-text)))
+        (setq isearch-message isearch-string)
+        (isearch-search-and-update))))
   :bind
   (:map isearch-mode-map
         ("C-r" . isearch-repeat-backward)
@@ -103,9 +106,9 @@
        :branch "main"
        :rev :newest)
   :init
-  (setq scroll-conservatively 101
+  (setq scroll-conservatively 3
         scroll-margin 0)
-  :hook (after-init . ultra-scroll-mode))
+  :config (ultra-scroll-mode 1))
 
 (use-package wgrep
   :defer t

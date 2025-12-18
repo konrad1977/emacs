@@ -257,13 +257,13 @@
 
 
   (periphery-fix-face-full (:foreground gray1 :background magent_b :bold t))
-  (periphery-note-face-full (:foreground gray1  :background green_b :bold t))
-  (periphery-mark-face-full (:foreground gray1 :background gray6 :bold t))
-  (periphery-todo-face-full (:foreground gray1 :bold t))
-  (periphery-hack-face-full (:foreground gray1 :background red_b :bold t))
+  (periphery-note-face-full (:foreground green_b :bold t))
+  (periphery-mark-face-full (:foreground gray6 :bold t))
+  (periphery-todo-face-full (:foreground blue2 :bold t))
+  (periphery-hack-face-full (:foreground red_b :background red_b :bold t))
   (periphery-performance-face-full (:foreground gray1 :background magent_b :bold t))
-  (periphery-warning-face-full (:foreground gray1 :background orange_b :bold t))
-  (periphery-error-face-full (:foreground gray1 :background red_b :bold t))
+  (periphery-warning-face-full (:foreground orange_b :background nil :bold t))
+  (periphery-error-face-full (:foreground red_b :bold t))
   (periphery-error-face (:foreground red :bold t))
   (periphery-identifier-face (:foreground gray6 :italic t :weight 'light))
 

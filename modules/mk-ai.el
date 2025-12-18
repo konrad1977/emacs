@@ -34,9 +34,8 @@
 ;;   (define-key evil-insert-state-map (kbd "C-i") #'mk/tab-completion))
 
 (use-package copilot
-  :ensure nil
+  :ensure t
   :defer 3
-  :vc (copilot :url "https://github.com/copilot-emacs/copilot.el" :branch "main" :rev :newest)
   :hook ((prog-mode localizeable-mode) . copilot-mode)
   :config
   (setq copilot-indent-offset-warning-disable t)

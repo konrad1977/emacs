@@ -8,7 +8,7 @@
 (use-package autothemer
   :ensure t
   :init
-  (load-theme 'catppuccin-mocha t)
+  ;; (load-theme 'catppuccin-mocha t)
   ;; (load-theme 'catppuccin-macchiato t)
   ;; (load-theme 'catppuccin-frappe t)
   ;; (load-theme 'catppuccin-latte t)
@@ -17,7 +17,7 @@
   ;; (load-theme 'oxographite t)
   ;; (load-theme 'kman t)
   ;; (load-theme 'kalmar-night t)
-  ;; (load-theme 'kanagawa t)
+  (load-theme 'kanagawa t)
   ;; (load-theme 'neofusion t)
   ;; (load-theme 'doom-gruvbox t)
   ;; (load-theme 'oxocarbon t)

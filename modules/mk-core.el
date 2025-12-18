@@ -1,4 +1,7 @@
-;; -*- lexical-binding: t; -*-
+;;; early-init.el --- summary -*- lexical-binding: t; no-byte-compile: t; mode: emacs-lisp; coding:utf-8; fill-column: 80 -*-
+;;; Commentary:
+;; Early initialization file to optimize Emacs startup performance.
+
 ;;; Code:
 
 (eval-when-compile
@@ -10,20 +13,30 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(require 'use-package)
 (require 'use-package-ensure) ;; Load use-package-always-ensure
 
-(setq use-package-always-ensure t
-      use-package-compute-statistics t)
-       
-            ;; Initialize package system with all archives
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-                         ("gnu" . "https://elpa.gnu.org/packages/"))
-                  package-archive-priorities '(("gnu" . 99)
-                                               ("nongnu" . 85)
-                                               ("melpa" . 75)))
+(use-package use-package
+  :ensure t
+  :custom
+  (use-package-always-defer nil)
+  (use-package-verbose nil)
+  (use-package-minimum-reported-time 0)
+  (use-package-expand-minimally t)
+  (use-package-compute-statistics t)
+  (use-package-always-ensure t)
+  (use-package-enable-imenu-support t))
+
+(require 'package)
+
+(setopt package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+                           ("gnu" . "https://elpa.gnu.org/packages/"))
+        package-archive-priorities '(("gnu" . 99)
+                                     ("nongnu" . 85)
+                                     ("melpa" . 75)))
 (package-initialize)
+(when (package-installed-p 'compat)
+  (require 'compat nil t))
 
 (dolist (path (list
                (expand-file-name "localpackages/kanagawa-emacs" user-emacs-directory)
@@ -62,9 +75,21 @@
 (global-unset-key [C-wheel-down])
 (global-set-key (kbd "M-w") 'ns-do-hide-emacs)
 
+(use-package auto-compile
+  :ensure t
+  :defer 1
+  :custom
+  (auto-compile-display-buffer nil)
+  (auto-compile-mode-line-counter nil)
+  (auto-compile-use-mode-line nil)
+  (auto-compile-update-autoloads t)
+  :config
+  (auto-compile-on-load-mode)
+  (auto-compile-on-save-mode))
+
 (use-package nerd-icons
-             :defer t
-             :demand t)
+  :defer t
+  :demand t)
 
 (provide 'mk-core)
 ;;; mk-core.el ends here

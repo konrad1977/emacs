@@ -195,8 +195,8 @@
   (which-key-group-description-face     (:foreground pink))
   (which-key-command-description-face   (:foreground blue))
   (which-key-local-map-description-face (:foreground yellow))
-  (which-key-posframe					(:background crust))
-  (which-key-posframe-border			(:background crust))
+  (which-key-posframe			(:background crust))
+  (which-key-posframe-border		(:background crust))
 
   ;; swiper
   (swiper-line-face                     (:foreground yellow))
@@ -204,15 +204,15 @@
   (swiper-background-match-face-2       (:background blue :foreground crust))
   (swiper-background-match-face-3       (:background flamingo :foreground crust))
   (swiper-background-match-face-4       (:background red :foreground crust))
-  (swiper-match-face-1					(:inherit 'swiper-background-match-face-1))
-  (swiper-match-face-2					(:inherit 'swiper-background-match-face-2))
-  (swiper-match-face-3					(:inherit 'swiper-background-match-face-3))
-  (swiper-match-face-4					(:inherit 'swiper-background-match-face-4))
+  (swiper-match-face-1			(:inherit 'swiper-background-match-face-1))
+  (swiper-match-face-2			(:inherit 'swiper-background-match-face-2))
+  (swiper-match-face-3			(:inherit 'swiper-background-match-face-3))
+  (swiper-match-face-4			(:inherit 'swiper-background-match-face-4))
 
   (counsel-outline-default              (:foreground yellow))
   (info-header-xref                     (:foreground yellow))
   (xref-file-header                     (:foreground yellow))
-  (xref-match		                    (:foreground peach))
+  (xref-match		                (:foreground peach))
 
   ;; rainbow delimiter
   (rainbow-delimiters-mismatched-face   (:foreground crust :background red))
@@ -312,7 +312,7 @@
 
   (completions-annotations                      (:foreground subtext0 :italic t))
   (completions-highlight                        (:foreground blue :italic t))
-  (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green :bold t :italic t))
+  (completions-common-part                      (:foreground yellow :distant-foreground crust :distant-background green))
   (completions-first-difference                 (:foreground red))
 
   (consult-file                                 (:foreground subtext0 :distant-foreground crust))
@@ -469,7 +469,7 @@
 
   ;; ;; Font lock
   (font-lock-bracket-face               (:foreground overlay2))
-  (font-lock-builtin-face               (:foreground red :weight 'normal))
+  (font-lock-builtin-face               (:foreground red))
   (font-lock-comment-delimiter-face     (:foreground overlay2 :italic t))
   (font-lock-comment-face               (:foreground overlay1 :italic t))
   (font-lock-constant-face              (:foreground teal :bold t))
@@ -477,7 +477,7 @@
   (font-lock-doc-face                   (:foreground overlay2))
   (font-lock-doc-markup-face            (:foreground overlay2))
   (font-lock-escape-face                (:foreground pink))
-  (font-lock-function-call-face         (:foreground blue :weight 'normal))
+  (font-lock-function-call-face         (:foreground blue ))
   (font-lock-function-name-face         (:foreground blue))
   (font-lock-keyword-face               (:foreground mauve :weight 'normal))
   (font-lock-misc-punctuation-face      (:foreground yellow))
@@ -487,11 +487,11 @@
   (font-lock-preprocessor-face	   	(:foreground pink :weight 'bold :italic t))
   (font-lock-property-name-face	        (:foreground peach))
   (font-lock-property-use-face	        (:foreground maroon))
-  (font-lock-punctuation-face           (:foreground peach :weight 'normal))
+  (font-lock-punctuation-face           (:foreground peach))
   (font-lock-reference-face		(:foreground sky))
   (font-lock-regexp-grouping-backslash  (:foreground blue :weight 'semi-bold))
   (font-lock-string-face                (:foreground green :italic t))
-  (font-lock-type-face                  (:foreground yellow :bold t))
+  (font-lock-type-face                  (:foreground yellow :weight 'normal))
   (font-lock-variable-name-face         (:foreground text))
   (font-lock-variable-use-face          (:foreground rosewater :weight 'light))
   (font-lock-warning-face               (:inherit 'warning))
@@ -502,7 +502,7 @@
   (highlight-quoted-symbol              (:foreground yellow))
   (highlight-numbers-face               (:foreground pink))
 
-  (highlight-symbol-face                (:foreground peach :box (:line-width -1 :color peach)))
+  (highlight-symbol-face                (:foreground blue :background mauve-dark))
   (help-key-binding                     (:foreground yellow :bold t))
   (info-xref                            (:foreground yellow))
 
@@ -572,7 +572,7 @@
   (tree-sitter-hl-face:conditional               (:inherit 'tree-sitter-hl-face:keyword :weight 'semi-bold))
 
   (swift-ts-face-annotation                      (:foreground teal :weight 'semi-bold))
-  (swift-ts-face-annotation.builtin              (:foreground teal))
+  (swift-ts-face-annotation.builtin              (:foreground pink :weight 'semi-bold))
   (swift-ts-face-annotation.type                 (:inherit 'font-lock-type-face))
   (swift-ts-face-punctuation.type                (:inherit 'font-lock-punctuation-face))
   (swift-ts-face-face-label                      (:foreground overlay2))
@@ -585,16 +585,6 @@
 
   (eldoc-box-body                                (:background mantle :foreground lavender))
   (eldoc-box-border                              (:background crust))
-
-  (with-eval-after-load "swift-mode"
-    (swift-mode:preprocessor-keyword-face (:foreground text :italic t))
-    (swift-mode:property-access-face (:foreground subtext1))
-    (swift-mode:builtin-property-face (:foreground rosewater))
-    (swift-mode:builtin-enum-case-face (:foreground teal))
-    (swift-mode:builtin-method-trailing-closure-face (:foreground teal))
-    (swift-mode:builtin-function-trailing-closure-face (:foreground teal))
-    (swift-mode:function-call-face (:foreground pink)))
-
 
   (diff-file-header (:foreground subtext1 :background overlay0))
   (diff-header (:foreground subtext1 :background overlay0))

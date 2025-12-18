@@ -349,6 +349,7 @@ Only scrolls if compilation window is visible."
         flyover-max-lines 110
         flyover-debounce-interval 2.0
         flyover-background-lightness 35
+        flyover-swap-foreground-background t
         flyover-virtual-line-icon nil))
 
 (use-package flycheck-eglot
@@ -415,6 +416,13 @@ A prefix argument will not filter project buffers."
   (setopt display-line-numbers-widen t
           display-line-numbers-type 'relative
           display-line-numbers-width 4))
+
+
+(use-package treesit
+  :ensure nil
+  :defer t
+  :config
+  (setopt treesit-font-lock-level 4))
 
 ;;; Provide
 (provide 'mk-development)

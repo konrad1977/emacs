@@ -24,18 +24,18 @@
   :hook
   (emacs-lisp-mode . highlight-defined-mode))
 
-(use-package paredit
-  :defer t
-  :commands paredit-mode
-  :hook
-  (emacs-lisp-mode . paredit-mode)
-  :config
-  (define-key paredit-mode-map (kbd "RET") nil))
+;; (use-package paredit
+;;   :defer t
+;;   :commands paredit-mode
+;;   :hook
+;;   (emacs-lisp-mode . paredit-mode)
+;;   :config
+;;   (define-key paredit-mode-map (kbd "RET") nil))
 
-(use-package semel
-  :vc (semel
-       :url "https://github.com/eshelyaron/semel" :rev :newest)
-  :hook (emacs-lisp-mode . semel-mode))
+;; (use-package semel
+;;   :vc (semel
+;;        :url "https://github.com/eshelyaron/semel" :rev :newest)
+;;   :hook (emacs-lisp-mode . semel-mode))
 
 (use-package colorful-mode
   :defer t
@@ -50,11 +50,11 @@
   :hook
   (emacs-lisp-mode-hook . highlight-quoted-mode))
 
-(use-package eros
-  :custom-face
-  (eros-result-overlay-face ((t (:inherit shadow :box t))))
-  :hook
-  (emacs-lisp-mode-hook . eros-mode))
+;; (use-package eros
+;;   :custom-face
+;;   (eros-result-overlay-face ((t (:inherit shadow :box t))))
+;;   :hook
+;;   (emacs-lisp-mode-hook . eros-mode))
 
 ;;; Provide
 (provide 'mk-lisp)

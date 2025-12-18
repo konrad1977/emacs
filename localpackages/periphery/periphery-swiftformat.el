@@ -1,8 +1,10 @@
 ;;; Periphery-swiftformat --- Validate swift-format and show the result as flycheck list.  -*- lexical-binding: t; -*-
 
-;;; Commentary: Package for showing linting as result in a tabulated list
+;;; Commentary:
+;;; Package for showing linting as result in a tabulated list
 
 ;;; Code:
+
 (require 'periphery)
 (require 'periphery-helper)
 (require 'cl-lib)
@@ -27,7 +29,25 @@
   "Create disable block for swift format (as LIST)."
   (if (> (length list) 0)
       (concat "--disable " (mapconcat 'identity list ","))
-      ""))
+    ""))
+
+(cl-defun periphery-run-swiftformat-buffer (&key command &key file)
+  "Run swiftformat for current buffer (as COMMAND FILE)."
+  (if (executable-find swiftformat-command)
+      (progn
+        (mode-line-hud:notification :message
+                                    (format "Formatting %s"
+                                            (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'success))
+                                    :seconds 3)
+
+        (async-start-command-to-string
+         :command command
+         :callback '(lambda (result)
+                      (send-swiftformat-result-to-periphery result))))
+
+    (mode-line-hud:notification
+     :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face)
+     :seconds 2)))
 
 ;;;###autoload
 (defun periphery-swiftformat-lint-buffer()
@@ -47,24 +67,6 @@
       (periphery-run-swiftformat-buffer
        :command (concat swiftformat-command " " file " " (periphery--create-disable-rules-list disabled-rules-list) " --swiftversion " swift-version)
        :file file)))
-
-(cl-defun periphery-run-swiftformat-buffer (&key command &key file)
-  "Run swiftformat for current buffer (as COMMAND FILE)."
-  (if (executable-find swiftformat-command)
-      (progn
-        (mode-line-hud:notification :message
-                                    (format "Formatting %s"
-                                            (propertize (file-name-sans-extension (file-name-nondirectory file)) 'face 'success))
-                                    :seconds 3)
-
-        (async-start-command-to-string
-         :command command
-         :callback '(lambda (result)
-                      (send-swiftformat-result-to-periphery result))))
-
-    (mode-line-hud:notification
-     :message (propertize "Swiftformat not installed" 'face 'font-lock-keyword-face)
-     :seconds 2)))
 
 ;;;###autoload
 (defun periphery-run-swiftformat-for-project()

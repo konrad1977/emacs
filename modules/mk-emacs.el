@@ -8,8 +8,9 @@
 
 (use-package emacs
   :hook (after-init . (lambda ()
-                        (global-hl-line-mode 0)
+                        (global-hl-line-mode 1)
                         (display-battery-mode 1)
+                        (save-place-mode 1)
                         (global-auto-revert-mode 1)))
   :custom
   (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
@@ -25,12 +26,10 @@
   (context-menu-mode t)
   (create-lockfiles nil)
   (cursor-in-non-selected-windows nil)
-  ;; (debug-on-error nil)
   (delete-by-moving-to-trash t)
   (display-time-default-load-average nil) ; this information is useless for most
   (find-file-visit-truename nil)
   (global-auto-revert-non-file-buf t)
-  (grep-command "rg -nS --no-heading ")
   (help-window-select t)
   ;; (indicate-buffer-boundaries 'right) ; Show buffer top and bottom in the margin
   (line-number-mode nil)
@@ -43,7 +42,6 @@
   (visible-bell nil)
   (window-combination-resize t)
   (window-sides-vertical t)
-  ;; (debug-on-signal t)
   :config
   (set-display-table-slot standard-display-table 0 ?\ )
   (set-window-fringes (selected-window) 16 10)
@@ -58,6 +56,7 @@
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
   (setopt kept-new-versions 6)
   (setopt kept-old-versions 2)
+  (setopt load-prefer-newer t)
   (setopt kill-do-not-save-duplicates t)
   (setopt large-file-warning-threshold (* 15 1024 1024))
   (setopt line-move-visual nil)
@@ -75,8 +74,6 @@
   (setopt use-short-answers t)
   (setopt version-control t)
   (setopt warning-minimum-level :emergency)
-  ;; (setopt window-divider-default-right-width 4
-  ;;         window-divider-default-bottom-width 1)
   (setopt xref-search-program 'ripgrep)
   (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
   (setopt grep-find-ignored-directories
@@ -89,10 +86,9 @@
     (setq
      mac-command-modifier 'meta
      mac-option-modifier 'none
-     ;; mac-command-key-is-meta t
      ;; ns-use-proxy-icon nil
      ;; ns-pop-up-frames nil
-     ;; ns-use-thin-smoothing t
+     ns-use-thin-smoothing t
      dired-use-ls-dired t
      insert-directory-program "/opt/homebrew/bin/gls"
      dired-listing-switches "-aBhl --group-directories-first"
@@ -133,11 +129,5 @@
     (other-window 1)
     (xwidget-webkit-browse-url url)))
 
-
-;; (use-package savehist
-;;   :ensure nil
-;;   :config
-;;   (savehist-mode 1))
-;;
 (provide 'mk-emacs)
 ;;; mk-emacs.el ends here

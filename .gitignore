@@ -11,3 +11,16 @@
 /localpackages/periphery/
 /localpackages/swift-development/
 /localpackages/welcome-dashboard/
+
+# Temporary and runtime files
+flycheck_*.el
+/persist/
+/recentf
+/history
+/undo-fu-session/
+/transient/
+/request/
+/tramp
+/tree-sitter/
+/projects
+/var/

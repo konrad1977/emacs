@@ -1,17 +1,64 @@
 ;; -*- lexical-binding: t; -*-
 ;;; Code:
 
+;; knockknock notification integration - MUST be loaded first before any
+;; package that might trigger notifications to prevent startup crashes
+(use-package knockknock
+  :ensure nil
+  :demand t  ;; Load immediately, don't defer
+  :config
+  ;; Initialize knockknock early to prevent crashes when multiple
+  ;; notifications are shown rapidly during startup
+  (knockknock-init)
+  ;; Use theme colors instead of hardcoded values
+  (setopt knockknock-border-color "#292929")
+  (setopt knockknock-darken-background-percent 35)
+  (defun my-xcode-knockknock-notify (&rest args)
+    "Custom notification function using knockknock for xcode-project.
+Accepts keyword arguments from xcode-project-notify:
+  :message - The message to display
+  :delay   - Optional delay (ignored for knockknock)
+  :seconds - How long to show notification
+  :reset   - Whether to reset (ignored for knockknock)
+  :face    - Face for styling (ignored for knockknock)"
+    (let* ((message-text (plist-get args :message))
+           (seconds (or (plist-get args :seconds) 3))
+           ;; Choose icon based on message content
+           (icon (cond
+                  ((string-match-p "\\(success\\|complete\\|passed\\)" message-text)
+                   "nf-cod-check")
+                  ((string-match-p "\\(error\\|fail\\)" message-text)
+                   "nf-cod-error")
+                  ((string-match-p "\\(warning\\|warn\\)" message-text)
+                   "nf-cod-warning")
+                  ((string-match-p "\\(build\\|compil\\)" message-text)
+                   "nf-cod-tools")
+                  (t "nf-dev-xcode")))
+           ;; Try to extract title from message if it contains a colon
+           (parts (split-string message-text ": " t))
+           (title (if (> (length parts) 1) (car parts) "Swift-development"))
+           (msg (if (> (length parts) 1)
+                    (string-join (cdr parts) ": ")
+                  message-text)))
+      (knockknock-notify
+       :title title
+       :message msg
+       :icon icon
+       :duration seconds)))
+
+  ;; Configure xcode-project to use custom backend
+  (setq xcode-project-notification-backend 'custom)
+  (setq xcode-project-notification-function #'my-xcode-knockknock-notify))
+
 (use-package swift-ts-mode
-  :mode "\\.swift\\'"
+  :mode ("\\.swift\\'" "\\.swiftinterface\\'")
   :ensure nil
   :bind
   (:map swift-ts-mode-map
         ("C-c t s" . #'swift-ts:split-func-list))
   :custom
   (swift-ts-basic-offset 4)
-  (swift-ts:indent-trailing-call-member t)
-  :config
-  (add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-ts-mode)))
+  (swift-ts:indent-trailing-call-member t))
 
 (use-package localizeable-mode
   :ensure nil
@@ -64,13 +111,13 @@
         ("M-t" . #'swift-refactor-insert-todo)
         ("M-m" . #'swift-refactor-insert-mark)))
 
-(use-package apple-docs-query
-  :ensure nil
-  :after swift-ts-mode
-  :bind
-  (:map swift-ts-mode-map
-        ("C-x D" . #'apple-docs/query-thing-at-point)
-        ("C-x d" . #'apple-docs/query)))
+;; (use-package apple-docs-query
+;;   :ensure nil
+;;   :after swift-ts-mode
+;;   :bind
+;;   (:map swift-ts-mode-map
+;;         ("C-x D" . #'apple-docs/query-thing-at-point)
+;;         ("C-x d" . #'apple-docs/query)))
 
 
 (use-package periphery-swiftformat
@@ -87,49 +134,6 @@
 (use-package swift-development-mode
   :ensure nil
   :after (swift-ts-mode swift-development ios-simulator xcode-project swift-refactor))
-
-;; knockknock notification integration
-(use-package knockknock
-  :ensure nil
-  :config
-  (setopt knockknock-border-color "black")
-  (defun my-xcode-knockknock-notify (&rest args)
-    "Custom notification function using knockknock for xcode-project.
-Accepts keyword arguments from xcode-project-notify:
-  :message - The message to display
-  :delay   - Optional delay (ignored for knockknock)
-  :seconds - How long to show notification
-  :reset   - Whether to reset (ignored for knockknock)
-  :face    - Face for styling (ignored for knockknock)"
-    (let* ((message-text (plist-get args :message))
-           (seconds (or (plist-get args :seconds) 3))
-           ;; Choose icon based on message content
-           (icon (cond
-                  ((string-match-p "\\(success\\|complete\\|passed\\)" message-text)
-                   "nf-cod-check")
-                  ((string-match-p "\\(error\\|fail\\)" message-text)
-                   "nf-cod-error")
-                  ((string-match-p "\\(warning\\|warn\\)" message-text)
-                   "nf-cod-warning")
-                  ((string-match-p "\\(build\\|compil\\)" message-text)
-                   "nf-cod-tools")
-                  (t "nf-dev-xcode")))
-           ;; Try to extract title from message if it contains a colon
-           (parts (split-string message-text ": " t))
-           (title (if (> (length parts) 1) (car parts) "Swift-development"))
-           (msg (if (> (length parts) 1)
-                    (string-join (cdr parts) ": ")
-                  message-text)))
-
-      (knockknock-notify
-       :title title
-       :message msg
-       :icon icon
-       :duration seconds)))
-
-  ;; Configure xcode-project to use custom backend
-  (setq xcode-project-notification-backend 'custom)
-  (setq xcode-project-notification-function #'my-xcode-knockknock-notify))
 
 ;;; Provide
 (provide 'mk-ios-development)

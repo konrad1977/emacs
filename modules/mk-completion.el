@@ -35,8 +35,9 @@
   (setq vertico-posframe-poshandler #'posframe-poshandler-frame-center
         vertico-posframe-min-height 2
         vertico-posframe-truncate-lines t
-        vertico-posframe-min-width 130
-        vertico-posframe-border-width 24)
+        vertico-posframe-min-width 120
+        vertico-posframe-border-width 20
+        vertico-posframe-parameters '((alpha . 0.9)))
   (setq vertico-multiform-commands
         '((consult-line (:not posframe))
           (xref-find-references (:not posframe))
@@ -47,6 +48,9 @@
           (t posframe)))
   (vertico-multiform-mode)
   (vertico-posframe-cleanup))
+
+(custom-set-faces
+ '(vertico-posframe-border ((t (:inherit vertico-posframe)))))
 
 (use-package marginalia
   :ensure t
@@ -95,7 +99,7 @@
    ("M-s L" . #'consult-line-multi)
    ("M-s l" . #'consult-line))
   :init
-  (setq register-preview-delay 0.2
+  (setq register-preview-delay 0.4
         register-preview-function #'consult-register-format
         xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -109,14 +113,6 @@
    consult--source-recent-file consult--source-project-recent-file
    :preview-key '(:debounce 0.4 any))
   (setq consult-narrow-key "<"))
-
-
-(use-package consult-xref
-  :defer t
-  :ensure consult
-  :config
-  (setq xref-show-xrefs-function #'consult-xref)
-  (setq xref-show-definitions-function #'consult-xref))
 
 (use-package embark
   :commands (embark-act embark-collect-snapshot embark-collect-live)

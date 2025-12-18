@@ -11,7 +11,7 @@
 
 (use-package magit
   :ensure t
-  :after transient
+  :after (transient evil-collection)
   :commands (magit-status magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -22,9 +22,7 @@
   (require 'magit-section)
   (setq magit-format-file-function #'magit-format-file-nerd-icons
         magit-diff-refine-hunk 'all)
-  ;; Setup evil-collection for magit after it's loaded
-  (when (featurep 'evil-collection)
-    (evil-collection-init 'magit)))
+  (evil-collection-init 'magit))
 
 (use-package git-timemachine
   :ensure t
@@ -51,11 +49,11 @@
 (use-package diff-hl
   :defer t
   :ensure t
-  :after evil
+  :after prog-mode
   :hook
   (prog-mode . (lambda ()
-                 (global-diff-hl-mode)           ;; Enable Diff-HL mode for all files.
-                 (diff-hl-flydiff-mode)          ;; Automatically refresh diffs.
+                 ;; (global-diff-hl-mode)           ;; Enable Diff-HL mode for all files.
+                 ;; (diff-hl-flydiff-mode)          ;; Automatically refresh diffs.
                  (diff-hl-margin-mode)))         ;; Show diff indicators in the margin.
   :custom
   (diff-hl-side 'left)                           ;; Set the side for diff indicators.

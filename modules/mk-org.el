@@ -166,25 +166,26 @@ SOUND is the sound specification to play."
 ;; (use-package ob-restclient
 ;;   :defer t)
 ;;
-;; (use-package ob-swift
-;;   :defer t
-;;   :after org-mode
-;;   :config
-;;   (org-babel-do-load-languages 'org-babel-load-languages
-;;                                (append org-babel-load-languages
-;;                                        '((swift . t)))))
-;; (use-package ob-swiftui
-;;   :defer t
-;;   :after org-mode
-;;   :config
-;;   (add-hook 'org-babel-after-execute-hook (lambda ()
-;;                                             (when org-inline-image-overlays
-;;                                               (org-redisplay-inline-images))))
-;;   (add-to-list 'org-babel-tangle-lang-exts
-;;                '("swiftui" . "swift"))
-;;   (add-to-list 'org-src-lang-modes
-;;                '("swiftui" . swift))
-;;   (ob-swiftui-setup))
+(use-package ob-swift
+  :defer t
+  :after org
+  :config
+  (add-to-list 'org-src-lang-modes '("swift" . swift))
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               (append org-babel-load-languages
+                                       '((swift . t)))))
+(use-package ob-swiftui
+  :defer t
+  :after org
+  :config
+  (add-hook 'org-babel-after-execute-hook (lambda ()
+                                            (when org-inline-image-overlays
+                                              (org-redisplay-inline-images))))
+  (add-to-list 'org-babel-tangle-lang-exts
+               '("swiftui" . "swift"))
+  (add-to-list 'org-src-lang-modes
+               '("swiftui" . swift))
+  (ob-swiftui-setup))
 ;;
 ;; (use-package ob-kotlin
 ;;   :defer t

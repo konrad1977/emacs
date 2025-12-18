@@ -1,11 +1,25 @@
-;; -*- lexical-binding: t; -*-
-;; Code:;;
+;;; mk-evil.el --- Konfiguration för Evil mode -*- lexical-binding: t; -*-
+;;; Commentary:
 ;; Workaround för saknad evil-mode-buffers variabel
+;;; Code:
+
+(use-package no-littering
+  :ensure t)
+
+(use-package undo-tree
+  :init
+  (setq undo-tree-enable-undo-in-region t
+        undo-tree-auto-save-history t
+        undo-tree-history-directory-alist
+        `(("." . ,(no-littering-expand-var-file-name "undo-tree/"))))
+  :config
+  (global-undo-tree-mode))
+
 (defvar evil-mode-buffers nil
   "Lista över buffertar där Evil mode är aktivt.")
 
 (use-package evil
-  :defer 1
+  :defer 0.5
   :ensure t
   :custom
   (evil-want-Y-yank-to-eol t)
@@ -13,7 +27,7 @@
   (setq-default evil-symbol-word-search t)
   (setq evil-want-integration t
 	evil-want-keybinding nil
-	evil-undo-system 'undo-fu
+	evil-undo-system 'undo-tree
 	evil-want-fine-undo t
 	evil-want-C-u-scroll t
 	evil-want-minibuffer t
@@ -40,12 +54,17 @@
   (evil-define-key 'normal 'global (kbd "<leader> S") 'consult-line-multi)
   (evil-define-key 'normal 'global (kbd "<leader> F") 'consult-line)
 
-  (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
-  (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
-
   (evil-define-key 'normal 'global (kbd "<leader> a a") 'android-emulator-start-logcat)
   (evil-define-key 'normal 'global (kbd "<leader> a q") 'android-emulator-quit-logcat)
   (evil-define-key 'normal 'global (kbd "<leader> a r") 'android-emulator-restart-logcat)
+  (which-key-add-key-based-replacements "<leader> a" "Android")
+
+  (evil-define-key 'normal 'global (kbd "<leader>TAB") '(lambda () (interactive) (switch-to-buffer nil)))
+  (evil-define-key 'normal 'global (kbd "<leader>'") '(lambda () (interactive) (toggle-vterm)))
+
+  ;; (evil-define-key 'normal 'global (kbd "<leader> a a") 'android-emulator-start-logcat)
+  ;; (evil-define-key 'normal 'global (kbd "<leader> a q") 'android-emulator-quit-logcat)
+  ;; (evil-define-key 'normal 'global (kbd "<leader> a r") 'android-emulator-restart-logcat)
    ;;; Buffers
   (evil-define-key 'normal 'global (kbd "<leader> b b") 'consult-buffer)
   (evil-define-key 'normal 'global (kbd "<leader> b x") 'bury-buffer)
@@ -54,6 +73,7 @@
   (evil-define-key 'normal 'global (kbd "<leader> b p") 'project-list-buffers)
   (evil-define-key 'normal 'global (kbd "<leader> b m") '(lambda () (interactive) (switch-to-buffer "*Messages*")))
   (evil-define-key 'normal 'global (kbd "<leader> b s") '(lambda () (interactive) (switch-to-buffer "*scratch*")))
+  (which-key-add-key-based-replacements "<leader> b" "Buffers")
 
   (evil-define-key 'normal 'global (kbd "<leader> c p") 'copilot-chat-transient)
   (evil-define-key 'normal 'global (kbd "<leader> c c") 'claude-code-ide-menu)
@@ -61,7 +81,10 @@
   (evil-define-key 'normal 'global (kbd "<leader> c e") 'consult-compile-error)
   (evil-define-key 'normal 'global (kbd "<leader> c l") 'mk/compilation-get-errors)
   (evil-define-key 'normal 'global (kbd "<leader> c m") 'copilot-chat-insert-commit-message)
+  (which-key-add-key-based-replacements "<leader> c" "Code")
+
   (evil-define-key 'normal 'global (kbd "<leader> e a") 'embark-act)
+  (which-key-add-key-based-replacements "<leader> e" "Embark")
 
   (evil-define-key 'normal 'global (kbd "<leader> f b") 'consult-buffer)
   (evil-define-key 'normal 'global (kbd "<leader> f d") 'delete-file)
@@ -74,20 +97,24 @@
   (evil-define-key 'normal 'global (kbd "<leader> f m") 'focus-mode)
   (evil-define-key 'normal 'global (kbd "<leader> f s") 'save-buffer)
   (evil-define-key 'normal 'global (kbd "<leader> f i") 'consult-imenu-multi)
+  (which-key-add-key-based-replacements "<leader> f" "File")
 
   (evil-define-key 'normal 'global (kbd "<leader> h s") 'highlight-symbol-at-point)
   (evil-define-key 'normal 'global (kbd "<leader> h r") 'highlight-symbol-remove-all)
   (evil-define-key 'normal 'global (kbd "<leader> h n") 'highlight-symbol-next)
   (evil-define-key 'normal 'global (kbd "<leader> h N") 'highlight-symbol-prev)
+  (which-key-add-key-based-replacements "<leader> h" "Highlight")
 
   (evil-define-key 'normal 'global (kbd "<leader> j j") 'jira-issues)
   (evil-define-key 'normal 'global (kbd "<leader> j m") 'jira-issues-menu)
   (evil-define-key 'normal 'global (kbd "<leader> j a") 'jira-issues-actions-menu)
+  (which-key-add-key-based-replacements "<leader> j" "Jira")
 
   (evil-define-key 'normal 'global (kbd "<leader> m l") 'imenu-list-smart-toggle)
   (evil-define-key 'normal 'global (kbd "<leader> m i") 'consult-imenu)
   (evil-define-key 'normal 'global (kbd "<leader> m b") 'consult-bookmark)
   (evil-define-key 'normal 'global (kbd "<leader> m c") 'consult-mode-command)
+  (which-key-add-key-based-replacements "<leader> m" "Misc")
 
   (evil-define-key 'normal 'global (kbd "<leader> g g") 'google-this)
 
@@ -96,6 +123,7 @@
   (evil-define-key 'normal 'global (kbd "<leader> e l") 'eval-last-sexp)
 
   (evil-define-key 'normal 'global (kbd "<leader> s s") 'isearch-forward)
+  (evil-define-key 'normal 'global (kbd "<leader> s l") 'isearch-consult-line)
   (evil-define-key 'normal 'global (kbd "<leader> s h") 'consult-isearch-history)
   (evil-define-key 'normal 'global (kbd "<leader> s o") 'occur)
 
@@ -139,13 +167,12 @@
   (define-key evil-motion-state-map (kbd "C-M-+") #'(lambda () (interactive) (enlarge-window 3)))
   (define-key evil-motion-state-map (kbd "C-M--") #'(lambda () (interactive) (shrink-window 3)))
 
-
   (setq evil-normal-state-cursor '(box "DodgerBlue")
         evil-insert-state-cursor '(bar "DeepPink")
         evil-visual-state-cursor '(hollow "orchid"))
   ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
 
-  (evil-define-key 'normal evil-ex-map "q" 'mk/safe-kill-buffer-and-window)
+  ;; (evil-define-key 'normal evil-ex-map "q" 'mk/safe-kill-buffer-and-window)
   (evil-mode 1))
 
 (with-eval-after-load 'evil
@@ -155,8 +182,8 @@
     (evil-define-key state 'global (kbd "C-k") nil)))
 
 (use-package evil-collection
-  :defer 3
   :after evil
+  :demand t
   :config
   (evil-collection-init))
 

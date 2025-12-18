@@ -335,6 +335,43 @@
    :type :compiler
    :priority 95
    :parse-fn #'periphery-parser-cdtool
+   :face-fn #'periphery-parser--severity-face)
+
+  (periphery-register-parser
+   'xcodebuild-error
+   :name "Xcodebuild Errors"
+   :regex "^xcodebuild: error:"
+   :type :compiler
+   :priority 98
+   :parse-fn #'periphery-parser-xcodebuild-error
+   :filter-fn #'periphery-parser-xcodebuild-error-filter
+   :face-fn #'periphery-parser--severity-face)
+
+  (periphery-register-parser
+   'device-error
+   :name "Device/Platform Errors"
+   :regex "error:.*iOS [0-9.]+ is not installed"
+   :type :compiler
+   :priority 97
+   :parse-fn #'periphery-parser-device-error
+   :face-fn #'periphery-parser--severity-face)
+
+  (periphery-register-parser
+   'project-error
+   :name "Project-level Errors"
+   :regex "\\.xcodeproj: error:"
+   :type :compiler
+   :priority 96
+   :parse-fn #'periphery-parser-project-error
+   :face-fn #'periphery-parser--severity-face)
+
+  (periphery-register-parser
+   'build-warning
+   :name "Build Warnings"
+   :regex "^\\(warning\\|note\\): "
+   :type :compiler
+   :priority 85
+   :parse-fn #'periphery-parser-build-warning
    :face-fn #'periphery-parser--severity-face))
 
 ;; Package/Build Error Parsers
@@ -398,6 +435,102 @@
      :severity "error"
      :message input
      :face-fn #'periphery-parser--severity-face)))
+
+;;;###autoload
+(defun periphery-parser-xcodebuild-error-filter (input)
+  "Filter INPUT to combine multi-line xcodebuild errors into single lines."
+  (let ((lines (split-string input "\n"))
+        (result '())
+        (current-error nil))
+    (dolist (line lines)
+      (cond
+       ;; Start of xcodebuild error
+       ((string-match "^xcodebuild: error: " line)
+        ;; If we had a previous error, save it
+        (when current-error
+          (push current-error result))
+        ;; Start accumulating new error
+        (setq current-error line))
+
+       ;; Continuation line (starts with whitespace) or empty line while accumulating
+       ((and current-error
+             (or (string-match "^[[:space:]]+" line)
+                 (string-empty-p line)))
+        ;; Append to current error with newline preserved
+        (setq current-error (concat current-error "\n" line)))
+
+       ;; Any other non-empty line that doesn't start with whitespace
+       ((not (string-empty-p line))
+        ;; If we were accumulating, save it
+        (when current-error
+          (push current-error result)
+          (setq current-error nil))
+        ;; Add the current line
+        (push line result))
+
+       ;; Empty line when not accumulating
+       (t
+        (push line result))))
+
+    ;; Don't forget the last error if still accumulating
+    (when current-error
+      (push current-error result))
+
+    ;; Return reconstructed input
+    (string-join (nreverse result) "\n")))
+
+;;;###autoload
+(defun periphery-parser-xcodebuild-error (input)
+  "Parse xcodebuild errors from INPUT."
+  (when (string-match "^xcodebuild: error: " input)
+    (let ((message (substring input (match-end 0))))
+      (periphery-core-build-entry
+       :path "Xcode Build"
+       :file "Xcode Build Configuration"
+       :line "1"
+       :severity "error"
+       :message message
+       :face-fn #'periphery-parser--severity-face))))
+
+;;;###autoload
+(defun periphery-parser-device-error (input)
+  "Parse device/platform error messages from INPUT."
+  (when (string-match "error:\\s*\\(iOS [0-9.]+ is not installed\\..*\\)" input)
+    (periphery-core-build-entry
+     :path "Xcode Components"
+     :file "Xcode Build Configuration"
+     :line "1"
+     :severity "error"
+     :message (match-string 1 input)
+     :face-fn #'periphery-parser--severity-face)))
+
+;;;###autoload
+(defun periphery-parser-project-error (input)
+  "Parse project-level errors from INPUT (e.g., .xcodeproj: error: ...)."
+  (when (string-match "\\(/[^:]+\\.xcodeproj\\): error: \\(.*\\)" input)
+    (let ((project-file (match-string 1 input))
+          (message (match-string 2 input)))
+      (periphery-core-build-entry
+       :path project-file
+       :file (file-name-nondirectory project-file)
+       :line "1"
+       :severity "error"
+       :message message
+       :face-fn #'periphery-parser--severity-face))))
+
+;;;###autoload
+(defun periphery-parser-build-warning (input)
+  "Parse build-level warnings/notes from INPUT (e.g., warning: ..., note: ...)."
+  (when (string-match "^\\(warning\\|note\\): \\(.*\\)" input)
+    (let ((severity (match-string 1 input))
+          (message (match-string 2 input)))
+      (periphery-core-build-entry
+       :path "Build System"
+       :file "Xcode Build"
+       :line "1"
+       :severity severity
+       :message message
+       :face-fn #'periphery-parser--severity-face))))
 
 ;; Auto-initialize on load
 (periphery-parsers-initialize)

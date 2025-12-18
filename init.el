@@ -9,9 +9,9 @@
 ;; Suppress all warnings when loading packages
 ;; Load warning suppression
 
-(setopt debug-on-error t)
+(setopt debug-on-error nil)
 
-;; (load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
+(load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
 
 (dolist (path (list
                (expand-file-name "modules" user-emacs-directory)))
@@ -35,6 +35,7 @@
 (require 'mk-treemacs)
 (require 'mk-ui)
 (require 'mk-ai)
+;; (require 'mk-notifications)
 ;; (require 'mk-web)
 ;; ;; (require 'mk-elfeed)
 
@@ -59,4 +60,3 @@
 
 (provide 'init)
 ;;; init.el ends here
-(put 'narrow-to-page 'disabled nil)

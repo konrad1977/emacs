@@ -21,8 +21,15 @@
   :ensure t
   :after evil
   :init
+  (add-hook 'completion-at-point-functions #'cape-dabbrev) ;; Complete word from current buffers
+  (add-hook 'completion-at-point-functions #'cape-dict) ;; Dictionary completion
+  (add-hook 'completion-at-point-functions #'cape-file) ;; Path completion
+  (add-hook 'completion-at-point-functions #'cape-elisp-block) ;; Complete elisp in Org or Markdown mode
+  (add-hook 'completion-at-point-functions #'cape-keyword) ;; Keyword completion
   ;; Add more Elisp specific backends
   (add-hook 'emacs-lisp-mode-hook #'mk/setup-elisp-capf)
+  ;; (add-hook 'minibuffer-setup-hook #'mk/setup-elisp-capf)
+
   :bind (
          ("C-c p p" . completion-at-point) ;; capf
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
@@ -37,7 +44,6 @@
          ("C-c p r" . cape-rfc1345))
   :config
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
   (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package eglot
@@ -61,13 +67,15 @@
   :custom
   (eglot-autoshutdown t)
   (eglot-extend-to-xref t)
-  ;; (eglot-sync-connect 1)
+  (eglot-ignored-server-capabilities '(:semanticTokensProvider
+                                       :codeActionProvider)
+                                     )
   (eglot-connect-timeout 90)
   (eglot-report-progress nil)
-  ;; (eglot-events-buffer-size 0)
-  ;; (eglot-events-buffer-config '(size: 0 :format full))
+  (eglot-events-buffer-size 0)
+  (eglot-code-action-indicators nil)
+  (eglot-events-buffer-config '(size: 0 :format full))
   ;; (eldoc-documentation-strategy 'eldoc-documentation-compose)
-  (flymake-fringe-indicator-position nil)
   :config
   (add-to-list 'eglot-server-programs '(swift-ts-mode . swift-lsp-eglot-server-contact))
   ;; (add-to-list 'eglot-server-programs
@@ -79,22 +87,21 @@
   ;;              '(kotlin-mode . ("~/kotlin-lsp/kotlin-0.252.16998/kotlin-lsp.sh" "--stdio")))
   ;; (add-to-list 'eglot-server-programs
   ;;              '(kotlin-ts-mode . ("bash" "/Users/mikaelkonradsson/kotlin-lsp/kotlin-lsp.sh" "--stdio")))
-  ;; (setq eglot-stay-out-of '(corfu flycheck flymake)
+  (setq eglot-stay-out-of '(corfu flycheck flymake))
   (setq jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
 (use-package eldoc-box
   :after (eldoc eglot)
-  :config
+  :custom
   (eldoc-box-hover-mode 1)
-  ;; :bind
-  ;; ("C-c K" . eldoc-box-help-at-point)
-  ;; :config
-  (setq eldoc-box-border-width 1
-        eldoc-box-clear-with-C-g t))
+  :config
+  (setopt eldoc-box-border-width 1
+          eldoc-box-clear-with-C-g t))
 
 (use-package corfu
   :ensure t
+  :defer t
   :hook (prog-mode . global-corfu-mode)
   :bind
   (:map corfu-map
@@ -211,27 +218,9 @@
 
 (use-package orderless
   :ensure t
-  :config
-  ;; (orderless-define-completion-style orderless+initialism
-  ;;   (orderless-matching-styles '(orderless-initialism
-  ;;                                orderless-literal
-  ;;                                orderless-regexp)))
-
-  (setq completion-styles '(orderless basic)
-        completion-category-defaults nil
-        ;; orderless-matching-styles '(orderless-literal orderless-regexp)
-        completion-category-overrides
-        '((file (styles partial-completion)))))
-
-(defun my/file-completion-ignore-case ()
-  "Make file completion case-insensitive in minibuffers and Consult/Project commands."
-  (when (eq (completion-metadata-get
-             (completion-metadata "" minibuffer-completion-table minibuffer-completion-predicate)
-             'category)
-            'file)
-    (setq-local completion-ignore-case t)))
-
-(add-hook 'minibuffer-setup-hook #'my/file-completion-ignore-case)
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (provide 'mk-code-completion)
 ;;; mk-code-completion.el ends here

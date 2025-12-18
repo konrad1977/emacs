@@ -69,7 +69,7 @@
   :group 'periphery)
 
 (defface periphery-note-face-full
-  '((t (:foreground "#1E2B2E" :bold t :background "#a6e3a1" :distant-foreground "#a6e3a1")))
+  '((t (:foreground "#a6e3a1" :bold t :background "#1E2B2E" :distant-foreground "#a6e3a1")))
   "Info face."
   :group 'periphery)
 
