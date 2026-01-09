@@ -117,12 +117,13 @@
 (use-package embark
   :commands (embark-act embark-collect-snapshot embark-collect-live)
   :bind
+  ("C-." . embark-act)
   (:map minibuffer-local-map
         ("C-." . embark-act))
   (:map embark-collect-mode-map
         (("C-." . embark-act)))
   :custom
-  (embark-quit-after-action nil))
+  (embark-quit-after-action t))
 
 (use-package embark-consult
   :after (:all embark consult)

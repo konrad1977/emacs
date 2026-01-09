@@ -7,17 +7,16 @@
 ;;; Code:
 
 ;; Suppress all warnings when loading packages
-;; Load warning suppression
 
 (setopt debug-on-error nil)
-
-(load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
+;; (load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
 
 (dolist (path (list
                (expand-file-name "modules" user-emacs-directory)))
   (add-to-list 'load-path path))
 
 (require 'mk-core)
+(require 'mk-theme)
 (require 'mk-emacs)
 (require 'mk-evil)
 (require 'mk-completion)
@@ -30,7 +29,6 @@
 (require 'mk-misc)
 (require 'mk-org)
 (require 'mk-term)
-(require 'mk-theme)
 (require 'mk-vc)
 (require 'mk-treemacs)
 (require 'mk-ui)

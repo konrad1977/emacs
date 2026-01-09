@@ -91,13 +91,13 @@
   (setq jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
-(use-package eldoc-box
-  :after (eldoc eglot)
-  :custom
-  (eldoc-box-hover-mode 1)
-  :config
-  (setopt eldoc-box-border-width 1
-          eldoc-box-clear-with-C-g t))
+;; (use-package eldoc-box
+;;   :after (eldoc eglot)
+;;   :custom
+;;   (eldoc-box-hover-mode 1)
+;;   :config
+;;   (setopt eldoc-box-border-width 1
+;;           eldoc-box-clear-with-C-g t))
 
 (use-package corfu
   :ensure t

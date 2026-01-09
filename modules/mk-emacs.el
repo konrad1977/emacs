@@ -73,7 +73,6 @@
   (setopt switch-to-buffer-obey-display-actions t)
   (setopt use-short-answers t)
   (setopt version-control t)
-  (setopt warning-minimum-level :emergency)
   (setopt xref-search-program 'ripgrep)
   (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
   (setopt grep-find-ignored-directories

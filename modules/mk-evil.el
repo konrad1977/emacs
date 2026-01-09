@@ -3,45 +3,73 @@
 ;; Workaround för saknad evil-mode-buffers variabel
 ;;; Code:
 
+
+;; (use-package undo-tree
+;;   :init
+;;   (setopt undo-tree-enable-undo-in-region t
+;;           undo-tree-auto-save-history t
+;;           undo-tree-history-directory-alist '(("." . "~/.emacs.d/var/undo")))
+
+;;   :config
+;;   (global-undo-tree-mode))
+
+(use-package undo-fu
+  :ensure t
+  :defer t
+  :custom
+  (setopt undo-limit (* 13 160000))
+  (setopt undo-outer-limit (* 13 24000000))
+  (setopt undo-strong-limit (* 13 240000))
+  :config
+  (setq undo-fu-allow-undo-in-region t))
+
+(use-package undo-fu-session
+  :hook (after-init . undo-fu-session-global-mode)
+  :config
+  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")
+        undo-fu-session-file-limit 10))
+
+(use-package savehist
+  :init
+  (setq savehist-file "~/.emacs.d/var/savehist.el")
+  :config
+  (setq history-length 500)
+  (setq savehist-additional-variables '(kill-ring search-ring))
+  (savehist-mode t))
+
 (use-package no-littering
+  :after savehist
   :ensure t)
 
-(use-package undo-tree
-  :init
-  (setq undo-tree-enable-undo-in-region t
-        undo-tree-auto-save-history t
-        undo-tree-history-directory-alist
-        `(("." . ,(no-littering-expand-var-file-name "undo-tree/"))))
-  :config
-  (global-undo-tree-mode))
-
-(defvar evil-mode-buffers nil
-  "Lista över buffertar där Evil mode är aktivt.")
+(defvar evil-mode-buffers nil)
 
 (use-package evil
-  :defer 0.5
   :ensure t
   :custom
   (evil-want-Y-yank-to-eol t)
+  (evil-default-cursor t)
+  (evil-search-module 'isearch)
+  (evil-undo-system 'undo-fu)
+  (evil-ex-search-case 'smart)
+  (evil-ex-search-persistent-highlight t)
+  (evil-want-minibuffer t)
+  (evil-want-C-u-scroll t)
+  (evil-want-fine-undo t)
   :init
   (setq-default evil-symbol-word-search t)
-  (setq evil-want-integration t
-	evil-want-keybinding nil
-	evil-undo-system 'undo-tree
-	evil-want-fine-undo t
-	evil-want-C-u-scroll t
-	evil-want-minibuffer t
-	evil-respect-visual-line-mode t
-	evil-search-module 'evil-search
-	evil-vsplit-window-right t
-	evil-ex-search-persistent-highlight nil  ;; Don't keep highlights after search
-	evil-ex-search-case 'smart  ;; Smart case sensitivity
-	evil-ex-search-vim-style-regexp t
-	evil-split-window-below t
-	evil-kill-on-visual-paste nil
-	evil-default-cursor t
-        evil-echo-state nil
- 	evil-want-C-i-jump t)
+  ;; (setq evil-want-integration t
+  ;;       evil-want-keybinding nil
+  ;;       evil-want-fine-undo t
+  ;;       evil-want-C-u-scroll t
+  ;;       evil-respect-visual-line-mode t
+  ;;       evil-search-module 'evil-search
+  ;;       evil-vsplit-window-right t
+  ;;       evil-ex-search-vim-style-regexp t
+  ;;       evil-split-window-below t
+  ;;       evil-kill-on-visual-paste nil
+  ;;       evil-default-cursor t
+  ;;       evil-echo-state nil
+  ;;       evil-want-C-i-jump t)
   :config
   (setq evil-leader/in-all-states t)
 
@@ -138,6 +166,7 @@
   (evil-define-key 'normal 'global (kbd "<leader> p k") 'project-kill-buffers)
   (evil-define-key 'normal 'global (kbd "<leader> p b") 'consult-project-buffer)
 
+  (evil-define-key 'normal 'global (kbd "<leader> o d") '(lambda () (interactive) (xwidget-webkit-browse-url "https://duckduckgo.com")))
 
   (evil-define-key 'normal 'global (kbd "<leader> v s") 'magit-status)
   (evil-define-key 'normal 'global (kbd "<leader> v b") 'magit-diff-buffer-file)
@@ -147,7 +176,7 @@
 
   (evil-define-key 'normal 'global (kbd "<leader> w w") 'weather-scout-show-forecast)
 
-  (evil-define-key 'normal 'global (kbd "<leader> w t") 'window-transpose-layout)
+  (evil-define-key 'normal 'global (kbd "<leader> w t") 'window-layout-transpose)
   (evil-define-key 'normal 'global (kbd "<leader> w r") 'window-layout-rotate-clockwise)
   (evil-define-key 'normal 'global (kbd "<leader> w R") 'window-layout-rotate-anticlockwise)
   (evil-define-key 'normal 'global (kbd "<leader> w f") 'window-layout-flip-topdown)
@@ -183,6 +212,7 @@
 
 (use-package evil-collection
   :after evil
+  :defer 0.7
   :demand t
   :config
   (evil-collection-init))
@@ -245,27 +275,12 @@
   (evil-snipe-mode +1)
   (evil-snipe-override-mode +1))
 
-(use-package undo-fu
-  :ensure t
-  :defer t
-  :custom
-  (setopt undo-limit (* 13 160000))
-  (setopt undo-outer-limit (* 13 24000000))
-  (setopt undo-strong-limit (* 13 240000))
+(use-package hardtime
+  :ensure nil
+  :after evil
   :config
-  (setq undo-fu-allow-undo-in-region t))
-
-(use-package undo-fu-session
-  :hook (after-init . undo-fu-session-global-mode)
-  :config
-  (setq undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'")
-        undo-fu-session-file-limit 10))
-
-;; (use-package hardtime
-;;   :ensure nil
-;;   :after evil
-;;   :config
-;;   (global-hardtime-mode 1))
+  (setq hardtime-notification-type 'knockknock)
+  (global-hardtime-mode 1))
 
 (use-package pulsar
   :hook (after-init . pulsar-global-mode)

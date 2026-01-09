@@ -64,10 +64,10 @@
 (use-package breadcrumb
   :defer t
   :custom
-  (breadcrumb-imenu-crumb-separator "::")
+  (breadcrumb-imenu-crumb-separator " ")
   (breadcrumb-project-crumb-separator " ")
-  (breadcrumb-imenu-max-length 0.5)
-  (breadcrumb-project-max-length 0.8)
+  (breadcrumb-imenu-max-length 1.0)
+  (breadcrumb-project-max-length 1.0)
   :preface
   (advice-add #'breadcrumb--format-project-node :around
               (lambda (og p more &rest r)
@@ -76,9 +76,7 @@
                   (if (not more)
                       (concat (nerd-icons-icon-for-file string)
                               " " string)
-                    (concat (nerd-icons-faicon
-                             "nf-fa-folder_open"
-                             :face 'breadcrumb-project-crumbs-face)
+                    (concat (nerd-icons-faicon "nf-fa-folder_open" :face 'breadcrumb-project-crumbs-face)
                             " "
                             string)))))
   (advice-add #'breadcrumb--project-crumbs-1 :filter-return
@@ -88,9 +86,7 @@
                     (setf (car return)
                           (concat
                            " "
-                           (nerd-icons-faicon
-                            "nf-fa-rocket"
-                            :face 'breadcrumb-project-base-face)
+                           (nerd-icons-faicon "nf-fa-rocket" :face 'breadcrumb-project-base-face)
                            " "
                            (car return))))
                 return))
@@ -98,13 +94,14 @@
               (lambda (og p more &rest r)
                 "Icon for items"
                 (let ((string (apply og p more r)))
+                  ;; (message "STRING: %s" string)
                   (if (not more)
-                      (concat (nerd-icons-codicon
-                               "nf-cod-symbol_field"
-                               :face 'breadcrumb-imenu-leaf-face)
+                      (concat (nerd-icons-codicon "nf-cod-symbol_field" :face 'breadcrumb-imenu-leaf-face)
                               " " string)
                     (cond ((string= string "Packages")
                            (concat (nerd-icons-codicon "nf-cod-package" :face 'breadcrumb-imenu-crumbs-face) " " string))
+                          ((or (string= string "Property") (string= string "Properties"))
+                           (concat (nerd-icons-codicon "nf-cod-symbol_property" :face 'breadcrumb-imenu-crumbs-face) " " string))
                           ((string= string "Requires")
                            (concat (nerd-icons-codicon "nf-cod-file_submodule" :face 'breadcrumb-imenu-crumbs-face) " " string))
                           ((or (string= string "Variable") (string= string "Variables"))
@@ -335,22 +332,61 @@ Only scrolls if compilation window is visible."
   :after flycheck
   :hook (emacs-lisp-mode . flycheck-package-setup))
 
+;; (use-package flyover
+;;   :ensure nil
+;;   :hook (flycheck-mode . flyover-mode)
+;;   ;; :bind ("C-c f l" . flyover-toggle)
+;;   :config (add-hook 'flycheck-mode-hook #'flyover-mode)
+;;   (setq flyover-virtual-line-type nil ;;'dotted-arrow
+;;         flyover-border-style 'pill
+;;         flyover-percent-darker 40
+;;         flyover-text-tint-percent 50
+;;         flyover-text-tint 'lighter
+;;         flyover-show-at-eol t
+;;         flyover-wrap-messages t
+;;         flyover-max-line-length 140
+;;         flyover-debounce-interval 2.0
+;;         flyover-background-lightness 35
+;;         flyover-border-match-icon t
+;;         flyover-show-icon t))
+
 (use-package flyover
   :ensure nil
-  :hook (flycheck-mode . flyover-mode)
-  ;; :bind ("C-c f l" . flyover-toggle)
+  :hook ((flycheck-mode . flyover-mode))
   :config (add-hook 'flycheck-mode-hook #'flyover-mode)
-  (setq flyover-virtual-line-type 'curved-arrow
-        flyover-percent-darker 40
-        flyover-text-tint-percent 50
-        flyover-text-tint 'lighter
-        flyover-show-at-eol nil
-        flyover-wrap-messages t
-        flyover-max-lines 110
-        flyover-debounce-interval 2.0
-        flyover-background-lightness 35
-        flyover-swap-foreground-background t
-        flyover-virtual-line-icon nil))
+  :custom
+  ;; Checker settings
+  (flyover-checkers '(flymake flycheck))
+  (flyover-levels '(error warning info))
+  (flyover-show-at-eol t)
+  (flyover-line-position-offset 0)
+
+  ;; Appearance
+  (flyover-use-theme-colors t)
+  (flyover-background-lightness 45)
+  (flyover-percent-darker 40)
+  (flyover-text-tint 'lighter)
+  (flyover-text-tint-percent 50)
+
+  ;; Border styles: none, pill, arrow, slant, slant-inv, flames, pixels
+  (flyover-border-style 'slant)
+  (flyover-border-match-icon t)
+
+  ;; Display settings
+  (flyover-hide-checker-name t)
+  (flyover-show-virtual-line t)
+  (flyover-virtual-line-type 'curved-dotted-arrow)
+  (flyover-line-position-offset 1)
+  (flyover-show-error-id t)
+
+  ;; Message wrapping
+  (flyover-wrap-messages t)
+  (flyover-max-line-length 80)
+
+  ;; Performance
+  (flyover-debounce-interval 0.2)
+  (flyover-cursor-debounce-interval 0.3)
+  (flyover-display-mode 'always))
 
 (use-package flycheck-eglot
   :ensure nil

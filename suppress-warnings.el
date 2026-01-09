@@ -1,33 +1,46 @@
 ;;; suppress-warnings.el --- Suppress obsolete warnings -*- lexical-binding: t; -*-
-;;; Commentary:
-;; This file completely suppresses obsolete warnings and other annoying messages
-
 ;;; Code:
 
-(defun suppress-obsolete-warnings (orig-fun &rest args)
+(defvar suppress-warnings--active t
+  "Non-nil means warning suppression is active.")
+
+(defun suppress-obsolete-warnings (orig-fun type message &optional level buffer-name)
   "Filter out obsolete warnings from display-warning."
-  (let ((_ (car args))
-        (message (cadr args)))
-    (unless (and (stringp message)
-                 (or (string-match-p "obsolete" message)
-                     (string-match-p "defadvice" message)
-                     (string-match-p "when-let" message)
-                     (string-match-p "if-let" message)
-                     (string-match-p "deprecated" message)))
-      (apply orig-fun args))))
+  (when (or (not suppress-warnings--active)
+            (not (stringp message))
+            (not (string-match-p
+                  "obsolete\\|defadvice\\|when-let\\|if-let\\|deprecated\\|lexical-binding\\|positional arguments"
+                  message)))
+    (funcall orig-fun type message level buffer-name)))
 
 (advice-add 'display-warning :around #'suppress-obsolete-warnings)
 
-;; Also suppress messages about warnings
-(defun suppress-warning-messages (orig-fun &rest args)
+(defun suppress-warning-messages (orig-fun &optional format-string &rest args)
   "Filter out warning messages from message function."
-  (let ((msg (car args)))
-    (unless (and (stringp msg)
-                 (or (string-match-p "Warning:" msg)
-                     (string-match-p "\\.el: Warning:" msg)))
-      (apply orig-fun args))))
+  (cond
+   ((null format-string)
+    (funcall orig-fun nil))
+   ((not (stringp format-string))
+    (apply orig-fun format-string args))
+   ((and suppress-warnings--active
+         (string-match-p "Warning:\\|is deprecated\\|obsolete" format-string))
+    nil)
+   (t
+    (apply orig-fun format-string args))))
 
 (advice-add 'message :around #'suppress-warning-messages)
+
+;; Säkerhetshake: stäng av under debugging
+(defun suppress-warnings-disable ()
+  "Temporarily disable warning suppression."
+  (interactive)
+  (setq suppress-warnings--active nil)
+  (message "Warning suppression disabled"))
+
+(defun suppress-warnings-enable ()
+  "Re-enable warning suppression."
+  (interactive)
+  (setq suppress-warnings--active t))
 
 (provide 'suppress-warnings)
 ;;; suppress-warnings.el ends here

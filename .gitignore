@@ -24,3 +24,7 @@ flycheck_*.el
 /tree-sitter/
 /projects
 /var/
+/localpackages/knockknock/
+/localpackages/punch-line/
+/localpackages/spotlight-mode/
+/localpackages/periphery/*

@@ -1,100 +1,75 @@
-;;; early-init.el --- summary -*- lexical-binding: t; no-byte-compile: t; mode: emacs-lisp; coding:utf-8; fill-column: 80 -*-
+;; early-init.el --- summary -*- lexical-binding: t; no-byte-compile: t; mode: emacs-lisp; coding:utf-8; fill-column: 80 -*-
 
 ;;; Commentary:
 ;; Emacs early initialization file loaded before package system and UI.
 ;; Optimized for maximum performance and minimal startup time.
 
 ;;; Code:
-
-;; ;; Must be set very early to suppress all warnings
-(setq package-enable-at-startup nil)
-(setq warning-minimum-level :error)
-(setq byte-compile-warnings nil)
-(setq warning-suppress-types '((comp) (bytecomp) (obsolete)))
-(setq warning-suppress-log-types '((comp) (bytecomp) (obsolete)))
-(setq-default mode-line-format nil)
-
 (defvar file-name-handler-alist-original file-name-handler-alist)
-(setq file-name-handler-alist nil)
+(setopt file-name-handler-alist nil)
 
-(setopt native-comp-async-report-warnings-errors nil)
+(setopt warning-minimum-level :error)
+(setopt native-comp-async-report-warnings-errors nil
+        native-comp-warning-on-missing-source nil
+        byte-compile-warnings '(not cl-functions obsolete)
+        warning-suppress-log-types '((comp) (bytecomp) (files))
+        warning-suppress-types '((comp) (bytecomp) (files)))
 
-;; Native-comp settings
-(setopt native-comp-speed 2)
-(setopt native-comp-deferred-compilation t)
+;;; Startup performance optimizations
+(setopt gc-cons-threshold most-positive-fixnum
+        gc-cons-percentage 0.8)
 
-(setopt frame-inhibit-implied-resize t
-        frame-title-format "\n"
-        gc-cons-threshold most-positive-fixnum
-        inhibit-compacting-font-caches t
-        inhibit-default-init t
-        inhibit-splash-screen t
-        inhibit-startup-buffer-menu t
-        inhibit-startup-echo-area-message t
+;;; UI suppression (must be early)
+(setopt inhibit-default-init t
         inhibit-startup-message t
         inhibit-startup-screen t
-        initial-buffer-choice nil
-        initial-major-mode 'fundamental-mode
+        inhibit-startup-echo-area-message t
+        inhibit-splash-screen t
+        inhibit-startup-buffer-menu t
         initial-scratch-message nil
-	message-log-max nil
-	default-directory "~/"
-        read-process-output-max (* 8 1024 1024)
-        default-frame-alist '((background-color . "#13131a")
-                              (foreground-color . "#a0a0ae")
-                              (vertical-scroll-bars . nil)
-			      (min-height . 1)
-			      (min-width . 1)
-			      (height . 45)
-			      (width . 81)
-			      (internal-border-width . 24)
-                              (left-fringe . 1)
-                              (right-fringe . 1)
-                              (horizontal-scroll-bars . nil)
-                              (mac-transparent-titlebar . t)
-                              (ns-transparent-titlebar . t)
-                              (undecorated-round . t)
-			      (fullscreen . maximized)))
+        initial-major-mode 'fundamental-mode
+        frame-inhibit-implied-resize t)
 
-;; And set these to nil so users don't have to toggle the modes twice to
-;; reactivate them.
-(setopt tool-bar-mode nil
-        menu-bar-mode nil
-        tooltip-mode nil
-        scroll-bar-mode nil)
+;;; Frame defaults (safe here)
+(setq default-frame-alist
+      '((background-color . "#13131a")
+        (foreground-color . "#a0a0ae")
+        (min-height . 1)
+        (min-width . 1)
+        (height . 45)
+        (width . 81)
+        (internal-border-width . 1)
+        (left-fringe . 8)
+        (right-fringe . 0)
+        (menu-bar-lines . 0)
+        (tool-bar-lines . 0)
+        (horizontal-scroll-bars . nil)
+        (vertical-scroll-bars . nil)
+        (mac-transparent-titlebar . t)
+        (ns-transparent-titlebar . t)
+        (fullscreen . maximized)))
 
-;; (add-hook 'window-setup-hook 'toggle-frame-maximized t)
+;;; Avoid mode-line work before init
+(setq-default mode-line-format nil)
 
-;; ;;   ;; Font settings with error handling
-(condition-case nil
-    (let ((mono-font "Iosevka Fixed Curly")
-          (variable-font "Iosevka Aile"))
-      (set-face-attribute 'default nil :family mono-font :width 'condensed :weight 'extra-light :height 180)
-      (set-face-attribute 'fixed-pitch nil :family mono-font)
-      (set-face-attribute 'variable-pitch nil :family variable-font :height 1.0))
-  (error nil))
-
-;; Emoji font fallback
-(set-fontset-font t 'unicode (font-spec :family "Apple Color Emoji") nil 'append)
-;; restore threshold to normal value after startup
+;;; Restore sane defaults after startup
 (add-hook 'emacs-startup-hook
           (lambda ()
-            ;; Restore file handlers and GC settings
             (setq file-name-handler-alist file-name-handler-alist-original
-                  gc-cons-threshold (* 256 1024 1024)
+                  gc-cons-threshold (* 384 1024 1024)
                   gc-cons-percentage 0.2)
 
-            ;; Schedule periodic GC during idle time
-            (run-with-idle-timer 5 t (lambda ()
-                                       (let ((inhibit-message t))
-                                         (garbage-collect))))
+            ;; Periodic GC during idle
+            (run-with-idle-timer
+             5 t
+             (lambda ()
+               (let ((inhibit-message t))
+                 (garbage-collect))))
 
-            ;; Log startup time
-            (message "Emacs started in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
-                     gcs-done))
-          100)
+            (message "Emacs started in %.2f seconds with %d GCs"
+                     (float-time
+                      (time-subtract after-init-time before-init-time))
+                     gcs-done)))
 
 (provide 'early-init)
 ;;; early-init.el ends here

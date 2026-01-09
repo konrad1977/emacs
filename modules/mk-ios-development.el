@@ -1,11 +1,14 @@
-;; -*- lexical-binding: t; -*-
+;;; mk-ios-development.el --- iOS/Swift development environment configuration -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Configuration for iOS and Swift development in Emacs.
 ;;; Code:
 
 ;; knockknock notification integration - MUST be loaded first before any
 ;; package that might trigger notifications to prevent startup crashes
 (use-package knockknock
   :ensure nil
-  :demand t  ;; Load immediately, don't defer
+  :demand t
+  :after (posframe nerd-icons)
   :config
   ;; Initialize knockknock early to prevent crashes when multiple
   ;; notifications are shown rapidly during startup
@@ -83,6 +86,8 @@ Accepts keyword arguments from xcode-project-notify:
 (use-package swift-development
   :ensure nil
   :after swift-ts-mode
+  :bind (:map swift-ts-mode-map
+              ("C-c d" . #'swift-development-transient))
   :custom
   (swift-development-use-periphery t))
 
@@ -104,12 +109,20 @@ Accepts keyword arguments from xcode-project-notify:
 
 (use-package swift-refactor
   :ensure nil
-  :after (swift-ts-mode kotlin-ts-mode)
-  :bind
-  (:map kotlin-ts-mode-map
-        ("C-c r s" . #'code-refactor-split-function-list)
-        ("M-t" . #'swift-refactor-insert-todo)
-        ("M-m" . #'swift-refactor-insert-mark)))
+  :after swift-ts-mode
+  :bind (:map swift-ts-mode-map
+              ("C-c r" . #'swift-refactor-transient)
+              ("M-o" . #'swift-refactor-format-buffer)
+              ("M-t" . #'swift-refactor-insert-todo)
+              ("M-m" . #'swift-refactor-insert-mark)))
+
+(use-package swift-refactor
+  :ensure nil
+  :after kotlin-ts-mode
+  :bind (:map kotlin-ts-mode-map
+              ("C-c r s" . #'code-refactor-split-function-list)
+              ("M-t" . #'swift-refactor-insert-todo)
+              ("M-m" . #'swift-refactor-insert-mark)))
 
 ;; (use-package apple-docs-query
 ;;   :ensure nil
@@ -120,20 +133,22 @@ Accepts keyword arguments from xcode-project-notify:
 ;;         ("C-x d" . #'apple-docs/query)))
 
 
-(use-package periphery-swiftformat
-  :ensure nil
-  :after (swift-ts-mode swift-mode)
-  :bind
-  (:map swift-ts-mode-map
-        ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
-        ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
-        ("C-c C-p" . #'periphery-run-swiftformat-for-project)))
+;; (use-package periphery-swiftformat
+;;   :ensure nil
+;;   :after (swift-ts-mode swift-mode)
+;;   :bind
+;;   (:map swift-ts-mode-map
+;;         ("C-c C-o" . #'periphery-swiftformat-lint-buffer)
+;;         ("M-o" . #'periphery-swiftformat-autocorrect-buffer)
+;;         ("C-c C-p" . #'periphery-run-swiftformat-for-project)))
 
 ;; Load the unified minor mode that provides all Swift development keybindings
 ;; This mode automatically activates for swift-ts-mode, localizeable-mode, and ios-simulator buffers
 (use-package swift-development-mode
   :ensure nil
   :after (swift-ts-mode swift-development ios-simulator xcode-project swift-refactor))
+
+(add-hook 'periphery-mode-hook (lambda () (pulsar-mode -1)))
 
 ;;; Provide
 (provide 'mk-ios-development)
