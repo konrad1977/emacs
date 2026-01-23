@@ -12,15 +12,17 @@
 (use-package magit
   :ensure t
   :after (transient evil-collection)
-  :commands (magit-status magit-ediff-show-working-tree)
+  :commands (magit magit-status magit-ediff-show-working-tree)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   :init
-  (setq magit-save-repository-buffers nil
-        magit-repository-directories nil)
+  (setopt forge-add-default-sections t
+          forge-add-default-bindings t)
   :config
   (require 'magit-section)
-  (setq magit-format-file-function #'magit-format-file-nerd-icons
+  (setq magit-repository-directories '(("~/.emacs.d/" . 2)
+                                       ("~/Documents/git" . 1))
+        magit-format-file-function #'magit-format-file-nerd-icons
         magit-diff-refine-hunk 'all)
   (evil-collection-init 'magit))
 
@@ -29,35 +31,31 @@
   :defer t
   :commands (git-timemachine git-timemachine-toggle))
 
-;; (use-package git-gutter
-;;   :defer 5
-;;   :hook (prog-mode . git-gutter-mode)
-;;   :diminish git-gutter-mode
-;;   :config
-;;   (setq git-gutter:modified-sign "┃"
-;;         git-gutter:added-sign "┃"
-;;         git-gutter:deleted-sign "┃")
-;;   (setq git-gutter:window-width 1)  ;; Set to minimum width
-;;   (setq git-gutter:update-interval 3))
+(defun my/enable-diff-hl-if-git ()
+  "Enable diff-hl-mode if the current buffer is part of a Git repository."
+  (when-let* ((file buffer-file-name)
+              (backend (vc-backend file)))
+    (when (eq backend 'Git)
+      (diff-hl-mode 1)
+      (when (display-graphic-p)
+        (diff-hl-margin-mode 1)))))
 
-(use-package consult-gh
-  :after consult
-  :defer t
-  :config
-  (consult-gh-enable-default-keybindings))
+(defun my/diff-hl-reset-reference-revision ()
+  "Reset diff-hl reference revision when switching buffers between repos."
+  (when (and buffer-file-name
+             (bound-and-true-p diff-hl-mode))
+    (setq-local diff-hl-reference-revision nil)
+    (vc-file-clearprops buffer-file-name)))
 
 (use-package diff-hl
   :defer t
   :ensure t
-  :after prog-mode
-  :hook
-  (prog-mode . (lambda ()
-                 ;; (global-diff-hl-mode)           ;; Enable Diff-HL mode for all files.
-                 ;; (diff-hl-flydiff-mode)          ;; Automatically refresh diffs.
-                 (diff-hl-mode)
-                 (diff-hl-margin-mode)))
+  :hook ((prog-mode . my/enable-diff-hl-if-git)
+         (buffer-list-update . my/diff-hl-reset-reference-revision))
+  :config
+  (setopt diff-hl-disable-on-remote t)
   :custom
-  (diff-hl-side 'left)                           ;; Set the side for diff indicators.
+  (diff-hl-side 'left)
   (diff-hl-margin-symbols-alist '((insert . "┃")
                                   (delete . "┃")
                                   (change . "┃")

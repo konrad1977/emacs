@@ -35,11 +35,10 @@
 
 (use-package copilot
   :ensure t
-  :defer 3
+  :defer t
   :hook ((prog-mode localizeable-mode) . copilot-mode)
   :config
   (setq copilot-indent-offset-warning-disable t)
-  ;; Keybindings for copilot completion
   (define-key copilot-completion-map (kbd "C-<return>") 'copilot-accept-completion)
   (define-key copilot-completion-map (kbd "C-c C-n") 'copilot-next-completion)
   (define-key copilot-completion-map (kbd "C-c C-p") 'copilot-previous-completion))
@@ -53,6 +52,12 @@
   (setq copilot-chat-backend 'curl
         copilot-chat-frontend 'org
         copilot-chat-follow t))
+
+;; (use-package opencode
+;;   :defer t
+;;   :after evil
+;;   :demand t
+;;   :vc (:url "https://codeberg.org/sczi/opencode.el" :rev :newest))
 
 ;; (use-package claude-code-ide
 ;;   :defer t

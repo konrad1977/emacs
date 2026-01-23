@@ -25,77 +25,75 @@
                    (set symbol nil))
                  symbol))))))
 
+(use-package iedit
+  :defer t
+  :init
+  (setq iedit-toggle-key-default nil)
+  :config
+  (define-key iedit-mode-keymap (kbd "C-<return>") #'iedit-toggle-selection)
+  (define-key iedit-mode-keymap (kbd "C-j") #'iedit-next-occurrence)
+  (define-key iedit-mode-keymap (kbd "C-k") #'iedit-prev-occurrence)
+  (define-key iedit-mode-keymap (kbd "C-g") #'iedit-mode))
+
 (use-package isearch
   :ensure nil
-  :defer t
   :config
   (setq isearch-allow-scroll t
         isearch-lazy-count t)
 
-  (defun mk/project-search-from-isearch ()
+  (defun mk/isearch-to-iedit ()
+    "Exit isearch and start iedit with the current search string."
     (interactive)
-    (let ((query (if isearch-regexp
-                     isearch-string
-                   (regexp-quote isearch-string)))
-          (search-nonincremental-instead t))
-      (isearch-update-ring isearch-string isearch-regexp)
-      (isearch-done t t)
-      (consult-ripgrep (project-root (project-current)) query)))
+    (require 'iedit)
+    (let ((search-string isearch-string))
+      (isearch-exit)
+      (iedit-mode)))
 
-  (defun isearch-consult-line ()
+  (defun mk/project-search-from-isearch ()
+    "Search project with current isearch string using consult-ripgrep."
     (interactive)
     (let ((query (if isearch-regexp
                      isearch-string
                    (regexp-quote isearch-string))))
       (isearch-update-ring isearch-string isearch-regexp)
-      (let (search-nonincremental-instead)
-        (ignore-errors (isearch-done t t)))
+      (isearch-done t t)
+      (consult-ripgrep (project-root (project-current)) query)))
+
+  (defun mk/isearch-consult-line ()
+    "Search buffer with current isearch string using consult-line."
+    (interactive)
+    (let ((query (if isearch-regexp
+                     isearch-string
+                   (regexp-quote isearch-string))))
+      (isearch-update-ring isearch-string isearch-regexp)
+      (isearch-done t t)
       (consult-line query)))
 
-  (defun isearch-with-region-or-thing ()
-    "Use region as isearch text if active, otherwise use thing at point.
-Uses regexp search with word boundaries."
+  (defun mk/isearch-with-region-or-thing ()
+    "Use region or symbol at point as isearch text."
     (interactive)
     (let ((search-text
            (if (region-active-p)
-                   (buffer-substring-no-properties
-              (region-beginning)
-              (region-end))
-                 (let ((bounds (bounds-of-thing-at-point 'symbol)))
-             (when bounds
-               (buffer-substring-no-properties (car bounds) (cdr bounds)))))))
+               (buffer-substring-no-properties (region-beginning) (region-end))
+             (thing-at-point 'symbol t))))
       (when search-text
-        (when isearch-mode
-          (isearch-done))
         (deactivate-mark)
         (isearch-forward-regexp nil t)
         (setq isearch-case-fold-search nil)
         (setq isearch-string (format "\\<%s\\>" (regexp-quote search-text)))
         (setq isearch-message isearch-string)
         (isearch-search-and-update))))
+
   :bind
   (:map isearch-mode-map
+        ("C-e" . mk/isearch-to-iedit)
+        ("C-f" . mk/project-search-from-isearch)
+        ("M-f" . mk/isearch-consult-line)
+        ("C-d" . mk/isearch-with-region-or-thing)
+        ("C-s" . isearch-repeat-forward)
         ("C-r" . isearch-repeat-backward)
         ("C-o" . isearch-occur)
-        ("C-e" . iedit-mode)
-        ("M-e" . isearch-edit-string)
-        ("M-f" . isearch-consult-line)
-        ("C-f" . (lambda ()
-                   (interactive)
-                   (condition-case nil
-                       (mk/project-search-from-isearch)
-                     (quit (isearch-abort)))))
-        ("C-d" . isearch-with-region-or-thing)))
-
-(use-package iedit
-  :ensure t
-  :defer t
-  :bind
-  (:map iedit-mode-keymap
-        ("C-<return>" . iedit-toggle-selection)
-        ("C-j" . iedit-next-occurrence)
-        ("C-k" . iedit-prev-occurrence)
-        ("C-g" . iedit--quit)))
+        ("M-e" . isearch-edit-string)))
 
 (use-package ultra-scroll
   :ensure t
@@ -106,7 +104,7 @@ Uses regexp search with word boundaries."
        :branch "main"
        :rev :newest)
   :init
-  (setq scroll-conservatively 3
+  (setq scroll-conservatively 101
         scroll-margin 0)
   :config (ultra-scroll-mode 1))
 

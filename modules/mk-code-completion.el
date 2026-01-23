@@ -44,7 +44,9 @@
          ("C-c p r" . cape-rfc1345))
   :config
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster))
+  ;; Disabled - causes issues with HLS
+  ;; (advice-add #'eglot-completion-at-point :around #'cape-wrap-buster)
+  )
 
 (use-package eglot
   :defer t
@@ -78,6 +80,9 @@
   ;; (eldoc-documentation-strategy 'eldoc-documentation-compose)
   :config
   (add-to-list 'eglot-server-programs '(swift-ts-mode . swift-lsp-eglot-server-contact))
+  (add-to-list 'eglot-server-programs
+               '((haskell-mode haskell-ts-mode) . ("haskell-language-server-wrapper" "--lsp")))
+
   ;; (add-to-list 'eglot-server-programs
   ;;              '((typescript-mode typescript-tsx-mode tsx-ts-mode) . ("typescript-language-server" "--stdio")))
   ;; (add-hook 'typescript-mode-hook 'eglot-ensure)
@@ -87,17 +92,18 @@
   ;;              '(kotlin-mode . ("~/kotlin-lsp/kotlin-0.252.16998/kotlin-lsp.sh" "--stdio")))
   ;; (add-to-list 'eglot-server-programs
   ;;              '(kotlin-ts-mode . ("bash" "/Users/mikaelkonradsson/kotlin-lsp/kotlin-lsp.sh" "--stdio")))
-  (setq eglot-stay-out-of '(corfu flycheck flymake))
+  ;; Låt eglot hantera completion, men inte flycheck/flymake
+  (setq eglot-stay-out-of '(flycheck flymake))
   (setq jsonrpc-event-hook nil)
   (advice-add 'jsonrpc--log-event :override #'ignore))
 
-;; (use-package eldoc-box
-;;   :after (eldoc eglot)
-;;   :custom
-;;   (eldoc-box-hover-mode 1)
-;;   :config
-;;   (setopt eldoc-box-border-width 1
-;;           eldoc-box-clear-with-C-g t))
+(use-package eldoc-box
+  :after (eldoc eglot)
+  :custom
+  (eldoc-box-hover-mode 1)
+  :config
+  (setopt eldoc-box-border-width 1
+          eldoc-box-clear-with-C-g t))
 
 (use-package corfu
   :ensure t
@@ -137,9 +143,8 @@
   :ensure nil
   :hook (corfu-mode . corfu-popupinfo-mode)
   :custom
-  (corfu-popupinfo-delay 0.1)
-  ;; (corfu-popupinfo-delay '(0.25 . 0.1))
-  ;; (corfu-popupinfo-hide nil)
+  (corfu-popupinfo-delay '(0.25 . 0.1))
+  (corfu-popupinfo-hide nil)
   :config
   (corfu-popupinfo-mode))
 
@@ -215,12 +220,6 @@
 ;;       (propertize " " 'display '(space :width 1.0)))) ; Adjusted width to 1.0
 ;;   (advice-add 'kind-icon--extra-space :around #'my-kind-icon--extra-space)
 ;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-
-(use-package orderless
-  :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (provide 'mk-code-completion)
 ;;; mk-code-completion.el ends here

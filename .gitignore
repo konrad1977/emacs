@@ -28,3 +28,4 @@ flycheck_*.el
 /localpackages/punch-line/
 /localpackages/spotlight-mode/
 /localpackages/periphery/*
+/periphery*

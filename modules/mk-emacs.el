@@ -13,82 +13,80 @@
                         (save-place-mode 1)
                         (global-auto-revert-mode 1)))
   :custom
-  (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
-  (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
-  (auto-save-no-message t)
-  (auto-save-timeout 20)
-  (auto-window-vscroll nil)
   (backup-by-copying t)
-  (backward-delete-char-untabify-method 'hungry)
-  (column-number-mode nil)
-  (completion-ignore-case t)
-  (confirm-kill-processes t)
-  (context-menu-mode t)
-  (create-lockfiles nil)
-  (cursor-in-non-selected-windows nil)
-  (delete-by-moving-to-trash t)
-  (display-time-default-load-average nil) ; this information is useless for most
-  (find-file-visit-truename nil)
-  (global-auto-revert-non-file-buf t)
-  (help-window-select t)
-  ;; (indicate-buffer-boundaries 'right) ; Show buffer top and bottom in the margin
-  (line-number-mode nil)
-  (make-backup-files nil)
-  (read-buffer-completion-ignore-case t)
-  (read-extended-command-predicate #'command-completion-default-include-p)
-  (read-file-name-completion-ignore-case t)
   (use-dialog-box nil)
   (use-file-dialog nil)
-  (visible-bell nil)
+  ;; (auto-save-file-name-transforms `((".*" ,(expand-file-name "var/auto-save/" user-emacs-directory) t)))
+  ;; (auto-save-list-file-prefix (expand-file-name "var/auto-save/.saves-" user-emacs-directory))
+  (auto-save-no-message t)
+  (auto-save-timeout 20)
+  ;; (auto-window-vscroll nil)
+  ;; (backward-delete-char-untabify-method 'hungry)
+  (column-number-mode nil)
+  ;; (completion-ignore-case t)
+  ;; (confirm-kill-processes t)
+  ;; (context-menu-mode t)
+  ;; (create-lockfiles nil)
+  (cursor-in-non-selected-windows nil)
+  ;; (delete-by-moving-to-trash t)
+  ;; (display-time-default-load-average nil) ; this information is useless for most
+  (find-file-visit-truename t)              ; Resolve symlinks to avoid VC path issues
+  ;; (global-auto-revert-non-file-buf t)
+  (help-window-select t)
+  ;; ;; (indicate-buffer-boundaries 'right) ; Show buffer top and bottom in the margin
+  ;; (line-number-mode nil)
+  ;; backup-directory-alist is set by no-littering in mk-evil.el
+  ;; (read-buffer-completion-ignore-case t)
+  ;; (read-extended-command-predicate #'command-completion-default-include-p)
+  ;; (read-file-name-completion-ignore-case t)
   (window-combination-resize t)
   (window-sides-vertical t)
+  (split-width-threshold 300)
+  (switch-to-buffer-obey-display-actions t)
   :config
   (set-display-table-slot standard-display-table 0 ?\ )
-  (set-window-fringes (selected-window) 16 10)
-  (set-window-margins (selected-window) 10 10)
-  (setq confirm-kill-emacs (lambda (prompt)
-                             (y-or-n-p-with-timeout prompt 2 nil)))
-  (setopt history-length 300)
-  (setopt auto-revert-interval 5) ;; Check for changes every secondhh
-  (setopt auto-revert-avoid-polling t) ;; Automatically reread from disk if the underlying file changes
-  (setopt auto-revert-check-vc-info t)
-  (setopt indicate-empty-lines nil)
-  (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
-  (setopt kept-new-versions 6)
-  (setopt kept-old-versions 2)
+  ;; (set-window-fringes (selected-window) 16 10)
+  ;; (set-window-margins (selected-window) 10 10)
   (setopt load-prefer-newer t)
-  (setopt kill-do-not-save-duplicates t)
-  (setopt large-file-warning-threshold (* 15 1024 1024))
-  (setopt line-move-visual nil)
-  (setopt read-answer-short t)
-  (setopt read-buffer-completion-ignore-case t)
-  (setopt read-extended-command-predicate #'command-completion-default-include-p)
-  (setopt recentf-auto-cleanup (if (daemonp) 300 'never))
-  (setopt recentf-max-menu-items 15)
-  (setopt compilation-skip-threshold 2)
-  (setopt recentf-max-saved-items 300)
-  (setopt redisplay-skip-fontification-on-input nil)
-  (setopt ring-bell-function 'ignore)
-  (setopt split-width-threshold 300)
-  (setopt switch-to-buffer-obey-display-actions t)
-  (setopt use-short-answers t)
-  (setopt version-control t)
-  (setopt xref-search-program 'ripgrep)
-  (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
-  (setopt grep-find-ignored-directories
-          '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
-  (setopt backup-directory-alist `(("." . "~/.saves")))
-  (setopt custom-file (expand-file-name "var/custom.el" user-emacs-directory))
+  (setopt confirm-kill-emacs (lambda (prompt)
+                               (y-or-n-p-with-timeout prompt 2 nil)))
+  (setopt use-short-answers t
+          read-answer-short t
+          ring-bell-function 'ignore
+          show-paren-context-when-offscreen t
+          indicate-buffer-boundaries nil
+          indicate-empty-lines nil
+          global-hl-line-sticky-flag 'window)
+  ;; (setopt history-length 300)
+  ;; (setopt auto-revert-interval 5) ;; Check for changes every secondhh
+  ;; (setopt auto-revert-avoid-polling t) ;; Automatically reread from disk if the underlying file changes
+  ;; (setopt auto-revert-check-vc-info t)
+  ;; (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
+  ;; (setopt kept-new-versions 6)
+  ;; (setopt kept-old-versions 2)
+  ;; (setopt kill-do-not-save-duplicates t)
+  ;; (setopt large-file-warning-threshold (* 15 1024 1024))
+  ;; (setopt line-move-visual nil)
+  ;; (setopt read-buffer-completion-ignore-case t)
+  ;; (setopt read-extended-command-predicate #'command-completion-default-include-p)
+  ;; (setopt recentf-auto-cleanup (if (daemonp) 300 'never))
+  ;; (setopt recentf-max-menu-items 15)
+  ;; (setopt recentf-max-saved-items 300)
+  ;; (setopt redisplay-skip-fontification-on-input nil)
+  ;; (setopt version-control t)
+  ;; (setopt xref-search-program 'ripgrep)
+  ;; (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
+  ;; (setopt grep-find-ignored-directories
+  ;;         '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "node_modules" "build" "dist"))
+  ;; Backups are now centralized via :custom backup-directory-alist
+  ;; (setopt custom-file (expand-file-name "var/custom.el" user-emacs-directory))
   (setopt delete-old-versions t)
   (setopt ad-redefinition-action 'accept)
   (when (eq system-type 'darwin)
     (setq
      mac-command-modifier 'meta
      mac-option-modifier 'none
-     ;; ns-use-proxy-icon nil
-     ;; ns-pop-up-frames nil
      ns-use-thin-smoothing t
-     dired-use-ls-dired t
      insert-directory-program "/opt/homebrew/bin/gls"
      dired-listing-switches "-aBhl --group-directories-first"
      browse-url-browser-function #'mk/browser-split-window)))

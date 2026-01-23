@@ -7,19 +7,39 @@
   :ensure nil
   :hook (after-init . spotlight-mode)
   :config
-  (setopt spotlight-mode-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*")
+  (setopt spotlight-mode-ignore-buffers '("*Messages*" "*scratch*" "*Android Emulator*" "*haskell*")
           spotlight-mode-always-color-buffers '()
           spotlight-mode-always-darken-buffers-regexp '("\\*.*\\*")
           spotlight-active-dim-percentage 0
           spotlight-inactive-lighten-percentage 5
           spotlight-always-darken-percentage 15))
 
-(use-package darkroom
+;; (use-package darkroom
+;;   :defer t
+;;   :bind ("C-x C-d" . darkroom-tentative-mode)
+;;   :config
+;;   (setq darkroom-text-scale-increase 1.4
+;;         darkroom-margins '(5 . 0)))
+
+(use-package focus-delight-mode
+  :ensure nil
   :defer t
-  :bind ("C-x C-d" . darkroom-tentative-mode)
+  :bind ("C-x C-d" . focus-delight-mode-for-mode)
   :config
-  (setq darkroom-text-scale-increase 1.4
-        darkroom-margins '(5 . 0)))
+  (setopt focus-delight-mode-margin-style 'left-only
+          focus-delight-mode-margin-style 'fixed
+          focus-delight-mode-left-margin 10
+          focus-delight-mode-center-text t
+          focus-delight-mode-scale-percent 120)
+  ;; (setopt presentation-mode-scale-percent 130
+  ;;         presentation-mode-hide-mode-line t
+  ;;         presentation-mode-hide-line-numbers t)
+  (add-hook 'focus-delight-mode-enabled-hook
+            (lambda ()
+              (breadcrumb-mode -1)))
+  (add-hook 'focus-delight-mode-disabled-hook
+            (lambda ()
+              (breadcrumb-mode 1))))
 
 (use-package punch-line
   :ensure nil

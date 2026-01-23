@@ -9,7 +9,7 @@
 ;; Suppress all warnings when loading packages
 
 (setopt debug-on-error nil)
-;; (load (expand-file-name "suppress-warnings" user-emacs-directory) nil t)
+;; (load (expand-file-name "suppress-warnings" cser-emacs-directory) nil t)
 
 (dolist (path (list
                (expand-file-name "modules" user-emacs-directory)))
@@ -33,6 +33,7 @@
 (require 'mk-treemacs)
 (require 'mk-ui)
 (require 'mk-ai)
+(require 'mk-haskell)
 ;; (require 'mk-notifications)
 ;; (require 'mk-web)
 ;; ;; (require 'mk-elfeed)

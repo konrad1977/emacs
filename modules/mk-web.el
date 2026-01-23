@@ -24,15 +24,20 @@
          ("\\.ts\\'"  . typescript-ts-mode)
          ("\\.jsx\\'" . tsx-ts-mode)))
 
-(use-package markdown-mode
-  :defer t
-  :ensure t
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
+;; (use-package markdown-mode
+;;   :defer t
+;;   :ensure t
+;;   :commands (markdown-mode gfm-mode)
+;;   :mode (("README\\.md\\'" . gfm-mode)
+;;          ("\\.md\\'" . markdown-mode)
+;;          ("\\.markdown\\'" . markdown-mode))
+;;   :config
+;;   (setq markdown-fontify-code-blocks-natively t))
+
+(use-package markdown-ts-mode
+  :mode "\\.md\\'"
   :config
-  (setq markdown-fontify-code-blocks-natively t))
+  (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode)))
 
 (provide 'mk-web)
 ;;; mk-web.el ends here

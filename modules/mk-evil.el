@@ -39,7 +39,16 @@
 
 (use-package no-littering
   :after savehist
-  :ensure t)
+  :ensure t
+  :config
+  (setopt auto-save-file-name-transforms
+          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  (setopt backup-directory-alist
+          `(("." . ,(no-littering-expand-var-file-name "backups/"))))
+  (setopt custom-file (no-littering-expand-etc-file-name "custom.el"))
+  (require 'recentf)
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory))
 
 (defvar evil-mode-buffers nil)
 
@@ -55,8 +64,11 @@
   (evil-want-minibuffer t)
   (evil-want-C-u-scroll t)
   (evil-want-fine-undo t)
+  (evil-split-window-below t)
+  (evil-vsplit-window-right t)
   :init
   (setq-default evil-symbol-word-search t)
+  (setopt evil-respect-visual-line-mode t)
   ;; (setq evil-want-integration t
   ;;       evil-want-keybinding nil
   ;;       evil-want-fine-undo t
@@ -186,6 +198,7 @@
   (evil-define-key 'normal 'global (kbd "<leader> q q") 'save-buffers-kill-terminal)
 
   (evil-select-search-module 'evil-search-module 'isearch)
+
   (define-key evil-motion-state-map (kbd "<up>") 'ignore)
   (define-key evil-motion-state-map (kbd "<down>") 'ignore)
   (define-key evil-motion-state-map (kbd "<left>") 'ignore)
@@ -215,10 +228,19 @@
   :defer 0.7
   :demand t
   :config
-  (evil-collection-init))
+  (evil-collection-init)
+  ;; TAB endast för prog-mode (så vertico, magit etc. behåller sina bindningar)
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (evil-local-set-key 'insert (kbd "TAB") 'indent-for-tab-command)
+              (evil-local-set-key 'insert (kbd "<tab>") 'indent-for-tab-command)
+              (evil-local-set-key 'normal (kbd "TAB") 'indent-for-tab-command)
+              (evil-local-set-key 'normal (kbd "<tab>") 'indent-for-tab-command)
+              (evil-local-set-key 'visual (kbd "TAB") 'indent-for-tab-command)
+              (evil-local-set-key 'visual (kbd "<tab>") 'indent-for-tab-command))))
 
 ;; (use-package evil-mc
-;;   :hook (evil-mode . global-evil-mc-mode)
+;;   :hook (evil-mode . bal-evil-mc-mode)
 ;;   :bind (
 ;;          ("C-M-e" . evil-mc-make-all-cursors)
 ;;          ("C-M-n" . evil-mc-make-and-goto-next-match)
@@ -285,31 +307,73 @@
 (use-package pulsar
   :hook (after-init . pulsar-global-mode)
   :config
-  (setq pulsar-pulse t
-        pulsar-delay 0.035
-        pulsar-iterations 12
-        pulsar-face 'pulsar-cyan
-        pulsar-highlight-face 'evil-ex-lazy-highlight
-        pulsar-pulse-functions '(
-                                 evil-yank
-                                 evil-yank-line
-                                 evil-delete
-                                 evil-delete-line
-                                 evil-jump-item
-                                 evil-scroll-down
-                                 evil-scroll-up
-                                 evil-scroll-page-down
-                                 evil-scroll-page-up
-                                 evil-scroll-line-down
-                                 evil-scroll-line-up
-                                 evil-window-up
-                                 evil-window-rotate-upwards
-                                 evil-window-rotate-downwards
-                                 evil-window-down
-                                 evil-window-left
-                                 evil-window-right
-                                 evil-window-vsplit
-                                 evil-window-split)))
+  (setopt pulsar-pulse t
+          pulsar-delay 0.055
+          pulsar-iterations 12
+          pulsar-face 'pulsar-cyan
+          pulsar-highlight-face 'pulsar-yellow
+          pulsar-pulse-functions '(ace-window
+                                   backward-page
+                                   bookmark-jump
+                                   consult--jump
+                                   delete-other-windows
+                                   delete-window
+                                   evil-delete
+                                   evil-delete-line
+                                   evil-jump-item
+                                   evil-scroll-down
+                                   evil-scroll-line-down
+                                   evil-scroll-line-up
+                                   evil-scroll-page-down
+                                   evil-scroll-page-up
+                                   evil-scroll-up
+                                   evil-window-down
+                                   evil-window-left
+                                   evil-window-right
+                                   evil-window-rotate-downwards
+                                   evil-window-rotate-upwards
+                                   evil-window-split
+                                   evil-window-up
+                                   evil-window-vsplit
+                                   evil-yank
+                                   evil-yank-line
+                                   forward-page
+                                   goto-char
+                                   handle-switch-frame
+                                   move-to-window-line-top-bottom
+                                   next-buffer
+                                   org-backward-heading-same-level
+                                   org-forward-heading-same-level
+                                   org-next-visible-heading
+                                   org-previous-visible-heading
+                                   other-window
+                                   outline-backward-same-level
+                                   outline-forward-same-level
+                                   outline-next-visible-heading
+                                   outline-previous-visible-heading
+                                   outline-up-heading
+                                   previous-buffer
+                                   recenter
+                                   recenter-top-bottom
+                                   reposition-window
+                                   scroll-down-command
+                                   scroll-up-command
+                                   switch-to-buffer
+                                   switch-to-buffer-other-frame
+                                   switch-to-buffer-other-tab
+                                   switch-to-buffer-other-window
+                                   tab-close
+                                   tab-new
+                                   tab-next
+                                   windmove-down
+                                   windmove-left
+                                   windmove-right
+                                   windmove-swap-states-down
+                                   windmove-swap-states-left
+                                   windmove-swap-states-right
+                                   windmove-swap-states-up
+                                   windmove-up
+                                   )))
 
 ;; (defun my/recenter-after-jump (&rest _)
 ;;   "Centrera fönstret efter hoppkommandon i Evil."

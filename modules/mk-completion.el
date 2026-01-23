@@ -25,7 +25,7 @@
                    "  ")
                  cand)))
   (setq vertico-resize t
-        vertico-count 13
+        vertico-count 15
         vertico-cycle t))
 
 (use-package vertico-posframe
@@ -34,16 +34,18 @@
   :config
   (setq vertico-posframe-poshandler #'posframe-poshandler-frame-center
         vertico-posframe-min-height 2
-        vertico-posframe-truncate-lines t
+        vertico-posframe-truncate-lines nil
         vertico-posframe-min-width 120
         vertico-posframe-border-width 20
-        vertico-posframe-parameters '((alpha . 0.9)))
+        vertico-posframe-parameters '((alpha . 1.0)))
   (setq vertico-multiform-commands
         '((consult-line (:not posframe))
           (xref-find-references (:not posframe))
           (consult-eglot-symbols (:not posframe))
           (consult-ripgrep (:not posframe))
+          (isearch-consult-line (:not posframe))
           (consult-org-heading (:not posframe))
+          (mk/project-search-from-isearch (:not posframe))
           (consult-xref (:not posframe))
           (t posframe)))
   (vertico-multiform-mode)
@@ -52,16 +54,39 @@
 (custom-set-faces
  '(vertico-posframe-border ((t (:inherit vertico-posframe)))))
 
+(defun my/vertico-highlight-filename ()
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when-let* ((line (thing-at-point 'line t))
+                  (end (string-match "/[^/]+$" line)))
+        (add-face-text-property (line-beginning-position)
+                                (+ (line-beginning-position) end)
+                                'shadow nil))
+      (forward-line 1))))
+
+(advice-add 'vertico--display-candidates :after
+            (lambda (&rest _)
+              (when (eq this-command 'project-find-file)
+                (my/vertico-highlight-filename))))
+
 (use-package marginalia
   :ensure t
   :after (vertico vertico-posframe)
   :config
-  (marginalia-mode))
+  (marginalia-mode)
+  (setopt marginalia--ellipsis "…"
+          marginalia-align 'left
+          marginalia-align-offset -1)
+  (add-to-list 'marginalia-command-categories
+               '(project-find-file . project-file))
+  (add-to-list 'marginalia-annotators
+               '(project-file none)))
 
 (use-package vertico-directory
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
-  :commands (find-file)
+  :after vertico
   :ensure nil
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
   :bind (:map vertico-map
               ("<tab>" . vertico-directory-enter)
               ("DEL" . vertico-directory-delete-char)
@@ -93,6 +118,7 @@
    ("C-c m b" . #'consult-imenu)
    ("C-<tab>" . #'consult-project-buffer)
    ("M-R" . #'consult-recent-file)
+   ("M-o" . #'consult-preview-at-point)
    :map isearch-mode-map
    ("C-M-e" . #'consult-isearch-history)
    ("M-s e" . #'consult-isearch-history)
@@ -105,12 +131,11 @@
         xref-show-definitions-function #'consult-xref)
   (advice-add #'register-preview :override #'consult-register-window)
   :config
+  (setq consult-path 'project)
   (consult-customize
    consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
    :preview-key '(:debounce 0.4 any))
   (setq consult-narrow-key "<"))
 
@@ -130,9 +155,14 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-;; (with-eval-after-load 'vertico
-;;   (define-key evil-insert-state-map (kbd "<tab>") #'vertico-directory-enter)
-;;   (define-key evil-insert-state-map (kbd "DEL") #'vertico-directory-delete-char))
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless))
+  (completions-detailed t)
+  (completion-ignore-case t)
+  (completions-format 'one-column)
+  (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (provide 'mk-completion)
 ;;; mk-completion.el ends here

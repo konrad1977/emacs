@@ -59,6 +59,9 @@ Accepts keyword arguments from xcode-project-notify:
   :bind
   (:map swift-ts-mode-map
         ("C-c t s" . #'swift-ts:split-func-list))
+  :hook (swift-ts-mode . (lambda ()
+                           (setq-local tab-width 4)
+                           (setq-local indent-tabs-mode nil)))
   :custom
   (swift-ts-basic-offset 4)
   (swift-ts:indent-trailing-call-member t))

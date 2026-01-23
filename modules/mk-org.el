@@ -118,12 +118,11 @@ SOUND is the sound specification to play."
         org-fold-catch-invisible-edits 'show-and-error
         org-special-ctrl-a/e t
         org-insert-heading-respect-content t
-        org-hide-emphasis-markers nil
         org-modern-block-name t
         org-ellipsis "…"))
 
 (use-package olivetti
-  :hook ((org-mode . olivetti-mode))
+  :hook (((org-mode markdown-ts-mode). olivetti-mode))
   :custom
   (olivetti-style t)
   (olivetti-body-width 120)
@@ -131,7 +130,8 @@ SOUND is the sound specification to play."
 
 (use-package org-gtd
   :ensure t
-  :demand t
+  :after org
+  :defer t
   :init
   (require 'org)  ;; Must load org before org-gtd
   (setq org-gtd-update-ack "4.0.5")

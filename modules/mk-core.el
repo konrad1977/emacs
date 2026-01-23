@@ -60,22 +60,24 @@
     (let ((default-directory dir))
       (normal-top-level-add-subdirs-to-load-path))))
 
-(let ((paths '("/opt/homebrew/bin"
-               "/opt/homebrew/sbin"
-               "/usr/local/bin"
-               "/System/Cryptexes/App/usr/bin"
-               "/usr/bin"
-               "/bin"
-               "/usr/sbin"
-               "/Library/TeX/texbin"
-               "/sbin"
-               "~/.local/bin"
-               "~/.nvm/versions/node/v22.11.0/bin"
-               "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
-               "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
-               "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin")))
-  (setenv "PATH" (string-join paths ":"))
-  (setq exec-path paths))
+(let* ((paths '("/Users/mikaelkonradsson/.ghcup/bin"
+                "/opt/homebrew/bin"
+                "/opt/homebrew/sbin"
+                "/usr/local/bin"
+                "/System/Cryptexes/App/usr/bin"
+                "/usr/bin"
+                "/bin"
+                "/usr/sbin"
+                "/Library/TeX/texbin"
+                "/sbin"
+                "~/.local/bin"
+                "~/.nvm/versions/node/v22.11.0/bin"
+                "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+                "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+                "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"))
+       (expanded-paths (mapcar #'expand-file-name paths)))
+  (setenv "PATH" (string-join expanded-paths ":"))
+  (setq exec-path expanded-paths))
 
 (global-unset-key (kbd "C-<wheel-up>"))
 (global-unset-key (kbd "C-<wheel-down>"))

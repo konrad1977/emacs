@@ -115,9 +115,9 @@
 
 (use-package highlight-symbol
   :defer t
-  :config
-  (setopt highlight-symbol-idle-delay 0.8
-          highlight-symbol-highlight-single-occurrence nil))
+  :custom
+  (highlight-symbol-idle-delay 0.8)
+  (highlight-symbol-highlight-single-occurrence nil))
 
 (use-package flycheck
   :ensure t
@@ -130,15 +130,12 @@
   :config
   (add-to-list 'flycheck-checkers 'javascript-eslint)
   (flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
-  ;; (setq-default flycheck-indication-mode 'left-margin)
   ;; (add-hook 'flycheck-mode-hook #'flycheck-set-indication-mode)
   :custom
-  (setq flycheck-check-syntax-automatically
-        '(save mode-enabled idle-change)
-        flycheck-idle-change-delay 1.0
-        flycheck-idle-buffer-switch-delay 1.0
-        flycheck-checker-cache "~/.flycheck-cache"
-        flycheck-indication-mode nil)
+  (flycheck-check-syntax-automatically '(save mode-enabled idle-change))
+  (flycheck-idle-change-delay 1.0)
+  (flycheck-idle-buffer-switch-delay 1.0)
+  (flycheck-indication-mode nil)
   (flycheck-checker-error-threshold 100))
 
 
@@ -153,28 +150,29 @@
 (use-package dumb-jump
   :ensure t
   :defer t
+  :custom
+  (dumb-jump-window 'other)
+  (dumb-jump-quiet t)
   :config
   (put 'dumb-jump-go 'byte-obsolete-info nil)
-  (setq dumb-jump-window 'current
-        dumb-jump-quiet t
-        xref-show-definitions-function #'xref-show-definitions-completing-read)
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+  (setopt xref-show-definitions-function #'xref-show-definitions-completing-read))
 
 (use-package hl-todo
   :ensure t
   :defer t
-  :config
-  (setq hl-todo-highlight-punctuation ":"
-        hl-todo-keyword-faces
-        '(("TODO"   . "#1E90FF")
-          ("FIXME"  . "#FF4500")
-          ("DEBUG"  . "#A020F0")
-          ("GOTCHA" . "#FF8C00")
-          ("STUB"   . "#1E90FF")
-          ("MARK"   . "#777777")
-          ("NOTE"   . "#00CED1")
-          ("HACK"   . "#FF0000")
-          ("REVIEW" . "#ADFF2F"))))
+  :custom
+  (hl-todo-highlight-punctuation ":")
+  (hl-todo-keyword-faces
+   '(("TODO"   . "#1E90FF")
+     ("FIXME"  . "#FF4500")
+     ("DEBUG"  . "#A020F0")
+     ("GOTCHA" . "#FF8C00")
+     ("STUB"   . "#1E90FF")
+     ("MARK"   . "#777777")
+     ("NOTE"   . "#00CED1")
+     ("HACK"   . "#FF0000")
+     ("REVIEW" . "#ADFF2F"))))
 
 (use-package expand-region
   :defer t
@@ -232,7 +230,8 @@
   :defer t
   :ensure nil
   :config
-  (setopt project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
+  (setopt project-files-relative-names t
+          project-vc-ignores '(".git/" ".direnv/" "node_modules/" "dist/" ".*"))
   (add-hook 'project-find-functions #'project-root-override))
 
 (use-package compile
@@ -243,7 +242,6 @@
   (compilation-always-kill t)
   (compilation-auto-jump-to-first-error t)
   (compilation-ask-about-save nil)
-  (compilation-skip-threshold 1)
   (compilation-scroll-output 'all)
   (compilation-highlight-overlay t)
   (compilation-environment '("TERM=dumb" "TERM=xterm-256color"))
@@ -353,7 +351,20 @@ Only scrolls if compilation window is visible."
 (use-package flyover
   :ensure nil
   :hook ((flycheck-mode . flyover-mode))
-  :config (add-hook 'flycheck-mode-hook #'flyover-mode)
+  :config
+  (add-hook 'flycheck-mode-hook #'flyover-mode)
+  ;; (set-face-attribute 'flyover-info nil
+  ;;                     :foreground "Cyan1"
+  ;;                     :background "Cyan4")
+
+  ;; (set-face-attribute 'flyover-warning nil
+  ;;                     :foreground "black"
+  ;;                     :background "yellow")
+
+  ;; ;; Red background with white text for errors
+  ;; (set-face-attribute 'flyover-error nil
+  ;;                     :foreground "red"
+  ;;                     :background "red4")
   :custom
   ;; Checker settings
   (flyover-checkers '(flymake flycheck))
@@ -363,19 +374,28 @@ Only scrolls if compilation window is visible."
 
   ;; Appearance
   (flyover-use-theme-colors t)
-  (flyover-background-lightness 45)
-  (flyover-percent-darker 40)
+  (flyover-background-lightness 40)
+
+  (flyover-icon-background-tint 'darker)
+  (flyover-icon-background-tint-percent 40)
+
+  (flyover-icon-tint 'lighter)
+  (flyover-icon-tint-percent 50)
+
   (flyover-text-tint 'lighter)
-  (flyover-text-tint-percent 50)
+  (flyover-text-tint-percent 80)
+
+  ;; Padding
+  (flyover-icon-left-padding 0.55)
 
   ;; Border styles: none, pill, arrow, slant, slant-inv, flames, pixels
-  (flyover-border-style 'slant)
+  (flyover-border-style 'pill)
   (flyover-border-match-icon t)
 
   ;; Display settings
   (flyover-hide-checker-name t)
   (flyover-show-virtual-line t)
-  (flyover-virtual-line-type 'curved-dotted-arrow)
+  (flyover-virtual-line-type 'none)
   (flyover-line-position-offset 1)
   (flyover-show-error-id t)
 
@@ -447,18 +467,22 @@ A prefix argument will not filter project buffers."
          (prog-mode . display-line-numbers-mode)
          (prog-mode . indent-bars-mode)
          (prog-mode . global-ligature-mode)
-         (prog-mode . global-prettify-symbols-mode))
-  :config
-  (setopt display-line-numbers-widen t
-          display-line-numbers-type 'relative
-          display-line-numbers-width 4))
+         (prog-mode . global-prettify-symbols-mode)
+         ;; Default tab-width 4 för alla programmeringsspråk
+         (prog-mode . (lambda ()
+                        (setq-local tab-width 4)
+                        (setq-local indent-tabs-mode nil))))
+  :custom
+  (display-line-numbers-widen t)
+  (display-line-numbers-type 'relative)
+  (display-line-numbers-width 4))
 
 
 (use-package treesit
   :ensure nil
   :defer t
-  :config
-  (setopt treesit-font-lock-level 4))
+  :custom
+  (treesit-font-lock-level 4))
 
 ;;; Provide
 (provide 'mk-development)
